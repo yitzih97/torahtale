@@ -13,7 +13,7 @@ function FloatingBook() {
 
   return (
     <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.8}>
-      <group ref={meshRef}>
+      <group ref={groupRef}>
         {/* Book cover */}
         <mesh position={[0, 0, 0.06]}>
           <boxGeometry args={[1.6, 2.1, 0.08]} />
