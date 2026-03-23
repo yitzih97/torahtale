@@ -10,22 +10,22 @@ const steps = [
   {
     icon: UserRound,
     number: "01",
-    title: "Tell Us About Your Hero",
-    description: "Share their name, age, and a photo. They become the star of an ancient story.",
+    title: "Tell Us About Your Child",
+    description: "Share their name, age, and a photo. They become the star of a timeless Torah story.",
     accent: "bg-accent/10 text-accent",
   },
   {
     icon: Wand2,
     number: "02",
     title: "AI Writes & Illustrates",
-    description: "Gemini Pro crafts the narrative. Nano Banana 2 paints every page in your chosen style.",
+    description: "Our AI crafts the narrative and paints every page in beautiful 3D Pixar style — all tznius and age-appropriate.",
     accent: "bg-primary/10 text-primary",
   },
   {
     icon: Truck,
     number: "03",
     title: "Printed & Shipped",
-    description: "A gorgeous hardcover arrives at your door — 32 pages of personalized wonder.",
+    description: "A gorgeous hardcover arrives at your door — a personalized Torah sefer your family will treasure.",
     accent: "bg-accent/10 text-accent",
   },
 ];

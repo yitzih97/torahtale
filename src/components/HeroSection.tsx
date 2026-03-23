@@ -10,16 +10,16 @@ const BookFlipAnimation = lazy(() =>
 const ease = [0.16, 1, 0.3, 1];
 
 const HERO_SLIDES = [
-  { headline: ["In the Beginning,", "God Created the World."], description: "Your child walks through the Garden of Eden, naming the animals alongside Adam and Eve." },
-  { headline: ["Noah Built the Ark,", "Your Child Sailed Along."], description: "Gathering animals two by two and riding the storm to a rainbow of promise." },
-  { headline: ["A Tower Rose High,", "But Words Fell Apart."], description: "The people tried to reach the heavens — your child learns why unity and humility matter." },
-  { headline: ["Abraham Looked Up,", "And Counted the Stars."], description: "A promise as vast as the night sky — your child inherits the covenant of faith." },
-  { headline: ["Joseph's Coat Shone,", "With Colors of Dreams."], description: "From a pit to a palace, your child journeys with Joseph through forgiveness and triumph." },
-  { headline: ["A Baby in a Basket,", "Floated Down the Nile."], description: "Moses's journey begins — your child witnesses the moment that changed history forever." },
-  { headline: ["The Sea Split Open,", "And Freedom Walked Through."], description: "Walls of water tower high as your child crosses to freedom with the Israelites." },
-  { headline: ["Thunder on the Mountain,", "Laws Carved in Stone."], description: "Your child stands at Sinai as the Ten Commandments light up the sky." },
-  { headline: ["A Sling, a Stone,", "A Giant Falls."], description: "David's courage proves that the smallest hero can change the world — just like your child." },
-  { headline: ["Swallowed by a Whale,", "But Never Lost Hope."], description: "Inside the belly of the great fish, Jonah finds his purpose — and your child finds theirs." },
+  { headline: ["Bereishis —", "Hashem Created the World."], description: "Your child walks through Gan Eden, discovering Hashem's beautiful creations alongside Adam and Chava." },
+  { headline: ["Noach Built the Teivah,", "Your Child Sailed Along."], description: "Gathering animals two by two and riding the mabul to a keshet shining with Hashem's promise." },
+  { headline: ["A Tower Rose High,", "But Lashon Was Confused."], description: "The Dor Haflagah tried to reach shamayim — your child learns why achdus and anava matter." },
+  { headline: ["Avraham Looked Up,", "And Counted the Stars."], description: "A havtacha as vast as the night sky — your child inherits the bris of emunah." },
+  { headline: ["Yosef's Coat Shone,", "With Colors of Dreams."], description: "From a bor to a palace, your child journeys with Yosef HaTzaddik through mechilah and triumph." },
+  { headline: ["A Baby in a Basket,", "Floated Down the Nile."], description: "Moshe Rabbeinu's journey begins — your child witnesses the moment that changed all of history." },
+  { headline: ["The Yam Split Open,", "And Geulah Walked Through."], description: "Walls of water tower high as your child crosses to cheirus with Bnei Yisrael." },
+  { headline: ["Thunder on Har Sinai,", "The Luchos Were Given."], description: "Your child stands at Matan Torah as the Aseres HaDibros light up the sky." },
+  { headline: ["A Sling, a Stone,", "Golyas Falls."], description: "Dovid's bitachon proves that even the smallest person can change the world — just like your child." },
+  { headline: ["Swallowed by a Dag,", "But Never Lost Hope."], description: "Inside the great fish, Yonah HaNavi finds his purpose — and your child finds theirs." },
 ];
 
 interface HeroSectionProps {
@@ -52,7 +52,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           >
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/15 border border-accent/25 text-accent text-xs font-mono tracking-widest uppercase backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              AI-Powered Storytelling
+              AI-Powered Torah Storytelling
             </span>
           </motion.div>
 
@@ -113,7 +113,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           >
             <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow">
               <Sparkles className="w-5 h-5 transition-transform group-hover:rotate-12" />
-              Create Your Book
+              Create Your Sefer
             </Button>
             <span className="text-primary-foreground/50 text-sm font-mono backdrop-blur-sm">
               From $34.99 · Ships in 5 days
@@ -137,7 +137,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               ))}
             </div>
             <div className="text-sm">
-              <span className="text-primary-foreground/90 font-medium">2,847+ families</span>
+              <span className="text-primary-foreground/90 font-medium">2,847+ frum families</span>
               <span className="text-primary-foreground/60"> have created their tale</span>
             </div>
           </motion.div>

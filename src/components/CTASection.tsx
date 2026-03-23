@@ -24,11 +24,11 @@ export const CTASection = ({ onStart }: Props) => (
       >
         <h2 className="text-3xl lg:text-5xl font-bold text-primary leading-tight mb-6" style={{ lineHeight: "1.1" }}>
           Every Child Deserves
-          <br /> to Be the Hero
+          <br /> to Be Part of the Story
         </h2>
         <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-md mx-auto">
-          Create a one-of-a-kind Torah storybook in under 2 minutes.
-          Powered by AI. Printed with love.
+          Create a one-of-a-kind personalized Torah sefer in under 2 minutes.
+          Powered by AI. Printed with ahavas Yisrael.
         </p>
         <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow">
           <Sparkles className="w-5 h-5 transition-transform group-hover:rotate-12" />
