@@ -14,7 +14,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
+      <Navbar onStart={() => setWizardOpen(true)} />
       <HeroSection onStart={() => setWizardOpen(true)} />
       <HowItWorks />
       <GallerySection />

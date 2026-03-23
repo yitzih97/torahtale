@@ -1,7 +1,10 @@
 import { Suspense, lazy, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowDown } from "lucide-react";
+import { Sparkles, ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import heroBoy from "@/assets/hero-boy.png";
+import heroGirl from "@/assets/hero-girl.png";
+import blobShape from "@/assets/blob-shape.png";
 
 const BookFlipAnimation = lazy(() =>
   import("@/components/3d/BookFlipAnimation").then((m) => ({ default: m.BookFlipAnimation }))
@@ -37,127 +40,129 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Full-background book animation */}
-      <Suspense fallback={<div className="absolute inset-0 bg-primary" />}>
+      {/* Background slideshow */}
+      <Suspense fallback={<div className="absolute inset-0 bg-card" />}>
         <BookFlipAnimation onPageChange={handlePageChange} />
       </Suspense>
 
       <div className="container relative z-10 py-24 lg:py-0">
-        <div className="max-w-2xl">
-          <motion.div
-            initial={{ opacity: 0, x: -40, filter: "blur(8px)" }}
-            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-            transition={{ duration: 0.8, ease }}
-            className="mb-6"
-          >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/15 border border-accent/25 text-accent text-xs font-mono tracking-widest uppercase backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              AI-Powered Torah Storytelling
-            </span>
-          </motion.div>
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Left: Text content */}
+          <div className="max-w-xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease }}
+              className="mb-5"
+            >
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent text-xs font-semibold tracking-wide uppercase">
+                <Sparkles className="w-3.5 h-3.5" />
+                AI-Powered Torah Storytelling
+              </span>
+            </motion.div>
 
-          {/* Dynamic headline */}
-          <div className="min-h-[160px] sm:min-h-[180px] lg:min-h-[200px]">
-            <AnimatePresence mode="wait">
-              <motion.h1
-                key={`headline-${activeSlide}`}
-                initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -20, filter: "blur(8px)" }}
-                transition={{ duration: 0.5, ease }}
-                className="text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-6xl font-bold leading-[1.08] tracking-tight text-primary-foreground drop-shadow-lg"
-              >
-                {slide.headline[0]}
-                <br />
-                <span className="text-accent">{slide.headline[1]}</span>
-              </motion.h1>
-            </AnimatePresence>
-          </div>
+            {/* Dynamic headline */}
+            <div className="min-h-[140px] sm:min-h-[160px] lg:min-h-[180px]">
+              <AnimatePresence mode="wait">
+                <motion.h1
+                  key={`headline-${activeSlide}`}
+                  initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -15, filter: "blur(6px)" }}
+                  transition={{ duration: 0.5, ease }}
+                  className="text-4xl sm:text-5xl lg:text-[3.2rem] font-bold leading-[1.1] tracking-tight text-primary-foreground"
+                >
+                  {slide.headline[0]}
+                  <br />
+                  <span className="text-accent">{slide.headline[1]}</span>
+                </motion.h1>
+              </AnimatePresence>
+            </div>
 
-          {/* Dynamic description */}
-          <div className="min-h-[80px] mt-6">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={`desc-${activeSlide}`}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.4, delay: 0.1, ease }}
-                className="text-lg text-primary-foreground/80 max-w-lg leading-relaxed drop-shadow-md"
-              >
-                {slide.description}
-              </motion.p>
-            </AnimatePresence>
-          </div>
+            {/* Dynamic description */}
+            <div className="min-h-[70px] mt-4">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={`desc-${activeSlide}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.4, delay: 0.1, ease }}
+                  className="text-base lg:text-lg text-primary-foreground/75 max-w-md leading-relaxed"
+                >
+                  {slide.description}
+                </motion.p>
+              </AnimatePresence>
+            </div>
 
-          {/* Page indicators */}
-          <div className="flex gap-1.5 mt-8">
-            {HERO_SLIDES.map((_, i) => (
-              <div
-                key={i}
-                className="h-1 rounded-full transition-all duration-500"
-                style={{
-                  width: i === activeSlide ? 32 : 8,
-                  background: i === activeSlide ? "hsl(var(--accent))" : "hsl(var(--primary-foreground) / 0.3)",
-                  boxShadow: i === activeSlide ? "0 0 8px hsl(var(--accent) / 0.6)" : "none",
-                }}
-              />
-            ))}
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5, ease }}
-            className="mt-10 flex flex-wrap items-center gap-4"
-          >
-            <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow">
-              <Sparkles className="w-5 h-5 transition-transform group-hover:rotate-12" />
-              Create Your Sefer
-            </Button>
-            <span className="text-primary-foreground/50 text-sm font-mono backdrop-blur-sm">
-              From $34.99 · Ships in 5 days
-            </span>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2, duration: 0.8 }}
-            className="mt-16 flex items-center gap-4"
-          >
-            <div className="flex -space-x-3">
-              {["S", "D", "M", "R"].map((initial, i) => (
+            {/* Page indicators */}
+            <div className="flex gap-1.5 mt-6">
+              {HERO_SLIDES.map((_, i) => (
                 <div
                   key={i}
-                  className="w-9 h-9 rounded-full border-2 border-primary bg-accent/20 flex items-center justify-center text-xs font-semibold text-accent backdrop-blur-sm"
-                >
-                  {initial}
-                </div>
+                  className="h-1 rounded-full transition-all duration-500"
+                  style={{
+                    width: i === activeSlide ? 28 : 6,
+                    background: i === activeSlide ? "hsl(var(--accent))" : "hsl(var(--primary-foreground) / 0.25)",
+                  }}
+                />
               ))}
             </div>
-            <div className="text-sm">
-              <span className="text-primary-foreground/90 font-medium">2,847+ frum families</span>
-              <span className="text-primary-foreground/60"> have created their tale</span>
-            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease }}
+              className="mt-8 flex flex-wrap items-center gap-4"
+            >
+              <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow rounded-full">
+                Create Your Sefer
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+              <span className="text-primary-foreground/50 text-sm">
+                From $34.99 · Ships in 5 days
+              </span>
+            </motion.div>
+
+            {/* Social proof */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
+              className="mt-10 flex items-center gap-3"
+            >
+              <div className="flex -space-x-2">
+                {["S", "D", "M", "R"].map((initial, i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-full border-2 border-background bg-accent/20 flex items-center justify-center text-[10px] font-semibold text-accent backdrop-blur-sm"
+                  >
+                    {initial}
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-1">
+                {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 fill-accent text-accent" />)}
+              </div>
+              <span className="text-sm text-primary-foreground/70">
+                <strong className="text-primary-foreground/90">2,847+</strong> frum families
+              </span>
+            </motion.div>
+          </div>
+
+          {/* Right: Character illustrations (visible on lg+) */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.3, ease }}
+            className="hidden lg:flex items-center justify-center relative"
+          >
+            <img src={blobShape} alt="" className="absolute w-[500px] h-[500px] opacity-20 pointer-events-none" />
+            <img src={heroBoy} alt="Orthodox Jewish boy character" className="w-56 -mr-8 relative z-10 drop-shadow-2xl" />
+            <img src={heroGirl} alt="Orthodox Jewish girl character" className="w-52 -ml-8 mt-12 relative z-20 drop-shadow-2xl" />
           </motion.div>
         </div>
       </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ArrowDown className="w-5 h-5 text-primary-foreground/30" />
-        </motion.div>
-      </motion.div>
     </section>
   );
 };

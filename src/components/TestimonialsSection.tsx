@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { Star, Quote } from "lucide-react";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -28,21 +28,20 @@ const testimonials = [
 ];
 
 export const TestimonialsSection = () => (
-  <section className="py-28 lg:py-40 bg-card overflow-hidden">
-    <div className="container">
+  <section id="testimonials" className="py-24 lg:py-32 bg-background">
+    <div className="container max-w-5xl mx-auto">
       <motion.div
-        initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
-        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.7, ease }}
-        className="text-center mb-20"
+        className="text-center mb-16"
       >
-        <span className="font-mono text-xs tracking-widest text-accent uppercase block mb-4">
-          What Parents Say
-        </span>
-        <h2 className="text-3xl lg:text-5xl font-bold text-primary" style={{ lineHeight: "1.1" }}>
+        <span className="text-sm font-semibold text-accent mb-3 block">What Parents Say</span>
+        <h2 className="text-3xl lg:text-5xl font-bold text-foreground leading-tight">
           Loved at Bedtime,
-          <br className="hidden sm:block" /> Treasured L'Doros
+          <br />
+          Treasured L'Doros
         </h2>
       </motion.div>
 
@@ -50,24 +49,25 @@ export const TestimonialsSection = () => (
         {testimonials.map((t, i) => (
           <motion.div
             key={t.name}
-            initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: i * 0.1, ease }}
-            className="bg-background rounded-2xl border border-border p-7 flex flex-col"
+            className="bg-card rounded-3xl border border-border p-7 flex flex-col relative"
           >
-            <div className="flex gap-0.5 mb-5">
+            <Quote className="w-8 h-8 text-accent/20 mb-4" />
+            <div className="flex gap-0.5 mb-4">
               {Array.from({ length: t.rating }).map((_, j) => (
                 <Star key={j} className="w-4 h-4 fill-accent text-accent" />
               ))}
             </div>
             <p className="text-foreground leading-relaxed text-[0.95rem] flex-1">"{t.text}"</p>
             <div className="flex items-center gap-3 mt-6 pt-5 border-t border-border">
-              <div className="w-10 h-10 rounded-full bg-accent/15 flex items-center justify-center text-sm font-semibold text-accent">
+              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-sm font-semibold text-accent">
                 {t.initials}
               </div>
               <div>
-                <p className="text-sm font-medium text-primary">{t.name}</p>
+                <p className="text-sm font-semibold text-foreground">{t.name}</p>
                 <p className="text-xs text-muted-foreground">{t.location}</p>
               </div>
             </div>
