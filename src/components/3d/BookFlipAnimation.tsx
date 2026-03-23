@@ -10,7 +10,6 @@ import redSea from "@/assets/torah-red-sea.jpg";
 import tenCommandments from "@/assets/torah-ten-commandments.jpg";
 import davidGoliath from "@/assets/torah-david-goliath.jpg";
 import jonahWhale from "@/assets/torah-jonah-whale.jpg";
-import danielLions from "@/assets/torah-daniel-lions.jpg";
 
 export const PAGES = [
   gardenEden,
@@ -59,10 +58,6 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
           transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1] }}
         />
       </AnimatePresence>
-
-      {/* Dark overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-primary/40" />
-      <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-primary/50" />
     </div>
   );
 };

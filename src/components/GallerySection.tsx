@@ -39,13 +39,13 @@ export const GallerySection = () => (
         transition={{ duration: 0.7, ease }}
         className="text-center mb-16"
       >
-        <span className="text-sm font-semibold text-accent mb-3 block">Real Examples</span>
+        <span className="text-sm font-semibold text-accent mb-3 block tracking-wider uppercase">Real Examples</span>
         <h2 className="text-3xl lg:text-5xl font-bold text-foreground leading-tight">
           Seforim Already Loved
           <br />
           by Frum Families
         </h2>
-        <p className="text-muted-foreground mt-4 max-w-md mx-auto leading-relaxed">
+        <p className="text-muted-foreground mt-4 max-w-md mx-auto leading-relaxed font-body">
           Each sefer is AI-generated with stunning Pixar-quality illustrations unique to your child.
         </p>
       </motion.div>
@@ -58,7 +58,7 @@ export const GallerySection = () => (
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: i * 0.12, ease }}
-            className="group rounded-3xl overflow-hidden bg-background border border-border hover:shadow-lg transition-all duration-500"
+            className="group rounded-3xl overflow-hidden bg-secondary border border-border hover:border-accent/30 hover:shadow-lg transition-all duration-500"
           >
             <div className="aspect-[3/4] overflow-hidden relative">
               <img
@@ -74,7 +74,7 @@ export const GallerySection = () => (
             <div className="p-6">
               <h3 className="font-display text-lg font-semibold text-foreground mb-1">{book.title}</h3>
               <p className="text-xs text-muted-foreground mb-3">{book.portion}</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">{book.description}</p>
+              <p className="text-sm text-muted-foreground font-body leading-relaxed">{book.description}</p>
             </div>
           </motion.div>
         ))}
