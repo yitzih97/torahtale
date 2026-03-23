@@ -26,15 +26,47 @@ const HERO_SLIDES = [
 
 // Walking animation - characters walk in from right and exit to left like walking between story pages
 const boyVariants = {
-  initial: { opacity: 0, x: 120, y: 8 },
-  animate: { opacity: 1, x: 0, y: [8, -4, 8], transition: { y: { duration: 0.6, repeat: 2, ease: "easeInOut" } } },
-  exit: { opacity: 0, x: -100, y: 8 },
+  initial: { opacity: 0, x: 200, rotate: 3 },
+  animate: {
+    opacity: 1,
+    x: 0,
+    rotate: [3, -2, 3, -2, 0],
+    y: [0, -10, 0, -10, 0, -10, 0],
+    transition: {
+      x: { duration: 1.2, ease: [0.16, 1, 0.3, 1] },
+      opacity: { duration: 0.4 },
+      rotate: { duration: 1.2, ease: "easeInOut" },
+      y: { duration: 1.4, ease: "easeInOut" },
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: -180,
+    rotate: -3,
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+  },
 };
 
 const girlVariants = {
-  initial: { opacity: 0, x: 140, y: 12 },
-  animate: { opacity: 1, x: 10, y: [12, -2, 12], transition: { y: { duration: 0.55, repeat: 2, ease: "easeInOut" } } },
-  exit: { opacity: 0, x: -80, y: 12 },
+  initial: { opacity: 0, x: 220, rotate: -2 },
+  animate: {
+    opacity: 1,
+    x: 10,
+    rotate: [-2, 2, -2, 2, 0],
+    y: [0, -8, 0, -8, 0, -8, 0],
+    transition: {
+      x: { duration: 1.3, ease: [0.16, 1, 0.3, 1], delay: 0.15 },
+      opacity: { duration: 0.4, delay: 0.15 },
+      rotate: { duration: 1.3, ease: "easeInOut", delay: 0.15 },
+      y: { duration: 1.5, ease: "easeInOut", delay: 0.15 },
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: -150,
+    rotate: 2,
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+  },
 };
 
 interface HeroSectionProps {
