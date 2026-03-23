@@ -94,9 +94,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-background/60" />
 
       <div className="container relative z-10 py-24 lg:py-0">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Left: Text content */}
-          <div className="max-w-xl">
+        <div className="flex items-center justify-center">
+          <div className="max-w-2xl text-center mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -198,59 +197,6 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             </motion.div>
           </div>
 
-          {/* Right: Animated character illustrations (visible on lg+) */}
-          <div className="hidden lg:flex items-end justify-center relative h-[500px]">
-            {/* Glowing orb behind characters */}
-            <div className="absolute w-80 h-80 rounded-full bg-primary/20 blur-[80px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute w-48 h-48 rounded-full bg-accent/15 blur-[60px] top-1/3 left-1/2 -translate-x-1/4 -translate-y-1/2" />
-
-            {/* Animated boy - triggers on each slide */}
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={`boy-${activeSlide}`}
-                src={heroBoy}
-                alt="Orthodox Jewish boy character"
-                className="w-36 relative z-10 drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
-                variants={boyVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.8, ease, delay: 0.1 }}
-              />
-            </AnimatePresence>
-
-            {/* Animated girl - triggers on each slide */}
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={`girl-${activeSlide}`}
-                src={heroGirl}
-                alt="Orthodox Jewish girl character"
-                className="w-32 -ml-6 mt-4 relative z-20 drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
-                variants={girlVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.8, ease, delay: 0.25 }}
-              />
-            </AnimatePresence>
-
-            {/* Floating sparkle particles */}
-            <motion.div
-              className="absolute top-10 right-10 w-3 h-3 rounded-full bg-accent/60"
-              animate={{ y: [0, -15, 0], opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div
-              className="absolute top-32 right-24 w-2 h-2 rounded-full bg-accent/40"
-              animate={{ y: [0, -10, 0], opacity: [0.3, 0.8, 0.3] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-            />
-            <motion.div
-              className="absolute bottom-20 right-8 w-2.5 h-2.5 rounded-full bg-primary/50"
-              animate={{ y: [0, -12, 0], opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            />
-          </div>
         </div>
       </div>
     </section>
