@@ -49,7 +49,7 @@ function FloatingBook() {
 }
 
 function GoldenOrbs() {
-  const orbsRef = useRef<THREE.Group>(null!);
+  const orbsRef = useRef<THREE.Group>(null!) as React.MutableRefObject<THREE.Group>;
   const positions = useMemo(() =>
     Array.from({ length: 6 }, () => [
       (Math.random() - 0.5) * 5,
