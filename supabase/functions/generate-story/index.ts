@@ -10,25 +10,29 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { childName, age, gender, torahPortion, torahPortionLabel, artStyle, language, pageCount } = await req.json();
+    const { childName, childrenInfo, age, gender, torahPortion, torahPortionLabel, artStyle, language, pageCount } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are a world-class children's book author who specializes in Jewish stories. You write warm, engaging, age-appropriate stories that weave Torah wisdom into magical adventures. The stories should be vivid, imaginative, and make the child the hero of the narrative.`;
+    const pages = Math.min(Math.max(pageCount || 4, 2), 10);
 
-    const userPrompt = `Write a ${pageCount || 4}-page personalized children's book story.
+    const systemPrompt = `You are a world-class children's book author who specializes in Jewish stories. You write warm, engaging, age-appropriate stories that weave Torah wisdom into magical adventures. The stories should be vivid, imaginative, and make the children the heroes of the narrative.`;
+
+    const characterDesc = childrenInfo
+      ? `Characters: ${childrenInfo}`
+      : `Main character: ${childName}, ${age} years old, ${gender}`;
+
+    const userPrompt = `Write a ${pages}-page personalized children's book story.
 
 Details:
-- Child's name: ${childName}
-- Age: ${age} years old
-- Gender: ${gender}
+- ${characterDesc}
 - Torah Portion / Holiday: ${torahPortionLabel} (${torahPortion})
 - Art Style: ${artStyle}
 - Language: ${language}
 
 Requirements:
-- Make ${childName} the main character and hero of the story
+- Make the children the main characters and heroes of the story
 - Each page should be 2-3 sentences, appropriate for a ${age}-year-old
 - Weave the Torah portion's key themes naturally into the adventure
 - End with a warm, uplifting moral
@@ -101,18 +105,17 @@ Return a JSON array of objects with "page" (number) and "text" (the story text f
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    let pages;
+    let storyPages;
 
     if (toolCall) {
-      pages = JSON.parse(toolCall.function.arguments).pages;
+      storyPages = JSON.parse(toolCall.function.arguments).pages;
     } else {
-      // Fallback: try to parse content as JSON
       const content = data.choices?.[0]?.message?.content || "[]";
       const match = content.match(/\[[\s\S]*\]/);
-      pages = match ? JSON.parse(match[0]) : [];
+      storyPages = match ? JSON.parse(match[0]) : [];
     }
 
-    return new Response(JSON.stringify({ pages }), {
+    return new Response(JSON.stringify({ pages: storyPages }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
