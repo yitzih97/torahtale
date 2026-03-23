@@ -23,9 +23,14 @@ export const Navbar = () => {
           <BookOpen className="w-6 h-6 text-gold" />
           <span className="font-display text-xl font-bold tracking-tight">MyTorahTale</span>
         </a>
-        <a href="/admin" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-          Admin
-        </a>
+        <div className="flex items-center gap-6">
+          <a href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">
+            Dashboard
+          </a>
+          <a href="/admin" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Admin
+          </a>
+        </div>
       </div>
     </nav>
   );
