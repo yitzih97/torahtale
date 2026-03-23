@@ -34,7 +34,7 @@ export const HowItWorks = () => (
         transition={{ duration: 0.7, ease }}
         className="text-center mb-16"
       >
-        <span className="text-sm font-semibold text-accent mb-3 block">How It Works</span>
+        <span className="text-sm font-semibold text-accent mb-3 block tracking-wider uppercase">How It Works</span>
         <h2 className="text-3xl lg:text-5xl font-bold text-foreground leading-tight">
           Three simple steps to a
           <br />
@@ -52,12 +52,12 @@ export const HowItWorks = () => (
             transition={{ duration: 0.5, delay: i * 0.12, ease }}
             className="relative group text-center"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 text-accent mb-5 transition-transform duration-500 group-hover:scale-110">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/30 text-accent mb-5 transition-transform duration-500 group-hover:scale-110 border border-primary/40">
               <step.icon className="w-7 h-7" />
             </div>
-            <div className="text-xs font-bold text-muted-foreground/40 mb-2 tracking-widest">{step.number}</div>
+            <div className="text-xs font-bold text-accent/40 mb-2 tracking-widest">{step.number}</div>
             <h3 className="font-display text-lg font-semibold text-foreground mb-2">{step.title}</h3>
-            <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">{step.description}</p>
+            <p className="text-muted-foreground text-sm font-body leading-relaxed max-w-xs mx-auto">{step.description}</p>
           </motion.div>
         ))}
       </div>

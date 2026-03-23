@@ -37,7 +37,7 @@ export const TestimonialsSection = () => (
         transition={{ duration: 0.7, ease }}
         className="text-center mb-16"
       >
-        <span className="text-sm font-semibold text-accent mb-3 block">What Parents Say</span>
+        <span className="text-sm font-semibold text-accent mb-3 block tracking-wider uppercase">What Parents Say</span>
         <h2 className="text-3xl lg:text-5xl font-bold text-foreground leading-tight">
           Loved at Bedtime,
           <br />
@@ -53,7 +53,7 @@ export const TestimonialsSection = () => (
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: i * 0.1, ease }}
-            className="bg-card rounded-3xl border border-border p-7 flex flex-col relative"
+            className="bg-card rounded-3xl border border-border hover:border-accent/20 p-7 flex flex-col relative transition-colors duration-300"
           >
             <Quote className="w-8 h-8 text-accent/20 mb-4" />
             <div className="flex gap-0.5 mb-4">
@@ -61,9 +61,9 @@ export const TestimonialsSection = () => (
                 <Star key={j} className="w-4 h-4 fill-accent text-accent" />
               ))}
             </div>
-            <p className="text-foreground leading-relaxed text-[0.95rem] flex-1">"{t.text}"</p>
+            <p className="text-foreground/80 font-body leading-relaxed text-[0.95rem] flex-1">"{t.text}"</p>
             <div className="flex items-center gap-3 mt-6 pt-5 border-t border-border">
-              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-sm font-semibold text-accent">
+              <div className="w-10 h-10 rounded-full bg-primary/30 flex items-center justify-center text-sm font-semibold text-accent border border-primary/40">
                 {t.initials}
               </div>
               <div>

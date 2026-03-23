@@ -34,19 +34,19 @@ export const Navbar = ({ onStart }: NavbarProps) => {
         </a>
 
         <div className="hidden md:flex items-center gap-8">
-          <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">
             How It Works
           </a>
-          <a href="#gallery" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <a href="#gallery" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">
             Gallery
           </a>
-          <a href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <a href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">
             Reviews
           </a>
         </div>
 
         <div className="flex items-center gap-3">
-          <a href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+          <a href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors hidden sm:block">
             Dashboard
           </a>
           {onStart && (

@@ -11,25 +11,25 @@ export const Footer = () => (
             </div>
             <span className="font-display text-lg font-bold text-foreground">MyTorahTale</span>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+          <p className="text-sm text-muted-foreground font-body leading-relaxed max-w-xs">
             AI-powered personalized children's seforim rooted in Torah wisdom. A legacy for doros to come.
           </p>
         </div>
 
         <div className="space-y-4">
-          <h4 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Navigate</h4>
+          <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">Navigate</h4>
           <nav className="flex flex-col gap-2.5">
-            <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Home</a>
-            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
-            <a href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Dashboard</a>
+            <a href="/" className="text-sm text-muted-foreground hover:text-accent transition-colors">Home</a>
+            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-accent transition-colors">How It Works</a>
+            <a href="/dashboard" className="text-sm text-muted-foreground hover:text-accent transition-colors">Dashboard</a>
           </nav>
         </div>
 
         <div className="space-y-4">
-          <h4 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Legal</h4>
+          <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">Legal</h4>
           <nav className="flex flex-col gap-2.5">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a>
+            <a href="#" className="text-sm text-muted-foreground hover:text-accent transition-colors">Privacy Policy</a>
+            <a href="#" className="text-sm text-muted-foreground hover:text-accent transition-colors">Terms of Service</a>
           </nav>
         </div>
       </div>
