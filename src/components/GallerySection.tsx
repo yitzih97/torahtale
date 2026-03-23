@@ -12,25 +12,25 @@ const ease = [0.16, 1, 0.3, 1];
 
 const books = [
   {
-    title: "Noah's Incredible Ark",
-    portion: "Parashat Noach",
+    title: "Noach's Incredible Teivah",
+    portion: "Parashas Noach",
     style: "3D Pixar",
     image: storyNoach,
-    description: "Join the animals two by two on the greatest adventure at sea — with a rainbow waiting at the end.",
+    description: "Join the animals two by two on the greatest adventure at sea — with a keshet of Hashem's promise waiting at the end.",
   },
   {
-    title: "Miriam Crosses the Sea",
-    portion: "Parashat Beshalach",
+    title: "Krias Yam Suf",
+    portion: "Parashas Beshalach",
     style: "3D Pixar",
     image: storyBeshalach,
-    description: "Walk between towering walls of water on a golden path to freedom. Courage has never looked so beautiful.",
+    description: "Walk between towering walls of water on a golden path to cheirus. Bnei Yisrael's emunah has never looked so beautiful.",
   },
   {
-    title: "The Garden of Wonders",
-    portion: "Parashat Bereishit",
+    title: "The Wonders of Gan Eden",
+    portion: "Parashas Bereishis",
     style: "3D Pixar",
     image: storyBereishit,
-    description: "Explore a magical garden where every creature is a friend and golden light fills the air with wonder.",
+    description: "Explore Hashem's magnificent garden where every creature is a friend and golden light fills the air with wonder.",
   },
 ];
 
@@ -56,11 +56,11 @@ export const GallerySection = () => (
           Real Examples · 3D Pixar Style
         </span>
         <h2 className="text-3xl lg:text-5xl font-bold text-primary-foreground leading-tight max-w-xl" style={{ lineHeight: "1.1" }}>
-          Stories Already Loved
-          <br /> by Families
+          Seforim Already Loved
+          <br /> by Frum Families
         </h2>
         <p className="text-primary-foreground/50 mt-4 max-w-md leading-relaxed">
-          Each book is AI-generated with stunning Pixar-quality illustrations unique to your child.
+          Each sefer is AI-generated with stunning Pixar-quality illustrations unique to your child.
         </p>
       </motion.div>
 
@@ -80,9 +80,7 @@ export const GallerySection = () => (
                 alt={book.title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              {/* Gradient overlay at bottom of image */}
               <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-primary/80 to-transparent" />
-              {/* Style badge */}
               <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-accent/90 text-xs font-semibold text-primary">
                 {book.style}
               </div>

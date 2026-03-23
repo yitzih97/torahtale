@@ -8,21 +8,21 @@ const testimonials = [
     name: "Talia Ben-Ami",
     location: "Brooklyn, NY",
     initials: "TB",
-    text: "My daughter's face when she saw herself as the hero of the Purim story — I will never forget it. This is more than a book.",
+    text: "My daughter's face when she saw herself as the heroine of the Purim story — I will never forget it. This is more than a sefer, it's a treasure.",
     rating: 5,
   },
   {
     name: "Avi Rosenberg",
-    location: "Boca Raton, FL",
+    location: "Lakewood, NJ",
     initials: "AR",
-    text: "We've subscribed to the Parashah Club. Every Friday night, our son reads his new personalized story at the Shabbat table.",
+    text: "We've subscribed to the Parashah Club. Every Leil Shabbos, our son reads his new personalized story at the Shabbos table. The whole mishpacha loves it.",
     rating: 5,
   },
   {
-    name: "Rachel Katz",
-    location: "Los Angeles, CA",
+    name: "Racheli Katz",
+    location: "Monsey, NY",
     initials: "RK",
-    text: "The 3D Pixar style illustrations are stunning. The AI captured the essence of the Torah portion perfectly for a 5-year-old.",
+    text: "The illustrations are stunning and completely tznius. The AI captured the essence of the parasha perfectly for our 5-year-old. A real kiddush Hashem.",
     rating: 5,
   },
 ];
@@ -42,7 +42,7 @@ export const TestimonialsSection = () => (
         </span>
         <h2 className="text-3xl lg:text-5xl font-bold text-primary" style={{ lineHeight: "1.1" }}>
           Loved at Bedtime,
-          <br className="hidden sm:block" /> Treasured Forever
+          <br className="hidden sm:block" /> Treasured L'Doros
         </h2>
       </motion.div>
 

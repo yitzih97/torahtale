@@ -10,7 +10,7 @@ export const Footer = () => (
             <span className="font-display text-lg font-bold">MyTorahTale</span>
           </div>
           <p className="text-sm text-primary-foreground/50 leading-relaxed max-w-xs">
-            AI-powered personalized children's books rooted in Torah wisdom. A legacy in every page.
+            AI-powered personalized children's seforim rooted in Torah wisdom. A legacy for doros to come.
           </p>
         </div>
 
@@ -34,10 +34,10 @@ export const Footer = () => (
 
       <div className="mt-12 pt-6 border-t border-primary-foreground/10 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="font-mono text-xs text-primary-foreground/30">
-          © {new Date().getFullYear()} MyTorahTale. Made with love.
+          © {new Date().getFullYear()} MyTorahTale. Made with ahavas Yisrael.
         </p>
         <p className="font-mono text-xs text-primary-foreground/30">
-          Powered by Gemini Pro & Nano Banana 2
+          Powered by AI · Inspired by Torah
         </p>
       </div>
     </div>
