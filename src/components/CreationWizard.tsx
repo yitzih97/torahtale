@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Upload, X, Loader2, Check, ShoppingCart } from "lucide-react";
+import { ArrowLeft, ArrowRight, Upload, X, Loader2, Check, ShoppingCart, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -129,7 +129,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         {/* Progress */}
         <div className="h-1 bg-muted">
           <motion.div
-            className="h-full bg-gold"
+            className="h-full bg-accent"
             animate={{ width: `${progressPct}%` }}
             transition={{ duration: 0.5, ease }}
           />
@@ -145,7 +145,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             {step === 1 && (
               <motion.div key="s1" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease }} className="space-y-6">
                 <div>
-                  <span className="font-mono text-xs tracking-widest text-gold uppercase">Step 1 of 5</span>
+                  <span className="font-mono text-xs tracking-widest text-accent uppercase">Step 1 of 5</span>
                   <h2 className="font-display text-2xl font-bold text-primary mt-1">The Hero</h2>
                   <p className="text-muted-foreground text-sm mt-1">Tell us about the star of this story.</p>
                 </div>
@@ -182,7 +182,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <div
                       onDrop={handleDrop}
                       onDragOver={(e) => e.preventDefault()}
-                      className="mt-1 border-2 border-dashed border-border rounded-book p-6 text-center cursor-pointer hover:border-gold transition-colors relative"
+                      className="mt-1 border-2 border-dashed border-border rounded-book p-6 text-center cursor-pointer hover:border-accent transition-colors relative"
                     >
                       {data.photoPreview ? (
                         <div className="flex flex-col items-center gap-2">
@@ -205,7 +205,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             {step === 2 && (
               <motion.div key="s2" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease }} className="space-y-6">
                 <div>
-                  <span className="font-mono text-xs tracking-widest text-gold uppercase">Step 2 of 5</span>
+                  <span className="font-mono text-xs tracking-widest text-accent uppercase">Step 2 of 5</span>
                   <h2 className="font-display text-2xl font-bold text-primary mt-1">The Journey</h2>
                   <p className="text-muted-foreground text-sm mt-1">Which Torah portion will {data.childName || "your child"} explore?</p>
                 </div>
@@ -219,8 +219,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       onClick={() => update({ torahPortion: p.value })}
                       className={`p-4 rounded-book border-2 text-left transition-all duration-300 active:scale-[0.98] ${
                         data.torahPortion === p.value
-                          ? "border-gold bg-gold/5 shadow-soft-sm"
-                          : "border-border hover:border-gold/40"
+                          ? "border-accent bg-accent/5 shadow-soft-sm"
+                          : "border-border hover:border-accent/40"
                       }`}
                     >
                       <span className="font-display text-lg font-semibold text-primary">{p.label}</span>
@@ -234,7 +234,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             {step === 3 && (
               <motion.div key="s3" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease }} className="space-y-6">
                 <div>
-                  <span className="font-mono text-xs tracking-widest text-gold uppercase">Step 3 of 5</span>
+                  <span className="font-mono text-xs tracking-widest text-accent uppercase">Step 3 of 5</span>
                   <h2 className="font-display text-2xl font-bold text-primary mt-1">The Magic</h2>
                   <p className="text-muted-foreground text-sm mt-1">Choose the look and language of your book.</p>
                 </div>
@@ -247,7 +247,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           key={s}
                           onClick={() => update({ artStyle: s })}
                           className={`p-3 rounded-book border-2 text-center transition-all duration-300 active:scale-[0.97] ${
-                            data.artStyle === s ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
+                            data.artStyle === s ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
                           }`}
                         >
                           <span className="text-sm font-medium capitalize text-primary">
@@ -265,7 +265,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           key={l}
                           onClick={() => update({ language: l })}
                           className={`p-3 rounded-book border-2 text-center transition-all duration-300 active:scale-[0.97] ${
-                            data.language === l ? "border-gold bg-gold/5" : "border-border hover:border-gold/40"
+                            data.language === l ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
                           }`}
                         >
                           <span className="text-sm font-medium capitalize text-primary">{l}</span>
@@ -280,7 +280,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             {step === 4 && generating && (
               <motion.div key="s4" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease }} className="py-16 text-center space-y-6 relative">
                 <SparkleEffect count={15} />
-                <Loader2 className="w-12 h-12 text-gold animate-spin mx-auto" />
+                <Loader2 className="w-12 h-12 text-accent animate-spin mx-auto" />
                 <motion.p
                   key={genText}
                   initial={{ opacity: 0, y: 8 }}
@@ -297,7 +297,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
               <motion.div key="s5" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease }} className="space-y-6">
                 <div className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-green-600" />
-                  <span className="font-mono text-xs tracking-widest text-gold uppercase">Preview Ready</span>
+                  <span className="font-mono text-xs tracking-widest text-accent uppercase">Preview Ready</span>
                 </div>
                 <h2 className="font-display text-2xl font-bold text-primary">
                   {data.childName}'s Torah Tale
@@ -321,7 +321,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   </div>
                   <div className="border-t border-border mt-2 pt-2 flex justify-between font-semibold">
                     <span>Total</span>
-                    <span className="text-gold">$34.99</span>
+                    <span className="text-accent">$34.99</span>
                   </div>
                 </div>
                 <Button variant="gold" size="lg" className="w-full" onClick={() => { alert("Mock checkout — Stripe integration coming soon!"); }}>
@@ -338,12 +338,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
               {step > 1 && step !== 5 ? (
                 <Button variant="outline" onClick={back}><ArrowLeft className="w-4 h-4" /> Back</Button>
               ) : <div />}
-              {step < 4 && (
-                <Button variant="gold" onClick={next} disabled={!canNext}> Next <ArrowRight className="w-4 h-4" /></Button>
+              {step < 3 && (
+                <Button variant="gold" onClick={next} disabled={!canNext}>Next <ArrowRight className="w-4 h-4" /></Button>
               )}
               {step === 3 && (
-                <Button variant="gold" onClick={next} className="ml-2">
-                  Generate Book <Sparkles className="w-4 h-4" />
+                <Button variant="gold" onClick={next}>
+                  <Sparkles className="w-4 h-4" /> Generate Book
                 </Button>
               )}
             </div>
@@ -353,5 +353,3 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     </motion.div>
   );
 };
-
-import { Sparkles } from "lucide-react";
