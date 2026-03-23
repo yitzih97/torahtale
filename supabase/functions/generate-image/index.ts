@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, childName, artStyle, torahPortion } = await req.json();
+    const { prompt, childName, artStyle, torahPortion, referenceImage } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -24,7 +24,19 @@ serve(async (req) => {
     const styleDesc = styleMap[artStyle] || styleMap.cartoon;
 
     const imagePrompt = prompt ||
-      `A beautiful children's book illustration of a child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
+      `A beautiful children's book illustration of a child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. All characters must be dressed modestly (tznius) — boys wearing kippah/yarmulke and tzitzis, girls in long modest dresses with long sleeves. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
+
+    // Build message content - if reference image provided, use multimodal input
+    const messageContent: any[] = [{ type: "text", text: imagePrompt }];
+
+    if (referenceImage) {
+      // Add instruction to use the child's photo as reference
+      messageContent[0].text = `Using the provided photo as a reference for the child's appearance (face, features, hair), create: ${imagePrompt}. The child in the illustration should closely resemble the child in the reference photo but rendered in the specified art style.`;
+      messageContent.push({
+        type: "image_url",
+        image_url: { url: referenceImage },
+      });
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -34,7 +46,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-3.1-flash-image-preview",
-        messages: [{ role: "user", content: imagePrompt }],
+        messages: [{ role: "user", content: messageContent }],
         modalities: ["image", "text"],
       }),
     });

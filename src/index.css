@@ -6,35 +6,35 @@
 
 @layer base {
   :root {
-    --background: 42 50% 98%;
-    --foreground: 233 50% 21%;
+    --background: 0 0% 100%;
+    --foreground: 220 20% 20%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 233 50% 21%;
+    --card: 40 33% 98%;
+    --card-foreground: 220 20% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 233 50% 21%;
+    --popover-foreground: 220 20% 20%;
 
-    --primary: 233 50% 21%;
-    --primary-foreground: 42 50% 98%;
+    --primary: 220 20% 20%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 42 30% 94%;
-    --secondary-foreground: 233 50% 21%;
+    --secondary: 40 25% 96%;
+    --secondary-foreground: 220 20% 20%;
 
-    --muted: 37 25% 92%;
-    --muted-foreground: 233 20% 46%;
+    --muted: 40 15% 94%;
+    --muted-foreground: 220 10% 50%;
 
-    --accent: 43 64% 52%;
-    --accent-foreground: 233 50% 21%;
+    --accent: 32 95% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 73% 41%;
-    --destructive-foreground: 42 50% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 37 25% 88%;
-    --input: 37 25% 88%;
-    --ring: 43 64% 52%;
+    --border: 40 15% 90%;
+    --input: 40 15% 90%;
+    --ring: 32 95% 55%;
 
-    --radius: 0.25rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -46,35 +46,36 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Custom tokens */
-    --gold: 43 64% 52%;
-    --gold-light: 43 70% 70%;
-    --midnight: 233 50% 21%;
-    --midnight-light: 233 40% 35%;
-    --parchment: 42 50% 98%;
-    --parchment-dark: 37 30% 94%;
-    --surface-alt: 37 25% 92%;
+    --gold: 32 95% 55%;
+    --gold-light: 40 90% 70%;
+    --midnight: 220 20% 20%;
+    --midnight-light: 220 15% 40%;
+    --parchment: 40 33% 98%;
+    --parchment-dark: 40 20% 94%;
+    --surface-alt: 40 15% 94%;
+    --hero-bg: 40 40% 97%;
   }
 
   .dark {
-    --background: 233 50% 6%;
-    --foreground: 42 50% 98%;
-    --card: 233 50% 10%;
-    --card-foreground: 42 50% 98%;
-    --popover: 233 50% 10%;
-    --popover-foreground: 42 50% 98%;
-    --primary: 43 64% 52%;
-    --primary-foreground: 233 50% 6%;
-    --secondary: 233 40% 15%;
-    --secondary-foreground: 42 50% 98%;
-    --muted: 233 30% 18%;
-    --muted-foreground: 233 20% 60%;
-    --accent: 43 64% 52%;
-    --accent-foreground: 233 50% 6%;
+    --background: 220 20% 6%;
+    --foreground: 40 33% 98%;
+    --card: 220 20% 10%;
+    --card-foreground: 40 33% 98%;
+    --popover: 220 20% 10%;
+    --popover-foreground: 40 33% 98%;
+    --primary: 32 95% 55%;
+    --primary-foreground: 220 20% 6%;
+    --secondary: 220 15% 15%;
+    --secondary-foreground: 40 33% 98%;
+    --muted: 220 10% 18%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 32 95% 55%;
+    --accent-foreground: 220 20% 6%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 42 50% 98%;
-    --border: 233 30% 18%;
-    --input: 233 30% 18%;
-    --ring: 43 64% 52%;
+    --destructive-foreground: 40 33% 98%;
+    --border: 220 10% 18%;
+    --input: 220 10% 18%;
+    --ring: 32 95% 55%;
   }
 }
 
@@ -97,9 +98,9 @@
 
 @layer utilities {
   .gold-glow {
-    box-shadow: 0 0 20px hsl(var(--gold) / 0.3), 0 0 40px hsl(var(--gold) / 0.15);
+    box-shadow: 0 0 20px hsl(var(--gold) / 0.25), 0 0 40px hsl(var(--gold) / 0.1);
   }
   .gold-glow-hover:hover {
-    box-shadow: 0 0 24px hsl(var(--gold) / 0.4), 0 0 48px hsl(var(--gold) / 0.2);
+    box-shadow: 0 0 24px hsl(var(--gold) / 0.35), 0 0 48px hsl(var(--gold) / 0.15);
   }
 }
