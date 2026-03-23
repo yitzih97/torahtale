@@ -193,7 +193,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 key={`girl-${activeSlide}`}
                 src={heroGirl}
                 alt="Orthodox Jewish girl character"
-                className="w-48 -ml-10 mt-8 relative z-20 drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+                className="w-32 -ml-6 mt-4 relative z-20 drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
                 variants={girlVariants}
                 initial="initial"
                 animate="animate"
