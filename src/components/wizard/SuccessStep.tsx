@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { PartyPopper, ArrowRight } from "lucide-react";
+import { PartyPopper, ArrowRight, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 
@@ -36,14 +36,14 @@ export const SuccessStep = ({ childName, onGoToDashboard }: Props) => {
   }, []);
 
   return (
-    <div className="py-8 text-center space-y-6">
+    <div className="py-12 text-center space-y-6">
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 12 }}
-        className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto"
+        className="w-24 h-24 rounded-3xl bg-accent/10 flex items-center justify-center mx-auto"
       >
-        <PartyPopper className="w-10 h-10 text-accent" />
+        <PartyPopper className="w-12 h-12 text-accent" />
       </motion.div>
 
       <motion.h2
@@ -52,7 +52,7 @@ export const SuccessStep = ({ childName, onGoToDashboard }: Props) => {
         transition={{ delay: 0.3, duration: 0.5 }}
         className="font-display text-3xl font-bold text-primary"
       >
-        Mazel Tov!
+        Mazel Tov! 🎉
       </motion.h2>
 
       <motion.p
@@ -61,18 +61,21 @@ export const SuccessStep = ({ childName, onGoToDashboard }: Props) => {
         transition={{ delay: 0.5, duration: 0.5 }}
         className="text-muted-foreground max-w-sm mx-auto leading-relaxed"
       >
-        {childName || "Your child"}'s custom Torah tale is being printed and will be on its way soon!
+        {childName || "Your child"}'s personalized Torah sefer is being printed and will be on its way soon!
       </motion.p>
 
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7, duration: 0.5 }}
-        className="bg-secondary rounded-book p-5 max-w-xs mx-auto text-sm space-y-1"
+        className="bg-muted/30 rounded-2xl border border-border p-6 max-w-xs mx-auto text-sm space-y-2"
       >
-        <p className="font-mono text-xs tracking-widest text-accent uppercase">Order Confirmed</p>
-        <p className="text-muted-foreground">Order #MTT-{Math.floor(1000 + Math.random() * 9000)}</p>
-        <p className="text-muted-foreground">Estimated delivery: 5–7 business days</p>
+        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mx-auto mb-3">
+          <BookOpen className="w-5 h-5 text-accent" />
+        </div>
+        <p className="font-semibold text-primary">Order Confirmed</p>
+        <p className="text-muted-foreground text-xs">Order #MTT-{Math.floor(1000 + Math.random() * 9000)}</p>
+        <p className="text-muted-foreground text-xs">Estimated delivery: 5–7 business days</p>
       </motion.div>
 
       <motion.div
@@ -80,7 +83,7 @@ export const SuccessStep = ({ childName, onGoToDashboard }: Props) => {
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.5 }}
       >
-        <Button variant="gold" size="lg" onClick={onGoToDashboard}>
+        <Button variant="gold" size="lg" onClick={onGoToDashboard} className="rounded-xl h-12 px-8">
           Go to My Dashboard <ArrowRight className="w-4 h-4" />
         </Button>
       </motion.div>
