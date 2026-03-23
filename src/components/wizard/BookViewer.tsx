@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, ImageIcon, Wand2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
