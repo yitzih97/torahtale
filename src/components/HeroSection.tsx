@@ -178,7 +178,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 key={`boy-${activeSlide}`}
                 src={heroBoy}
                 alt="Orthodox Jewish boy character"
-                className="w-52 relative z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+                className="w-36 relative z-10 drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
                 variants={boyVariants}
                 initial="initial"
                 animate="animate"
