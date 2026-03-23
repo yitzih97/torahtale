@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, Loader2, ImageIcon, Wand2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, ImageIcon, Wand2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
