@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SparkleEffect } from "./SparkleEffect";
-import { BookViewer } from "./wizard/BookViewer";
+import { BookViewer, type BookPage } from "./wizard/BookViewer";
 import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/ShippingForm";
 import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SuccessStep } from "./wizard/SuccessStep";
-import { TORAH_PORTIONS } from "./wizard/TorahPortions";
+import { TORAH_PORTIONS, getPortionLabel } from "./wizard/TorahPortions";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface WizardData {
   childName: string;
@@ -58,29 +60,101 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
   const [genText, setGenText] = useState("");
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
+  const [bookPages, setBookPages] = useState<BookPage[]>([]);
 
   const update = useCallback((partial: Partial<WizardData>) => {
     setData((prev) => ({ ...prev, ...partial }));
   }, []);
 
-  const next = () => {
-    // Step 3 → trigger generation
+  const generateImageForPage = async (pageId: number, pageText: string, artStyle: string, childName: string, torahPortion: string) => {
+    try {
+      const { data: imgData, error } = await supabase.functions.invoke("generate-image", {
+        body: {
+          prompt: `A beautiful children's book illustration for: "${pageText}". Main character: a child named ${childName}. Torah story: ${torahPortion}. Style: ${artStyle === "3d-pixar" ? "3D Pixar-style CGI" : artStyle === "graphic-novel" ? "graphic novel, bold ink lines" : "colorful cartoon illustration"}. Safe for children, warm magical atmosphere, no text.`,
+          childName,
+          artStyle,
+          torahPortion,
+        },
+      });
+      if (error) throw error;
+      if (imgData?.error) throw new Error(imgData.error);
+      return imgData.imageUrl;
+    } catch (err) {
+      console.error(`Image gen failed for page ${pageId}:`, err);
+      return null;
+    }
+  };
+
+  const next = async () => {
+    // Step 3 → trigger real AI generation
     if (step === 3) {
       setDir(1);
       setStep(4);
       setGenerating(true);
-      const texts = ["Weaving the magic...", "Writing story...", "Illustrating pages...", "Almost there..."];
+
+      const texts = ["Weaving the magic...", "Writing story with AI...", "Illustrating pages...", "Almost there..."];
       let i = 0;
       setGenText(texts[0]);
       const iv = setInterval(() => {
         i++;
         if (i < texts.length) setGenText(texts[i]);
-      }, 800);
-      setTimeout(() => {
+      }, 2500);
+
+      try {
+        // Step 1: Generate story text
+        setGenText("Writing story with AI...");
+        const portionLabel = getPortionLabel(data.torahPortion);
+        const { data: storyData, error: storyError } = await supabase.functions.invoke("generate-story", {
+          body: {
+            childName: data.childName,
+            age: data.age,
+            gender: data.gender,
+            torahPortion: data.torahPortion,
+            torahPortionLabel: portionLabel,
+            artStyle: data.artStyle,
+            language: data.language,
+            pageCount: 4,
+          },
+        });
+
+        if (storyError) throw storyError;
+        if (storyData?.error) throw new Error(storyData.error);
+
+        const storyPages: BookPage[] = (storyData.pages || []).map((p: any, idx: number) => ({
+          id: idx + 1,
+          text: p.text,
+          image: null,
+          imageLoading: true,
+        }));
+
+        setBookPages(storyPages);
         clearInterval(iv);
         setGenerating(false);
         setStep(5);
-      }, 3200);
+
+        // Step 2: Generate images in parallel (background)
+        setGenText("Illustrating pages...");
+        const imagePromises = storyPages.map(async (page) => {
+          const imageUrl = await generateImageForPage(page.id, page.text, data.artStyle, data.childName, data.torahPortion);
+          return { id: page.id, imageUrl };
+        });
+
+        // Update pages as images come in
+        for (const promise of imagePromises) {
+          const result = await promise;
+          setBookPages((prev) =>
+            prev.map((p) =>
+              p.id === result.id ? { ...p, image: result.imageUrl, imageLoading: false } : p
+            )
+          );
+        }
+      } catch (err: any) {
+        clearInterval(iv);
+        setGenerating(false);
+        console.error("Generation failed:", err);
+        toast.error(err?.message || "Failed to generate story. Please try again.");
+        setStep(3);
+      }
       return;
     }
     setDir(1);
@@ -214,7 +288,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   <h2 className="font-display text-2xl font-bold text-primary mt-1">The Journey</h2>
                   <p className="text-muted-foreground text-sm mt-1">Which story will {data.childName || "your child"} explore?</p>
                 </div>
-                {/* Filter tabs */}
                 <div className="flex gap-2">
                   {(["all", "torah", "holiday"] as const).map((f) => (
                     <button
@@ -297,7 +370,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             {/* STEP 5: Book Viewer */}
             {step === 5 && (
               <motion.div key="s5" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease }}>
-                <BookViewer childName={data.childName} torahPortion={data.torahPortion} />
+                <BookViewer
+                  childName={data.childName}
+                  torahPortion={data.torahPortion}
+                  artStyle={data.artStyle}
+                  pages={bookPages}
+                  onPagesChange={setBookPages}
+                />
               </motion.div>
             )}
 

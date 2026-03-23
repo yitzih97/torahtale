@@ -1,44 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import heroBook from "@/assets/hero-book.png";
-import samplePage from "@/assets/sample-page.png";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+export interface BookPage {
+  id: number;
+  text: string;
+  image: string | null;
+  imageLoading?: boolean;
+}
 
 interface Props {
   childName: string;
   torahPortion: string;
+  artStyle: string;
+  pages: BookPage[];
+  onPagesChange: (pages: BookPage[]) => void;
 }
 
-const MOCK_PAGES = [
-  {
-    id: 1,
-    text: "Once upon a time, in a land far away, a brave child set out on an extraordinary journey through the pages of the Torah...",
-    image: heroBook,
-  },
-  {
-    id: 2,
-    text: "The animals gathered two by two, and our hero helped guide them aboard the great ark as the first drops of rain began to fall.",
-    image: samplePage,
-  },
-  {
-    id: 3,
-    text: "With courage in their heart, they stood at the edge of the sea. The waters began to part, revealing a shimmering path of dry land.",
-    image: heroBook,
-  },
-  {
-    id: 4,
-    text: "And so the adventure came to a glorious end. The child smiled, knowing the Torah's wisdom would guide them always. The End.",
-    image: samplePage,
-  },
-];
-
-export const BookViewer = ({ childName, torahPortion }: Props) => {
+export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesChange }: Props) => {
   const [currentPage, setCurrentPage] = useState(0);
-  const [pages, setPages] = useState(
-    MOCK_PAGES.map((p) => ({ ...p, text: p.text.replace("a brave child", childName || "a brave child") }))
-  );
   const [editingPage, setEditingPage] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [regenerating, setRegenerating] = useState<number | null>(null);
@@ -52,20 +36,34 @@ export const BookViewer = ({ childName, torahPortion }: Props) => {
 
   const saveEdit = () => {
     if (editingPage === null) return;
-    setPages((prev) => prev.map((p, i) => (i === editingPage ? { ...p, text: editText } : p)));
+    const updated = pages.map((p, i) => (i === editingPage ? { ...p, text: editText } : p));
+    onPagesChange(updated);
     setEditingPage(null);
   };
 
-  const regenImage = (idx: number) => {
+  const regenImage = async (idx: number) => {
     setRegenerating(idx);
-    setTimeout(() => {
-      setPages((prev) =>
-        prev.map((p, i) =>
-          i === idx ? { ...p, image: p.image === heroBook ? samplePage : heroBook } : p
-        )
+    try {
+      const pageText = pages[idx].text;
+      const prompt = `A beautiful children's book illustration for this story page: "${pageText}". The main character is a child named ${childName}. Torah story: ${torahPortion}. Style: ${artStyle === "3d-pixar" ? "3D Pixar-style CGI render, warm lighting" : artStyle === "graphic-novel" ? "graphic novel, bold ink lines, flat colors" : "colorful cartoon illustration, soft watercolor textures"}. Safe for children, warm magical atmosphere, no text in the image.`;
+
+      const { data, error } = await supabase.functions.invoke("generate-image", {
+        body: { prompt, childName, artStyle, torahPortion },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const updated = pages.map((p, i) =>
+        i === idx ? { ...p, image: data.imageUrl } : p
       );
+      onPagesChange(updated);
+    } catch (err: any) {
+      console.error("Image regen failed:", err);
+      toast.error(err?.message || "Failed to regenerate image. Please try again.");
+    } finally {
       setRegenerating(null);
-    }, 1500);
+    }
   };
 
   return (
@@ -80,15 +78,26 @@ export const BookViewer = ({ childName, torahPortion }: Props) => {
 
       {/* Book viewer */}
       <div className="relative bg-secondary rounded-book p-4 overflow-hidden">
-        <motion.img
-          key={`${currentPage}-${pages[currentPage].image}`}
-          src={page.image}
-          alt={`Page ${currentPage + 1}`}
-          className={`w-full aspect-[4/3] object-cover rounded-book shadow-soft-md ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
-          transition={{ duration: 0.3 }}
-        />
+        {page?.image ? (
+          <motion.img
+            key={`${currentPage}-${page.image?.slice(-20)}`}
+            src={page.image}
+            alt={`Page ${currentPage + 1}`}
+            className={`w-full aspect-[4/3] object-cover rounded-book shadow-soft-md ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
+            transition={{ duration: 0.3 }}
+          />
+        ) : page?.imageLoading ? (
+          <div className="w-full aspect-[4/3] rounded-book bg-muted flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-accent animate-spin" />
+          </div>
+        ) : (
+          <div className="w-full aspect-[4/3] rounded-book bg-muted flex items-center justify-center">
+            <p className="text-muted-foreground text-sm">Generating illustration...</p>
+          </div>
+        )}
+
         {regenerating === currentPage && (
           <div className="absolute inset-0 flex items-center justify-center">
             <RefreshCw className="w-8 h-8 text-accent animate-spin" />
@@ -169,7 +178,7 @@ export const BookViewer = ({ childName, torahPortion }: Props) => {
         </div>
       ) : (
         <p className="text-sm text-foreground bg-card rounded-book border border-border p-4 leading-relaxed italic">
-          "{page.text}"
+          "{page?.text || "Loading..."}"
         </p>
       )}
     </div>
