@@ -7,7 +7,7 @@ import { GalleryReviewsSection } from "@/components/GalleryReviewsSection";
 import { CTASection } from "@/components/CTASection";
 import { Footer } from "@/components/Footer";
 import { CreationWizard } from "@/components/CreationWizard";
-import { WalkingCharacters } from "@/components/WalkingCharacters";
+
 
 const Index = () => {
   const [wizardOpen, setWizardOpen] = useState(false);
