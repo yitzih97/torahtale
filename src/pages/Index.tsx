@@ -20,7 +20,7 @@ const Index = () => {
       <GalleryReviewsSection />
       <CTASection onStart={() => setWizardOpen(true)} />
       <Footer />
-      <WalkingCharacters />
+      
       <AnimatePresence>
         {wizardOpen && <CreationWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />}
       </AnimatePresence>
