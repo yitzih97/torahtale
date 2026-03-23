@@ -1,39 +1,64 @@
+import { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
-import { UserRound, Wand2, Truck } from "lucide-react";
+import { UserRound, Wand2, Truck, ArrowRight } from "lucide-react";
+
+const StepsScene = lazy(() =>
+  import("@/components/3d/StepsScene").then((m) => ({ default: m.StepsScene }))
+);
 
 const steps = [
   {
     icon: UserRound,
-    title: "Tell Us About Your Child",
-    description: "Share their name, age, and a photo. They become the hero of the story.",
+    number: "01",
+    title: "Tell Us About Your Hero",
+    description: "Share their name, age, and a photo. They become the star of an ancient story.",
+    accent: "bg-accent/10 text-accent",
   },
   {
     icon: Wand2,
+    number: "02",
     title: "AI Writes & Illustrates",
-    description: "Our engine weaves your child into this week's Torah portion with custom art.",
+    description: "Gemini Pro crafts the narrative. Nano Banana 2 paints every page in your chosen style.",
+    accent: "bg-primary/10 text-primary",
   },
   {
     icon: Truck,
-    title: "We Print & Ship",
-    description: "A gorgeous hardcover book arrives at your door — a keepsake forever.",
+    number: "03",
+    title: "Printed & Shipped",
+    description: "A gorgeous hardcover arrives at your door — 32 pages of personalized wonder.",
+    accent: "bg-accent/10 text-accent",
   },
 ];
 
-const ease = [0.22, 1, 0.36, 1];
+const ease = [0.16, 1, 0.3, 1];
 
 export const HowItWorks = () => (
-  <section className="py-24 lg:py-32 bg-card">
-    <div className="container">
-      <motion.h2
+  <section className="relative py-28 lg:py-40 bg-background overflow-hidden">
+    {/* 3D scene background */}
+    <div className="absolute inset-0 z-0 opacity-30">
+      <Suspense fallback={null}>
+        <StepsScene />
+      </Suspense>
+    </div>
+
+    <div className="container relative z-10">
+      <motion.div
         initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
         whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.6, ease }}
-        className="text-3xl lg:text-4xl font-bold text-center text-primary mb-16"
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.7, ease }}
+        className="text-center mb-20"
       >
-        How the Magic Happens
-      </motion.h2>
-      <div className="grid md:grid-cols-3 gap-8 lg:gap-16">
+        <span className="font-mono text-xs tracking-widest text-accent uppercase block mb-4">
+          The Process
+        </span>
+        <h2 className="text-3xl lg:text-5xl font-bold text-primary leading-tight" style={{ lineHeight: "1.1" }}>
+          Three Steps to a
+          <br className="hidden sm:block" /> Timeless Keepsake
+        </h2>
+      </motion.div>
+
+      <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
         {steps.map((step, i) => (
           <motion.div
             key={step.title}
@@ -41,16 +66,18 @@ export const HowItWorks = () => (
             whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: i * 0.1, ease }}
-            className="text-center space-y-4"
+            className="group relative bg-card rounded-2xl border border-border p-8 hover:border-accent/30 hover:shadow-soft-md transition-all duration-500"
           >
-            <div className="mx-auto w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center">
-              <step.icon className="w-7 h-7 text-gold" />
+            <div className="flex items-start justify-between mb-6">
+              <div className={`w-12 h-12 rounded-xl ${step.accent} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
+                <step.icon className="w-5 h-5" />
+              </div>
+              <span className="font-mono text-3xl font-bold text-border group-hover:text-accent/20 transition-colors duration-500">
+                {step.number}
+              </span>
             </div>
-            <span className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
-              Step {i + 1}
-            </span>
-            <h3 className="font-display text-xl font-semibold text-primary">{step.title}</h3>
-            <p className="text-muted-foreground leading-relaxed max-w-xs mx-auto">{step.description}</p>
+            <h3 className="font-display text-xl font-semibold text-primary mb-3">{step.title}</h3>
+            <p className="text-muted-foreground leading-relaxed text-[0.925rem]">{step.description}</p>
           </motion.div>
         ))}
       </div>
