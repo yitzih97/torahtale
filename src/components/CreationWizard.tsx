@@ -209,7 +209,14 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const handlePhoto = (childId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) updateChild(childId, { photo: file, photoPreview: URL.createObjectURL(file) });
+    if (file) {
+      // Convert to base64 for AI reference
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateChild(childId, { photo: file, photoPreview: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handlePlaceOrder = () => { setDir(1); setStep(8); };
