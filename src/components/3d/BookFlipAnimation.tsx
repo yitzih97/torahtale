@@ -22,7 +22,11 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
     const timer = setInterval(() => {
       setIsFlipping(true);
       setTimeout(() => {
-        setCurrentPage((prev) => (prev + 1) % PAGES.length);
+        setCurrentPage((prev) => {
+          const next = (prev + 1) % PAGES.length;
+          onPageChange?.(next);
+          return next;
+        });
         setIsFlipping(false);
       }, 600);
     }, PAGE_INTERVAL);
