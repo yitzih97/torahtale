@@ -4,11 +4,11 @@ import { Float, MeshDistortMaterial, Sparkles, Stars } from "@react-three/drei";
 import * as THREE from "three";
 
 function FloatingBook() {
-  const meshRef = useRef<THREE.Mesh>(null!);
+  const groupRef = useRef<THREE.Group>(null!) as React.MutableRefObject<THREE.Group>;
 
   useFrame((state) => {
-    meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.15 + 0.3;
-    meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.05;
+    groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.15 + 0.3;
+    groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.05;
   });
 
   return (
