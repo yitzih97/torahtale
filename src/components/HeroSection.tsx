@@ -24,17 +24,17 @@ const HERO_SLIDES = [
   { headline: ["Swallowed by a Dag,", "But Never Lost Hope."], description: "Inside the great fish, Yonah HaNavi finds his purpose — and your child finds theirs." },
 ];
 
-// Animation variants for the characters that trigger on each slide change
+// Walking animation - characters walk in from right and exit to left like walking between story pages
 const boyVariants = {
-  initial: { opacity: 0, x: 60, y: 20, scale: 0.85, rotate: 5 },
-  animate: { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0 },
-  exit: { opacity: 0, x: -30, y: -10, scale: 0.9, rotate: -3 },
+  initial: { opacity: 0, x: 120, y: 8 },
+  animate: { opacity: 1, x: 0, y: [8, -4, 8], transition: { y: { duration: 0.6, repeat: 2, ease: "easeInOut" } } },
+  exit: { opacity: 0, x: -100, y: 8 },
 };
 
 const girlVariants = {
-  initial: { opacity: 0, x: 80, y: 30, scale: 0.8, rotate: -5 },
-  animate: { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0 },
-  exit: { opacity: 0, x: -40, y: -15, scale: 0.85, rotate: 3 },
+  initial: { opacity: 0, x: 140, y: 12 },
+  animate: { opacity: 1, x: 10, y: [12, -2, 12], transition: { y: { duration: 0.55, repeat: 2, ease: "easeInOut" } } },
+  exit: { opacity: 0, x: -80, y: 12 },
 };
 
 interface HeroSectionProps {
@@ -178,7 +178,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 key={`boy-${activeSlide}`}
                 src={heroBoy}
                 alt="Orthodox Jewish boy character"
-                className="w-52 relative z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+                className="w-36 relative z-10 drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
                 variants={boyVariants}
                 initial="initial"
                 animate="animate"
@@ -193,7 +193,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 key={`girl-${activeSlide}`}
                 src={heroGirl}
                 alt="Orthodox Jewish girl character"
-                className="w-48 -ml-10 mt-8 relative z-20 drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+                className="w-32 -ml-6 mt-4 relative z-20 drop-shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
                 variants={girlVariants}
                 initial="initial"
                 animate="animate"
