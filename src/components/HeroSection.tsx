@@ -94,9 +94,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-background/60" />
 
       <div className="container relative z-10 py-24 lg:py-0">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Left: Text content */}
-          <div className="max-w-xl">
+        <div className="flex items-center justify-center">
+          <div className="max-w-2xl text-center mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
