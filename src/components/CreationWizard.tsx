@@ -118,10 +118,14 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         "3d-pixar": "3D Pixar-style CGI render, warm lighting",
         "graphic-novel": "graphic novel, bold ink lines, flat colors",
       };
-      const prompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout, like a real printed children's book. The text should appear in a readable area (top or bottom banner, speech bubble, or decorative text area) within the illustration itself. Story text: "${pageText}". Characters: children named ${names}. Torah story: ${torahPortion}. Style: ${styleMap[artStyle] || styleMap.cartoon}. Safe for children, warm magical atmosphere, vibrant colors.`;
+      const prompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout, like a real printed children's book. The text should appear in a readable area (top or bottom banner, speech bubble, or decorative text area) within the illustration itself. Story text: "${pageText}". Characters: children named ${names}. Torah story: ${torahPortion}. Style: ${styleMap[artStyle] || styleMap.cartoon}. All characters dressed modestly (tznius). Safe for children, warm magical atmosphere, vibrant colors.`;
+
+      // Get the first child's photo as reference image (base64 data URL)
+      const firstChildWithPhoto = data.children.find((c) => c.photoPreview);
+      const referenceImage = firstChildWithPhoto?.photoPreview || null;
 
       const { data: imgData, error } = await supabase.functions.invoke("generate-image", {
-        body: { prompt, childName: names, artStyle, torahPortion },
+        body: { prompt, childName: names, artStyle, torahPortion, referenceImage },
       });
       if (error) throw error;
       if (imgData?.error) throw new Error(imgData.error);
