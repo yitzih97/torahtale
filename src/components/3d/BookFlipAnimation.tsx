@@ -10,7 +10,11 @@ const PAGES = [noahPage1, noahPage2, noahPage3, noahPage4, noahPage5];
 
 const PAGE_INTERVAL = 3500; // ms per page
 
-export const BookFlipAnimation = () => {
+interface BookFlipAnimationProps {
+  onPageChange?: (page: number) => void;
+}
+
+export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
 
