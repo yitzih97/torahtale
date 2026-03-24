@@ -89,9 +89,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         <BookFlipAnimation onPageChange={handlePageChange} />
       </Suspense>
 
-      {/* Overlay - lighter on mobile so images show through, stronger on left for desktop text readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/50 to-transparent md:from-background/95 md:via-background/70 md:to-primary/20" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/40 md:from-background/90 md:to-background/60" />
+      {/* Overlay - strong on left for text readability, very light on right to show background images clearly */}
+      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20" />
 
       <div className="relative z-10 w-full py-24 lg:py-0 pl-4 sm:pl-6 lg:pl-12 pr-4">
         <div className="flex items-center justify-start">
