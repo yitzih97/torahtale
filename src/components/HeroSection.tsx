@@ -108,15 +108,16 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               </span>
             </motion.div>
 
-            {/* Dynamic headline */}
-            <div className="min-h-[140px] sm:min-h-[160px] lg:min-h-[180px]">
+            {/* Dynamic headline - synced with page flip */}
+            <div className="min-h-[140px] sm:min-h-[160px] lg:min-h-[180px]" style={{ perspective: "800px" }}>
               <AnimatePresence mode="wait">
                 <motion.h1
                   key={`headline-${activeSlide}`}
-                  initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -15, filter: "blur(6px)" }}
-                  transition={{ duration: 0.5, ease }}
+                  initial={{ opacity: 0, rotateY: -40, x: -30 }}
+                  animate={{ opacity: 1, rotateY: 0, x: 0 }}
+                  exit={{ opacity: 0, rotateY: 40, x: 30 }}
+                  transition={{ duration: 1.4, ease: [0.4, 0.0, 0.2, 1] }}
+                  style={{ transformOrigin: "left center" }}
                   className="text-4xl sm:text-5xl lg:text-[3.2rem] font-bold leading-[1.1] tracking-tight text-foreground"
                 >
                   {slide.headline[0]}
@@ -126,15 +127,16 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               </AnimatePresence>
             </div>
 
-            {/* Dynamic description */}
-            <div className="min-h-[70px] mt-4">
+            {/* Dynamic description - synced with page flip */}
+            <div className="min-h-[70px] mt-4" style={{ perspective: "800px" }}>
               <AnimatePresence mode="wait">
                 <motion.p
                   key={`desc-${activeSlide}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.4, delay: 0.1, ease }}
+                  initial={{ opacity: 0, rotateY: -30, x: -20 }}
+                  animate={{ opacity: 1, rotateY: 0, x: 0 }}
+                  exit={{ opacity: 0, rotateY: 30, x: 20 }}
+                  transition={{ duration: 1.2, delay: 0.15, ease: [0.4, 0.0, 0.2, 1] }}
+                  style={{ transformOrigin: "left center" }}
                   className="text-base lg:text-lg text-foreground/65 font-body max-w-md leading-relaxed"
                 >
                   {slide.description}
