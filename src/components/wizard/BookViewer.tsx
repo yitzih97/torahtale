@@ -113,23 +113,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
       {/* Book viewer */}
       <div className="relative bg-secondary rounded-book overflow-hidden">
-        {pageType === "questions" ? (
-          /* Questions page - no image, styled text layout */
-          <div className="w-full aspect-[4/3] rounded-book bg-card flex flex-col p-6 overflow-y-auto">
-            <div className="flex items-center gap-2 mb-4">
-              <HelpCircle className="w-5 h-5 text-accent" />
-              <h3 className="font-display text-lg font-bold text-primary">Discussion Questions</h3>
-            </div>
-            <div className="space-y-3 flex-1">
-              {page?.questions?.map((q) => (
-                <div key={q.number} className="flex gap-3">
-                  <span className="font-display text-sm font-bold text-accent min-w-[24px]">{q.number}.</span>
-                  <p className="font-body text-sm text-foreground leading-relaxed">{q.question}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : pageType === "cover" ? (
+        {pageType === "cover" ? (
           /* Cover page with image + title overlay */
           <>
             {page?.image ? (
