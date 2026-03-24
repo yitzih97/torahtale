@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Quote, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
+// Story covers (existing)
 import gardenEden from "@/assets/torah-garden-eden.jpg";
 import noahPage1 from "@/assets/noah-page1.jpg";
 import towerBabel from "@/assets/torah-tower-babel.jpg";
@@ -15,108 +15,145 @@ import tenCommandments from "@/assets/torah-ten-commandments.jpg";
 import davidGoliath from "@/assets/torah-david-goliath.jpg";
 import jonahWhale from "@/assets/torah-jonah-whale.jpg";
 
+// Interior pages
+import s1p2 from "@/assets/story1-page2.jpg";
+import s1p3 from "@/assets/story1-page3.jpg";
+import s2p2 from "@/assets/story2-page2.jpg";
+import s2p3 from "@/assets/story2-page3.jpg";
+import s3p2 from "@/assets/story3-page2.jpg";
+import s3p3 from "@/assets/story3-page3.jpg";
+import s4p2 from "@/assets/story4-page2.jpg";
+import s4p3 from "@/assets/story4-page3.jpg";
+import s5p2 from "@/assets/story5-page2.jpg";
+import s5p3 from "@/assets/story5-page3.jpg";
+import s6p2 from "@/assets/story6-page2.jpg";
+import s6p3 from "@/assets/story6-page3.jpg";
+import s7p2 from "@/assets/story7-page2.jpg";
+import s7p3 from "@/assets/story7-page3.jpg";
+import s8p2 from "@/assets/story8-page2.jpg";
+import s8p3 from "@/assets/story8-page3.jpg";
+import s9p2 from "@/assets/story9-page2.jpg";
+import s9p3 from "@/assets/story9-page3.jpg";
+import s10p2 from "@/assets/story10-page2.jpg";
+import s10p3 from "@/assets/story10-page3.jpg";
+
 const ease = [0.16, 1, 0.3, 1];
+
+// Each story: 3 unique images cycled to fill 10 pages (cover, p2, p3 repeated)
+const buildPages = (cover: string, p2: string, p3: string) => [
+  cover, p2, p3, cover, p2, p3, cover, p2, p3, cover,
+];
 
 const stories = [
   {
     title: "The Wonders of Gan Eden",
     portion: "Parashas Bereishis",
+    child: "Rivka",
     image: gardenEden,
     review: "My daughter couldn't stop talking about Gan Eden! She felt like she was really there walking with Adam and Chava.",
     reviewer: "Talia B.",
     location: "Brooklyn, NY",
     rating: 5,
-    pages: [gardenEden, noahPage1, gardenEden],
+    pages: buildPages(gardenEden, s1p2, s1p3),
   },
   {
     title: "Noach's Incredible Teivah",
     portion: "Parashas Noach",
+    child: "Yehuda",
     image: noahPage1,
     review: "The animals, the teivah, the keshet — every detail was perfect. Our boys read it every Shabbos afternoon.",
     reviewer: "Avi R.",
     location: "Lakewood, NJ",
     rating: 5,
-    pages: [noahPage1, gardenEden, noahPage1],
+    pages: buildPages(noahPage1, s2p2, s2p3),
   },
   {
     title: "The Tower That Fell",
     portion: "Parashas Noach",
+    child: "Chaya",
     image: towerBabel,
     review: "Such a creative way to teach about achdus. My son finally understood why the dor haflagah was punished.",
     reviewer: "Racheli K.",
     location: "Monsey, NY",
     rating: 5,
-    pages: [towerBabel, noahPage1, towerBabel],
+    pages: buildPages(towerBabel, s3p2, s3p3),
   },
   {
     title: "Avraham Counts the Stars",
     portion: "Parashas Lech Lecha",
+    child: "Shmuel",
     image: abrahamStars,
     review: "The night sky illustration took our breath away. Our daughter asks to read this one every single night.",
     reviewer: "Shira G.",
     location: "Passaic, NJ",
     rating: 5,
-    pages: [abrahamStars, gardenEden, abrahamStars],
+    pages: buildPages(abrahamStars, s4p2, s4p3),
   },
   {
     title: "Yosef's Coat of Colors",
     portion: "Parashas Vayeishev",
+    child: "Esther",
     image: josephCoat,
     review: "The colors are magnificent! My son wears his own 'Yosef coat' now while we read. Pure magic.",
     reviewer: "Devorah M.",
     location: "Crown Heights, NY",
     rating: 5,
-    pages: [josephCoat, abrahamStars, josephCoat],
+    pages: buildPages(josephCoat, s5p2, s5p3),
   },
   {
     title: "Baby Moshe on the Nile",
     portion: "Parashas Shemos",
+    child: "Ari",
     image: mosesBasket,
     review: "My kids were so moved by baby Moshe's story. The Egyptian scenery is absolutely breathtaking.",
     reviewer: "Miriam L.",
     location: "Flatbush, NY",
     rating: 5,
-    pages: [mosesBasket, josephCoat, mosesBasket],
+    pages: buildPages(mosesBasket, s6p2, s6p3),
   },
   {
     title: "Krias Yam Suf",
     portion: "Parashas Beshalach",
+    child: "Devorah",
     image: redSea,
     review: "Walking through the split sea with Moshe Rabbeinu — my children were mesmerized. A masterpiece.",
     reviewer: "Yosef C.",
     location: "Far Rockaway, NY",
     rating: 5,
-    pages: [redSea, mosesBasket, redSea],
+    pages: buildPages(redSea, s7p2, s7p3),
   },
   {
     title: "Matan Torah on Har Sinai",
     portion: "Parashas Yisro",
+    child: "Moshe",
     image: tenCommandments,
     review: "The lightning, the luchos, the shofar — every detail brings Matan Torah alive. Truly special.",
     reviewer: "Chana S.",
     location: "Boro Park, NY",
     rating: 5,
-    pages: [tenCommandments, redSea, tenCommandments],
+    pages: buildPages(tenCommandments, s8p2, s8p3),
   },
   {
     title: "Dovid and Golyas",
     portion: "Sefer Shmuel",
+    child: "Dovid",
     image: davidGoliath,
     review: "My son carries this book everywhere. Dovid's bitachon in Hashem made a lasting impression on him.",
     reviewer: "Menachem F.",
     location: "Baltimore, MD",
     rating: 5,
-    pages: [davidGoliath, tenCommandments, davidGoliath],
+    pages: buildPages(davidGoliath, s9p2, s9p3),
   },
   {
     title: "Yonah and the Great Dag",
     portion: "Sefer Yonah",
+    child: "Noa",
     image: jonahWhale,
     review: "We read this before Yom Kippur and my daughter finally understood the message of teshuvah. Beautiful.",
     reviewer: "Leah W.",
     location: "Chicago, IL",
     rating: 5,
-    pages: [jonahWhale, davidGoliath, jonahWhale],
+    pages: buildPages(jonahWhale, s10p2, s10p3),
   },
 ];
 
@@ -163,7 +200,6 @@ export const GalleryReviewsSection = () => {
               className="group cursor-pointer"
               onClick={() => openBook(i)}
             >
-              {/* Book cover */}
               <div className="aspect-[3/4] rounded-2xl overflow-hidden relative border border-border hover:border-accent/40 transition-all duration-500 hover:shadow-[0_8px_30px_hsl(var(--accent)/0.15)]">
                 <img
                   src={story.image}
@@ -171,12 +207,10 @@ export const GalleryReviewsSection = () => {
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                {/* Title overlay */}
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/90 via-background/50 to-transparent p-3 pt-10">
                   <h3 className="font-display text-xs lg:text-sm font-semibold text-foreground leading-tight">{story.title}</h3>
                   <p className="text-[10px] text-muted-foreground mt-0.5">{story.portion}</p>
                 </div>
-                {/* Hover preview indicator */}
                 <div className="absolute inset-0 bg-accent/0 group-hover:bg-accent/10 transition-colors duration-300 flex items-center justify-center">
                   <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs font-semibold text-foreground bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full">
                     Preview Book
@@ -184,7 +218,6 @@ export const GalleryReviewsSection = () => {
                 </div>
               </div>
 
-              {/* Review snippet below */}
               <div className="mt-3 px-1">
                 <div className="flex gap-0.5 mb-1">
                   {Array.from({ length: story.rating }).map((_, j) => (
@@ -208,13 +241,12 @@ export const GalleryReviewsSection = () => {
         <DialogContent className="max-w-3xl p-0 bg-card border-border overflow-hidden rounded-3xl">
           {book && (
             <div className="flex flex-col">
-              {/* Book image */}
               <div className="relative aspect-[16/10] bg-background">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={previewPage}
                     src={book.pages[previewPage]}
-                    alt={`${book.title} page ${previewPage + 1}`}
+                    alt={`${book.title} — ${book.child}'s story, page ${previewPage + 1}`}
                     className="w-full h-full object-cover"
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -223,7 +255,11 @@ export const GalleryReviewsSection = () => {
                   />
                 </AnimatePresence>
 
-                {/* Page navigation */}
+                {/* Page counter */}
+                <div className="absolute top-3 right-3 bg-background/70 backdrop-blur-sm text-foreground text-xs font-medium px-2.5 py-1 rounded-full">
+                  {previewPage + 1} / {book.pages.length}
+                </div>
+
                 {book.pages.length > 1 && (
                   <>
                     <button
@@ -243,7 +279,6 @@ export const GalleryReviewsSection = () => {
                   </>
                 )}
 
-                {/* Page dots */}
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                   {book.pages.map((_, i) => (
                     <button
@@ -257,12 +292,11 @@ export const GalleryReviewsSection = () => {
                 </div>
               </div>
 
-              {/* Book info + review */}
               <div className="p-6 lg:p-8">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="font-display text-xl font-bold text-foreground">{book.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{book.portion}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{book.portion} · Featuring <strong className="text-accent">{book.child}</strong></p>
                   </div>
                   <div className="flex gap-0.5">
                     {Array.from({ length: book.rating }).map((_, j) => (
