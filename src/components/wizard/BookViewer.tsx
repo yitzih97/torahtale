@@ -265,8 +265,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         ))}
       </div>
 
-      {/* Action buttons - hide for questions page */}
-      {pageType !== "questions" && (
+      {/* Action buttons */}
+      {(
         <div className="flex gap-2">
           {!isSpecialPage && (
             <Button variant="outline" size="sm" onClick={() => startEdit(currentPage)} className="flex-1 text-xs">

@@ -215,10 +215,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         setGenerating(false);
         setStep(5);
 
-        // Generate images for pages that need them (not questions)
-        const imagePagesOnly = allPages.filter(p => p.type !== "questions");
+        // Generate images for all pages
         const characterDetails = data.children.map((c) => `${c.name} (${c.age}-year-old ${c.gender}${c.gender === 'boy' ? ', wearing a kippah' : ''})`).join(", ");
-        const imagePromises = imagePagesOnly.map(async (page) => {
+        const imagePromises = allPages.map(async (page) => {
           let imgPrompt: string;
           const styleMap: Record<string, string> = {
             cartoon: "colorful cartoon illustration, soft watercolor textures",
