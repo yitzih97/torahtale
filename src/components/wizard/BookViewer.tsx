@@ -193,7 +193,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
                 </div>
               </div>
             ) : page?.imageLoading ? (
-              <Skeleton className="w-full aspect-[4/3] rounded-book" />
+              <BookLoadingSkeleton type="back-cover" />
             ) : (
               <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
                 <BookOpen className="w-8 h-8 text-muted-foreground" />
