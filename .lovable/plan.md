@@ -1,64 +1,133 @@
 
 
-## Plan: Generate Real 3D Pixar-Style Book Images with Story Text
+# Plan: Add Authentication, Persist Generated Books, and Enhance Dashboard
 
-### What We're Doing
-Replace all 30 static placeholder images (10 covers + 20 interior pages) in the Gallery & Reviews section with AI-generated 3D Pixar-style illustrations that include story text embedded in each image. We'll use the Nano Banana 2 model (`google/gemini-3.1-flash-image-preview`) via a script to generate all images and store them as real assets.
+## Overview
+Add full user authentication (email/password), create database tables to store children profiles, generated books, and orders. Save books automatically after generation (even without checkout), and replace the mock dashboard with real data.
 
-### Approach
+---
 
-**Phase 1: Generate 30 images using AI script**
+## Database Schema
 
-Use the `lovable_ai.py` script to generate 30 images (3 per story x 10 stories). Each prompt will:
-- Specify 3D Pixar/CGI style with warm lighting, soft shadows, expressive characters
-- Feature the specific child character (Rivka, Yehuda, Chaya, etc.) dressed in modest Orthodox Jewish clothing (boys with kippah/tzitzis, girls in long modest dresses)
-- Include story text overlaid as part of the book page layout (like a real children's book page)
-- Depict the specific Torah scene for that page
+### 1. `profiles` table
+- `id` (uuid, PK, references auth.users)
+- `full_name` (text, nullable)
+- `email` (text)
+- `created_at` (timestamptz)
+- Auto-created via trigger on signup
 
-For each story, the 3 images will be:
-1. **Cover** — title page with story name and character
-2. **Page 2** — mid-story scene with narrative text
-3. **Page 3** — climax/conclusion scene with narrative text
+### 2. `children` table
+- `id` (uuid, PK)
+- `user_id` (uuid, references auth.users, NOT NULL)
+- `name` (text)
+- `age` (int)
+- `gender` (text)
+- `photo_url` (text, nullable)
+- `art_style` (text, nullable)
+- `created_at` (timestamptz)
 
-**Phase 2: Replace asset files**
+### 3. `books` table
+- `id` (uuid, PK)
+- `user_id` (uuid, references auth.users, NOT NULL)
+- `child_id` (uuid, references children, nullable)
+- `child_name` (text) -- denormalized for display
+- `torah_portion` (text)
+- `art_style` (text)
+- `language` (text)
+- `status` (text: "draft", "checkout", "ordered", "printing", "delivered")
+- `cover_image_url` (text, nullable)
+- `pages_data` (jsonb) -- full BookPage[] array with images and text
+- `story_data` (jsonb) -- raw story generation response
+- `questions` (jsonb) -- 20 questions array
+- `shipping_data` (jsonb, nullable)
+- `order_number` (text, nullable)
+- `created_at` (timestamptz)
+- `updated_at` (timestamptz)
 
-Overwrite all 30 existing image files in `src/assets/` with the AI-generated versions:
-- 10 cover images (`torah-garden-eden.jpg`, `noah-page1.jpg`, etc.)
-- 20 interior pages (`story1-page2.jpg`, `story1-page3.jpg`, etc.)
+### 4. RLS Policies
+- All tables: users can only CRUD their own rows (`user_id = auth.uid()`)
 
-**Phase 3: No code changes needed**
+### 5. Storage bucket
+- `book-images` for storing generated page images (or store as base64/URLs in jsonb)
 
-Since we're replacing files at the same paths, the `GalleryReviewsSection.tsx` imports remain unchanged.
+---
 
-### Image Generation Details
+## Authentication
 
-Each image prompt will follow this pattern:
+### New files
+- **`src/pages/Auth.tsx`** -- Login/Signup page with email+password, toggle between modes, password reset link
+- **`src/pages/ResetPassword.tsx`** -- Password reset form at `/reset-password`
+- **`src/contexts/AuthContext.tsx`** -- Auth provider with `onAuthStateChange`, `getSession`, user state, loading state
+
+### Route changes (App.tsx)
+- Add `/auth` and `/reset-password` routes
+- Protect `/dashboard` with auth check (redirect to `/auth` if not logged in)
+- Add auth context provider wrapping the app
+
+### Navbar updates
+- Show "Login" / "Dashboard" button based on auth state
+- Add user avatar/menu with logout option when logged in
+
+---
+
+## Auto-Save Books After Generation
+
+### CreationWizard changes
+1. After story + images finish generating (end of step 4 → step 5), automatically save the book to the `books` table with status `"draft"`
+2. On "Place Order" (step 7→8), update book status to `"ordered"` and save shipping data
+3. If user is not logged in when generating, prompt them to sign up/login to save their book (or store temporarily in state and save after auth)
+
+---
+
+## Dashboard Overhaul
+
+Replace all mock data with real database queries:
+
+### "My Kids" tab
+- Fetch from `children` table
+- "Add Child" saves to database
+- Edit/delete children
+
+### "My Books" tab (new, replaces "Order History")
+- Fetch from `books` table, show ALL books (drafts + ordered)
+- Draft books show "Resume" button (opens wizard at checkout step) and "Preview" button
+- Ordered books show status badge and PDF download
+- Each book card shows cover image, torah portion, child name, date, status
+
+### "Orders" tab
+- Filter `books` where status is "ordered"/"printing"/"delivered"
+- Show order number, shipping status, tracking
+
+### "Subscriptions" tab
+- Keep as-is for now (future feature)
+
+### Additional dashboard features
+- **Recent activity feed** -- latest book generations, status changes
+- **Quick stats** -- total books created, children count
+- **"Continue where you left off"** banner for draft books
+
+---
+
+## Technical Details
+
+### Migration SQL (single migration)
+```sql
+-- profiles table with auto-creation trigger
+-- children table with RLS
+-- books table with RLS
+-- Storage bucket for images
 ```
-A 3D Pixar-style children's book page illustration. Scene: [specific Torah scene]. 
-Character: [child name], an Orthodox Jewish [boy/girl] wearing [modest clothing]. 
-Story text elegantly embedded on the page: "[2-3 sentence story text]". 
-Warm lighting, soft shadows, vibrant colors, magical atmosphere. 
-Safe for children. No real text artifacts.
-```
 
-**10 Stories x 3 images each = 30 total images**
-
-| # | Story | Child | Scenes |
-|---|-------|-------|--------|
-| 1 | Gan Eden | Rivka (girl) | Garden, naming animals, leaving Gan Eden |
-| 2 | Noach's Teivah | Yehuda (boy) | Building ark, animals boarding, rainbow |
-| 3 | Tower of Bavel | Chaya (girl) | Tower building, confusion, scattering |
-| 4 | Avraham & Stars | Shmuel (boy) | Journey, counting stars, promise |
-| 5 | Yosef's Coat | Esther (girl) | Receiving coat, dreams, reunion |
-| 6 | Baby Moshe | Ari (boy) | Basket on Nile, discovery, palace |
-| 7 | Krias Yam Suf | Devorah (girl) | Trapped at sea, splitting, singing |
-| 8 | Matan Torah | Moshe (boy) | Har Sinai, thunder/lightning, luchos |
-| 9 | Dovid & Golyas | Dovid (boy) | Facing giant, slingshot, victory |
-| 10 | Yonah & the Dag | Noa (girl) | Ship, inside fish, Nineveh |
-
-### Technical Notes
-- Model: `google/gemini-3.1-flash-image-preview` (Nano Banana 2)
-- Output: PNG files converted/saved as JPG replacements in `src/assets/`
-- Each image will have story text baked into the illustration itself
-- Generation will be batched with delays to avoid rate limiting
+### Key code changes
+| File | Change |
+|------|--------|
+| `src/contexts/AuthContext.tsx` | New auth provider |
+| `src/pages/Auth.tsx` | New login/signup page |
+| `src/pages/ResetPassword.tsx` | New reset password page |
+| `src/App.tsx` | Add routes, auth provider, protected routes |
+| `src/components/Navbar.tsx` | Auth-aware nav (login/dashboard/logout) |
+| `src/components/CreationWizard.tsx` | Auto-save book to DB after generation |
+| `src/pages/Dashboard.tsx` | Full rewrite with real data from DB |
+| `src/hooks/useBooks.ts` | New hook for book CRUD operations |
+| `src/hooks/useChildren.ts` | New hook for children CRUD operations |
 
