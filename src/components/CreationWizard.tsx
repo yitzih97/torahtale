@@ -102,7 +102,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const addChild = () => {
     if (data.children.length >= 4) return;
-    setData((prev) => ({ ...prev, children: [...prev.children, createChild()] }));
+    const newChild = createChild();
+    setData((prev) => ({ ...prev, children: [...prev.children, newChild] }));
+    setExpandedChildId(newChild.id);
   };
 
   const removeChild = (id: string) => {
