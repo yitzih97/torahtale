@@ -45,23 +45,39 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
   }, [onPageChange]);
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ perspective: "1200px" }}>
+    <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ perspective: "2000px" }}>
+      {/* Previous page visible underneath during flip */}
+      <img
+        src={PAGES[(currentPage - 1 + PAGES.length) % PAGES.length]}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+      />
       <AnimatePresence mode="popLayout">
-        <motion.img
+        <motion.div
           key={currentPage}
-          src={PAGES[currentPage]}
-          alt="Torah story"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ transformOrigin: "right center", backfaceVisibility: "hidden" }}
-          initial={{ rotateY: 90, opacity: 0, scale: 1.02 }}
-          animate={{ rotateY: 0, opacity: 1, scale: 1 }}
-          exit={{ rotateY: -90, opacity: 0, scale: 1.02 }}
+          className="absolute inset-0 w-full h-full"
+          style={{ transformOrigin: "left center", transformStyle: "preserve-3d" }}
+          initial={{ rotateY: -180 }}
+          animate={{ rotateY: 0 }}
+          exit={{ opacity: 0 }}
           transition={{
-            rotateY: { duration: 1.8, ease: [0.25, 0.1, 0.25, 1] },
-            opacity: { duration: 1.2, ease: "easeInOut" },
-            scale: { duration: 1.8, ease: [0.25, 0.1, 0.25, 1] },
+            rotateY: { duration: 2.2, ease: [0.4, 0.0, 0.2, 1] },
+            opacity: { duration: 0.3, delay: 0.1 },
           }}
-        />
+        >
+          {/* Front face - the new page */}
+          <img
+            src={PAGES[currentPage]}
+            alt="Torah story"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ backfaceVisibility: "hidden" }}
+          />
+          {/* Back face - slight shadow to simulate page thickness */}
+          <div
+            className="absolute inset-0 w-full h-full bg-foreground/10"
+            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+          />
+        </motion.div>
       </AnimatePresence>
     </div>
   );
