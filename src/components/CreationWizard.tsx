@@ -80,6 +80,7 @@ interface Props {
 
 export const CreationWizard = ({ open, onClose }: Props) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [data, setData] = useState<WizardData>(initialData);
@@ -89,6 +90,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
   const [expandedChildId, setExpandedChildId] = useState<string | null>(initialData.children[0]?.id ?? null);
+  const [savedBookId, setSavedBookId] = useState<string | null>(null);
 
   const update = useCallback((partial: Partial<WizardData>) => {
     setData((prev) => ({ ...prev, ...partial }));
