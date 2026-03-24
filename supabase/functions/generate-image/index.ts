@@ -12,8 +12,8 @@ serve(async (req) => {
   try {
     const { prompt, childName, artStyle, torahPortion, referenceImage } = await req.json();
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
     const styleMap: Record<string, string> = {
       cartoon: "colorful cartoon illustration style, like a classic children's book, soft watercolor textures",
@@ -26,39 +26,47 @@ serve(async (req) => {
     let imagePrompt = prompt ||
       `A beautiful children's book illustration of a child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. All characters must be dressed modestly (tznius) — boys wearing kippah/yarmulke and tzitzis, girls in long modest dresses with long sleeves. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
 
-    // Build messages array
-    const content: any[] = [];
+    const parts: any[] = [];
 
     if (referenceImage) {
       imagePrompt = `Using the provided photo as a reference for the child's appearance (face, features, hair), create: ${imagePrompt}. The child in the illustration should closely resemble the child in the reference photo but rendered in the specified art style.`;
 
-      content.push({
-        type: "image_url",
-        image_url: {
-          url: referenceImage,
-        },
-      });
+      if (referenceImage.startsWith("data:")) {
+        const match = referenceImage.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (match) {
+          parts.push({
+            inlineData: {
+              mimeType: match[1],
+              data: match[2],
+            },
+          });
+        }
+      } else {
+        parts.push({
+          fileData: {
+            fileUri: referenceImage,
+            mimeType: "image/jpeg",
+          },
+        });
+      }
     }
 
-    content.push({ type: "text", text: imagePrompt });
+    parts.push({ text: imagePrompt });
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content,
+    // Use imagen-3.0-generate-002 for image generation via Gemini API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_AI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts }],
+          generationConfig: {
+            responseModalities: ["TEXT", "IMAGE"],
           },
-        ],
-        modalities: ["image", "text"],
-      }),
-    });
+        }),
+      }
+    );
 
     if (!response.ok) {
       const status = response.status;
@@ -68,25 +76,25 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const body = await response.text();
-      console.error("AI gateway error:", status, body);
-      throw new Error(`AI gateway error [${status}]`);
+      console.error("Gemini image generation error:", status, body);
+      throw new Error(`Gemini image generation error [${status}]`);
     }
 
     const data = await response.json();
-    const images = data.choices?.[0]?.message?.images;
+    const parts_response = data.candidates?.[0]?.content?.parts || [];
 
-    if (!images || images.length === 0) {
-      throw new Error("No image returned from AI");
+    let imageUrl: string | null = null;
+    for (const part of parts_response) {
+      if (part.inlineData) {
+        imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+        break;
+      }
     }
 
-    const imageUrl = images[0].image_url.url;
+    if (!imageUrl) {
+      throw new Error("No image returned from Gemini");
+    }
 
     return new Response(JSON.stringify({ imageUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
