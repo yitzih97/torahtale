@@ -301,7 +301,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }
   };
 
-  const handlePlaceOrder = () => { setDir(1); setStep(8); };
+  const handlePlaceOrder = async () => {
+    // Update book status in DB
+    if (savedBookId && user) {
+      try {
+        await supabase
+          .from("books")
+          .update({
+            status: "ordered",
+            shipping_data: shipping,
+            order_number: `MTT-${Date.now().toString().slice(-6)}`,
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq("id", savedBookId);
+      } catch (err) {
+        console.error("Failed to update order:", err);
+      }
+    }
+    setDir(1);
+    setStep(8);
+  };
 
   const canNext =
     (step === 1 && data.children.every((c) => c.name && c.age && c.gender)) ||
