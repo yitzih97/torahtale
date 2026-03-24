@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, ImageIcon, Wand
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
+import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 

@@ -62,11 +62,13 @@ You MUST respond with ONLY a valid JSON object with this exact structure:
   }
 }
 
-The questions should:
-- Reflect the specific events and themes of the story you wrote
+The questions should be part of the back cover (inside the backCover object):
+- Include exactly 20 questions
+- Reflect the specific events, moral lessons, and values from the story
 - Be age-appropriate for a ${age}-year-old
 - Mix comprehension questions with moral/values questions
 - Reference specific characters and scenes from the story
+- Focus on what the children learned and how they can apply it in real life
 
 No markdown, no explanation, just the JSON object.`;
 
