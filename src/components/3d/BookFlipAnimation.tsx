@@ -72,12 +72,38 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
             className="absolute inset-0 w-full h-full object-cover"
             style={{ backfaceVisibility: "hidden" }}
           />
-          {/* Back face shadow */}
+          {/* Front face - sweeping shadow as page lifts */}
+          <motion.div
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{
+              backfaceVisibility: "hidden",
+              background: "linear-gradient(to left, transparent 60%, hsl(var(--foreground) / 0.25) 100%)",
+            }}
+            initial={{ opacity: 0 }}
+            exit={{ opacity: 1 }}
+            transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1] }}
+          />
+          {/* Back face */}
           <div
             className="absolute inset-0 w-full h-full bg-foreground/15"
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           />
         </motion.div>
+      </AnimatePresence>
+
+      {/* Shadow cast onto revealed page from the lifting page */}
+      <AnimatePresence>
+        <motion.div
+          key={`shadow-${currentPage}`}
+          className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
+          style={{
+            background: "linear-gradient(to right, hsl(var(--foreground) / 0.3) 0%, transparent 35%)",
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0 }}
+          exit={{ opacity: [0, 0.8, 0] }}
+          transition={{ duration: 2.4, ease: [0.4, 0, 0.15, 1], times: [0, 0.4, 1] }}
+        />
       </AnimatePresence>
     </div>
   );
