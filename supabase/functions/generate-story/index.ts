@@ -35,7 +35,9 @@ Requirements:
 - Make the children the main characters and heroes of the story
 - Each story page should be 2-3 sentences, appropriate for a ${age}-year-old
 - Weave the Torah portion's key themes naturally into the adventure
-- End with a warm, uplifting moral
+- The story MUST teach a clear moral lesson and positive values (kindness, honesty, gratitude, courage, respect)
+- The children should discover the hidden lesson behind the Torah story through their adventure
+- End with a warm, uplifting moral that shows how they can apply the lesson in their own lives
 - Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting
 - ${language === "bilingual" ? "Write each page in both English and Hebrew" : language === "hebrew" ? "Write in Hebrew" : "Write in English"}
 
