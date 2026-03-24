@@ -218,6 +218,33 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         setGenerating(false);
         setStep(5);
 
+        // Auto-save book to database
+        if (user) {
+          try {
+            const { data: bookData, error: saveError } = await supabase
+              .from("books")
+              .insert({
+                user_id: user.id,
+                child_name: childNames,
+                torah_portion: data.torahPortion,
+                art_style: data.artStyle,
+                language: data.language,
+                status: "draft",
+                pages_data: allPages,
+                story_data: storyData,
+                questions,
+              } as any)
+              .select()
+              .single();
+            if (!saveError && bookData) {
+              setSavedBookId(bookData.id);
+              toast.success("Book saved to your account!");
+            }
+          } catch (err) {
+            console.error("Failed to save book:", err);
+          }
+        }
+
         // Generate images for all pages
         const characterDetails = data.children.map((c) => `${c.name} (${c.age}-year-old ${c.gender}${c.gender === 'boy' ? ', wearing a kippah' : ''})`).join(", ");
         const imagePromises = allPages.map(async (page) => {
