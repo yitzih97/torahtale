@@ -217,6 +217,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
         // Generate images for pages that need them (not questions)
         const imagePagesOnly = allPages.filter(p => p.type !== "questions");
+        const characterDetails = data.children.map((c) => `${c.name} (${c.age}-year-old ${c.gender}${c.gender === 'boy' ? ', wearing a kippah' : ''})`).join(", ");
         const imagePromises = imagePagesOnly.map(async (page) => {
           let imgPrompt: string;
           const styleMap: Record<string, string> = {
@@ -227,11 +228,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           const style = styleMap[data.artStyle] || styleMap.cartoon;
 
           if (page.type === "cover") {
-            imgPrompt = `A stunning children's book front cover illustration. Title: "${page.coverTitle}". Characters: children named ${childNames}. Torah story: ${data.torahPortion}. Style: ${style}. Magical, inviting, vibrant colors. All characters dressed modestly (tznius). No text in the image.`;
+            imgPrompt = `A stunning children's book front cover illustration. Title: "${page.coverTitle}". Characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Magical, inviting, vibrant colors. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). No text in the image.`;
           } else if (page.type === "back-cover") {
-            imgPrompt = `A beautiful children's book back cover illustration. A warm, gentle scene with characters named ${childNames}. Torah story: ${data.torahPortion}. Style: ${style}. Soft, warm colors, peaceful atmosphere. All characters dressed modestly (tznius). No text in the image.`;
+            imgPrompt = `A beautiful children's book back cover illustration. A warm, gentle scene with characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Soft, warm colors, peaceful atmosphere. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). No text in the image.`;
           } else {
-            imgPrompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout. Story text: "${page.text}". Characters: children named ${childNames}. Torah story: ${data.torahPortion}. Style: ${style}. All characters dressed modestly (tznius). Safe for children, warm magical atmosphere, vibrant colors.`;
+            imgPrompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout. Story text: "${page.text}". Characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). Safe for children, warm magical atmosphere, vibrant colors.`;
           }
 
           const imageUrl = await generateImageForPage(page.id, imgPrompt, data.artStyle, childNames, data.torahPortion);

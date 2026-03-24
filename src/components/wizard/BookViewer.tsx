@@ -215,7 +215,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
                 transition={{ duration: 0.3 }}
               />
             ) : page?.imageLoading ? (
-              <Skeleton className="w-full aspect-[4/3] rounded-book" />
+              <BookLoadingSkeleton type="story" />
             ) : (
               <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
                 <ImageIcon className="w-8 h-8 text-muted-foreground" />
