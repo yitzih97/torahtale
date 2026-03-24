@@ -115,10 +115,14 @@ No markdown, no explanation, just the JSON object.`;
     // Normalize: ensure we have all parts
     const storyPages = Array.isArray(parsed.pages) ? parsed.pages : parsed.pages || [];
     const cover = parsed.cover || { title: `${childName}'s Torah Adventure`, subtitle: torahPortionLabel };
-    const backCover = parsed.backCover || { synopsis: "A magical Torah adventure.", dedication: `For ${childName}, with love.` };
-    const questions = Array.isArray(parsed.questions) ? parsed.questions : [];
+    const questions = Array.isArray(parsed.backCover?.questions) ? parsed.backCover.questions : Array.isArray(parsed.questions) ? parsed.questions : [];
+    const backCover = {
+      synopsis: parsed.backCover?.synopsis || "A magical Torah adventure.",
+      dedication: parsed.backCover?.dedication || `For ${childName}, with love.`,
+      questions,
+    };
 
-    return new Response(JSON.stringify({ cover, pages: storyPages, backCover, questions }), {
+    return new Response(JSON.stringify({ cover, pages: storyPages, backCover }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
