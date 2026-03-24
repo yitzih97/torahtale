@@ -85,7 +85,7 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
           />
           {/* Back face */}
           <div
-            className="absolute inset-0 w-full h-full bg-foreground/15"
+            className="absolute inset-0 w-full h-full bg-foreground/10"
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           />
         </motion.div>
