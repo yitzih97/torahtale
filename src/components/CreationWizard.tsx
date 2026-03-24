@@ -87,7 +87,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [genText, setGenText] = useState("");
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
-  const [expandedChildId, setExpandedChildId] = useState<string | null>(null);
+  const [expandedChildId, setExpandedChildId] = useState<string | null>(initialData.children[0]?.id ?? null);
 
   const update = useCallback((partial: Partial<WizardData>) => {
     setData((prev) => ({ ...prev, ...partial }));
