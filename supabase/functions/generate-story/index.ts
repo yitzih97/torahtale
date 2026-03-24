@@ -53,13 +53,13 @@ You MUST respond with ONLY a valid JSON object with this exact structure:
   ],
   "backCover": {
     "synopsis": "A short 1-2 sentence synopsis for the back cover",
-    "dedication": "A warm dedication message to the child/children"
-  },
-  "questions": [
-    { "number": 1, "question": "Discussion question 1" },
-    { "number": 2, "question": "Discussion question 2" },
-    ...up to 10 questions
-  ]
+    "dedication": "A warm dedication message to the child/children",
+    "questions": [
+      { "number": 1, "question": "Discussion question 1" },
+      { "number": 2, "question": "Discussion question 2" },
+      ...up to 20 questions
+    ]
+  }
 }
 
 The questions should:
