@@ -77,7 +77,7 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
             className="absolute inset-0 w-full h-full pointer-events-none"
             style={{
               backfaceVisibility: "hidden",
-              background: "linear-gradient(to left, transparent 60%, hsl(var(--foreground) / 0.25) 100%)",
+              background: "linear-gradient(to left, transparent 65%, hsl(var(--foreground) / 0.15) 100%)",
             }}
             initial={{ opacity: 0 }}
             exit={{ opacity: 1 }}
@@ -85,7 +85,7 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
           />
           {/* Back face */}
           <div
-            className="absolute inset-0 w-full h-full bg-foreground/15"
+            className="absolute inset-0 w-full h-full bg-foreground/10"
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           />
         </motion.div>
@@ -97,11 +97,11 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
           key={`shadow-${currentPage}`}
           className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
           style={{
-            background: "linear-gradient(to right, hsl(var(--foreground) / 0.3) 0%, transparent 35%)",
+            background: "linear-gradient(to right, hsl(var(--foreground) / 0.2) 0%, transparent 30%)",
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0 }}
-          exit={{ opacity: [0, 0.8, 0] }}
+          exit={{ opacity: [0, 0.6, 0] }}
           transition={{ duration: 2.4, ease: [0.4, 0, 0.15, 1], times: [0, 0.4, 1] }}
         />
       </AnimatePresence>
