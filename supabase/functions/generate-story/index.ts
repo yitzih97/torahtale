@@ -17,13 +17,13 @@ serve(async (req) => {
 
     const pages = Math.min(Math.max(pageCount || 4, 2), 10);
 
-    const systemPrompt = `You are a world-class children's book author who specializes in Jewish stories. You write warm, engaging, age-appropriate stories that weave Torah wisdom into magical adventures. The stories should be vivid, imaginative, and make the children the heroes of the narrative.`;
+    const systemPrompt = `You are a world-class children's book author who specializes in Jewish stories. You write warm, engaging, age-appropriate stories that weave Torah wisdom into magical adventures. The stories should be vivid, imaginative, and make the children the heroes of the narrative. You maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic children's book.`;
 
     const characterDesc = childrenInfo
       ? `Characters: ${childrenInfo}`
       : `Main character: ${childName}, ${age} years old, ${gender}`;
 
-    const userPrompt = `Write a ${pages}-page personalized children's book story.
+    const userPrompt = `Write a personalized children's book with a front cover, ${pages} story pages, a back cover, and 10 discussion questions.
 
 Details:
 - ${characterDesc}
@@ -33,12 +33,40 @@ Details:
 
 Requirements:
 - Make the children the main characters and heroes of the story
-- Each page should be 2-3 sentences, appropriate for a ${age}-year-old
+- Each story page should be 2-3 sentences, appropriate for a ${age}-year-old
 - Weave the Torah portion's key themes naturally into the adventure
 - End with a warm, uplifting moral
+- Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting
 - ${language === "bilingual" ? "Write each page in both English and Hebrew" : language === "hebrew" ? "Write in Hebrew" : "Write in English"}
 
-You MUST respond with ONLY a valid JSON array of objects with "page" (number) and "text" (the story text for that page). No markdown, no explanation, just the JSON array.`;
+You MUST respond with ONLY a valid JSON object with this exact structure:
+{
+  "cover": {
+    "title": "The book title",
+    "subtitle": "A short subtitle or tagline"
+  },
+  "pages": [
+    { "page": 1, "text": "Story text for page 1" },
+    ...
+  ],
+  "backCover": {
+    "synopsis": "A short 1-2 sentence synopsis for the back cover",
+    "dedication": "A warm dedication message to the child/children"
+  },
+  "questions": [
+    { "number": 1, "question": "Discussion question 1" },
+    { "number": 2, "question": "Discussion question 2" },
+    ...up to 10 questions
+  ]
+}
+
+The questions should:
+- Reflect the specific events and themes of the story you wrote
+- Be age-appropriate for a ${age}-year-old
+- Mix comprehension questions with moral/values questions
+- Reference specific characters and scenes from the story
+
+No markdown, no explanation, just the JSON object.`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_AI_API_KEY}`,
@@ -70,18 +98,23 @@ You MUST respond with ONLY a valid JSON array of objects with "page" (number) an
     }
 
     const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
 
-    let storyPages;
+    let parsed;
     try {
-      const parsed = JSON.parse(content);
-      storyPages = Array.isArray(parsed) ? parsed : parsed.pages || [];
+      parsed = JSON.parse(content);
     } catch {
-      const match = content.match(/\[[\s\S]*\]/);
-      storyPages = match ? JSON.parse(match[0]) : [];
+      const match = content.match(/\{[\s\S]*\}/);
+      parsed = match ? JSON.parse(match[0]) : {};
     }
 
-    return new Response(JSON.stringify({ pages: storyPages }), {
+    // Normalize: ensure we have all parts
+    const storyPages = Array.isArray(parsed.pages) ? parsed.pages : parsed.pages || [];
+    const cover = parsed.cover || { title: `${childName}'s Torah Adventure`, subtitle: torahPortionLabel };
+    const backCover = parsed.backCover || { synopsis: "A magical Torah adventure.", dedication: `For ${childName}, with love.` };
+    const questions = Array.isArray(parsed.questions) ? parsed.questions : [];
+
+    return new Response(JSON.stringify({ cover, pages: storyPages, backCover, questions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

@@ -114,14 +114,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
-  const generateImageForPage = async (pageId: number, pageText: string, artStyle: string, names: string, torahPortion: string) => {
+  const generateImageForPage = async (pageId: number, promptOrText: string, artStyle: string, names: string, torahPortion: string) => {
     try {
-      const styleMap: Record<string, string> = {
-        cartoon: "colorful cartoon illustration, soft watercolor textures",
-        "3d-pixar": "3D Pixar-style CGI render, warm lighting",
-        "graphic-novel": "graphic novel, bold ink lines, flat colors",
-      };
-      const prompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout, like a real printed children's book. The text should appear in a readable area (top or bottom banner, speech bubble, or decorative text area) within the illustration itself. Story text: "${pageText}". Characters: children named ${names}. Torah story: ${torahPortion}. Style: ${styleMap[artStyle] || styleMap.cartoon}. All characters dressed modestly (tznius). Safe for children, warm magical atmosphere, vibrant colors.`;
+      // promptOrText is now always a full prompt from the caller
+      const prompt = promptOrText;
 
       // Get the first child's photo as reference image (base64 data URL)
       const firstChildWithPhoto = data.children.find((c) => c.photoPreview);
@@ -172,20 +168,82 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         if (storyError) throw storyError;
         if (storyData?.error) throw new Error(storyData.error);
 
-        const storyPages: BookPage[] = (storyData.pages || []).map((p: any, idx: number) => ({
-          id: idx + 1,
-          text: p.text,
+        const cover = storyData.cover || { title: `${childNames}'s Torah Adventure`, subtitle: "" };
+        const backCover = storyData.backCover || { synopsis: "", dedication: "" };
+        const questions = storyData.questions || [];
+
+        // Build all book pages: cover + story + back cover + questions
+        let pageId = 0;
+        const allPages: BookPage[] = [];
+
+        // Front cover
+        allPages.push({
+          id: pageId++,
+          text: cover.title,
           image: null,
           imageLoading: true,
-        }));
+          type: "cover",
+          coverTitle: cover.title,
+          coverSubtitle: cover.subtitle,
+        });
 
-        setBookPages(storyPages);
+        // Story pages
+        for (const p of storyData.pages || []) {
+          allPages.push({
+            id: pageId++,
+            text: p.text,
+            image: null,
+            imageLoading: true,
+            type: "story",
+          });
+        }
+
+        // Back cover
+        allPages.push({
+          id: pageId++,
+          text: backCover.synopsis || "",
+          image: null,
+          imageLoading: true,
+          type: "back-cover",
+          synopsis: backCover.synopsis,
+          dedication: backCover.dedication,
+        });
+
+        // Questions page (no image needed)
+        allPages.push({
+          id: pageId++,
+          text: "Discussion Questions",
+          image: null,
+          imageLoading: false,
+          type: "questions",
+          questions,
+        });
+
+        setBookPages(allPages);
         clearInterval(iv);
         setGenerating(false);
         setStep(5);
 
-        const imagePromises = storyPages.map(async (page) => {
-          const imageUrl = await generateImageForPage(page.id, page.text, data.artStyle, childNames, data.torahPortion);
+        // Generate images for pages that need them (not questions)
+        const imagePagesOnly = allPages.filter(p => p.type !== "questions");
+        const imagePromises = imagePagesOnly.map(async (page) => {
+          let imgPrompt: string;
+          const styleMap: Record<string, string> = {
+            cartoon: "colorful cartoon illustration, soft watercolor textures",
+            "3d-pixar": "3D Pixar-style CGI render, warm lighting",
+            "graphic-novel": "graphic novel, bold ink lines, flat colors",
+          };
+          const style = styleMap[data.artStyle] || styleMap.cartoon;
+
+          if (page.type === "cover") {
+            imgPrompt = `A stunning children's book front cover illustration. Title: "${page.coverTitle}". Characters: children named ${childNames}. Torah story: ${data.torahPortion}. Style: ${style}. Magical, inviting, vibrant colors. All characters dressed modestly (tznius). No text in the image.`;
+          } else if (page.type === "back-cover") {
+            imgPrompt = `A beautiful children's book back cover illustration. A warm, gentle scene with characters named ${childNames}. Torah story: ${data.torahPortion}. Style: ${style}. Soft, warm colors, peaceful atmosphere. All characters dressed modestly (tznius). No text in the image.`;
+          } else {
+            imgPrompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout. Story text: "${page.text}". Characters: children named ${childNames}. Torah story: ${data.torahPortion}. Style: ${style}. All characters dressed modestly (tznius). Safe for children, warm magical atmosphere, vibrant colors.`;
+          }
+
+          const imageUrl = await generateImageForPage(page.id, imgPrompt, data.artStyle, childNames, data.torahPortion);
           return { id: page.id, imageUrl };
         });
 
