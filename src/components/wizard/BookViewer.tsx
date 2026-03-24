@@ -13,7 +13,7 @@ export interface BookPage {
   text: string;
   image: string | null;
   imageLoading?: boolean;
-  type?: "cover" | "story" | "back-cover" | "questions";
+  type?: "cover" | "story" | "back-cover";
   coverTitle?: string;
   coverSubtitle?: string;
   synopsis?: string;
