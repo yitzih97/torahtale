@@ -14,7 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      books: {
+        Row: {
+          art_style: string | null
+          child_id: string | null
+          child_name: string | null
+          cover_image_url: string | null
+          created_at: string
+          id: string
+          language: string | null
+          order_number: string | null
+          pages_data: Json | null
+          questions: Json | null
+          shipping_data: Json | null
+          status: string
+          story_data: Json | null
+          torah_portion: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          art_style?: string | null
+          child_id?: string | null
+          child_name?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          id?: string
+          language?: string | null
+          order_number?: string | null
+          pages_data?: Json | null
+          questions?: Json | null
+          shipping_data?: Json | null
+          status?: string
+          story_data?: Json | null
+          torah_portion?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          art_style?: string | null
+          child_id?: string | null
+          child_name?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          id?: string
+          language?: string | null
+          order_number?: string | null
+          pages_data?: Json | null
+          questions?: Json | null
+          shipping_data?: Json | null
+          status?: string
+          story_data?: Json | null
+          torah_portion?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "books_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          age: number | null
+          art_style: string | null
+          created_at: string
+          gender: string | null
+          id: string
+          name: string
+          photo_url: string | null
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          art_style?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          name: string
+          photo_url?: string | null
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          art_style?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          name?: string
+          photo_url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

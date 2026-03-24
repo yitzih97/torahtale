@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Sun, Moon } from "lucide-react";
+import { BookOpen, Sun, Moon, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavbarProps {
   onStart?: () => void;
@@ -10,6 +11,7 @@ interface NavbarProps {
 export const Navbar = ({ onStart }: NavbarProps) => {
   const [scrolled, setScrolled] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -55,9 +57,27 @@ export const Navbar = ({ onStart }: NavbarProps) => {
           >
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
-          <a href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors hidden sm:block">
-            Dashboard
-          </a>
+
+          {user ? (
+            <>
+              <a href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors hidden sm:flex items-center gap-1.5">
+                <User className="w-4 h-4" />
+                Dashboard
+              </a>
+              <button
+                onClick={signOut}
+                className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-muted transition-colors hidden sm:block"
+                aria-label="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <a href="/auth" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors hidden sm:block">
+              Login
+            </a>
+          )}
+
           {onStart && (
             <Button variant="gold" size="sm" onClick={onStart} className="rounded-full px-5">
               Create a Story

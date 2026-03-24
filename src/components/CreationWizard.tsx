@@ -17,6 +17,7 @@ import { SuccessStep } from "./wizard/SuccessStep";
 import { TORAH_PORTIONS, getPortionLabel } from "./wizard/TorahPortions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface ChildProfile {
   id: string;
@@ -79,6 +80,7 @@ interface Props {
 
 export const CreationWizard = ({ open, onClose }: Props) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [data, setData] = useState<WizardData>(initialData);
@@ -88,6 +90,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
   const [expandedChildId, setExpandedChildId] = useState<string | null>(initialData.children[0]?.id ?? null);
+  const [savedBookId, setSavedBookId] = useState<string | null>(null);
 
   const update = useCallback((partial: Partial<WizardData>) => {
     setData((prev) => ({ ...prev, ...partial }));
@@ -215,6 +218,33 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         setGenerating(false);
         setStep(5);
 
+        // Auto-save book to database
+        if (user) {
+          try {
+            const { data: bookData, error: saveError } = await supabase
+              .from("books")
+              .insert({
+                user_id: user.id,
+                child_name: childNames,
+                torah_portion: data.torahPortion,
+                art_style: data.artStyle,
+                language: data.language,
+                status: "draft",
+                pages_data: allPages,
+                story_data: storyData,
+                questions,
+              } as any)
+              .select()
+              .single();
+            if (!saveError && bookData) {
+              setSavedBookId(bookData.id);
+              toast.success("Book saved to your account!");
+            }
+          } catch (err) {
+            console.error("Failed to save book:", err);
+          }
+        }
+
         // Generate images for all pages
         const characterDetails = data.children.map((c) => `${c.name} (${c.age}-year-old ${c.gender}${c.gender === 'boy' ? ', wearing a kippah' : ''})`).join(", ");
         const imagePromises = allPages.map(async (page) => {
@@ -271,7 +301,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }
   };
 
-  const handlePlaceOrder = () => { setDir(1); setStep(8); };
+  const handlePlaceOrder = async () => {
+    // Update book status in DB
+    if (savedBookId && user) {
+      try {
+        await supabase
+          .from("books")
+          .update({
+            status: "ordered",
+            shipping_data: shipping,
+            order_number: `MTT-${Date.now().toString().slice(-6)}`,
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq("id", savedBookId);
+      } catch (err) {
+        console.error("Failed to update order:", err);
+      }
+    }
+    setDir(1);
+    setStep(8);
+  };
 
   const canNext =
     (step === 1 && data.children.every((c) => c.name && c.age && c.gender)) ||
