@@ -114,14 +114,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
-  const generateImageForPage = async (pageId: number, pageText: string, artStyle: string, names: string, torahPortion: string) => {
+  const generateImageForPage = async (pageId: number, promptOrText: string, artStyle: string, names: string, torahPortion: string) => {
     try {
-      const styleMap: Record<string, string> = {
-        cartoon: "colorful cartoon illustration, soft watercolor textures",
-        "3d-pixar": "3D Pixar-style CGI render, warm lighting",
-        "graphic-novel": "graphic novel, bold ink lines, flat colors",
-      };
-      const prompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout, like a real printed children's book. The text should appear in a readable area (top or bottom banner, speech bubble, or decorative text area) within the illustration itself. Story text: "${pageText}". Characters: children named ${names}. Torah story: ${torahPortion}. Style: ${styleMap[artStyle] || styleMap.cartoon}. All characters dressed modestly (tznius). Safe for children, warm magical atmosphere, vibrant colors.`;
+      // promptOrText is now always a full prompt from the caller
+      const prompt = promptOrText;
 
       // Get the first child's photo as reference image (base64 data URL)
       const firstChildWithPhoto = data.children.find((c) => c.photoPreview);
