@@ -94,7 +94,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   const getPageLabel = () => {
     if (pageType === "cover") return "Front Cover";
     if (pageType === "back-cover") return "Back Cover";
-    if (pageType === "questions") return "Discussion Questions";
+    // Find story page number (skip cover)
     // Find story page number (skip cover)
     const storyPages = pages.filter(p => p.type === "story");
     const storyIdx = storyPages.indexOf(page);
