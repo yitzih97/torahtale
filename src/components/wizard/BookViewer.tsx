@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, ImageIcon, Wand
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
+import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,7 +13,7 @@ export interface BookPage {
   text: string;
   image: string | null;
   imageLoading?: boolean;
-  type?: "cover" | "story" | "back-cover" | "questions";
+  type?: "cover" | "story" | "back-cover";
   coverTitle?: string;
   coverSubtitle?: string;
   synopsis?: string;
@@ -94,7 +94,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   const getPageLabel = () => {
     if (pageType === "cover") return "Front Cover";
     if (pageType === "back-cover") return "Back Cover";
-    if (pageType === "questions") return "Discussion Questions";
+    // Find story page number (skip cover)
     // Find story page number (skip cover)
     const storyPages = pages.filter(p => p.type === "story");
     const storyIdx = storyPages.indexOf(page);
@@ -113,23 +113,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
       {/* Book viewer */}
       <div className="relative bg-secondary rounded-book overflow-hidden">
-        {pageType === "questions" ? (
-          /* Questions page - no image, styled text layout */
-          <div className="w-full aspect-[4/3] rounded-book bg-card flex flex-col p-6 overflow-y-auto">
-            <div className="flex items-center gap-2 mb-4">
-              <HelpCircle className="w-5 h-5 text-accent" />
-              <h3 className="font-display text-lg font-bold text-primary">Discussion Questions</h3>
-            </div>
-            <div className="space-y-3 flex-1">
-              {page?.questions?.map((q) => (
-                <div key={q.number} className="flex gap-3">
-                  <span className="font-display text-sm font-bold text-accent min-w-[24px]">{q.number}.</span>
-                  <p className="font-body text-sm text-foreground leading-relaxed">{q.question}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : pageType === "cover" ? (
+        {pageType === "cover" ? (
           /* Cover page with image + title overlay */
           <>
             {page?.image ? (
@@ -156,7 +140,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
                 </div>
               </div>
             ) : page?.imageLoading ? (
-              <Skeleton className="w-full aspect-[4/3] rounded-book" />
+              <BookLoadingSkeleton type="cover" />
             ) : (
               <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
                 <BookOpen className="w-8 h-8 text-muted-foreground" />
@@ -165,7 +149,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             )}
           </>
         ) : pageType === "back-cover" ? (
-          /* Back cover */
+          /* Back cover with questions overlay */
           <>
             {page?.image ? (
               <div className="relative w-full aspect-[4/3]">
@@ -178,22 +162,36 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
                   animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
                   transition={{ duration: 0.3 }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent rounded-book" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-book" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 max-h-[80%] overflow-y-auto">
                   {page.synopsis && (
-                    <p className="font-body text-sm text-white/90 italic mb-3 leading-relaxed">
+                    <p className="font-body text-xs text-white/90 italic mb-2 leading-relaxed text-center">
                       "{page.synopsis}"
                     </p>
                   )}
                   {page.dedication && (
-                    <p className="font-display text-xs text-white/70">
+                    <p className="font-display text-[10px] text-white/70 text-center mb-3">
                       {page.dedication}
                     </p>
+                  )}
+                  {page.questions && page.questions.length > 0 && (
+                    <div className="border-t border-white/20 pt-2 mt-2">
+                      <p className="font-display text-xs font-bold text-white/90 mb-1.5 flex items-center gap-1">
+                        <HelpCircle className="w-3 h-3" /> Discussion Questions
+                      </p>
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                        {page.questions.map((q) => (
+                          <p key={q.number} className="text-[9px] text-white/80 leading-snug">
+                            <span className="font-bold text-accent">{q.number}.</span> {q.question}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
             ) : page?.imageLoading ? (
-              <Skeleton className="w-full aspect-[4/3] rounded-book" />
+              <BookLoadingSkeleton type="back-cover" />
             ) : (
               <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
                 <BookOpen className="w-8 h-8 text-muted-foreground" />
@@ -215,7 +213,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
                 transition={{ duration: 0.3 }}
               />
             ) : page?.imageLoading ? (
-              <Skeleton className="w-full aspect-[4/3] rounded-book" />
+              <BookLoadingSkeleton type="story" />
             ) : (
               <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
                 <ImageIcon className="w-8 h-8 text-muted-foreground" />
@@ -261,15 +259,14 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             className={`h-2 rounded-full transition-all duration-300 ${
               i === currentPage ? "bg-accent w-5" : 
               p.type === "cover" || p.type === "back-cover" ? "bg-accent/30 w-2.5 hover:bg-accent/50" :
-              p.type === "questions" ? "bg-primary/30 w-2.5 hover:bg-primary/50" :
               "bg-border w-2 hover:bg-muted-foreground/40"
             }`}
           />
         ))}
       </div>
 
-      {/* Action buttons - hide for questions page */}
-      {pageType !== "questions" && (
+      {/* Action buttons */}
+      {(
         <div className="flex gap-2">
           {!isSpecialPage && (
             <Button variant="outline" size="sm" onClick={() => startEdit(currentPage)} className="flex-1 text-xs">
