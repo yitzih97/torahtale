@@ -45,37 +45,72 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
   }, [onPageChange]);
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ perspective: "2000px" }}>
-      {/* Previous page visible underneath during flip */}
+    <div className="absolute inset-0 w-full h-full overflow-hidden">
+      {/* Previous page underneath */}
       <img
         src={PAGES[(currentPage - 1 + PAGES.length) % PAGES.length]}
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
       />
+
       <AnimatePresence mode="popLayout">
         <motion.div
           key={currentPage}
-          className="absolute inset-0 w-full h-full"
-          style={{ transformOrigin: "left center", transformStyle: "preserve-3d" }}
-          initial={{ rotateY: -180 }}
-          animate={{ rotateY: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{
-            rotateY: { duration: 2.2, ease: [0.4, 0.0, 0.2, 1] },
-            opacity: { duration: 0.3, delay: 0.1 },
-          }}
+          className="absolute inset-0 w-full h-full flex"
+          initial="initial"
+          animate="animate"
+          exit="exit"
         >
-          {/* Front face - the new page */}
-          <img
-            src={PAGES[currentPage]}
-            alt="Torah story"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ backfaceVisibility: "hidden" }}
-          />
-          {/* Back face - slight shadow to simulate page thickness */}
-          <div
-            className="absolute inset-0 w-full h-full bg-foreground/10"
-            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+          {/* Left half - folds outward from center spine */}
+          <div className="w-1/2 h-full overflow-hidden" style={{ perspective: "1500px" }}>
+            <motion.div
+              className="w-full h-full"
+              style={{ transformOrigin: "right center", transformStyle: "preserve-3d" }}
+              variants={{
+                initial: { rotateY: 90 },
+                animate: { rotateY: 0, transition: { duration: 2, ease: [0.4, 0, 0.2, 1], delay: 0.15 } },
+                exit: { rotateY: 90, transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] } },
+              }}
+            >
+              <div className="w-[200%] h-full" style={{ backfaceVisibility: "hidden" }}>
+                <img
+                  src={PAGES[currentPage]}
+                  alt="Torah story"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right half - folds outward from center spine */}
+          <div className="w-1/2 h-full overflow-hidden" style={{ perspective: "1500px" }}>
+            <motion.div
+              className="w-full h-full"
+              style={{ transformOrigin: "left center", transformStyle: "preserve-3d" }}
+              variants={{
+                initial: { rotateY: -90 },
+                animate: { rotateY: 0, transition: { duration: 2, ease: [0.4, 0, 0.2, 1] } },
+                exit: { rotateY: -90, transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] } },
+              }}
+            >
+              <div className="w-[200%] h-full -ml-[100%]" style={{ backfaceVisibility: "hidden" }}>
+                <img
+                  src={PAGES[currentPage]}
+                  alt="Torah story"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Center spine line */}
+          <motion.div
+            className="absolute left-1/2 top-0 bottom-0 w-px bg-foreground/10 -translate-x-px z-10"
+            variants={{
+              initial: { opacity: 0 },
+              animate: { opacity: 1, transition: { delay: 1.5, duration: 0.5 } },
+              exit: { opacity: 0, transition: { duration: 0.2 } },
+            }}
           />
         </motion.div>
       </AnimatePresence>
