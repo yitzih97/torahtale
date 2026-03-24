@@ -55,7 +55,7 @@ serve(async (req) => {
 
     // Use imagen-3.0-generate-002 for image generation via Gemini API
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${GOOGLE_AI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
