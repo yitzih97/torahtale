@@ -77,7 +77,7 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
             className="absolute inset-0 w-full h-full pointer-events-none"
             style={{
               backfaceVisibility: "hidden",
-              background: "linear-gradient(to left, transparent 60%, hsl(var(--foreground) / 0.25) 100%)",
+              background: "linear-gradient(to left, transparent 65%, hsl(var(--foreground) / 0.15) 100%)",
             }}
             initial={{ opacity: 0 }}
             exit={{ opacity: 1 }}
