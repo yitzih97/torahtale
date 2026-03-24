@@ -1,170 +1,301 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { motion } from "framer-motion";
+import { Star } from "lucide-react";
+import { BookPreviewModal } from "@/components/gallery/BookPreviewModal";
 
-// Story covers (existing)
-import gardenEden from "@/assets/torah-garden-eden.jpg";
-import noahPage1 from "@/assets/noah-page1.jpg";
-import towerBabel from "@/assets/torah-tower-babel.jpg";
-import abrahamStars from "@/assets/torah-abraham-stars.jpg";
-import josephCoat from "@/assets/torah-joseph-coat.jpg";
-import mosesBasket from "@/assets/torah-moses-basket.jpg";
-import redSea from "@/assets/torah-red-sea.jpg";
-import tenCommandments from "@/assets/torah-ten-commandments.jpg";
-import davidGoliath from "@/assets/torah-david-goliath.jpg";
-import jonahWhale from "@/assets/torah-jonah-whale.jpg";
+// Covers
+import s1Cover from "@/assets/gallery/s1-cover.jpg";
+import s2Cover from "@/assets/gallery/s2-cover.jpg";
+import s3Cover from "@/assets/gallery/s3-cover.jpg";
+import s4Cover from "@/assets/gallery/s4-cover.jpg";
+import s5Cover from "@/assets/gallery/s5-cover.jpg";
+import s6Cover from "@/assets/gallery/s6-cover.jpg";
+import s7Cover from "@/assets/gallery/s7-cover.jpg";
+import s8Cover from "@/assets/gallery/s8-cover.jpg";
+import s9Cover from "@/assets/gallery/s9-cover.jpg";
+import s10Cover from "@/assets/gallery/s10-cover.jpg";
 
 // Interior pages
-import s1p2 from "@/assets/story1-page2.jpg";
-import s1p3 from "@/assets/story1-page3.jpg";
-import s2p2 from "@/assets/story2-page2.jpg";
-import s2p3 from "@/assets/story2-page3.jpg";
-import s3p2 from "@/assets/story3-page2.jpg";
-import s3p3 from "@/assets/story3-page3.jpg";
-import s4p2 from "@/assets/story4-page2.jpg";
-import s4p3 from "@/assets/story4-page3.jpg";
-import s5p2 from "@/assets/story5-page2.jpg";
-import s5p3 from "@/assets/story5-page3.jpg";
-import s6p2 from "@/assets/story6-page2.jpg";
-import s6p3 from "@/assets/story6-page3.jpg";
-import s7p2 from "@/assets/story7-page2.jpg";
-import s7p3 from "@/assets/story7-page3.jpg";
-import s8p2 from "@/assets/story8-page2.jpg";
-import s8p3 from "@/assets/story8-page3.jpg";
-import s9p2 from "@/assets/story9-page2.jpg";
-import s9p3 from "@/assets/story9-page3.jpg";
-import s10p2 from "@/assets/story10-page2.jpg";
-import s10p3 from "@/assets/story10-page3.jpg";
+import s1p1 from "@/assets/gallery/s1-p1.jpg";
+import s1p2 from "@/assets/gallery/s1-p2.jpg";
+import s2p1 from "@/assets/gallery/s2-p1.jpg";
+import s2p2 from "@/assets/gallery/s2-p2.jpg";
+import s3p1 from "@/assets/gallery/s3-p1.jpg";
+import s3p2 from "@/assets/gallery/s3-p2.jpg";
+import s4p1 from "@/assets/gallery/s4-p1.jpg";
+import s4p2 from "@/assets/gallery/s4-p2.jpg";
+import s5p1 from "@/assets/gallery/s5-p1.jpg";
+import s5p2 from "@/assets/gallery/s5-p2.jpg";
+import s6p1 from "@/assets/gallery/s6-p1.jpg";
+import s6p2 from "@/assets/gallery/s6-p2.jpg";
+import s7p1 from "@/assets/gallery/s7-p1.jpg";
+import s7p2 from "@/assets/gallery/s7-p2.jpg";
+import s8p1 from "@/assets/gallery/s8-p1.jpg";
+import s8p2 from "@/assets/gallery/s8-p2.jpg";
+import s9p1 from "@/assets/gallery/s9-p1.jpg";
+import s9p2 from "@/assets/gallery/s9-p2.jpg";
+import s10p1 from "@/assets/gallery/s10-p1.jpg";
+import s10p2 from "@/assets/gallery/s10-p2.jpg";
+
+// Back covers
+import s1Back from "@/assets/gallery/s1-back.jpg";
+import s2Back from "@/assets/gallery/s2-back.jpg";
+import s3Back from "@/assets/gallery/s3-back.jpg";
+import s4Back from "@/assets/gallery/s4-back.jpg";
+import s5Back from "@/assets/gallery/s5-back.jpg";
+import s6Back from "@/assets/gallery/s6-back.jpg";
+import s7Back from "@/assets/gallery/s7-back.jpg";
+import s8Back from "@/assets/gallery/s8-back.jpg";
+import s9Back from "@/assets/gallery/s9-back.jpg";
+import s10Back from "@/assets/gallery/s10-back.jpg";
 
 const ease = [0.16, 1, 0.3, 1];
-
-// Each story: 3 unique images cycled to fill 10 pages (cover, p2, p3 repeated)
-const buildPages = (cover: string, p2: string, p3: string) => [
-  cover, p2, p3, cover, p2, p3, cover, p2, p3, cover,
-];
 
 const stories = [
   {
     title: "The Wonders of Gan Eden",
     portion: "Parashas Bereishis",
     child: "Rivka",
-    image: gardenEden,
+    coverImage: s1Cover,
+    pages: [s1p1, s1p2],
+    backCoverImage: s1Back,
     review: "My daughter couldn't stop talking about Gan Eden! She felt like she was really there walking with Adam and Chava.",
     reviewer: "Talia B.",
     location: "Brooklyn, NY",
     rating: 5,
-    pages: buildPages(gardenEden, s1p2, s1p3),
+    questions: [
+      "What was Rivka's favorite part of Gan Eden?",
+      "Why did Hashem create such a beautiful garden?",
+      "What animals did Rivka meet in the garden?",
+      "What did Rivka learn under the Tree of Life?",
+      "Why is it important to take care of nature?",
+      "How did Rivka feel when she first saw the garden?",
+      "What does Gan Eden teach us about Hashem's kindness?",
+      "If you could visit Gan Eden, what would you do first?",
+      "Why does every creation have a special purpose?",
+      "What is one way you can help take care of the world today?",
+    ],
   },
   {
     title: "Noach's Incredible Teivah",
     portion: "Parashas Noach",
     child: "Yehuda",
-    image: noahPage1,
+    coverImage: s2Cover,
+    pages: [s2p1, s2p2],
+    backCoverImage: s2Back,
     review: "The animals, the teivah, the keshet — every detail was perfect. Our boys read it every Shabbos afternoon.",
     reviewer: "Avi R.",
     location: "Lakewood, NJ",
     rating: 5,
-    pages: buildPages(noahPage1, s2p2, s2p3),
+    questions: [
+      "Why did Hashem ask Noach to build a teivah?",
+      "How did Yehuda help the animals on the ark?",
+      "What did the rainbow mean after the flood?",
+      "Why did Noach listen to Hashem even when others didn't?",
+      "How many of each animal came onto the teivah?",
+      "What lesson can we learn from Noach's faith?",
+      "How did the dove help Noach know the water was gone?",
+      "What does the keshet remind us about Hashem's promise?",
+      "Why is it important to be kind to animals?",
+      "What would you bring on the teivah if you were Yehuda?",
+    ],
   },
   {
     title: "The Tower That Fell",
     portion: "Parashas Noach",
     child: "Chaya",
-    image: towerBabel,
+    coverImage: s3Cover,
+    pages: [s3p1, s3p2],
+    backCoverImage: s3Back,
     review: "Such a creative way to teach about achdus. My son finally understood why the dor haflagah was punished.",
     reviewer: "Racheli K.",
     location: "Monsey, NY",
     rating: 5,
-    pages: buildPages(towerBabel, s3p2, s3p3),
+    questions: [
+      "Why did the people want to build a tower to the sky?",
+      "What happened when Hashem mixed their languages?",
+      "What did Chaya learn about working together?",
+      "Why is it wrong to try to be greater than Hashem?",
+      "How did the people feel when they couldn't understand each other?",
+      "What does achdus (unity) mean to you?",
+      "Why is kindness more important than being powerful?",
+      "What happened to the tower in the end?",
+      "How can we work together with kindness every day?",
+      "What would you say to the builders if you were Chaya?",
+    ],
   },
   {
     title: "Avraham Counts the Stars",
     portion: "Parashas Lech Lecha",
     child: "Shmuel",
-    image: abrahamStars,
+    coverImage: s4Cover,
+    pages: [s4p1, s4p2],
+    backCoverImage: s4Back,
     review: "The night sky illustration took our breath away. Our daughter asks to read this one every single night.",
     reviewer: "Shira G.",
     location: "Passaic, NJ",
     rating: 5,
-    pages: buildPages(abrahamStars, s4p2, s4p3),
+    questions: [
+      "What did Avraham promise Shmuel about the stars?",
+      "Why did Hashem compare the Jewish people to stars?",
+      "What is the mitzvah of hachnasas orchim?",
+      "How did Shmuel feel sitting by the campfire with Avraham?",
+      "Why did Avraham leave his home when Hashem told him to?",
+      "What makes Avraham such a special person in the Torah?",
+      "How can we welcome guests like Avraham did?",
+      "What did Shmuel learn about having faith?",
+      "Why are the stars a sign of hope?",
+      "What is one brave thing you could do to follow Hashem?",
+    ],
   },
   {
     title: "Yosef's Coat of Colors",
     portion: "Parashas Vayeishev",
     child: "Esther",
-    image: josephCoat,
+    coverImage: s5Cover,
+    pages: [s5p1, s5p2],
+    backCoverImage: s5Back,
     review: "The colors are magnificent! My son wears his own 'Yosef coat' now while we read. Pure magic.",
     reviewer: "Devorah M.",
     location: "Crown Heights, NY",
     rating: 5,
-    pages: buildPages(josephCoat, s5p2, s5p3),
+    questions: [
+      "Why was Yosef's coat so special?",
+      "How did Yosef's brothers feel about the coat?",
+      "What happened to Yosef after his brothers sold him?",
+      "Why did Yosef forgive his brothers in the end?",
+      "What does Esther learn about jealousy in this story?",
+      "How did Yosef become a leader in Egypt?",
+      "Why is forgiveness stronger than anger?",
+      "What dreams did Yosef have?",
+      "How can we show love to our siblings even when it's hard?",
+      "What is one colorful thing that makes you feel special?",
+    ],
   },
   {
     title: "Baby Moshe on the Nile",
     portion: "Parashas Shemos",
     child: "Ari",
-    image: mosesBasket,
+    coverImage: s6Cover,
+    pages: [s6p1, s6p2],
+    backCoverImage: s6Back,
     review: "My kids were so moved by baby Moshe's story. The Egyptian scenery is absolutely breathtaking.",
     reviewer: "Miriam L.",
     location: "Flatbush, NY",
     rating: 5,
-    pages: buildPages(mosesBasket, s6p2, s6p3),
+    questions: [
+      "Why did Moshe's mother put him in a basket on the Nile?",
+      "Who found baby Moshe in the river?",
+      "What role did Miriam play in saving Moshe?",
+      "How did Ari feel watching baby Moshe float on the water?",
+      "Why did Hashem have a special plan for Moshe?",
+      "What does it mean to have bitachon (trust) in Hashem?",
+      "How did the princess take care of baby Moshe?",
+      "Why is every child precious to Hashem?",
+      "What brave thing did Moshe's mother do?",
+      "If you found a baby in a basket, what would you do?",
+    ],
   },
   {
     title: "Krias Yam Suf",
     portion: "Parashas Beshalach",
     child: "Devorah",
-    image: redSea,
+    coverImage: s7Cover,
+    pages: [s7p1, s7p2],
+    backCoverImage: s7Back,
     review: "Walking through the split sea with Moshe Rabbeinu — my children were mesmerized. A masterpiece.",
     reviewer: "Yosef C.",
     location: "Far Rockaway, NY",
     rating: 5,
-    pages: buildPages(redSea, s7p2, s7p3),
+    questions: [
+      "How did Devorah feel walking between the walls of water?",
+      "Why did Hashem split the sea for the Jewish people?",
+      "What did they see inside the walls of water?",
+      "How did everyone celebrate after crossing the sea?",
+      "What instrument did Miriam play during the celebration?",
+      "Why is it important to thank Hashem for miracles?",
+      "What does trust in Hashem mean to you?",
+      "How did the Jewish people feel before the sea split?",
+      "What is the Shiras HaYam?",
+      "What is one miracle in your life you are thankful for?",
+    ],
   },
   {
     title: "Matan Torah on Har Sinai",
     portion: "Parashas Yisro",
     child: "Moshe",
-    image: tenCommandments,
+    coverImage: s8Cover,
+    pages: [s8p1, s8p2],
+    backCoverImage: s8Back,
     review: "The lightning, the luchos, the shofar — every detail brings Matan Torah alive. Truly special.",
     reviewer: "Chana S.",
     location: "Boro Park, NY",
     rating: 5,
-    pages: buildPages(tenCommandments, s8p2, s8p3),
+    questions: [
+      "What happened at Har Sinai when Hashem spoke?",
+      "What are the Aseres HaDibros (Ten Commandments)?",
+      "How did Moshe feel standing at the foot of the mountain?",
+      "Why did the mountain shake and the shofar sound?",
+      "What is the Torah and why is it the greatest gift?",
+      "How do we keep the Torah alive today?",
+      "Why did the Jewish people say 'Naaseh V'Nishma'?",
+      "What does it mean to accept the Torah with love?",
+      "How can you learn Torah every day?",
+      "What is your favorite mitzvah from the Torah?",
+    ],
   },
   {
     title: "Dovid and Golyas",
     portion: "Sefer Shmuel",
     child: "Dovid",
-    image: davidGoliath,
+    coverImage: s9Cover,
+    pages: [s9p1, s9p2],
+    backCoverImage: s9Back,
     review: "My son carries this book everywhere. Dovid's bitachon in Hashem made a lasting impression on him.",
     reviewer: "Menachem F.",
     location: "Baltimore, MD",
     rating: 5,
-    pages: buildPages(davidGoliath, s9p2, s9p3),
+    questions: [
+      "Why was everyone afraid of Golyas?",
+      "How did Dovid prepare to fight the giant?",
+      "What did Dovid whisper before using his sling?",
+      "Why did Dovid trust Hashem instead of wearing armor?",
+      "What happened when the stone hit Golyas?",
+      "What does it mean that the smallest can do the greatest things?",
+      "How can you show bitachon in Hashem in your daily life?",
+      "Why did the soldiers cheer for Dovid?",
+      "What makes a true hero?",
+      "What is something brave you would like to do?",
+    ],
   },
   {
     title: "Yonah and the Great Dag",
     portion: "Sefer Yonah",
     child: "Noa",
-    image: jonahWhale,
+    coverImage: s10Cover,
+    pages: [s10p1, s10p2],
+    backCoverImage: s10Back,
     review: "We read this before Yom Kippur and my daughter finally understood the message of teshuvah. Beautiful.",
     reviewer: "Leah W.",
     location: "Chicago, IL",
     rating: 5,
-    pages: buildPages(jonahWhale, s10p2, s10p3),
+    questions: [
+      "Why did Yonah try to run away from Hashem?",
+      "What happened to Yonah when he was on the boat?",
+      "How did Noa feel inside the great fish?",
+      "What did Yonah pray for inside the dag?",
+      "Why did the people of Nineveh do teshuvah?",
+      "What does teshuvah mean?",
+      "Why is it never too late to say sorry?",
+      "How did Noa learn about forgiveness from this story?",
+      "What can we learn from Yonah about listening to Hashem?",
+      "What is one thing you would like to change about yourself?",
+    ],
   },
 ];
 
 export const GalleryReviewsSection = () => {
   const [selectedBook, setSelectedBook] = useState<number | null>(null);
-  const [previewPage, setPreviewPage] = useState(0);
-
-  const openBook = (index: number) => {
-    setSelectedBook(index);
-    setPreviewPage(0);
-  };
 
   const book = selectedBook !== null ? stories[selectedBook] : null;
 
@@ -198,11 +329,11 @@ export const GalleryReviewsSection = () => {
               viewport={{ once: true, amount: 0.1 }}
               transition={{ duration: 0.5, delay: i * 0.06, ease }}
               className="group cursor-pointer"
-              onClick={() => openBook(i)}
+              onClick={() => setSelectedBook(i)}
             >
               <div className="aspect-[3/4] rounded-2xl overflow-hidden relative border border-border hover:border-accent/40 transition-all duration-500 hover:shadow-[0_8px_30px_hsl(var(--accent)/0.15)]">
                 <img
-                  src={story.image}
+                  src={story.coverImage}
                   alt={story.title}
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -236,87 +367,11 @@ export const GalleryReviewsSection = () => {
         </div>
       </div>
 
-      {/* Book Preview Modal */}
-      <Dialog open={selectedBook !== null} onOpenChange={() => setSelectedBook(null)}>
-        <DialogContent className="max-w-3xl p-0 bg-card border-border overflow-hidden rounded-3xl">
-          {book && (
-            <div className="flex flex-col">
-              <div className="relative aspect-[16/10] bg-background">
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={previewPage}
-                    src={book.pages[previewPage]}
-                    alt={`${book.title} — ${book.child}'s story, page ${previewPage + 1}`}
-                    className="w-full h-full object-cover"
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -30 }}
-                    transition={{ duration: 0.4, ease }}
-                  />
-                </AnimatePresence>
-
-                {/* Page counter */}
-                <div className="absolute top-3 right-3 bg-background/70 backdrop-blur-sm text-foreground text-xs font-medium px-2.5 py-1 rounded-full">
-                  {previewPage + 1} / {book.pages.length}
-                </div>
-
-                {book.pages.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => setPreviewPage(Math.max(0, previewPage - 1))}
-                      disabled={previewPage === 0}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-background disabled:opacity-30 transition-all"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => setPreviewPage(Math.min(book.pages.length - 1, previewPage + 1))}
-                      disabled={previewPage === book.pages.length - 1}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-background disabled:opacity-30 transition-all"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </>
-                )}
-
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                  {book.pages.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPreviewPage(i)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        i === previewPage ? "bg-accent w-5" : "bg-foreground/30"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-6 lg:p-8">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="font-display text-xl font-bold text-foreground">{book.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{book.portion} · Featuring <strong className="text-accent">{book.child}</strong></p>
-                  </div>
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: book.rating }).map((_, j) => (
-                      <Star key={j} className="w-4 h-4 fill-accent text-accent" />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-5 p-4 rounded-2xl bg-secondary/50 border border-border">
-                  <Quote className="w-5 h-5 text-accent/30 mb-2" />
-                  <p className="text-foreground/80 font-body text-sm leading-relaxed">"{book.review}"</p>
-                  <p className="text-xs text-accent font-medium mt-3">
-                    — {book.reviewer}, {book.location}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <BookPreviewModal
+        book={book}
+        open={selectedBook !== null}
+        onClose={() => setSelectedBook(null)}
+      />
     </section>
   );
 };
