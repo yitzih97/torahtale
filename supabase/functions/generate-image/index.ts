@@ -53,34 +53,67 @@ serve(async (req) => {
 
     parts.push({ text: imagePrompt });
 
-    // Use imagen-3.0-generate-002 for image generation via Gemini API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${GOOGLE_AI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts }],
-          generationConfig: {
-            responseModalities: ["TEXT", "IMAGE"],
-          },
-        }),
-      }
-    );
+    const imageModels = [
+      "gemini-3.1-flash-image-preview",
+      "gemini-2.5-flash-image-preview",
+      "gemini-2.5-flash-image",
+      "gemini-2.0-flash-exp-image-generation",
+      "gemini-2.0-flash-preview-image-generation",
+    ];
 
-    if (!response.ok) {
-      const status = response.status;
-      if (status === 429) {
+    let response: Response | null = null;
+    let selectedModel: string | null = null;
+    let lastErrorStatus: number | null = null;
+    let lastErrorBody = "";
+
+    for (const model of imageModels) {
+      const attempt = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts }],
+            generationConfig: {
+              responseModalities: ["TEXT", "IMAGE"],
+            },
+          }),
+        }
+      );
+
+      if (attempt.ok) {
+        response = attempt;
+        selectedModel = model;
+        break;
+      }
+
+      const body = await attempt.text();
+      lastErrorStatus = attempt.status;
+      lastErrorBody = body;
+      console.error(`Gemini image generation error with model ${model}:`, attempt.status, body);
+
+      if (attempt.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limited — please try again in a moment." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const body = await response.text();
-      console.error("Gemini image generation error:", status, body);
-      throw new Error(`Gemini image generation error [${status}]`);
+
+      const retryableModelError =
+        attempt.status === 404 ||
+        (attempt.status === 400 && /not found|not supported|generatecontent|responsemodalities/i.test(body));
+
+      if (!retryableModelError) {
+        throw new Error(`Gemini image generation error [${attempt.status}]`);
+      }
     }
 
+    if (!response) {
+      console.error("No compatible Gemini image model found", { lastErrorStatus, lastErrorBody });
+      throw new Error(`Gemini image generation error [${lastErrorStatus ?? 500}]`);
+    }
+
+    console.log(`Gemini image generation using model: ${selectedModel}`);
     const data = await response.json();
     const parts_response = data.candidates?.[0]?.content?.parts || [];
 
