@@ -170,9 +170,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
         const cover = storyData.cover || { title: `${childNames}'s Torah Adventure`, subtitle: "" };
         const backCover = storyData.backCover || { synopsis: "", dedication: "" };
-        const questions = storyData.questions || [];
+        const questions = storyData.backCover?.questions || storyData.questions || [];
 
-        // Build all book pages: cover + story + back cover + questions
+        // Build all book pages: cover + story + back cover (with questions inside)
         let pageId = 0;
         const allPages: BookPage[] = [];
 
@@ -198,7 +198,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           });
         }
 
-        // Back cover
+        // Back cover (questions are now part of it)
         allPages.push({
           id: pageId++,
           text: backCover.synopsis || "",
@@ -207,15 +207,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           type: "back-cover",
           synopsis: backCover.synopsis,
           dedication: backCover.dedication,
-        });
-
-        // Questions page (no image needed)
-        allPages.push({
-          id: pageId++,
-          text: "Discussion Questions",
-          image: null,
-          imageLoading: false,
-          type: "questions",
           questions,
         });
 
