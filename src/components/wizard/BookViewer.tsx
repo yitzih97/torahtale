@@ -259,7 +259,6 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             className={`h-2 rounded-full transition-all duration-300 ${
               i === currentPage ? "bg-accent w-5" : 
               p.type === "cover" || p.type === "back-cover" ? "bg-accent/30 w-2.5 hover:bg-accent/50" :
-              p.type === "questions" ? "bg-primary/30 w-2.5 hover:bg-primary/50" :
               "bg-border w-2 hover:bg-muted-foreground/40"
             }`}
           />
