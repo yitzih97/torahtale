@@ -297,77 +297,132 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   <p className="text-muted-foreground text-sm mt-1">Add the children who will star in this Torah adventure.</p>
                 </div>
 
-                <div className="space-y-4">
-                  {data.children.map((child, idx) => (
+                <div className="space-y-3">
+                  {data.children.map((child, idx) => {
+                    const isExpanded = data.children.length === 1 || expandedChildId === child.id;
+                    const isComplete = child.name && child.age && child.gender;
+                    return (
                     <motion.div
                       key={child.id}
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -12 }}
                       transition={{ duration: 0.3, ease }}
-                      className="rounded-2xl border border-border bg-card p-5 space-y-4 relative"
+                      className="rounded-2xl border border-border bg-card overflow-hidden relative"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-accent uppercase tracking-wider">Child {idx + 1}</span>
-                        {data.children.length > 1 && (
-                          <button onClick={() => removeChild(child.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded-lg hover:bg-destructive/10">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Name</Label>
-                        <Input placeholder="e.g., Chaya Mushka" value={child.name} onChange={(e) => updateChild(child.id, { name: e.target.value })} className="mt-1.5 rounded-xl h-11" />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-xs text-muted-foreground">Age</Label>
-                          <Select value={child.age} onValueChange={(v) => updateChild(child.id, { age: v })}>
-                            <SelectTrigger className="mt-1.5 rounded-xl h-11"><SelectValue placeholder="Select" /></SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 11 }, (_, i) => i + 2).map((a) => (
-                                <SelectItem key={a} value={String(a)}>{a} years old</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                      {/* Collapsed header - always visible */}
+                      <button
+                        type="button"
+                        onClick={() => setExpandedChildId(isExpanded ? null : child.id)}
+                        className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors duration-200"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isComplete ? 'bg-accent/15 text-accent' : 'bg-muted text-muted-foreground'}`}>
+                            {child.name ? child.name.charAt(0).toUpperCase() : idx + 1}
+                          </div>
+                          <div className="text-left">
+                            <span className="text-sm font-semibold text-primary">
+                              {child.name || `Child ${idx + 1}`}
+                            </span>
+                            {!isExpanded && isComplete && (
+                              <p className="text-xs text-muted-foreground">{child.age} yrs · {child.gender} {child.photoPreview ? '· 📷' : ''}</p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground">Gender</Label>
-                          <Select value={child.gender} onValueChange={(v) => updateChild(child.id, { gender: v })}>
-                            <SelectTrigger className="mt-1.5 rounded-xl h-11"><SelectValue placeholder="Select" /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="boy">Boy</SelectItem>
-                              <SelectItem value="girl">Girl</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {/* Photo upload */}
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Photo (optional)</Label>
-                        <div className="mt-1.5 border-2 border-dashed border-border rounded-2xl p-4 text-center cursor-pointer hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 relative">
-                          {child.photoPreview ? (
-                            <div className="flex items-center gap-3">
-                              <img src={child.photoPreview} alt="Preview" className="w-12 h-12 rounded-xl object-cover" />
-                              <span className="text-xs text-muted-foreground flex-1 truncate">{child.photo?.name}</span>
-                              <button onClick={() => updateChild(child.id, { photo: null, photoPreview: null })} className="text-xs text-destructive hover:underline font-medium">Remove</button>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-2">
-                                <Upload className="w-5 h-5 text-muted-foreground" />
-                              </div>
-                              <p className="text-xs text-muted-foreground">Drag & drop or <span className="text-accent font-medium">browse</span></p>
-                              <input type="file" accept="image/*" onChange={(e) => handlePhoto(child.id, e)} className="absolute inset-0 opacity-0 cursor-pointer" />
-                            </>
+                        <div className="flex items-center gap-2">
+                          {data.children.length > 1 && (
+                            <span
+                              role="button"
+                              onClick={(e) => { e.stopPropagation(); removeChild(child.id); }}
+                              className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded-lg hover:bg-destructive/10"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </span>
                           )}
+                          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                         </div>
-                      </div>
+                      </button>
+
+                      {/* Expandable content */}
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-5 pb-5 space-y-4">
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Name</Label>
+                                <Input placeholder="e.g., Chaya Mushka" value={child.name} onChange={(e) => updateChild(child.id, { name: e.target.value })} className="mt-1.5 rounded-xl h-11" />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <Label className="text-xs text-muted-foreground">Age</Label>
+                                  <Select value={child.age} onValueChange={(v) => updateChild(child.id, { age: v })}>
+                                    <SelectTrigger className="mt-1.5 rounded-xl h-11"><SelectValue placeholder="Select" /></SelectTrigger>
+                                    <SelectContent>
+                                      {Array.from({ length: 11 }, (_, i) => i + 2).map((a) => (
+                                        <SelectItem key={a} value={String(a)}>{a} years old</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label className="text-xs text-muted-foreground">Gender</Label>
+                                  <Select value={child.gender} onValueChange={(v) => updateChild(child.id, { gender: v })}>
+                                    <SelectTrigger className="mt-1.5 rounded-xl h-11"><SelectValue placeholder="Select" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="boy">Boy</SelectItem>
+                                      <SelectItem value="girl">Girl</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+
+                              {/* Photo upload */}
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Photo (optional)</Label>
+                                <div className="mt-1.5 border-2 border-dashed border-border rounded-2xl p-4 text-center cursor-pointer hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 relative">
+                                  {child.photoPreview ? (
+                                    <div className="flex items-center gap-3">
+                                      <img src={child.photoPreview} alt="Preview" className="w-12 h-12 rounded-xl object-cover" />
+                                      <span className="text-xs text-muted-foreground flex-1 truncate">{child.photo?.name}</span>
+                                      <button onClick={() => updateChild(child.id, { photo: null, photoPreview: null })} className="text-xs text-destructive hover:underline font-medium">Remove</button>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-2">
+                                        <Upload className="w-5 h-5 text-muted-foreground" />
+                                      </div>
+                                      <p className="text-xs text-muted-foreground">Drag & drop or <span className="text-accent font-medium">browse</span></p>
+                                      <input type="file" accept="image/*" onChange={(e) => handlePhoto(child.id, e)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                    </>
+                                  )}
+                                </div>
+
+                                {/* Photo tips */}
+                                <div className="mt-3 rounded-xl bg-accent/5 border border-accent/15 p-3">
+                                  <p className="text-xs font-semibold text-accent mb-1.5 flex items-center gap-1.5">
+                                    <Camera className="w-3.5 h-3.5" /> Tips for the best results
+                                  </p>
+                                  <ul className="text-[11px] text-muted-foreground space-y-1">
+                                    <li className="flex items-start gap-1.5"><User className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Face should be clearly visible, looking at the camera</li>
+                                    <li className="flex items-start gap-1.5"><Sun className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Use good, natural lighting — avoid dark or blurry photos</li>
+                                    <li className="flex items-start gap-1.5"><Camera className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Close-up or portrait shot works best (no group photos)</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </motion.div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {data.children.length < 4 && (
