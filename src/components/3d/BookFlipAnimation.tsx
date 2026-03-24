@@ -24,7 +24,7 @@ export const PAGES = [
   heroScene10,
 ];
 
-const PAGE_INTERVAL = 4000;
+const PAGE_INTERVAL = 5000;
 
 interface BookFlipAnimationProps {
   onPageChange?: (page: number) => void;
@@ -45,17 +45,22 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
   }, [onPageChange]);
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden">
+    <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ perspective: "1200px" }}>
       <AnimatePresence mode="popLayout">
         <motion.img
           key={currentPage}
           src={PAGES[currentPage]}
           alt="Torah story"
           className="absolute inset-0 w-full h-full object-cover"
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1] }}
+          style={{ transformOrigin: "left center", backfaceVisibility: "hidden" }}
+          initial={{ rotateY: -90, opacity: 0, scale: 1.02 }}
+          animate={{ rotateY: 0, opacity: 1, scale: 1 }}
+          exit={{ rotateY: 90, opacity: 0, scale: 1.02 }}
+          transition={{
+            rotateY: { duration: 1.8, ease: [0.25, 0.1, 0.25, 1] },
+            opacity: { duration: 1.2, ease: "easeInOut" },
+            scale: { duration: 1.8, ease: [0.25, 0.1, 0.25, 1] },
+          }}
         />
       </AnimatePresence>
     </div>
