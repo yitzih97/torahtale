@@ -1,27 +1,27 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import gardenEden from "@/assets/torah-garden-eden.jpg";
-import noahPage1 from "@/assets/noah-page1.jpg";
-import towerBabel from "@/assets/torah-tower-babel.jpg";
-import abrahamStars from "@/assets/torah-abraham-stars.jpg";
-import josephCoat from "@/assets/torah-joseph-coat.jpg";
-import mosesBasket from "@/assets/torah-moses-basket.jpg";
-import redSea from "@/assets/torah-red-sea.jpg";
-import tenCommandments from "@/assets/torah-ten-commandments.jpg";
-import davidGoliath from "@/assets/torah-david-goliath.jpg";
-import jonahWhale from "@/assets/torah-jonah-whale.jpg";
+import heroScene1 from "@/assets/hero-scene-1.jpg";
+import heroScene2 from "@/assets/hero-scene-2.jpg";
+import heroScene3 from "@/assets/hero-scene-3.jpg";
+import heroScene4 from "@/assets/hero-scene-4.jpg";
+import heroScene5 from "@/assets/hero-scene-5.jpg";
+import heroScene6 from "@/assets/hero-scene-6.jpg";
+import heroScene7 from "@/assets/hero-scene-7.jpg";
+import heroScene8 from "@/assets/hero-scene-8.jpg";
+import heroScene9 from "@/assets/hero-scene-9.jpg";
+import heroScene10 from "@/assets/hero-scene-10.jpg";
 
 export const PAGES = [
-  gardenEden,
-  noahPage1,
-  towerBabel,
-  abrahamStars,
-  josephCoat,
-  mosesBasket,
-  redSea,
-  tenCommandments,
-  davidGoliath,
-  jonahWhale,
+  heroScene1,
+  heroScene2,
+  heroScene3,
+  heroScene4,
+  heroScene5,
+  heroScene6,
+  heroScene7,
+  heroScene8,
+  heroScene9,
+  heroScene10,
 ];
 
 const PAGE_INTERVAL = 4000;
