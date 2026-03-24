@@ -149,7 +149,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             )}
           </>
         ) : pageType === "back-cover" ? (
-          /* Back cover */
+          /* Back cover with questions overlay */
           <>
             {page?.image ? (
               <div className="relative w-full aspect-[4/3]">
@@ -162,17 +162,31 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
                   animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
                   transition={{ duration: 0.3 }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent rounded-book" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-book" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 max-h-[80%] overflow-y-auto">
                   {page.synopsis && (
-                    <p className="font-body text-sm text-white/90 italic mb-3 leading-relaxed">
+                    <p className="font-body text-xs text-white/90 italic mb-2 leading-relaxed text-center">
                       "{page.synopsis}"
                     </p>
                   )}
                   {page.dedication && (
-                    <p className="font-display text-xs text-white/70">
+                    <p className="font-display text-[10px] text-white/70 text-center mb-3">
                       {page.dedication}
                     </p>
+                  )}
+                  {page.questions && page.questions.length > 0 && (
+                    <div className="border-t border-white/20 pt-2 mt-2">
+                      <p className="font-display text-xs font-bold text-white/90 mb-1.5 flex items-center gap-1">
+                        <HelpCircle className="w-3 h-3" /> Discussion Questions
+                      </p>
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                        {page.questions.map((q) => (
+                          <p key={q.number} className="text-[9px] text-white/80 leading-snug">
+                            <span className="font-bold text-accent">{q.number}.</span> {q.question}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
