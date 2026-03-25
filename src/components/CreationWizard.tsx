@@ -1,13 +1,17 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Upload, Loader2, Sparkles, Plus, Trash2, Users, BookOpen, Palette, Package, CreditCard, Check, ChevronDown, Camera, Sun, User } from "lucide-react";
+import {
+  ArrowLeft, ArrowRight, Upload, Loader2, Sparkles, Plus, Trash2,
+  Users, BookOpen, Palette, Package, CreditCard, Check,
+  Camera, Sun, User, Type, Calendar, Heart, Image, PenLine
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SparkleEffect } from "./SparkleEffect";
 import { BookViewer, type BookPage } from "./wizard/BookViewer";
@@ -19,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
+/* ───────────────── types ───────────────── */
+
 export interface ChildProfile {
   id: string;
   name: string;
@@ -26,6 +32,8 @@ export interface ChildProfile {
   gender: string;
   photo: File | null;
   photoPreview: string | null;
+  description: string;
+  characterPreview: string | null;
 }
 
 const createChild = (): ChildProfile => ({
@@ -35,6 +43,8 @@ const createChild = (): ChildProfile => ({
   gender: "",
   photo: null,
   photoPreview: null,
+  description: "",
+  characterPreview: null,
 });
 
 interface WizardData {
@@ -43,6 +53,8 @@ interface WizardData {
   artStyle: string;
   language: string;
   pageCount: number;
+  /** Index of the child currently being edited (for multi-child) */
+  activeChildIdx: number;
 }
 
 const initialData: WizardData = {
@@ -51,9 +63,12 @@ const initialData: WizardData = {
   artStyle: "cartoon",
   language: "english",
   pageCount: 4,
+  activeChildIdx: 0,
 };
 
-const TOTAL_STEPS = 8;
+/* ───────────────── constants ───────────────── */
+
+const TOTAL_STEPS = 13;
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const slideVariants = {
@@ -62,16 +77,29 @@ const slideVariants = {
   exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
 };
 
-const STEP_LABELS = [
-  { label: "Heroes", icon: Users },
-  { label: "Story", icon: BookOpen },
-  { label: "Style", icon: Palette },
-  { label: "Creating", icon: Sparkles },
-  { label: "Preview", icon: BookOpen },
-  { label: "Shipping", icon: Package },
-  { label: "Payment", icon: CreditCard },
-  { label: "Done", icon: Check },
+// Step groups for the condensed stepper
+const STEP_GROUPS = [
+  { label: "Character", icon: Users, steps: [1, 2, 3, 4, 5] },
+  { label: "Story", icon: BookOpen, steps: [6, 7, 8] },
+  { label: "Create", icon: Sparkles, steps: [9, 10] },
+  { label: "Order", icon: Package, steps: [11, 12, 13] },
 ];
+
+const AGE_BRACKETS = [
+  { min: 2, max: 3, label: "2-3", desc: "Toddler", emoji: "👶" },
+  { min: 4, max: 5, label: "4-5", desc: "Preschool", emoji: "🧒" },
+  { min: 6, max: 7, label: "6-7", desc: "Early Reader", emoji: "📖" },
+  { min: 8, max: 9, label: "8-9", desc: "Explorer", emoji: "🔍" },
+  { min: 10, max: 12, label: "10-12", desc: "Preteen", emoji: "🌟" },
+];
+
+const ART_STYLES = [
+  { key: "cartoon", label: "Cartoon", desc: "Colorful & whimsical" },
+  { key: "3d-pixar", label: "3D Pixar", desc: "Cinematic & polished" },
+  { key: "graphic-novel", label: "Graphic Novel", desc: "Bold & dynamic" },
+];
+
+/* ───────────────── component ───────────────── */
 
 interface Props {
   open: boolean;
@@ -89,8 +117,14 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [genText, setGenText] = useState("");
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
-  const [expandedChildId, setExpandedChildId] = useState<string | null>(initialData.children[0]?.id ?? null);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [artStylePreviews, setArtStylePreviews] = useState<Record<string, string | null>>({});
+  const [artStylePreviewsLoading, setArtStylePreviewsLoading] = useState(false);
+  const previewDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previewCache = useRef<Map<string, string>>(new Map());
+
+  const child = data.children[data.activeChildIdx] || data.children[0];
 
   const update = useCallback((partial: Partial<WizardData>) => {
     setData((prev) => ({ ...prev, ...partial }));
@@ -103,31 +137,108 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }));
   }, []);
 
-  const addChild = () => {
-    if (data.children.length >= 4) return;
-    const newChild = createChild();
-    setData((prev) => ({ ...prev, children: [...prev.children, newChild] }));
-    setExpandedChildId(newChild.id);
-  };
-
-  const removeChild = (id: string) => {
-    if (data.children.length <= 1) return;
-    setData((prev) => ({ ...prev, children: prev.children.filter((c) => c.id !== id) }));
-  };
-
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
+
+  /* ───── character preview generation ───── */
+
+  const generateCharacterPreview = useCallback(async (c: ChildProfile, style: string) => {
+    if (!c.gender || !c.age) return;
+    const cacheKey = `${c.gender}-${c.age}-${style}-${c.description}-${c.photoPreview ? "photo" : "no"}`;
+    if (previewCache.current.has(cacheKey)) {
+      updateChild(c.id, { characterPreview: previewCache.current.get(cacheKey)! });
+      return;
+    }
+    setPreviewLoading(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke("generate-character-preview", {
+        body: {
+          gender: c.gender,
+          age: c.age,
+          artStyle: style,
+          description: c.description || undefined,
+          referenceImage: c.photoPreview || undefined,
+        },
+      });
+      if (error) throw error;
+      if (result?.imageUrl) {
+        previewCache.current.set(cacheKey, result.imageUrl);
+        updateChild(c.id, { characterPreview: result.imageUrl });
+      }
+    } catch (err) {
+      console.error("Character preview failed:", err);
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [updateChild]);
+
+  const triggerPreviewDebounced = useCallback((c: ChildProfile, style: string) => {
+    if (previewDebounce.current) clearTimeout(previewDebounce.current);
+    previewDebounce.current = setTimeout(() => generateCharacterPreview(c, style), 600);
+  }, [generateCharacterPreview]);
+
+  // Trigger preview on gender selection (step 3)
+  useEffect(() => {
+    if (step === 3 && child.gender && child.age) {
+      triggerPreviewDebounced(child, data.artStyle);
+    }
+  }, [step, child.gender]);
+
+  // Generate art style preview cards when entering step 4
+  useEffect(() => {
+    if (step !== 4 || !child.gender || !child.age) return;
+    if (artStylePreviewsLoading) return;
+    setArtStylePreviewsLoading(true);
+
+    const generateStylePreviews = async () => {
+      const results: Record<string, string | null> = {};
+      for (const style of ART_STYLES) {
+        const cacheKey = `style-${child.gender}-${child.age}-${style.key}`;
+        if (previewCache.current.has(cacheKey)) {
+          results[style.key] = previewCache.current.get(cacheKey)!;
+          continue;
+        }
+        try {
+          const { data: result, error } = await supabase.functions.invoke("generate-character-preview", {
+            body: { gender: child.gender, age: child.age, artStyle: style.key },
+          });
+          if (!error && result?.imageUrl) {
+            results[style.key] = result.imageUrl;
+            previewCache.current.set(cacheKey, result.imageUrl);
+          } else {
+            results[style.key] = null;
+          }
+        } catch {
+          results[style.key] = null;
+        }
+        // Update as each arrives
+        setArtStylePreviews((prev) => ({ ...prev, [style.key]: results[style.key] }));
+      }
+      setArtStylePreviewsLoading(false);
+    };
+    generateStylePreviews();
+  }, [step, child.gender, child.age]);
+
+  /* ───── photo handling ───── */
+
+  const handlePhoto = (childId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateChild(childId, { photo: file, photoPreview: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  /* ───── book generation (step 9) ───── */
 
   const generateImageForPage = async (pageId: number, promptOrText: string, artStyle: string, names: string, torahPortion: string) => {
     try {
-      // promptOrText is now always a full prompt from the caller
-      const prompt = promptOrText;
-
-      // Get the first child's photo as reference image (base64 data URL)
       const firstChildWithPhoto = data.children.find((c) => c.photoPreview);
       const referenceImage = firstChildWithPhoto?.photoPreview || null;
-
       const { data: imgData, error } = await supabase.functions.invoke("generate-image", {
-        body: { prompt, childName: names, artStyle, torahPortion, referenceImage },
+        body: { prompt: promptOrText, childName: names, artStyle, torahPortion, referenceImage },
       });
       if (error) throw error;
       if (imgData?.error) throw new Error(imgData.error);
@@ -138,613 +249,724 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }
   };
 
-  const next = async () => {
-    if (step === 3) {
-      setDir(1);
-      setStep(4);
-      setGenerating(true);
+  const startGeneration = async () => {
+    setDir(1);
+    setStep(9);
+    setGenerating(true);
 
-      const texts = ["Weaving the magic...", "Writing story with AI...", "Illustrating pages...", "Almost there..."];
-      let i = 0;
-      setGenText(texts[0]);
-      const iv = setInterval(() => { i++; if (i < texts.length) setGenText(texts[i]); }, 2500);
+    const texts = ["Weaving the magic...", "Writing story with AI...", "Illustrating pages...", "Almost there..."];
+    let i = 0;
+    setGenText(texts[0]);
+    const iv = setInterval(() => { i++; if (i < texts.length) setGenText(texts[i]); }, 2500);
 
-      try {
-        setGenText("Writing story with AI...");
-        const portionLabel = getPortionLabel(data.torahPortion);
-        const childrenInfo = data.children.map((c) => `${c.name} (${c.age} years old, ${c.gender})`).join(", ");
+    try {
+      setGenText("Writing story with AI...");
+      const portionLabel = getPortionLabel(data.torahPortion);
+      const childrenInfo = data.children.map((c) => `${c.name} (${c.age} years old, ${c.gender})`).join(", ");
 
-        const { data: storyData, error: storyError } = await supabase.functions.invoke("generate-story", {
-          body: {
-            childName: childNames,
-            childrenInfo,
-            age: data.children[0]?.age || "6",
-            gender: data.children[0]?.gender || "boy",
-            torahPortion: data.torahPortion,
-            torahPortionLabel: portionLabel,
-            artStyle: data.artStyle,
-            language: data.language,
-            pageCount: data.pageCount,
-          },
-        });
+      const { data: storyData, error: storyError } = await supabase.functions.invoke("generate-story", {
+        body: {
+          childName: childNames,
+          childrenInfo,
+          age: data.children[0]?.age || "6",
+          gender: data.children[0]?.gender || "boy",
+          torahPortion: data.torahPortion,
+          torahPortionLabel: portionLabel,
+          artStyle: data.artStyle,
+          language: data.language,
+          pageCount: data.pageCount,
+        },
+      });
 
-        if (storyError) throw storyError;
-        if (storyData?.error) throw new Error(storyData.error);
+      if (storyError) throw storyError;
+      if (storyData?.error) throw new Error(storyData.error);
 
-        const cover = storyData.cover || { title: `${childNames}'s Torah Adventure`, subtitle: "" };
-        const backCover = storyData.backCover || { synopsis: "", dedication: "" };
-        const questions = storyData.backCover?.questions || storyData.questions || [];
+      const cover = storyData.cover || { title: `${childNames}'s Torah Adventure`, subtitle: "" };
+      const backCover = storyData.backCover || { synopsis: "", dedication: "" };
+      const questions = storyData.backCover?.questions || storyData.questions || [];
 
-        // Build all book pages: cover + story + back cover (with questions inside)
-        let pageId = 0;
-        const allPages: BookPage[] = [];
+      let pageId = 0;
+      const allPages: BookPage[] = [];
 
-        // Front cover
-        allPages.push({
-          id: pageId++,
-          text: cover.title,
-          image: null,
-          imageLoading: true,
-          type: "cover",
-          coverTitle: cover.title,
-          coverSubtitle: cover.subtitle,
-        });
+      allPages.push({ id: pageId++, text: cover.title, image: null, imageLoading: true, type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle });
 
-        // Story pages
-        for (const p of storyData.pages || []) {
-          allPages.push({
-            id: pageId++,
-            text: p.text,
-            image: null,
-            imageLoading: true,
-            type: "story",
-          });
-        }
-
-        // Back cover (questions are now part of it)
-        allPages.push({
-          id: pageId++,
-          text: backCover.synopsis || "",
-          image: null,
-          imageLoading: true,
-          type: "back-cover",
-          synopsis: backCover.synopsis,
-          dedication: backCover.dedication,
-          questions,
-        });
-
-        setBookPages(allPages);
-        clearInterval(iv);
-        setGenerating(false);
-        setStep(5);
-
-        // Auto-save book to database
-        if (user) {
-          try {
-            const { data: bookData, error: saveError } = await supabase
-              .from("books")
-              .insert({
-                user_id: user.id,
-                child_name: childNames,
-                torah_portion: data.torahPortion,
-                art_style: data.artStyle,
-                language: data.language,
-                status: "draft",
-                pages_data: allPages,
-                story_data: storyData,
-                questions,
-              } as any)
-              .select()
-              .single();
-            if (!saveError && bookData) {
-              setSavedBookId(bookData.id);
-              toast.success("Book saved to your account!");
-            }
-          } catch (err) {
-            console.error("Failed to save book:", err);
-          }
-        }
-
-        // Generate images for all pages
-        const characterDetails = data.children.map((c) => `${c.name} (${c.age}-year-old ${c.gender}${c.gender === 'boy' ? ', wearing a kippah' : ''})`).join(", ");
-        const imagePromises = allPages.map(async (page) => {
-          let imgPrompt: string;
-          const styleMap: Record<string, string> = {
-            cartoon: "colorful cartoon illustration, soft watercolor textures",
-            "3d-pixar": "3D Pixar-style CGI render, warm lighting",
-            "graphic-novel": "graphic novel, bold ink lines, flat colors",
-          };
-          const style = styleMap[data.artStyle] || styleMap.cartoon;
-
-          if (page.type === "cover") {
-            imgPrompt = `A stunning children's book front cover illustration. Title: "${page.coverTitle}". Characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Magical, inviting, vibrant colors. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). No text in the image.`;
-          } else if (page.type === "back-cover") {
-            imgPrompt = `A beautiful children's book back cover illustration. A warm, gentle scene with characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Soft, warm colors, peaceful atmosphere. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). No text in the image.`;
-          } else {
-            imgPrompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout. Story text: "${page.text}". Characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). Safe for children, warm magical atmosphere, vibrant colors.`;
-          }
-
-          const imageUrl = await generateImageForPage(page.id, imgPrompt, data.artStyle, childNames, data.torahPortion);
-          return { id: page.id, imageUrl };
-        });
-
-        for (const promise of imagePromises) {
-          const result = await promise;
-          setBookPages((prev) =>
-            prev.map((p) => (p.id === result.id ? { ...p, image: result.imageUrl, imageLoading: false } : p))
-          );
-        }
-      } catch (err: any) {
-        clearInterval(iv);
-        setGenerating(false);
-        console.error("Generation failed:", err);
-        toast.error(err?.message || "Failed to generate story. Please try again.");
-        setStep(3);
+      for (const p of storyData.pages || []) {
+        allPages.push({ id: pageId++, text: p.text, image: null, imageLoading: true, type: "story" });
       }
+
+      allPages.push({ id: pageId++, text: backCover.synopsis || "", image: null, imageLoading: true, type: "back-cover", synopsis: backCover.synopsis, dedication: backCover.dedication, questions });
+
+      setBookPages(allPages);
+      clearInterval(iv);
+      setGenerating(false);
+      setStep(10);
+
+      // Auto-save
+      if (user) {
+        try {
+          const { data: bookData, error: saveError } = await supabase
+            .from("books")
+            .insert({
+              user_id: user.id,
+              child_name: childNames,
+              torah_portion: data.torahPortion,
+              art_style: data.artStyle,
+              language: data.language,
+              status: "draft",
+              pages_data: allPages,
+              story_data: storyData,
+              questions,
+            } as any)
+            .select()
+            .single();
+          if (!saveError && bookData) {
+            setSavedBookId(bookData.id);
+            toast.success("Book saved to your account!");
+          }
+        } catch (err) {
+          console.error("Failed to save book:", err);
+        }
+      }
+
+      // Generate images
+      const characterDetails = data.children.map((c) => `${c.name} (${c.age}-year-old ${c.gender}${c.gender === "boy" ? ", wearing a kippah" : ""})`).join(", ");
+      const imagePromises = allPages.map(async (page) => {
+        const styleMap: Record<string, string> = {
+          cartoon: "colorful cartoon illustration, soft watercolor textures",
+          "3d-pixar": "3D Pixar-style CGI render, warm lighting",
+          "graphic-novel": "graphic novel, bold ink lines, flat colors",
+        };
+        const style = styleMap[data.artStyle] || styleMap.cartoon;
+        let imgPrompt: string;
+
+        if (page.type === "cover") {
+          imgPrompt = `A stunning children's book front cover illustration. Title: "${page.coverTitle}". Characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Magical, inviting, vibrant colors. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). No text in the image.`;
+        } else if (page.type === "back-cover") {
+          imgPrompt = `A beautiful children's book back cover illustration. A warm, gentle scene with characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Soft, warm colors, peaceful atmosphere. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). No text in the image.`;
+        } else {
+          imgPrompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout. Story text: "${page.text}". Characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). Safe for children, warm magical atmosphere, vibrant colors.`;
+        }
+
+        const imageUrl = await generateImageForPage(page.id, imgPrompt, data.artStyle, childNames, data.torahPortion);
+        return { id: page.id, imageUrl };
+      });
+
+      for (const promise of imagePromises) {
+        const result = await promise;
+        setBookPages((prev) => prev.map((p) => (p.id === result.id ? { ...p, image: result.imageUrl, imageLoading: false } : p)));
+      }
+    } catch (err: any) {
+      clearInterval(iv);
+      setGenerating(false);
+      console.error("Generation failed:", err);
+      toast.error(err?.message || "Failed to generate story. Please try again.");
+      setStep(8);
+    }
+  };
+
+  /* ───── navigation ───── */
+
+  const next = async () => {
+    if (step === 8) {
+      await startGeneration();
       return;
     }
     setDir(1);
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   };
 
-  const back = () => { setDir(-1); setStep((s) => Math.max(s - 1, 1)); };
-
-  const handlePhoto = (childId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Convert to base64 for AI reference
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updateChild(childId, { photo: file, photoPreview: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
+  const back = () => {
+    setDir(-1);
+    setStep((s) => Math.max(s - 1, 1));
   };
 
   const handlePlaceOrder = async () => {
-    // Update book status in DB
     if (savedBookId && user) {
       try {
-        await supabase
-          .from("books")
-          .update({
-            status: "ordered",
-            shipping_data: shipping,
-            order_number: `MTT-${Date.now().toString().slice(-6)}`,
-            updated_at: new Date().toISOString(),
-          } as any)
-          .eq("id", savedBookId);
+        await supabase.from("books").update({
+          status: "ordered",
+          shipping_data: shipping,
+          order_number: `MTT-${Date.now().toString().slice(-6)}`,
+          updated_at: new Date().toISOString(),
+        } as any).eq("id", savedBookId);
       } catch (err) {
         console.error("Failed to update order:", err);
       }
     }
     setDir(1);
-    setStep(8);
+    setStep(13);
   };
 
-  const canNext =
-    (step === 1 && data.children.every((c) => c.name && c.age && c.gender)) ||
-    (step === 2 && data.torahPortion) ||
-    step === 3 ||
-    step === 5 ||
-    (step === 6 && shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
+  /* ───── can proceed checks ───── */
+
+  const canNext = (() => {
+    switch (step) {
+      case 1: return !!child.name.trim();
+      case 2: return !!child.age;
+      case 3: return !!child.gender;
+      case 4: return !!data.artStyle;
+      case 5: return true; // photo/desc optional
+      case 6: return !!data.torahPortion;
+      case 7: return true;
+      case 8: return true;
+      case 10: return true;
+      case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
+      default: return false;
+    }
+  })();
 
   const filteredPortions = portionFilter === "all"
     ? TORAH_PORTIONS
     : TORAH_PORTIONS.filter((p) => p.category === portionFilter);
 
-  // Visible step for the stepper (collapse generating into the flow)
-  const visibleStep = step <= 3 ? step : step === 4 ? 3 : step;
+  /* ───── determine which stepper group is active ───── */
+
+  const activeGroupIdx = STEP_GROUPS.findIndex((g) => g.steps.includes(step));
+
+  /* ───── character preview panel ───── */
+
+  const CharacterPreview = () => {
+    if (step < 2 || step > 5) return null;
+    const preview = child.characterPreview;
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 shadow-sm">
+          {previewLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="space-y-2 w-full p-4">
+                <Skeleton className="w-full h-full absolute inset-0 rounded-2xl" />
+                <div className="relative z-10 flex items-center justify-center h-full">
+                  <Loader2 className="w-6 h-6 text-accent animate-spin" />
+                </div>
+              </div>
+            </div>
+          ) : preview ? (
+            <img src={preview} alt="Character preview" className="w-full h-full object-cover" />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <User className="w-12 h-12 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
+        {(child.name || child.age || child.gender) && (
+          <p className="text-xs text-muted-foreground text-center">
+            {child.name && <span className="font-semibold text-foreground">{child.name}</span>}
+            {child.age && <span> · {child.age}yo</span>}
+            {child.gender && <span> · {child.gender}</span>}
+          </p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
-        {/* Top stepper */}
-        {step !== 8 && (
+      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
+        {/* ── Grouped Stepper ── */}
+        {step !== 13 && (
           <div className="px-6 sm:px-8 pt-6 pb-2">
             <div className="flex items-center justify-between gap-1">
-              {STEP_LABELS.slice(0, 7).map((s, i) => {
-                const stepNum = i + 1;
-                const isActive = stepNum === visibleStep;
-                const isCompleted = stepNum < visibleStep;
+              {STEP_GROUPS.map((g, i) => {
+                const isActive = i === activeGroupIdx;
+                const isCompleted = i < activeGroupIdx;
                 return (
-                  <div key={s.label} className="flex items-center flex-1 last:flex-initial">
+                  <div key={g.label} className="flex items-center flex-1 last:flex-initial">
                     <div className="flex flex-col items-center gap-1.5">
-                      <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-500 ${
-                          isCompleted
-                            ? "bg-accent text-accent-foreground"
-                            : isActive
-                            ? "bg-accent/15 text-accent ring-2 ring-accent/30"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {isCompleted ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <s.icon className="w-4 h-4" />
-                        )}
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-500 ${
+                        isCompleted ? "bg-accent text-accent-foreground"
+                        : isActive ? "bg-accent/15 text-accent ring-2 ring-accent/30"
+                        : "bg-muted text-muted-foreground"
+                      }`}>
+                        {isCompleted ? <Check className="w-4 h-4" /> : <g.icon className="w-4 h-4" />}
                       </div>
                       <span className={`text-[10px] font-medium hidden sm:block transition-colors duration-300 ${
                         isActive ? "text-accent" : isCompleted ? "text-foreground" : "text-muted-foreground"
-                      }`}>
-                        {s.label}
-                      </span>
+                      }`}>{g.label}</span>
                     </div>
-                    {i < 6 && (
-                      <div className={`flex-1 h-px mx-2 transition-colors duration-500 ${
-                        isCompleted ? "bg-accent" : "bg-border"
-                      }`} />
+                    {i < STEP_GROUPS.length - 1 && (
+                      <div className={`flex-1 h-px mx-2 transition-colors duration-500 ${isCompleted ? "bg-accent" : "bg-border"}`} />
                     )}
                   </div>
                 );
               })}
             </div>
+            {/* Sub-progress within group */}
+            {activeGroupIdx >= 0 && (
+              <div className="mt-3 h-1 bg-muted rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-accent rounded-full"
+                  initial={false}
+                  animate={{
+                    width: `${((STEP_GROUPS[activeGroupIdx].steps.indexOf(step) + 1) / STEP_GROUPS[activeGroupIdx].steps.length) * 100}%`,
+                  }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
+              </div>
+            )}
           </div>
         )}
 
         <div className="p-6 sm:p-8 pt-4">
-          <AnimatePresence mode="wait" custom={dir}>
-            {/* STEP 1: The Heroes */}
-            {step === 1 && (
-              <motion.div key="s1" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                <div>
-                  <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                    Who's the hero?
-                  </h2>
-                  <p className="text-muted-foreground text-sm mt-1">Add the children who will star in this Torah adventure.</p>
-                </div>
+          {/* Layout: steps 2-5 show character preview on the side */}
+          <div className={step >= 2 && step <= 5 ? "flex flex-col sm:flex-row gap-6" : ""}>
+            {/* Character preview (top on mobile, right on desktop) */}
+            {step >= 2 && step <= 5 && (
+              <div className="sm:order-2 flex-shrink-0 flex justify-center sm:pt-8">
+                <CharacterPreview />
+              </div>
+            )}
 
-                <div className="space-y-3">
-                  {data.children.map((child, idx) => {
-                    const isExpanded = data.children.length === 1 || expandedChildId === child.id;
-                    const isComplete = child.name && child.age && child.gender;
-                    return (
-                    <motion.div
-                      key={child.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -12 }}
-                      transition={{ duration: 0.3, ease }}
-                      className="rounded-2xl border border-border bg-card overflow-hidden relative"
-                    >
-                      {/* Collapsed header - always visible */}
-                      <button
-                        type="button"
-                        onClick={() => setExpandedChildId(isExpanded ? null : child.id)}
-                        className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors duration-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isComplete ? 'bg-accent/15 text-accent' : 'bg-muted text-muted-foreground'}`}>
-                            {child.name ? child.name.charAt(0).toUpperCase() : idx + 1}
-                          </div>
-                          <div className="text-left">
-                            <span className="text-sm font-semibold text-primary">
-                              {child.name || `Child ${idx + 1}`}
-                            </span>
-                            {!isExpanded && isComplete && (
-                              <p className="text-xs text-muted-foreground">{child.age} yrs · {child.gender} {child.photoPreview ? '· 📷' : ''}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {data.children.length > 1 && (
-                            <span
-                              role="button"
-                              onClick={(e) => { e.stopPropagation(); removeChild(child.id); }}
-                              className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded-lg hover:bg-destructive/10"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </span>
-                          )}
-                          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-                        </div>
-                      </button>
+            <div className="flex-1 sm:order-1">
+              <AnimatePresence mode="wait" custom={dir}>
 
-                      {/* Expandable content */}
-                      <AnimatePresence initial={false}>
-                        {isExpanded && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3, ease }}
-                            className="overflow-hidden"
+                {/* ── STEP 1: Name ── */}
+                {step === 1 && (
+                  <motion.div key="s1" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
+                        <Type className="w-6 h-6 text-accent" /> What's your hero's name?
+                      </h2>
+                      <p className="text-muted-foreground text-sm mt-1">Enter the name of the child who will star in this Torah adventure.</p>
+                    </div>
+                    <Input
+                      placeholder="e.g., Chaya Mushka"
+                      value={child.name}
+                      onChange={(e) => updateChild(child.id, { name: e.target.value })}
+                      className="rounded-xl h-14 text-lg px-5"
+                      autoFocus
+                    />
+                    {data.children.length > 1 && (
+                      <div className="flex flex-wrap gap-2">
+                        {data.children.map((c, idx) => (
+                          <button
+                            key={c.id}
+                            onClick={() => update({ activeChildIdx: idx })}
+                            className={`text-xs px-3 py-1.5 rounded-full transition-all ${
+                              idx === data.activeChildIdx
+                                ? "bg-accent text-accent-foreground"
+                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                            }`}
                           >
-                            <div className="px-5 pb-5 space-y-4">
-                              <div>
-                                <Label className="text-xs text-muted-foreground">Name</Label>
-                                <Input placeholder="e.g., Chaya Mushka" value={child.name} onChange={(e) => updateChild(child.id, { name: e.target.value })} className="mt-1.5 rounded-xl h-11" />
-                              </div>
+                            {c.name || `Child ${idx + 1}`}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
 
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <Label className="text-xs text-muted-foreground">Age</Label>
-                                  <Select value={child.age} onValueChange={(v) => updateChild(child.id, { age: v })}>
-                                    <SelectTrigger className="mt-1.5 rounded-xl h-11"><SelectValue placeholder="Select" /></SelectTrigger>
-                                    <SelectContent>
-                                      {Array.from({ length: 11 }, (_, i) => i + 2).map((a) => (
-                                        <SelectItem key={a} value={String(a)}>{a} years old</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label className="text-xs text-muted-foreground">Gender</Label>
-                                  <Select value={child.gender} onValueChange={(v) => updateChild(child.id, { gender: v })}>
-                                    <SelectTrigger className="mt-1.5 rounded-xl h-11"><SelectValue placeholder="Select" /></SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="boy">Boy</SelectItem>
-                                      <SelectItem value="girl">Girl</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
+                {/* ── STEP 2: Age ── */}
+                {step === 2 && (
+                  <motion.div key="s2" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
+                        <Calendar className="w-6 h-6 text-accent" /> How old is {child.name || "your hero"}?
+                      </h2>
+                      <p className="text-muted-foreground text-sm mt-1">This helps us tailor the story to the right reading level.</p>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {AGE_BRACKETS.map((bracket) => {
+                        const ageNum = child.age ? parseInt(child.age) : 0;
+                        const isSelected = ageNum >= bracket.min && ageNum <= bracket.max;
+                        return (
+                          <button
+                            key={bracket.label}
+                            onClick={() => {
+                              updateChild(child.id, { age: String(bracket.min) });
+                            }}
+                            className={`p-4 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
+                              isSelected
+                                ? "border-accent bg-accent/5 shadow-sm"
+                                : "border-border hover:border-accent/30"
+                            }`}
+                          >
+                            <span className="text-3xl block mb-2">{bracket.emoji}</span>
+                            <span className="text-sm font-semibold text-primary block">{bracket.label} yrs</span>
+                            <span className="text-[11px] text-muted-foreground">{bracket.desc}</span>
+                          </button>
+                        );
+                      })}
+                      {/* Exact age fine-tune */}
+                      <div className="col-span-full mt-2">
+                        <Label className="text-xs text-muted-foreground">Or set exact age:</Label>
+                        <Slider
+                          value={[parseInt(child.age) || 5]}
+                          onValueChange={([v]) => updateChild(child.id, { age: String(v) })}
+                          min={2}
+                          max={12}
+                          step={1}
+                          className="mt-2"
+                        />
+                        <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                          <span>2</span>
+                          <span className="font-semibold text-accent">{child.age || "5"} years old</span>
+                          <span>12</span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
-                              {/* Photo upload */}
-                              <div>
-                                <Label className="text-xs text-muted-foreground">Photo (optional)</Label>
-                                <div className="mt-1.5 border-2 border-dashed border-border rounded-2xl p-4 text-center cursor-pointer hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 relative">
-                                  {child.photoPreview ? (
-                                    <div className="flex items-center gap-3">
-                                      <img src={child.photoPreview} alt="Preview" className="w-12 h-12 rounded-xl object-cover" />
-                                      <span className="text-xs text-muted-foreground flex-1 truncate">{child.photo?.name}</span>
-                                      <button onClick={() => updateChild(child.id, { photo: null, photoPreview: null })} className="text-xs text-destructive hover:underline font-medium">Remove</button>
-                                    </div>
+                {/* ── STEP 3: Gender ── */}
+                {step === 3 && (
+                  <motion.div key="s3" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
+                        <Heart className="w-6 h-6 text-accent" /> Is {child.name || "your hero"} a boy or a girl?
+                      </h2>
+                      <p className="text-muted-foreground text-sm mt-1">This shapes the character's appearance and clothing in the illustrations.</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { key: "boy", label: "Boy", emoji: "👦", detail: "Will wear a kippah" },
+                        { key: "girl", label: "Girl", emoji: "👧", detail: "Modest dress" },
+                      ].map((g) => (
+                        <button
+                          key={g.key}
+                          onClick={() => {
+                            updateChild(child.id, { gender: g.key });
+                          }}
+                          className={`p-6 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
+                            child.gender === g.key
+                              ? "border-accent bg-accent/5 shadow-md"
+                              : "border-border hover:border-accent/30"
+                          }`}
+                        >
+                          <span className="text-5xl block mb-3">{g.emoji}</span>
+                          <span className="text-lg font-semibold text-primary block">{g.label}</span>
+                          <span className="text-xs text-muted-foreground">{g.detail}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ── STEP 4: Art Style ── */}
+                {step === 4 && (
+                  <motion.div key="s4" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
+                        <Palette className="w-6 h-6 text-accent" /> Choose an illustration style
+                      </h2>
+                      <p className="text-muted-foreground text-sm mt-1">See how {child.name || "your hero"} looks in each style.</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {ART_STYLES.map((s) => {
+                        const preview = artStylePreviews[s.key];
+                        return (
+                          <button
+                            key={s.key}
+                            onClick={() => {
+                              update({ artStyle: s.key });
+                              // Update character preview with new style
+                              if (child.gender && child.age) {
+                                triggerPreviewDebounced(child, s.key);
+                              }
+                            }}
+                            className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
+                              data.artStyle === s.key
+                                ? "border-accent shadow-md ring-2 ring-accent/20"
+                                : "border-border hover:border-accent/30"
+                            }`}
+                          >
+                            <div className="aspect-square bg-muted/50 relative">
+                              {preview ? (
+                                <img src={preview} alt={s.label} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="flex items-center justify-center h-full">
+                                  {artStylePreviewsLoading ? (
+                                    <Loader2 className="w-6 h-6 text-accent animate-spin" />
                                   ) : (
-                                    <>
-                                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-2">
-                                        <Upload className="w-5 h-5 text-muted-foreground" />
-                                      </div>
-                                      <p className="text-xs text-muted-foreground">Drag & drop or <span className="text-accent font-medium">browse</span></p>
-                                      <input type="file" accept="image/*" onChange={(e) => handlePhoto(child.id, e)} className="absolute inset-0 opacity-0 cursor-pointer" />
-                                    </>
+                                    <Palette className="w-8 h-8 text-muted-foreground/30" />
                                   )}
                                 </div>
-
-                                {/* Photo tips */}
-                                <div className="mt-3 rounded-xl bg-accent/5 border border-accent/15 p-3">
-                                  <p className="text-xs font-semibold text-accent mb-1.5 flex items-center gap-1.5">
-                                    <Camera className="w-3.5 h-3.5" /> Tips for the best results
-                                  </p>
-                                  <ul className="text-[11px] text-muted-foreground space-y-1">
-                                    <li className="flex items-start gap-1.5"><User className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Face should be clearly visible, looking at the camera</li>
-                                    <li className="flex items-start gap-1.5"><Sun className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Use good, natural lighting — avoid dark or blurry photos</li>
-                                    <li className="flex items-start gap-1.5"><Camera className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Close-up or portrait shot works best (no group photos)</li>
-                                  </ul>
-                                </div>
-                              </div>
+                              )}
                             </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                    );
-                  })}
-                </div>
-
-                {data.children.length < 4 && (
-                  <Button variant="outline" size="sm" onClick={addChild} className="w-full border-dashed border-2 rounded-xl h-11">
-                    <Plus className="w-4 h-4" /> Add Another Child
-                  </Button>
+                            <div className="p-3">
+                              <span className="text-sm font-semibold text-primary block">{s.label}</span>
+                              <span className="text-[11px] text-muted-foreground">{s.desc}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
                 )}
-              </motion.div>
-            )}
 
-            {/* STEP 2: The Journey */}
-            {step === 2 && (
-              <motion.div key="s2" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-5">
-                <div>
-                  <h2 className="font-display text-2xl font-bold text-primary">Choose a Torah Story</h2>
-                  <p className="text-muted-foreground text-sm mt-1">Which adventure will {childNames} explore?</p>
-                </div>
+                {/* ── STEP 5: Photo / Description ── */}
+                {step === 5 && (
+                  <motion.div key="s5" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
+                        <Image className="w-6 h-6 text-accent" /> Help us draw {child.name || "your hero"}
+                      </h2>
+                      <p className="text-muted-foreground text-sm mt-1">Upload a photo or describe your child's appearance. Both are optional!</p>
+                    </div>
 
-                <div className="flex gap-2">
-                  {(["all", "torah", "holiday"] as const).map((f) => (
-                    <button
-                      key={f}
-                      onClick={() => setPortionFilter(f)}
-                      className={`text-xs font-medium px-4 py-2 rounded-full transition-all duration-300 capitalize ${
-                        portionFilter === f ? "bg-accent text-accent-foreground shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
-                      }`}
-                    >
-                      {f === "all" ? "All Stories" : f === "torah" ? "Torah Portions" : "Holidays"}
-                    </button>
-                  ))}
-                </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Upload option */}
+                      <div className="rounded-2xl border-2 border-dashed border-border p-5 text-center hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 relative">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                            <Camera className="w-6 h-6 text-accent" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-primary">Upload a Photo</p>
+                            <p className="text-xs text-muted-foreground mt-1">Best results with clear face photos</p>
+                          </div>
+                          {child.photoPreview ? (
+                            <div className="flex items-center gap-3 w-full">
+                              <img src={child.photoPreview} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
+                              <button
+                                onClick={() => updateChild(child.id, { photo: null, photoPreview: null })}
+                                className="text-xs text-destructive hover:underline font-medium"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ) : (
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                handlePhoto(child.id, e);
+                                // Trigger preview after photo loads
+                                setTimeout(() => {
+                                  const updatedChild = { ...child, photoPreview: child.photoPreview };
+                                  if (updatedChild.gender && updatedChild.age) {
+                                    triggerPreviewDebounced(updatedChild, data.artStyle);
+                                  }
+                                }, 1000);
+                              }}
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                            />
+                          )}
+                        </div>
 
-                <div className="grid gap-2 max-h-[45vh] overflow-y-auto pr-1 scrollbar-thin">
-                  {filteredPortions.map((p) => (
-                    <button
-                      key={p.value}
-                      onClick={() => update({ torahPortion: p.value })}
-                      className={`p-4 rounded-2xl border-2 text-left transition-all duration-300 active:scale-[0.98] ${
-                        data.torahPortion === p.value
-                          ? "border-accent bg-accent/5 shadow-sm"
-                          : "border-border hover:border-accent/30 hover:bg-card"
-                      }`}
-                    >
-                      <span className="font-display text-base font-semibold text-primary">{p.label}</span>
-                      <span className="block text-xs text-muted-foreground mt-0.5">{p.sub}</span>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+                        {/* Photo tips */}
+                        <div className="mt-4 rounded-xl bg-accent/5 border border-accent/15 p-3 text-left">
+                          <p className="text-xs font-semibold text-accent mb-1.5 flex items-center gap-1.5">
+                            <Camera className="w-3.5 h-3.5" /> Tips for best results
+                          </p>
+                          <ul className="text-[11px] text-muted-foreground space-y-1">
+                            <li className="flex items-start gap-1.5"><User className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Face clearly visible</li>
+                            <li className="flex items-start gap-1.5"><Sun className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Good lighting</li>
+                            <li className="flex items-start gap-1.5"><Camera className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Close-up portrait</li>
+                          </ul>
+                        </div>
+                      </div>
 
-            {/* STEP 3: The Magic */}
-            {step === 3 && (
-              <motion.div key="s3" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                <div>
-                  <h2 className="font-display text-2xl font-bold text-primary">Customize Your Sefer</h2>
-                  <p className="text-muted-foreground text-sm mt-1">Pick the art style, language, and page count.</p>
-                </div>
+                      {/* Description option */}
+                      <div className="rounded-2xl border-2 border-border p-5">
+                        <div className="flex flex-col items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <PenLine className="w-6 h-6 text-primary" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-primary">Describe Instead</p>
+                            <p className="text-xs text-muted-foreground mt-1">Tell us what your child looks like</p>
+                          </div>
+                        </div>
+                        <Textarea
+                          placeholder="e.g., Brown curly hair, olive skin, big brown eyes, loves wearing blue..."
+                          value={child.description}
+                          onChange={(e) => {
+                            updateChild(child.id, { description: e.target.value });
+                            if (child.gender && child.age && e.target.value.length > 10) {
+                              triggerPreviewDebounced({ ...child, description: e.target.value }, data.artStyle);
+                            }
+                          }}
+                          className="rounded-xl min-h-[120px] text-sm"
+                        />
+                      </div>
+                    </div>
 
-                {/* Art Style */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Art Style</Label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { key: "cartoon", label: "Cartoon", emoji: "🎨" },
-                      { key: "3d-pixar", label: "3D Pixar", emoji: "✨" },
-                      { key: "graphic-novel", label: "Graphic Novel", emoji: "📓" },
-                    ].map((s) => (
-                      <button
-                        key={s.key}
-                        onClick={() => update({ artStyle: s.key })}
-                        className={`p-4 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
-                          data.artStyle === s.key
-                            ? "border-accent bg-accent/5 shadow-sm"
-                            : "border-border hover:border-accent/30"
-                        }`}
+                    {/* Multi-child controls */}
+                    {data.children.length < 4 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newChild = createChild();
+                          setData((prev) => ({
+                            ...prev,
+                            children: [...prev.children, newChild],
+                            activeChildIdx: prev.children.length,
+                          }));
+                          setStep(1); // Go back to name for new child
+                        }}
+                        className="w-full border-dashed border-2 rounded-xl h-11"
                       >
-                        <span className="text-2xl block mb-2">{s.emoji}</span>
-                        <span className="text-xs font-semibold text-primary">{s.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                        <Plus className="w-4 h-4" /> Add Another Child
+                      </Button>
+                    )}
+                  </motion.div>
+                )}
 
-                {/* Language */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Language</Label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { key: "english", label: "English", emoji: "🇺🇸" },
-                      { key: "hebrew", label: "Hebrew", emoji: "🇮🇱" },
-                      { key: "bilingual", label: "Both", emoji: "🌍" },
-                    ].map((l) => (
-                      <button
-                        key={l.key}
-                        onClick={() => update({ language: l.key })}
-                        className={`p-4 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
-                          data.language === l.key
-                            ? "border-accent bg-accent/5 shadow-sm"
-                            : "border-border hover:border-accent/30"
-                        }`}
-                      >
-                        <span className="text-2xl block mb-2">{l.emoji}</span>
-                        <span className="text-xs font-semibold text-primary">{l.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* ── STEP 6: Torah Portion ── */}
+                {step === 6 && (
+                  <motion.div key="s6" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-5">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary">Choose a Torah Story</h2>
+                      <p className="text-muted-foreground text-sm mt-1">Which adventure will {childNames} explore?</p>
+                    </div>
 
-                {/* Page Count */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-sm font-medium">Number of Pages</Label>
-                    <span className="text-sm font-bold text-accent bg-accent/10 px-3 py-1 rounded-full">{data.pageCount} pages</span>
-                  </div>
-                  <Slider
-                    value={[data.pageCount]}
-                    onValueChange={([v]) => update({ pageCount: v })}
-                    min={2}
-                    max={10}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
-                    <span>2 pages</span>
-                    <span>10 pages</span>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+                    <div className="flex gap-2">
+                      {(["all", "torah", "holiday"] as const).map((f) => (
+                        <button key={f} onClick={() => setPortionFilter(f)} className={`text-xs font-medium px-4 py-2 rounded-full transition-all duration-300 capitalize ${
+                          portionFilter === f ? "bg-accent text-accent-foreground shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                        }`}>
+                          {f === "all" ? "All Stories" : f === "torah" ? "Torah Portions" : "Holidays"}
+                        </button>
+                      ))}
+                    </div>
 
-            {/* STEP 4: Generating */}
-            {step === 4 && generating && (
-              <motion.div key="s4" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="py-16 space-y-8">
-                <SparkleEffect count={15} />
-                <div className="text-center space-y-5">
-                  <div className="w-20 h-20 rounded-3xl bg-accent/10 flex items-center justify-center mx-auto">
-                    <Loader2 className="w-10 h-10 text-accent animate-spin" />
-                  </div>
-                  <motion.p key={genText} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="font-display text-xl text-primary font-semibold">
-                    {genText}
-                  </motion.p>
-                  <p className="text-sm text-muted-foreground max-w-xs mx-auto">Creating something extraordinary for {childNames}...</p>
-                </div>
-                {/* Skeleton preview */}
-                <div className="space-y-4 px-4 max-w-sm mx-auto">
-                  <Skeleton className="w-full aspect-[4/3] rounded-2xl" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-3/4 rounded-full" />
-                    <Skeleton className="h-4 w-full rounded-full" />
-                    <Skeleton className="h-4 w-2/3 rounded-full" />
-                  </div>
-                </div>
-              </motion.div>
-            )}
+                    <div className="grid gap-2 max-h-[45vh] overflow-y-auto pr-1 scrollbar-thin">
+                      {filteredPortions.map((p) => (
+                        <button key={p.value} onClick={() => update({ torahPortion: p.value })} className={`p-4 rounded-2xl border-2 text-left transition-all duration-300 active:scale-[0.98] ${
+                          data.torahPortion === p.value ? "border-accent bg-accent/5 shadow-sm" : "border-border hover:border-accent/30 hover:bg-card"
+                        }`}>
+                          <span className="font-display text-base font-semibold text-primary">{p.label}</span>
+                          <span className="block text-xs text-muted-foreground mt-0.5">{p.sub}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
 
-            {/* STEP 5: Book Viewer */}
-            {step === 5 && (
-              <motion.div key="s5" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
-                <BookViewer
-                  childName={childNames}
-                  torahPortion={data.torahPortion}
-                  artStyle={data.artStyle}
-                  pages={bookPages}
-                  onPagesChange={setBookPages}
-                />
-              </motion.div>
-            )}
+                {/* ── STEP 7: Language ── */}
+                {step === 7 && (
+                  <motion.div key="s7" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary">Choose a Language</h2>
+                      <p className="text-muted-foreground text-sm mt-1">In which language should the story be written?</p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { key: "english", label: "English", emoji: "🇺🇸" },
+                        { key: "hebrew", label: "Hebrew", emoji: "🇮🇱" },
+                        { key: "bilingual", label: "Both", emoji: "🌍" },
+                      ].map((l) => (
+                        <button key={l.key} onClick={() => update({ language: l.key })} className={`p-5 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
+                          data.language === l.key ? "border-accent bg-accent/5 shadow-sm" : "border-border hover:border-accent/30"
+                        }`}>
+                          <span className="text-3xl block mb-2">{l.emoji}</span>
+                          <span className="text-sm font-semibold text-primary">{l.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
 
-            {/* STEP 6: Shipping */}
-            {step === 6 && (
-              <motion.div key="s6" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
-                <ShippingForm data={shipping} onChange={setShipping} />
-              </motion.div>
-            )}
+                {/* ── STEP 8: Page Count ── */}
+                {step === 8 && (
+                  <motion.div key="s8" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary">How many pages?</h2>
+                      <p className="text-muted-foreground text-sm mt-1">Choose how long {childNames}'s story should be.</p>
+                    </div>
+                    <div className="py-8">
+                      <div className="text-center mb-6">
+                        <span className="text-6xl font-bold text-accent">{data.pageCount}</span>
+                        <span className="text-lg text-muted-foreground ml-2">pages</span>
+                      </div>
+                      <Slider
+                        value={[data.pageCount]}
+                        onValueChange={([v]) => update({ pageCount: v })}
+                        min={2}
+                        max={10}
+                        step={1}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground mt-3">
+                        <span>Short story</span>
+                        <span>Epic adventure</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
-            {/* STEP 7: Checkout */}
-            {step === 7 && (
-              <motion.div key="s7" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
-                <CheckoutStep
-                  childName={childNames}
-                  torahPortion={data.torahPortion}
-                  artStyle={data.artStyle}
-                  shipping={shipping}
-                  onPlaceOrder={handlePlaceOrder}
-                />
-              </motion.div>
-            )}
+                {/* ── STEP 9: Generating ── */}
+                {step === 9 && generating && (
+                  <motion.div key="s9" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="py-16 space-y-8">
+                    <SparkleEffect count={15} />
+                    <div className="text-center space-y-5">
+                      <div className="w-20 h-20 rounded-3xl bg-accent/10 flex items-center justify-center mx-auto">
+                        <Loader2 className="w-10 h-10 text-accent animate-spin" />
+                      </div>
+                      <motion.p key={genText} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="font-display text-xl text-primary font-semibold">
+                        {genText}
+                      </motion.p>
+                      <p className="text-sm text-muted-foreground max-w-xs mx-auto">Creating something extraordinary for {childNames}...</p>
+                    </div>
+                    <div className="space-y-4 px-4 max-w-sm mx-auto">
+                      <Skeleton className="w-full aspect-[4/3] rounded-2xl" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-3/4 rounded-full" />
+                        <Skeleton className="h-4 w-full rounded-full" />
+                        <Skeleton className="h-4 w-2/3 rounded-full" />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
-            {/* STEP 8: Success */}
-            {step === 8 && (
-              <motion.div key="s8" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
-                <SuccessStep
-                  childName={childNames}
-                  onGoToDashboard={() => { onClose(); navigate("/dashboard"); }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                {/* ── STEP 10: Book Viewer ── */}
+                {step === 10 && (
+                  <motion.div key="s10" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
+                    <BookViewer childName={childNames} torahPortion={data.torahPortion} artStyle={data.artStyle} pages={bookPages} onPagesChange={setBookPages} />
+                  </motion.div>
+                )}
 
-          {/* Nav buttons */}
-          {step !== 4 && step !== 7 && step !== 8 && (
+                {/* ── STEP 11: Shipping ── */}
+                {step === 11 && (
+                  <motion.div key="s11" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
+                    <ShippingForm data={shipping} onChange={setShipping} />
+                  </motion.div>
+                )}
+
+                {/* ── STEP 12: Checkout ── */}
+                {step === 12 && (
+                  <motion.div key="s12" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
+                    <CheckoutStep childName={childNames} torahPortion={data.torahPortion} artStyle={data.artStyle} shipping={shipping} onPlaceOrder={handlePlaceOrder} />
+                  </motion.div>
+                )}
+
+                {/* ── STEP 13: Success ── */}
+                {step === 13 && (
+                  <motion.div key="s13" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
+                    <SuccessStep childName={childNames} onGoToDashboard={() => { onClose(); navigate("/dashboard"); }} />
+                  </motion.div>
+                )}
+
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* ── Nav buttons ── */}
+          {step !== 9 && step !== 12 && step !== 13 && (
             <div className="flex justify-between mt-8 pt-6 border-t border-border">
               {step > 1 ? (
                 <Button variant="ghost" onClick={back} className="rounded-xl gap-2 text-muted-foreground hover:text-foreground">
                   <ArrowLeft className="w-4 h-4" /> Back
                 </Button>
               ) : <div />}
-              {step < 3 && (
+
+              {step <= 7 && (
                 <Button variant="gold" onClick={next} disabled={!canNext} className="rounded-xl gap-2 px-6 h-11">
                   Continue <ArrowRight className="w-4 h-4" />
                 </Button>
               )}
-              {step === 3 && (
+              {step === 8 && (
                 <Button variant="gold" onClick={next} className="rounded-xl gap-2 px-6 h-11">
                   <Sparkles className="w-4 h-4" /> Generate Book
                 </Button>
               )}
-              {step === 5 && (
+              {step === 10 && (
                 <Button variant="gold" onClick={next} className="rounded-xl gap-2 px-6 h-11">
                   Looks Great! <ArrowRight className="w-4 h-4" />
                 </Button>
               )}
-              {step === 6 && (
+              {step === 11 && (
                 <Button variant="gold" onClick={next} disabled={!canNext} className="rounded-xl gap-2 px-6 h-11">
                   Continue <ArrowRight className="w-4 h-4" />
                 </Button>
