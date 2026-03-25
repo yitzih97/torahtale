@@ -676,23 +676,27 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       {[
-                        { key: "boy", label: "Boy", emoji: "👦", detail: "Will wear a kippah" },
-                        { key: "girl", label: "Girl", emoji: "👧", detail: "Modest dress" },
+                        { key: "boy", label: "Boy", detail: "Will wear a kippah", img: presetBoyCartoon },
+                        { key: "girl", label: "Girl", detail: "Modest dress", img: presetGirlCartoon },
                       ].map((g) => (
                         <button
                           key={g.key}
                           onClick={() => {
                             updateChild(child.id, { gender: g.key });
                           }}
-                          className={`p-6 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
+                          className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
                             child.gender === g.key
                               ? "border-accent bg-accent/5 shadow-md"
                               : "border-border hover:border-accent/30"
                           }`}
                         >
-                          <span className="text-5xl block mb-3">{g.emoji}</span>
-                          <span className="text-lg font-semibold text-primary block">{g.label}</span>
-                          <span className="text-xs text-muted-foreground">{g.detail}</span>
+                          <div className="w-full aspect-square bg-muted/30">
+                            <img src={g.img} alt={g.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
+                          </div>
+                          <div className="p-3">
+                            <span className="text-lg font-semibold text-primary block">{g.label}</span>
+                            <span className="text-xs text-muted-foreground">{g.detail}</span>
+                          </div>
                         </button>
                       ))}
                     </div>
