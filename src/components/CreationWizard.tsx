@@ -470,22 +470,30 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   /* ───── character preview panel ───── */
 
+  /** Resolve best preview: AI-generated > preset based on current selections */
+  const getPreviewImage = (): string | null => {
+    if (child.characterPreview) return child.characterPreview;
+    // Show preset based on what we know so far
+    const gender = child.gender || "";
+    const age = child.age || "";
+    const style = data.artStyle || "cartoon";
+    if (gender && age) return getAgePreset(gender, ageToBracketLabel(age));
+    if (gender) return getStylePreset(gender, style);
+    return null;
+  };
+
   const CharacterPreview = () => {
     if (step < 2 || step > 5) return null;
-    const preview = child.characterPreview;
+    const preview = getPreviewImage();
     return (
       <div className="flex flex-col items-center gap-3">
         <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 shadow-sm">
-          {previewLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="space-y-2 w-full p-4">
-                <Skeleton className="w-full h-full absolute inset-0 rounded-2xl" />
-                <div className="relative z-10 flex items-center justify-center h-full">
-                  <Loader2 className="w-6 h-6 text-accent animate-spin" />
-                </div>
-              </div>
+          {previewLoading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60">
+              <Loader2 className="w-6 h-6 text-accent animate-spin" />
             </div>
-          ) : preview ? (
+          )}
+          {preview ? (
             <img src={preview} alt="Character preview" className="w-full h-full object-cover" />
           ) : (
             <div className="flex items-center justify-center h-full">
