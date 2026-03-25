@@ -254,7 +254,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             results[style.key] = null;
           }
         } catch {
-          results[style.key] = null;
+          results[style.key] = getStylePreset(child.gender, style.key);
         }
         // Update as each arrives
         setArtStylePreviews((prev) => ({ ...prev, [style.key]: results[style.key] }));
