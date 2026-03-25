@@ -12,16 +12,16 @@ const BookFlipAnimation = lazy(() =>
 const ease = [0.16, 1, 0.3, 1];
 
 const HERO_SLIDES = [
-  { headline: ["Bereishis —", "Hashem Created the World."], description: "Your child walks through Gan Eden, discovering Hashem's beautiful creations alongside Adam and Chava." },
+  { headline: ["Hashem Created the World,", "Your Child Walked Through Gan Eden."], description: "Discovering Hashem's beautiful creations alongside Adam and Chava in the very first garden." },
   { headline: ["Noach Built the Teivah,", "Your Child Sailed Along."], description: "Gathering animals two by two and riding the mabul to a keshet shining with Hashem's promise." },
-  { headline: ["A Tower Rose High,", "But Lashon Was Confused."], description: "The Dor Haflagah tried to reach shamayim — your child learns why achdus and anava matter." },
-  { headline: ["Avraham Looked Up,", "And Counted the Stars."], description: "A havtacha as vast as the night sky — your child inherits the bris of emunah." },
-  { headline: ["Yosef's Coat Shone,", "With Colors of Dreams."], description: "From a bor to a palace, your child journeys with Yosef HaTzaddik through mechilah and triumph." },
-  { headline: ["A Baby in a Basket,", "Floated Down the Nile."], description: "Moshe Rabbeinu's journey begins — your child witnesses the moment that changed all of history." },
-  { headline: ["The Yam Split Open,", "And Geulah Walked Through."], description: "Walls of water tower high as your child crosses to cheirus with Bnei Yisrael." },
-  { headline: ["Thunder on Har Sinai,", "The Luchos Were Given."], description: "Your child stands at Matan Torah as the Aseres HaDibros light up the sky." },
-  { headline: ["A Sling, a Stone,", "Golyas Falls."], description: "Dovid's bitachon proves that even the smallest person can change the world — just like your child." },
-  { headline: ["Swallowed by a Dag,", "But Never Lost Hope."], description: "Inside the great fish, Yonah HaNavi finds his purpose — and your child finds theirs." },
+  { headline: ["A Tower Rose to Shamayim,", "Your Child Learned Why It Fell."], description: "The Dor Haflagah tried to reach the sky — your child discovers why achdus and anava matter most." },
+  { headline: ["Avraham Counted the Stars,", "Your Child Inherited the Promise."], description: "A havtacha as vast as the night sky — stepping into the bris of emunah that began it all." },
+  { headline: ["Yosef Wore a Coat of Colors,", "Your Child Dreamed Alongside Him."], description: "From a bor to a palace, journeying with Yosef HaTzaddik through mechilah and triumph." },
+  { headline: ["A Baby Floated Down the Nile,", "Your Child Watched History Begin."], description: "Moshe Rabbeinu's journey starts — witnessing the moment that changed all of klal Yisrael forever." },
+  { headline: ["The Yam Split Wide Open,", "Your Child Walked to Freedom."], description: "Walls of water tower high as your child crosses to cheirus hand in hand with Bnei Yisrael." },
+  { headline: ["Thunder Shook Har Sinai,", "Your Child Stood and Listened."], description: "Standing at Matan Torah as the Aseres HaDibros light up the sky with Hashem's voice." },
+  { headline: ["Dovid Picked Up a Stone,", "Your Child Watched Golyas Fall."], description: "Bitachon proves that even the smallest person can change the world — just like your child." },
+  { headline: ["Yonah Was Swallowed by a Dag,", "Your Child Found Hope Inside."], description: "Inside the great fish, Yonah HaNavi finds his purpose — and your child finds theirs." },
 ];
 
 // Walking animation - characters walk in from right and exit to left like walking between story pages
