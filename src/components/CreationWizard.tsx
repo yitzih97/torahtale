@@ -86,8 +86,8 @@ const initialData: WizardData = {
 /** Get the right preset image based on gender + art style */
 const getStylePreset = (gender: string, style: string): string => {
   const map: Record<string, Record<string, string>> = {
-    boy: { cartoon: presetBoyCartoon, "3d-pixar": presetBoy3dPixar, "graphic-novel": presetBoyGraphicNovel },
-    girl: { cartoon: presetGirlCartoon, "3d-pixar": presetGirl3dPixar, "graphic-novel": presetGirlGraphicNovel },
+    boy: { cartoon: presetBoyCartoon, "3d-pixar": presetBoy3dPixar, realistic: presetBoyRealistic },
+    girl: { cartoon: presetGirlCartoon, "3d-pixar": presetGirl3dPixar, realistic: presetGirlRealistic },
   };
   return map[gender]?.[style] || presetBoyCartoon;
 };
