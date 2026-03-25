@@ -621,21 +621,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       {AGE_BRACKETS.map((bracket) => {
                         const ageNum = child.age ? parseInt(child.age) : 0;
                         const isSelected = ageNum >= bracket.min && ageNum <= bracket.max;
+                        const presetImg = getAgePreset(child.gender || "boy", bracket.label);
                         return (
                           <button
                             key={bracket.label}
                             onClick={() => {
                               updateChild(child.id, { age: String(bracket.min) });
                             }}
-                            className={`p-4 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
+                            className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
                               isSelected
                                 ? "border-accent bg-accent/5 shadow-sm"
                                 : "border-border hover:border-accent/30"
                             }`}
                           >
-                            <span className="text-3xl block mb-2">{bracket.emoji}</span>
-                            <span className="text-sm font-semibold text-primary block">{bracket.label} yrs</span>
-                            <span className="text-[11px] text-muted-foreground">{bracket.desc}</span>
+                            <div className="w-full aspect-square bg-muted/30 relative">
+                              <img src={presetImg} alt={bracket.desc} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
+                            </div>
+                            <div className="p-2">
+                              <span className="text-sm font-semibold text-primary block">{bracket.label} yrs</span>
+                              <span className="text-[11px] text-muted-foreground">{bracket.desc}</span>
+                            </div>
                           </button>
                         );
                       })}
