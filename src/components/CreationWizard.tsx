@@ -141,7 +141,7 @@ const AGE_BRACKETS = [
 const ART_STYLES = [
   { key: "cartoon", label: "Cartoon", desc: "Colorful & whimsical" },
   { key: "3d-pixar", label: "3D Pixar", desc: "Cinematic & polished" },
-  { key: "graphic-novel", label: "Graphic Novel", desc: "Bold & dynamic" },
+  { key: "realistic", label: "Realistic", desc: "Lifelike & detailed" },
 ];
 
 /* ───────────────── component ───────────────── */
