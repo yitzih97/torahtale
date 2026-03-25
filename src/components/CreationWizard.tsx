@@ -741,10 +741,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                         );
                       })}
                     </div>
-                          </button>
-                        );
-                      })}
-                    </div>
                   </motion.div>
                 )}
 
