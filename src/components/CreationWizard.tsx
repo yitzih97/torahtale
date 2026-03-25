@@ -28,8 +28,8 @@ import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
 import presetGirlCartoon from "@/assets/presets/girl-cartoon.jpg";
 import presetBoy3dPixar from "@/assets/presets/boy-3d-pixar.jpg";
 import presetGirl3dPixar from "@/assets/presets/girl-3d-pixar.jpg";
-import presetBoyGraphicNovel from "@/assets/presets/boy-graphic-novel.jpg";
-import presetGirlGraphicNovel from "@/assets/presets/girl-graphic-novel.jpg";
+import presetBoyRealistic from "@/assets/presets/boy-realistic.jpg";
+import presetGirlRealistic from "@/assets/presets/girl-realistic.jpg";
 import presetToddlerBoy from "@/assets/presets/toddler-boy-cartoon.jpg";
 import presetToddlerGirl from "@/assets/presets/toddler-girl-cartoon.jpg";
 import presetPreschoolBoy from "@/assets/presets/preschool-boy-cartoon.jpg";
@@ -86,8 +86,8 @@ const initialData: WizardData = {
 /** Get the right preset image based on gender + art style */
 const getStylePreset = (gender: string, style: string): string => {
   const map: Record<string, Record<string, string>> = {
-    boy: { cartoon: presetBoyCartoon, "3d-pixar": presetBoy3dPixar, "graphic-novel": presetBoyGraphicNovel },
-    girl: { cartoon: presetGirlCartoon, "3d-pixar": presetGirl3dPixar, "graphic-novel": presetGirlGraphicNovel },
+    boy: { cartoon: presetBoyCartoon, "3d-pixar": presetBoy3dPixar, realistic: presetBoyRealistic },
+    girl: { cartoon: presetGirlCartoon, "3d-pixar": presetGirl3dPixar, realistic: presetGirlRealistic },
   };
   return map[gender]?.[style] || presetBoyCartoon;
 };
@@ -141,7 +141,7 @@ const AGE_BRACKETS = [
 const ART_STYLES = [
   { key: "cartoon", label: "Cartoon", desc: "Colorful & whimsical" },
   { key: "3d-pixar", label: "3D Pixar", desc: "Cinematic & polished" },
-  { key: "graphic-novel", label: "Graphic Novel", desc: "Bold & dynamic" },
+  { key: "realistic", label: "Realistic", desc: "Lifelike & detailed" },
 ];
 
 /* ───────────────── component ───────────────── */
@@ -379,7 +379,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         const styleMap: Record<string, string> = {
           cartoon: "colorful cartoon illustration, soft watercolor textures",
           "3d-pixar": "3D Pixar-style CGI render, warm lighting",
-          "graphic-novel": "graphic novel, bold ink lines, flat colors",
+          realistic: "photorealistic illustration, natural lighting, lifelike detail, warm tones",
         };
         const style = styleMap[data.artStyle] || styleMap.cartoon;
         let imgPrompt: string;
