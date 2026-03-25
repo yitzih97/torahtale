@@ -23,6 +23,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
+/* ── preset images ── */
+import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
+import presetGirlCartoon from "@/assets/presets/girl-cartoon.jpg";
+import presetBoy3dPixar from "@/assets/presets/boy-3d-pixar.jpg";
+import presetGirl3dPixar from "@/assets/presets/girl-3d-pixar.jpg";
+import presetBoyGraphicNovel from "@/assets/presets/boy-graphic-novel.jpg";
+import presetGirlGraphicNovel from "@/assets/presets/girl-graphic-novel.jpg";
+import presetToddlerBoy from "@/assets/presets/toddler-boy-cartoon.jpg";
+import presetToddlerGirl from "@/assets/presets/toddler-girl-cartoon.jpg";
+import presetPreschoolBoy from "@/assets/presets/preschool-boy-cartoon.jpg";
+import presetPreschoolGirl from "@/assets/presets/preschool-girl-cartoon.jpg";
+import presetExplorerBoy from "@/assets/presets/explorer-boy-cartoon.jpg";
+import presetExplorerGirl from "@/assets/presets/explorer-girl-cartoon.jpg";
+import presetPreteenBoy from "@/assets/presets/preteen-boy-cartoon.jpg";
+import presetPreteenGirl from "@/assets/presets/preteen-girl-cartoon.jpg";
+
 /* ───────────────── types ───────────────── */
 
 export interface ChildProfile {
@@ -53,7 +69,6 @@ interface WizardData {
   artStyle: string;
   language: string;
   pageCount: number;
-  /** Index of the child currently being edited (for multi-child) */
   activeChildIdx: number;
 }
 
@@ -64,6 +79,37 @@ const initialData: WizardData = {
   language: "english",
   pageCount: 4,
   activeChildIdx: 0,
+};
+
+/* ───────────────── preset lookup helpers ───────────────── */
+
+/** Get the right preset image based on gender + art style */
+const getStylePreset = (gender: string, style: string): string => {
+  const map: Record<string, Record<string, string>> = {
+    boy: { cartoon: presetBoyCartoon, "3d-pixar": presetBoy3dPixar, "graphic-novel": presetBoyGraphicNovel },
+    girl: { cartoon: presetGirlCartoon, "3d-pixar": presetGirl3dPixar, "graphic-novel": presetGirlGraphicNovel },
+  };
+  return map[gender]?.[style] || presetBoyCartoon;
+};
+
+/** Get the right preset image based on gender + age bracket */
+const getAgePreset = (gender: string, ageLabel: string): string => {
+  const g = gender || "boy";
+  const map: Record<string, Record<string, string>> = {
+    boy: { "2-3": presetToddlerBoy, "4-5": presetPreschoolBoy, "6-7": presetBoyCartoon, "8-9": presetExplorerBoy, "10-12": presetPreteenBoy },
+    girl: { "2-3": presetToddlerGirl, "4-5": presetPreschoolGirl, "6-7": presetGirlCartoon, "8-9": presetExplorerGirl, "10-12": presetPreteenGirl },
+  };
+  return map[g]?.[ageLabel] || (g === "girl" ? presetGirlCartoon : presetBoyCartoon);
+};
+
+/** Find the age bracket label for a numeric age */
+const ageToBracketLabel = (age: string): string => {
+  const n = parseInt(age) || 5;
+  if (n <= 3) return "2-3";
+  if (n <= 5) return "4-5";
+  if (n <= 7) return "6-7";
+  if (n <= 9) return "8-9";
+  return "10-12";
 };
 
 /* ───────────────── constants ───────────────── */
@@ -77,7 +123,6 @@ const slideVariants = {
   exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
 };
 
-// Step groups for the condensed stepper
 const STEP_GROUPS = [
   { label: "Character", icon: Users, steps: [1, 2, 3, 4, 5] },
   { label: "Story", icon: BookOpen, steps: [6, 7, 8] },
@@ -425,22 +470,30 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   /* ───── character preview panel ───── */
 
+  /** Resolve best preview: AI-generated > preset based on current selections */
+  const getPreviewImage = (): string | null => {
+    if (child.characterPreview) return child.characterPreview;
+    // Show preset based on what we know so far
+    const gender = child.gender || "";
+    const age = child.age || "";
+    const style = data.artStyle || "cartoon";
+    if (gender && age) return getAgePreset(gender, ageToBracketLabel(age));
+    if (gender) return getStylePreset(gender, style);
+    return null;
+  };
+
   const CharacterPreview = () => {
     if (step < 2 || step > 5) return null;
-    const preview = child.characterPreview;
+    const preview = getPreviewImage();
     return (
       <div className="flex flex-col items-center gap-3">
         <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 shadow-sm">
-          {previewLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="space-y-2 w-full p-4">
-                <Skeleton className="w-full h-full absolute inset-0 rounded-2xl" />
-                <div className="relative z-10 flex items-center justify-center h-full">
-                  <Loader2 className="w-6 h-6 text-accent animate-spin" />
-                </div>
-              </div>
+          {previewLoading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60">
+              <Loader2 className="w-6 h-6 text-accent animate-spin" />
             </div>
-          ) : preview ? (
+          )}
+          {preview ? (
             <img src={preview} alt="Character preview" className="w-full h-full object-cover" />
           ) : (
             <div className="flex items-center justify-center h-full">
@@ -568,21 +621,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       {AGE_BRACKETS.map((bracket) => {
                         const ageNum = child.age ? parseInt(child.age) : 0;
                         const isSelected = ageNum >= bracket.min && ageNum <= bracket.max;
+                        const presetImg = getAgePreset(child.gender || "boy", bracket.label);
                         return (
                           <button
                             key={bracket.label}
                             onClick={() => {
                               updateChild(child.id, { age: String(bracket.min) });
                             }}
-                            className={`p-4 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
+                            className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
                               isSelected
                                 ? "border-accent bg-accent/5 shadow-sm"
                                 : "border-border hover:border-accent/30"
                             }`}
                           >
-                            <span className="text-3xl block mb-2">{bracket.emoji}</span>
-                            <span className="text-sm font-semibold text-primary block">{bracket.label} yrs</span>
-                            <span className="text-[11px] text-muted-foreground">{bracket.desc}</span>
+                            <div className="w-full aspect-square bg-muted/30 relative">
+                              <img src={presetImg} alt={bracket.desc} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
+                            </div>
+                            <div className="p-2">
+                              <span className="text-sm font-semibold text-primary block">{bracket.label} yrs</span>
+                              <span className="text-[11px] text-muted-foreground">{bracket.desc}</span>
+                            </div>
                           </button>
                         );
                       })}
@@ -618,23 +676,27 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       {[
-                        { key: "boy", label: "Boy", emoji: "👦", detail: "Will wear a kippah" },
-                        { key: "girl", label: "Girl", emoji: "👧", detail: "Modest dress" },
+                        { key: "boy", label: "Boy", detail: "Will wear a kippah", img: presetBoyCartoon },
+                        { key: "girl", label: "Girl", detail: "Modest dress", img: presetGirlCartoon },
                       ].map((g) => (
                         <button
                           key={g.key}
                           onClick={() => {
                             updateChild(child.id, { gender: g.key });
                           }}
-                          className={`p-6 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
+                          className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
                             child.gender === g.key
                               ? "border-accent bg-accent/5 shadow-md"
                               : "border-border hover:border-accent/30"
                           }`}
                         >
-                          <span className="text-5xl block mb-3">{g.emoji}</span>
-                          <span className="text-lg font-semibold text-primary block">{g.label}</span>
-                          <span className="text-xs text-muted-foreground">{g.detail}</span>
+                          <div className="w-full aspect-square bg-muted/30">
+                            <img src={g.img} alt={g.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
+                          </div>
+                          <div className="p-3">
+                            <span className="text-lg font-semibold text-primary block">{g.label}</span>
+                            <span className="text-xs text-muted-foreground">{g.detail}</span>
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -652,13 +714,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {ART_STYLES.map((s) => {
-                        const preview = artStylePreviews[s.key];
+                        const presetImg = getStylePreset(child.gender || "boy", s.key);
                         return (
                           <button
                             key={s.key}
                             onClick={() => {
                               update({ artStyle: s.key });
-                              // Update character preview with new style
                               if (child.gender && child.age) {
                                 triggerPreviewDebounced(child, s.key);
                               }
@@ -670,17 +731,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             }`}
                           >
                             <div className="aspect-square bg-muted/50 relative">
-                              {preview ? (
-                                <img src={preview} alt={s.label} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="flex items-center justify-center h-full">
-                                  {artStylePreviewsLoading ? (
-                                    <Loader2 className="w-6 h-6 text-accent animate-spin" />
-                                  ) : (
-                                    <Palette className="w-8 h-8 text-muted-foreground/30" />
-                                  )}
-                                </div>
-                              )}
+                              <img src={presetImg} alt={s.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
                             </div>
                             <div className="p-3">
                               <span className="text-sm font-semibold text-primary block">{s.label}</span>
