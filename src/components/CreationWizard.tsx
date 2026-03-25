@@ -379,7 +379,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         const styleMap: Record<string, string> = {
           cartoon: "colorful cartoon illustration, soft watercolor textures",
           "3d-pixar": "3D Pixar-style CGI render, warm lighting",
-          "graphic-novel": "graphic novel, bold ink lines, flat colors",
+          realistic: "photorealistic illustration, natural lighting, lifelike detail, warm tones",
         };
         const style = styleMap[data.artStyle] || styleMap.cartoon;
         let imgPrompt: string;

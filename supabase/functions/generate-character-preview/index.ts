@@ -32,7 +32,7 @@ serve(async (req) => {
     const styleMap: Record<string, string> = {
       cartoon: "colorful 2D cartoon illustration, soft watercolor textures, Disney-inspired",
       "3d-pixar": "3D Pixar-style CGI render, warm studio lighting, subsurface scattering on skin",
-      "graphic-novel": "graphic novel style, bold ink outlines, flat cel-shaded colors, comic book aesthetic",
+      realistic: "photorealistic portrait, natural lighting, lifelike detail, warm tones, shallow depth of field",
     };
     const style = styleMap[artStyle] || styleMap.cartoon;
 
