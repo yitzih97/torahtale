@@ -23,6 +23,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
+/* ── preset images ── */
+import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
+import presetGirlCartoon from "@/assets/presets/girl-cartoon.jpg";
+import presetBoy3dPixar from "@/assets/presets/boy-3d-pixar.jpg";
+import presetGirl3dPixar from "@/assets/presets/girl-3d-pixar.jpg";
+import presetBoyGraphicNovel from "@/assets/presets/boy-graphic-novel.jpg";
+import presetGirlGraphicNovel from "@/assets/presets/girl-graphic-novel.jpg";
+import presetToddlerBoy from "@/assets/presets/toddler-boy-cartoon.jpg";
+import presetToddlerGirl from "@/assets/presets/toddler-girl-cartoon.jpg";
+import presetPreschoolBoy from "@/assets/presets/preschool-boy-cartoon.jpg";
+import presetPreschoolGirl from "@/assets/presets/preschool-girl-cartoon.jpg";
+import presetExplorerBoy from "@/assets/presets/explorer-boy-cartoon.jpg";
+import presetExplorerGirl from "@/assets/presets/explorer-girl-cartoon.jpg";
+import presetPreteenBoy from "@/assets/presets/preteen-boy-cartoon.jpg";
+import presetPreteenGirl from "@/assets/presets/preteen-girl-cartoon.jpg";
+
 /* ───────────────── types ───────────────── */
 
 export interface ChildProfile {
@@ -53,7 +69,6 @@ interface WizardData {
   artStyle: string;
   language: string;
   pageCount: number;
-  /** Index of the child currently being edited (for multi-child) */
   activeChildIdx: number;
 }
 
@@ -64,6 +79,37 @@ const initialData: WizardData = {
   language: "english",
   pageCount: 4,
   activeChildIdx: 0,
+};
+
+/* ───────────────── preset lookup helpers ───────────────── */
+
+/** Get the right preset image based on gender + art style */
+const getStylePreset = (gender: string, style: string): string => {
+  const map: Record<string, Record<string, string>> = {
+    boy: { cartoon: presetBoyCartoon, "3d-pixar": presetBoy3dPixar, "graphic-novel": presetBoyGraphicNovel },
+    girl: { cartoon: presetGirlCartoon, "3d-pixar": presetGirl3dPixar, "graphic-novel": presetGirlGraphicNovel },
+  };
+  return map[gender]?.[style] || presetBoyCartoon;
+};
+
+/** Get the right preset image based on gender + age bracket */
+const getAgePreset = (gender: string, ageLabel: string): string => {
+  const g = gender || "boy";
+  const map: Record<string, Record<string, string>> = {
+    boy: { "2-3": presetToddlerBoy, "4-5": presetPreschoolBoy, "6-7": presetBoyCartoon, "8-9": presetExplorerBoy, "10-12": presetPreteenBoy },
+    girl: { "2-3": presetToddlerGirl, "4-5": presetPreschoolGirl, "6-7": presetGirlCartoon, "8-9": presetExplorerGirl, "10-12": presetPreteenGirl },
+  };
+  return map[g]?.[ageLabel] || (g === "girl" ? presetGirlCartoon : presetBoyCartoon);
+};
+
+/** Find the age bracket label for a numeric age */
+const ageToBracketLabel = (age: string): string => {
+  const n = parseInt(age) || 5;
+  if (n <= 3) return "2-3";
+  if (n <= 5) return "4-5";
+  if (n <= 7) return "6-7";
+  if (n <= 9) return "8-9";
+  return "10-12";
 };
 
 /* ───────────────── constants ───────────────── */
@@ -77,7 +123,6 @@ const slideVariants = {
   exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
 };
 
-// Step groups for the condensed stepper
 const STEP_GROUPS = [
   { label: "Character", icon: Users, steps: [1, 2, 3, 4, 5] },
   { label: "Story", icon: BookOpen, steps: [6, 7, 8] },
