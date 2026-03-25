@@ -714,13 +714,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {ART_STYLES.map((s) => {
-                        const preview = artStylePreviews[s.key];
+                        const presetImg = getStylePreset(child.gender || "boy", s.key);
                         return (
                           <button
                             key={s.key}
                             onClick={() => {
                               update({ artStyle: s.key });
-                              // Update character preview with new style
                               if (child.gender && child.age) {
                                 triggerPreviewDebounced(child, s.key);
                               }
@@ -732,22 +731,16 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             }`}
                           >
                             <div className="aspect-square bg-muted/50 relative">
-                              {preview ? (
-                                <img src={preview} alt={s.label} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="flex items-center justify-center h-full">
-                                  {artStylePreviewsLoading ? (
-                                    <Loader2 className="w-6 h-6 text-accent animate-spin" />
-                                  ) : (
-                                    <Palette className="w-8 h-8 text-muted-foreground/30" />
-                                  )}
-                                </div>
-                              )}
+                              <img src={presetImg} alt={s.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
                             </div>
                             <div className="p-3">
                               <span className="text-sm font-semibold text-primary block">{s.label}</span>
                               <span className="text-[11px] text-muted-foreground">{s.desc}</span>
                             </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                           </button>
                         );
                       })}
