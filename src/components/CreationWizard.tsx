@@ -251,7 +251,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             results[style.key] = result.imageUrl;
             previewCache.current.set(cacheKey, result.imageUrl);
           } else {
-            results[style.key] = null;
+            results[style.key] = getStylePreset(child.gender, style.key);
           }
         } catch {
           results[style.key] = getStylePreset(child.gender, style.key);
