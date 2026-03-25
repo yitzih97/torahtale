@@ -209,8 +209,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         previewCache.current.set(cacheKey, result.imageUrl);
         updateChild(c.id, { characterPreview: result.imageUrl });
       }
-    } catch (err) {
-      console.error("Character preview failed:", err);
+    } catch (err: any) {
+      // Silently fall back to presets — don't show errors for preview generation
+      console.warn("Character preview unavailable, using preset:", err?.message || err);
     } finally {
       setPreviewLoading(false);
     }
