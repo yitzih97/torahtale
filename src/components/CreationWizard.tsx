@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Loader2, Sparkles, Plus,
   Users, BookOpen, Palette, Package, Check,
-  Camera, Sun, User, Type, Calendar, Heart, Image, PenLine
+  Camera, Sun, User, Type, Calendar, Heart, Image, PenLine,
+  Lock, Mail, LogIn
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
