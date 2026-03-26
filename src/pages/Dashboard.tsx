@@ -218,7 +218,7 @@ export default function Dashboard() {
                               <span>Preferred: {kid.art_style}</span>
                             </div>
                           )}
-                          <Button variant="outline" size="sm" className="w-full mt-4 text-xs" onClick={() => navigate("/")}>
+                          <Button variant="outline" size="sm" className="w-full mt-4 text-xs" onClick={() => navigate("/?start=1")}>
                             <BookOpen className="w-3.5 h-3.5" /> Create New Book
                           </Button>
                         </motion.div>
@@ -316,7 +316,7 @@ export default function Dashboard() {
                     <p className="text-sm text-muted-foreground mb-6">
                       A new personalized Torah tale, delivered weekly based on the current parashah. Subscribe during checkout when ordering your next book!
                     </p>
-                    <Button variant="gold" onClick={() => navigate("/")}>
+                    <Button variant="gold" onClick={() => navigate("/?start=1")}>
                       Create a Book & Subscribe
                     </Button>
                   </div>
@@ -460,7 +460,7 @@ export default function Dashboard() {
           pages={bookPages}
           onReorder={() => {
             setViewingBook(null);
-            navigate("/");
+            navigate("/?start=1");
           }}
         />
       )}
