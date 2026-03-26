@@ -316,7 +316,7 @@ export default function Dashboard() {
                     <p className="text-sm text-muted-foreground mb-6">
                       A new personalized Torah tale, delivered weekly based on the current parashah. Subscribe during checkout when ordering your next book!
                     </p>
-                    <Button variant="gold" onClick={() => navigate("/")}>
+                    <Button variant="gold" onClick={() => navigate("/?start=1")}>
                       Create a Book & Subscribe
                     </Button>
                   </div>
