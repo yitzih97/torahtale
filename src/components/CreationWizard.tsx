@@ -1127,6 +1127,90 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <div className="px-4 max-w-sm mx-auto">
                       <BookLoadingSkeleton type="story" message={genPhase} />
                     </div>
+
+                    {/* Login prompt for unauthenticated users */}
+                    <AnimatePresence>
+                      {showLoginPrompt && !user && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 20 }}
+                          className="max-w-sm mx-auto"
+                        >
+                          <div className="rounded-2xl border-2 border-accent/30 bg-accent/5 p-5 space-y-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+                                <LogIn className="w-5 h-5 text-accent" />
+                              </div>
+                              <div>
+                                <p className="font-display font-semibold text-sm text-primary">Don't lose your book!</p>
+                                <p className="text-[11px] text-muted-foreground">Sign in to save it to your account.</p>
+                              </div>
+                            </div>
+
+                            <form onSubmit={loginMode === "login" ? handleWizardLogin : handleWizardSignup} className="space-y-3">
+                              {loginMode === "signup" && (
+                                <div>
+                                  <Label className="text-xs text-muted-foreground">Full Name</Label>
+                                  <Input
+                                    value={loginFullName}
+                                    onChange={(e) => setLoginFullName(e.target.value)}
+                                    placeholder="Rachel Goldberg"
+                                    className="rounded-xl h-10 mt-1"
+                                  />
+                                </div>
+                              )}
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Email</Label>
+                                <div className="relative mt-1">
+                                  <Input
+                                    type="email"
+                                    value={loginEmail}
+                                    onChange={(e) => setLoginEmail(e.target.value)}
+                                    placeholder="you@email.com"
+                                    className="rounded-xl h-10 pl-9"
+                                    required
+                                  />
+                                  <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Password</Label>
+                                <div className="relative mt-1">
+                                  <Input
+                                    type="password"
+                                    value={loginPassword}
+                                    onChange={(e) => setLoginPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    className="rounded-xl h-10 pl-9"
+                                    required
+                                    minLength={6}
+                                  />
+                                  <Lock className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                                </div>
+                              </div>
+                              <Button type="submit" variant="gold" className="w-full rounded-xl h-10" disabled={loginLoading}>
+                                {loginLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : loginMode === "login" ? "Sign In" : "Create Account"}
+                              </Button>
+                              <p className="text-center text-[11px] text-muted-foreground">
+                                {loginMode === "login" ? (
+                                  <>Don't have an account?{" "}<button type="button" onClick={() => setLoginMode("signup")} className="text-accent font-medium hover:underline">Sign up</button></>
+                                ) : (
+                                  <>Already have an account?{" "}<button type="button" onClick={() => setLoginMode("login")} className="text-accent font-medium hover:underline">Sign in</button></>
+                                )}
+                              </p>
+                            </form>
+
+                            <button
+                              onClick={() => setShowLoginPrompt(false)}
+                              className="w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors text-center"
+                            >
+                              Skip for now
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 )}
 
