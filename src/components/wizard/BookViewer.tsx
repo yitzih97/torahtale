@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, ImageIcon, Wand2, Sparkles, BookOpen, HelpCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, ImageIcon, Wand2, Sparkles, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -113,115 +113,31 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
       {/* Book viewer */}
       <div className="relative bg-secondary rounded-book overflow-hidden">
-        {pageType === "cover" ? (
-          /* Cover page with image + title overlay */
-          <>
-            {page?.image ? (
-              <div className="relative w-full aspect-[4/3]">
-                <motion.img
-                  key={`${currentPage}-${page.image?.slice(-20)}`}
-                  src={page.image}
-                  alt="Front Cover"
-                  className={`w-full h-full object-cover rounded-book ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
-                  transition={{ duration: 0.3 }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 rounded-book" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                  <h3 className="font-display text-2xl sm:text-3xl font-bold text-white drop-shadow-lg leading-tight">
-                    {page.coverTitle}
-                  </h3>
-                  {page.coverSubtitle && (
-                    <p className="font-body text-sm sm:text-base text-white/90 mt-2 drop-shadow-md italic">
-                      {page.coverSubtitle}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : page?.imageLoading ? (
-              <BookLoadingSkeleton type="cover" />
-            ) : (
-              <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
-                <BookOpen className="w-8 h-8 text-muted-foreground" />
-                <p className="text-muted-foreground text-sm">Generating cover...</p>
-              </div>
-            )}
-          </>
-        ) : pageType === "back-cover" ? (
-          /* Back cover with questions overlay */
-          <>
-            {page?.image ? (
-              <div className="relative w-full aspect-[4/3]">
-                <motion.img
-                  key={`${currentPage}-${page.image?.slice(-20)}`}
-                  src={page.image}
-                  alt="Back Cover"
-                  className={`w-full h-full object-cover rounded-book ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
-                  transition={{ duration: 0.3 }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-book" />
-                <div className="absolute bottom-0 left-0 right-0 p-5 max-h-[80%] overflow-y-auto">
-                  {page.synopsis && (
-                    <p className="font-body text-xs text-white/90 italic mb-2 leading-relaxed text-center">
-                      "{page.synopsis}"
-                    </p>
-                  )}
-                  {page.dedication && (
-                    <p className="font-display text-[10px] text-white/70 text-center mb-3">
-                      {page.dedication}
-                    </p>
-                  )}
-                  {page.questions && page.questions.length > 0 && (
-                    <div className="border-t border-white/20 pt-2 mt-2">
-                      <p className="font-display text-xs font-bold text-white/90 mb-1.5 flex items-center gap-1">
-                        <HelpCircle className="w-3 h-3" /> Discussion Questions
-                      </p>
-                      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                        {page.questions.map((q) => (
-                          <p key={q.number} className="text-[9px] text-white/80 leading-snug">
-                            <span className="font-bold text-accent">{q.number}.</span> {q.question}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : page?.imageLoading ? (
-              <BookLoadingSkeleton type="back-cover" />
-            ) : (
-              <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
-                <BookOpen className="w-8 h-8 text-muted-foreground" />
-                <p className="text-muted-foreground text-sm">Generating back cover...</p>
-              </div>
-            )}
-          </>
+        {/* Image section — same for all page types */}
+        {page?.image ? (
+          <motion.img
+            key={`${currentPage}-${page.image?.slice(-20)}`}
+            src={page.image}
+            alt={getPageLabel()}
+            className={`w-full aspect-[4/3] object-cover rounded-book ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
+            transition={{ duration: 0.3 }}
+          />
+        ) : page?.imageLoading ? (
+          <BookLoadingSkeleton type={pageType === "cover" ? "cover" : pageType === "back-cover" ? "back-cover" : "story"} />
         ) : (
-          /* Regular story page */
-          <>
-            {page?.image ? (
-              <motion.img
-                key={`${currentPage}-${page.image?.slice(-20)}`}
-                src={page.image}
-                alt={`Page ${currentPage + 1}`}
-                className={`w-full aspect-[4/3] object-cover rounded-book ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
-                transition={{ duration: 0.3 }}
-              />
-            ) : page?.imageLoading ? (
-              <BookLoadingSkeleton type="story" />
+          <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
+            {pageType === "cover" || pageType === "back-cover" ? (
+              <BookOpen className="w-8 h-8 text-muted-foreground" />
             ) : (
-              <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
-                <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                <p className="text-muted-foreground text-sm">Generating illustration...</p>
-              </div>
+              <ImageIcon className="w-8 h-8 text-muted-foreground" />
             )}
-          </>
+            <p className="text-muted-foreground text-sm">Generating illustration...</p>
+          </div>
         )}
+
+        {/* No duplicate image rendering needed — handled above */}
 
         {regenerating === currentPage && (
           <div className="absolute inset-0 flex items-center justify-center bg-primary/20 rounded-book">
@@ -311,7 +227,41 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         </motion.div>
       )}
 
-      {/* Text display - only for story pages */}
+      {/* Cover info section */}
+      {pageType === "cover" && (
+        <div className="bg-card rounded-book border border-border p-4 text-center space-y-1">
+          <h3 className="font-display text-xl font-bold text-primary leading-tight">{page?.coverTitle}</h3>
+          {page?.coverSubtitle && (
+            <p className="font-body text-sm text-muted-foreground italic">{page.coverSubtitle}</p>
+          )}
+        </div>
+      )}
+
+      {/* Back cover info section */}
+      {pageType === "back-cover" && (
+        <div className="bg-card rounded-book border border-border p-4 space-y-3">
+          {page?.synopsis && (
+            <p className="font-body text-sm text-foreground italic text-center leading-relaxed">"{page.synopsis}"</p>
+          )}
+          {page?.dedication && (
+            <p className="font-display text-xs text-muted-foreground text-center">{page.dedication}</p>
+          )}
+          {page?.questions && page.questions.length > 0 && (
+            <div className="border-t border-border pt-3 mt-3">
+              <p className="font-display text-sm font-bold text-primary mb-2">📖 Discussion Questions</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {page.questions.map((q) => (
+                  <p key={q.number} className="text-xs text-muted-foreground leading-snug">
+                    <span className="font-bold text-accent">{q.number}.</span> {q.question}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Story text display */}
       {pageType === "story" && (
         editingPage === currentPage ? (
           <div className="space-y-2">

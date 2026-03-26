@@ -418,32 +418,54 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         }
       }
 
-      // Generate images
-      const characterDetails = data.children.map((c) => `${c.name} (${c.age}-year-old ${c.gender}${c.gender === "boy" ? ", wearing a kippah" : ""})`).join(", ");
-      const imagePromises = allPages.map(async (page) => {
-        const styleMap: Record<string, string> = {
-          cartoon: "colorful cartoon illustration, soft watercolor textures",
-          "3d-pixar": "3D Pixar-style CGI render, warm lighting",
-          realistic: "photorealistic illustration, natural lighting, lifelike detail, warm tones",
-        };
-        const style = styleMap[data.artStyle] || styleMap.cartoon;
+      // Generate images with character consistency
+      const ageDescMap: Record<string, string> = {
+        "2": "toddler", "3": "toddler", "4": "small preschool child", "5": "small preschool child",
+        "6": "young child", "7": "young child", "8": "school-age child", "9": "school-age child",
+        "10": "preteen", "11": "preteen", "12": "young teenager",
+      };
+
+      // Build a consistent character identity prompt used on EVERY page
+      const characterIdentities = data.children.map((c) => {
+        const ageDesc = ageDescMap[c.age] || "child";
+        const ageNum = c.age || "6";
+        const genderLabel = c.gender || "child";
+        const kippahNote = c.gender === "boy" ? ", wearing a kippah/yarmulke and tzitzis" : ", wearing a modest long dress with long sleeves";
+        const descNote = c.description ? `. Physical appearance: ${c.description}` : "";
+        return `${c.name} — a ${ageNum}-year-old ${genderLabel} (${ageDesc})${kippahNote}${descNote}`;
+      }).join("; ");
+
+      const consistencyNote = `IMPORTANT: The character(s) must look EXACTLY the same on every page — same face, same hair, same body proportions, same clothing. Characters: ${characterIdentities}.`;
+
+      const styleMap: Record<string, string> = {
+        cartoon: "colorful cartoon illustration, soft watercolor textures, children's book style",
+        "3d-pixar": "3D Pixar-style CGI render, warm lighting, soft shadows",
+        realistic: "photorealistic illustration, natural lighting, lifelike detail, warm cinematic tones",
+      };
+      const style = styleMap[data.artStyle] || styleMap.cartoon;
+      const portionLabelForImg = getPortionLabel(data.torahPortion);
+
+      // Generate images sequentially for consistency, with retry
+      for (const page of allPages) {
         let imgPrompt: string;
 
         if (page.type === "cover") {
-          imgPrompt = `A stunning children's book front cover illustration. Title: "${page.coverTitle}". Characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Magical, inviting, vibrant colors. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). No text in the image.`;
+          imgPrompt = `A stunning children's book FRONT COVER illustration (4:3 landscape). Scene from the Torah story "${portionLabelForImg}". ${consistencyNote} Style: ${style}. Magical, inviting, vibrant colors. DO NOT include any text, title, or lettering in the image. No words.`;
         } else if (page.type === "back-cover") {
-          imgPrompt = `A beautiful children's book back cover illustration. A warm, gentle scene with characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Soft, warm colors, peaceful atmosphere. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). No text in the image.`;
+          imgPrompt = `A beautiful children's book BACK COVER illustration (4:3 landscape). A warm, peaceful closing scene from the Torah story "${portionLabelForImg}". ${consistencyNote} Style: ${style}. Soft, warm colors, peaceful atmosphere. DO NOT include any text, title, or lettering in the image. No words.`;
         } else {
-          imgPrompt = `A beautiful children's book page illustration with the story text elegantly embedded inside the image as part of the layout. Story text: "${page.text}". Characters: ${characterDetails}. Torah story: ${data.torahPortion}. Style: ${style}. Boys must wear a kippah/yarmulke. Girls do NOT wear a kippah. All characters dressed modestly (tznius). Safe for children, warm magical atmosphere, vibrant colors.`;
+          imgPrompt = `A beautiful children's book page illustration (4:3 landscape). Scene: "${page.text}". ${consistencyNote} Torah story: "${portionLabelForImg}". Style: ${style}. Warm magical atmosphere, vibrant colors. DO NOT include any text or lettering in the image. The text will be displayed separately below the illustration.`;
         }
 
-        const imageUrl = await generateImageForPage(page.id, imgPrompt, data.artStyle, childNames, data.torahPortion);
-        return { id: page.id, imageUrl };
-      });
+        // Try up to 2 times per page
+        let imageUrl: string | null = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          imageUrl = await generateImageForPage(page.id, imgPrompt, data.artStyle, childNames, data.torahPortion);
+          if (imageUrl) break;
+          console.warn(`Retrying image for page ${page.id}, attempt ${attempt + 2}`);
+        }
 
-      for (const promise of imagePromises) {
-        const result = await promise;
-        setBookPages((prev) => prev.map((p) => (p.id === result.id ? { ...p, image: result.imageUrl, imageLoading: false } : p)));
+        setBookPages((prev) => prev.map((p) => (p.id === page.id ? { ...p, image: imageUrl, imageLoading: false } : p)));
       }
     } catch (err: any) {
       clearInterval(iv);
