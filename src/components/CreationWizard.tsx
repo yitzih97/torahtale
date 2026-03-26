@@ -903,16 +903,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => {
-                                handlePhoto(child.id, e);
-                                // Trigger preview after photo loads
-                                setTimeout(() => {
-                                  const updatedChild = { ...child, photoPreview: child.photoPreview };
-                                  if (updatedChild.gender && updatedChild.age) {
-                                    triggerPreviewDebounced(updatedChild, data.artStyle);
-                                  }
-                                }, 1000);
-                              }}
+                              onChange={(e) => handlePhoto(child.id, e)}
                               className="absolute inset-0 opacity-0 cursor-pointer"
                             />
                           )}
