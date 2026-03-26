@@ -1,67 +1,72 @@
 
 
-## Plan: Smart Step Skipping, Sidebar, Debounced Previews, Enhanced Loading, and Editable Text Overlay
+## Plan: Story Depth, Dashboard Book Viewing Fix, and Text Box Resizing/Alignment
 
-### Summary
-Five changes to the Creation Wizard:
-1. **Skip gender/age steps for existing children** — jump from step 1 directly to step 4 (Art Style)
-2. **Show selected kids sidebar** during steps 2–8
-3. **Debounce AI preview to only trigger once** after settings stabilize (not on every keystroke)
-4. **Rich generation loading screen** with illustration skeleton, phase labels, and percentage progress
-5. **Editable text overlay on book pages** — text rendered on top of the image with drag, font, color, and size controls (Canva-like)
+### Three Issues to Fix
 
 ---
 
-### Technical Details
+### 1. Richer Torah Stories (Story Prompt Enhancement)
 
-#### 1. Skip Steps for Existing Children
-- In the `next()` function, after step 1: check if ALL selected children already have `gender` and `age` populated (i.e. they came from existing profiles)
-- If so, skip steps 2, 3 (and optionally 5 if they already have photo/description) — jump directly to step 4
-- Similarly in `back()`, skip backward over those steps
-- Update `canNext` for step 1 to remain as-is (at least one child with a name)
+**Problem**: The generated stories only dedicate 1-2 pages to the actual Torah content (e.g. the plagues of Egypt). The child appears in the story but the Torah events themselves are underdeveloped.
 
-#### 2. Selected Kids Sidebar
-- Add a small sidebar/panel (visible on steps 2–8) showing all selected children as compact cards with thumbnail, name, age, gender
-- On desktop: right column. On mobile: horizontal scroll strip at top
-- Highlight the `activeChildIdx` child
-- Allow clicking a child card to switch `activeChildIdx`
+**Fix**: Update `supabase/functions/generate-story/index.ts` — modify the system prompt and user prompt to emphasize that the Torah story events (plagues, miracles, key scenes) must be depicted across most pages, not just mentioned briefly. The child should be embedded IN those events, witnessing and participating in them.
 
-#### 3. Debounced Preview — Single Trigger
-- Increase debounce from 600ms to ~1500ms
-- Add a `lastPreviewKey` ref to track the last generated key; skip if unchanged
-- Remove the `useEffect` that auto-triggers on `step === 3` every time `child.age` changes — instead trigger once when the user clicks "Continue" from age step, or after 1.5s of no changes
-- For art style step (4), only generate previews if the style actually changed
+Key prompt changes:
+- System prompt: Add instruction that "the majority of story pages must depict the actual Torah events in vivid detail — the child witnesses and participates in the key scenes"
+- User prompt: Add explicit requirement like "At least 70% of the pages must show specific events from the Torah portion (e.g. for Va'era, show individual plagues). The child should be present IN those scenes, not just hearing about them."
 
-#### 4. Enhanced Generation Loading (Step 9)
-- Replace the simple spinner with a rich skeleton:
-  - Animated book illustration placeholder (use `BookLoadingSkeleton` component already built)
-  - Phase labels: "Writing the story…", "Illustrating page 1 of N…", "Illustrating page 2 of N…", etc.
-  - **Percentage progress bar** calculated as: story generation = 20%, then each page image = remaining 80% / total pages
-- Track progress in state: `genProgress: number` (0–100) and `genPhase: string`
-- Update progress during `startGeneration` as each page image completes
-- Only transition to step 10 when ALL images are done (already the case, but make it explicit with the progress bar reaching 100%)
+---
 
-#### 5. Editable Text Overlay (Canva-like) on Book Pages
-- In `BookViewer`, change the text display for story pages:
-  - Instead of text below the image in a separate `<p>`, render text **on top of the image** in a positioned overlay
-  - Each text block is a draggable `<div>` (use `onMouseDown`/`onTouchStart` drag handlers or a lightweight drag lib)
-  - Add a small floating toolbar when text is selected: font size slider, color picker (preset palette), font family dropdown (3–4 options)
-  - Text has a semi-transparent background for readability, toggleable
-- Store per-page text position/style in the `BookPage` type:
-  ```ts
-  textStyle?: {
-    x: number; y: number;       // percentage-based position
-    fontSize: number;
-    color: string;
-    fontFamily: string;
-    bgOpacity: number;
-  }
-  ```
-- Cover and back-cover pages keep their current layout (text in dedicated sections below image)
-- Default position: bottom-center of the image with white text and dark semi-transparent background
+### 2. Dashboard Books Not Loading (Data Persistence Bug)
+
+**Problem**: Books show a loading state or empty pages in the dashboard viewer. The `pages_data` saved to the database likely still contains `imageLoading: true` and `image: null` from the initial save, and the post-generation update uses `setBookPages` inside a callback which creates a race condition with `savedBookId`.
+
+**Root cause analysis**:
+- Line 328-351: Initial save happens with `image: null, imageLoading: true` on all pages
+- Lines 422-440: Post-generation save uses `setBookPages` callback + `savedBookId` — but `savedBookId` may not be set yet if the save happens asynchronously
+- The `BookViewerModal` in the dashboard shows images from `pages_data` — if those are null, nothing displays
+
+**Fix in `src/components/CreationWizard.tsx`**:
+- After `Promise.all` completes for image generation, collect the final pages directly (not via state setter callback) and persist them to DB synchronously
+- Use a ref for `savedBookId` to avoid stale closure issues
+- Ensure `imageLoading` is always `false` and images are populated before saving
+
+**Fix in `src/pages/Dashboard.tsx`**:
+- Add a safety check: if `pages_data` exists but pages have `imageLoading: true` or null images, show a "Book still generating" message instead of blank/loading forever
+
+---
+
+### 3. Text Box Resizing and Alignment Controls
+
+**Problem**: The draggable text overlay only supports repositioning and styling. Users want to resize the text box width and choose text alignment (center, LTR, RTL).
+
+**Fix in `src/components/wizard/DraggableText.tsx`**:
+
+Add two new properties to `TextStyle`:
+```ts
+width: number;      // percentage 20-100
+textAlign: "center" | "left" | "right";
+```
+
+Changes:
+- Add `width` to `TextStyle` interface and `DEFAULT_TEXT_STYLE` (default: 80%)
+- Add `textAlign` to `TextStyle` (default: "center")
+- Add resize handles (left and right edges of the text box) that allow horizontal stretching
+- Add alignment buttons to the floating toolbar (left/center/right icons)
+- Apply `textAlign` and `width` to the text container's inline styles
+- The resize handle uses the same drag pattern as the position drag, but only modifies width
+
+Toolbar additions:
+- Three alignment buttons: Left (LTR), Center, Right (RTL) — using `AlignLeft`, `AlignCenter`, `AlignRight` icons from lucide
+- Width shown as a small label next to the resize area
 
 ### Files to Change
-- `src/components/CreationWizard.tsx` — step skipping logic, sidebar, debounce, generation progress
-- `src/components/wizard/BookViewer.tsx` — draggable text overlay with style controls
-- `src/components/wizard/BookLoadingSkeleton.tsx` — reuse in generation step
+
+| File | Change |
+|------|--------|
+| `supabase/functions/generate-story/index.ts` | Enhance prompts for Torah story depth |
+| `src/components/CreationWizard.tsx` | Fix post-generation DB save race condition |
+| `src/pages/Dashboard.tsx` | Add fallback for incomplete page data |
+| `src/components/wizard/DraggableText.tsx` | Add width resizing + text alignment controls |
 
