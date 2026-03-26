@@ -22,6 +22,7 @@ import { TORAH_PORTIONS, getPortionLabel } from "./wizard/TorahPortions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useChildren } from "@/hooks/useChildren";
 
 /* ── preset images ── */
 import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
