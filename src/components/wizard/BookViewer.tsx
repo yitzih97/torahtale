@@ -20,6 +20,7 @@ export interface BookPage {
   synopsis?: string;
   dedication?: string;
   questions?: { number: number; question: string }[];
+  textStyle?: TextStyle;
 }
 
 interface Props {
