@@ -542,12 +542,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }
     setDir(1);
     let nextStep = step + 1;
-    // Skip gender/age/photo steps for existing children with complete profiles
+    // Skip gender/age/photo steps for existing children — but NEVER skip art style (step 4)
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4; // skip gender(2), age(3) → go to art style
-      if (allChildrenHavePhotoOrDesc()) {
-        nextStep = 6; // also skip photo/desc(5) and art style stays at 4 unless they have art_style
-      }
+    }
+    if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
+      nextStep = 6; // skip photo/desc(5)
     }
     setStep(Math.min(nextStep, TOTAL_STEPS));
   };
