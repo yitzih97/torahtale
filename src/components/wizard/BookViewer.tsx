@@ -137,29 +137,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           </div>
         )}
 
-        {pageType !== "story" && (
-          /* Regular story page */
-          <>
-            {page?.image ? (
-              <motion.img
-                key={`${currentPage}-${page.image?.slice(-20)}`}
-                src={page.image}
-                alt={`Page ${currentPage + 1}`}
-                className={`w-full aspect-[4/3] object-cover rounded-book ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
-                transition={{ duration: 0.3 }}
-              />
-            ) : page?.imageLoading ? (
-              <BookLoadingSkeleton type="story" />
-            ) : (
-              <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
-                <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                <p className="text-muted-foreground text-sm">Generating illustration...</p>
-              </div>
-            )}
-          </>
-        )}
+        {/* No duplicate image rendering needed — handled above */}
 
         {regenerating === currentPage && (
           <div className="absolute inset-0 flex items-center justify-center bg-primary/20 rounded-book">

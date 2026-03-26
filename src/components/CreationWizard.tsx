@@ -450,11 +450,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         let imgPrompt: string;
 
         if (page.type === "cover") {
-          imgPrompt = `A stunning children's book FRONT COVER illustration (4:3 landscape). Scene from the Torah story "${portionLabel}". ${consistencyNote} Style: ${style}. Magical, inviting, vibrant colors. DO NOT include any text, title, or lettering in the image. No words.`;
+          imgPrompt = `A stunning children's book FRONT COVER illustration (4:3 landscape). Scene from the Torah story "${portionLabelForImg}". ${consistencyNote} Style: ${style}. Magical, inviting, vibrant colors. DO NOT include any text, title, or lettering in the image. No words.`;
         } else if (page.type === "back-cover") {
-          imgPrompt = `A beautiful children's book BACK COVER illustration (4:3 landscape). A warm, peaceful closing scene from the Torah story "${portionLabel}". ${consistencyNote} Style: ${style}. Soft, warm colors, peaceful atmosphere. DO NOT include any text, title, or lettering in the image. No words.`;
+          imgPrompt = `A beautiful children's book BACK COVER illustration (4:3 landscape). A warm, peaceful closing scene from the Torah story "${portionLabelForImg}". ${consistencyNote} Style: ${style}. Soft, warm colors, peaceful atmosphere. DO NOT include any text, title, or lettering in the image. No words.`;
         } else {
-          imgPrompt = `A beautiful children's book page illustration (4:3 landscape). Scene: "${page.text}". ${consistencyNote} Torah story: "${portionLabel}". Style: ${style}. Warm magical atmosphere, vibrant colors. DO NOT include any text or lettering in the image. The text will be displayed separately below the illustration.`;
+          imgPrompt = `A beautiful children's book page illustration (4:3 landscape). Scene: "${page.text}". ${consistencyNote} Torah story: "${portionLabelForImg}". Style: ${style}. Warm magical atmosphere, vibrant colors. DO NOT include any text or lettering in the image. The text will be displayed separately below the illustration.`;
         }
 
         // Try up to 2 times per page
