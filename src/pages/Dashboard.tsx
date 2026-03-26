@@ -160,9 +160,13 @@ export default function Dashboard() {
                           className="bg-card rounded-2xl border border-border p-5 shadow-soft-sm hover:shadow-soft-md transition-shadow duration-300"
                         >
                           <div className="flex items-center gap-3 mb-4">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-lg ${colors[i % colors.length]}`}>
-                              {initials}
-                            </div>
+                            {kid.photo_url ? (
+                              <img src={kid.photo_url} alt={kid.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                            ) : (
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-lg flex-shrink-0 ${colors[i % colors.length]}`}>
+                                {initials}
+                              </div>
+                            )}
                             <div className="flex-1">
                               <h3 className="font-display text-lg font-semibold text-primary">{kid.name}</h3>
                               <p className="text-xs text-muted-foreground">
