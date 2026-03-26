@@ -112,14 +112,38 @@ No markdown, no explanation, just the JSON object.`;
       parsed = match ? JSON.parse(match[0]) : {};
     }
 
+    // Helper: flatten bilingual objects like {english: "...", hebrew: "..."} into a string
+    const flattenText = (val: unknown): string => {
+      if (typeof val === "string") return val;
+      if (val && typeof val === "object" && !Array.isArray(val)) {
+        const obj = val as Record<string, unknown>;
+        if (typeof obj.english === "string" && typeof obj.hebrew === "string") {
+          return `${obj.english}\n\n${obj.hebrew}`;
+        }
+        // fallback: join all string values
+        return Object.values(obj).filter(v => typeof v === "string").join("\n\n");
+      }
+      return String(val ?? "");
+    };
+
     // Normalize: ensure we have all parts
-    const storyPages = Array.isArray(parsed.pages) ? parsed.pages : parsed.pages || [];
+    const rawPages = Array.isArray(parsed.pages) ? parsed.pages : parsed.pages || [];
+    const storyPages = rawPages.map((p: any) => ({
+      ...p,
+      text: flattenText(p.text),
+    }));
     const cover = parsed.cover || { title: `${childName}'s Torah Adventure`, subtitle: torahPortionLabel };
+    cover.title = flattenText(cover.title);
+    cover.subtitle = flattenText(cover.subtitle);
     const questions = Array.isArray(parsed.backCover?.questions) ? parsed.backCover.questions : Array.isArray(parsed.questions) ? parsed.questions : [];
+    const normalizedQuestions = questions.map((q: any) => ({
+      ...q,
+      question: flattenText(q.question),
+    }));
     const backCover = {
-      synopsis: parsed.backCover?.synopsis || "A magical Torah adventure.",
-      dedication: parsed.backCover?.dedication || `For ${childName}, with love.`,
-      questions,
+      synopsis: flattenText(parsed.backCover?.synopsis || "A magical Torah adventure."),
+      dedication: flattenText(parsed.backCover?.dedication || `For ${childName}, with love.`),
+      questions: normalizedQuestions,
     };
 
     return new Response(JSON.stringify({ cover, pages: storyPages, backCover }), {
