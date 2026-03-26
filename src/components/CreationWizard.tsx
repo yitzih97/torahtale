@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -167,14 +167,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewCreditsExhausted, setPreviewCreditsExhausted] = useState(false);
-  const [artStylePreviews, setArtStylePreviews] = useState<Record<string, string | null>>({});
-  const [artStylePreviewsLoading, setArtStylePreviewsLoading] = useState(false);
-  const previewDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const previewCache = useRef<Map<string, string>>(new Map());
-  const previewFallbackNoticeShown = useRef(false);
-  const lastPreviewKey = useRef<string>("");
   const [genProgress, setGenProgress] = useState(0);
   const [genPhase, setGenPhase] = useState("");
 
@@ -192,131 +184,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   }, []);
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
-
-  const isCreditsExhaustedError = useCallback((error: unknown) => {
-    const err = error as { context?: { status?: number }; status?: number; message?: string };
-    const status = err?.context?.status ?? err?.status;
-    const message = (err?.message || "").toLowerCase();
-    return status === 402 || message.includes("credits exhausted");
-  }, []);
-
-  const disableAiPreviews = useCallback(() => {
-    setPreviewCreditsExhausted(true);
-    if (!previewFallbackNoticeShown.current) {
-      previewFallbackNoticeShown.current = true;
-      toast.info("Live AI previews are temporarily unavailable, using preset illustrations.");
-    }
-  }, []);
-
-  /* ───── character preview generation ───── */
-
-  const generateCharacterPreview = useCallback(async (c: ChildProfile, style: string) => {
-    if (!c.gender || !c.age) return;
-    if (previewCreditsExhausted) return;
-    const cacheKey = `${c.gender}-${c.age}-${style}-${c.description}-${c.photoPreview ? "photo" : "no"}`;
-    if (previewCache.current.has(cacheKey)) {
-      updateChild(c.id, { characterPreview: previewCache.current.get(cacheKey)! });
-      return;
-    }
-    setPreviewLoading(true);
-    try {
-      const { data: result, error } = await supabase.functions.invoke("generate-character-preview", {
-        body: {
-          gender: c.gender,
-          age: c.age,
-          artStyle: style,
-          description: c.description || undefined,
-          referenceImage: c.photoPreview || undefined,
-        },
-      });
-      if (error) {
-        if (isCreditsExhaustedError(error)) {
-          disableAiPreviews();
-          return;
-        }
-        throw error;
-      }
-      if (result?.imageUrl) {
-        previewCache.current.set(cacheKey, result.imageUrl);
-        updateChild(c.id, { characterPreview: result.imageUrl });
-      }
-    } catch (err: any) {
-      if (isCreditsExhaustedError(err)) {
-        disableAiPreviews();
-        return;
-      }
-      // Silently fall back to presets — don't show errors for preview generation
-      console.warn("Character preview unavailable, using preset:", err?.message || err);
-    } finally {
-      setPreviewLoading(false);
-    }
-  }, [previewCreditsExhausted, updateChild, isCreditsExhaustedError, disableAiPreviews]);
-
-  const triggerPreviewDebounced = useCallback((c: ChildProfile, style: string) => {
-    const key = `${c.gender}-${c.age}-${style}-${c.description}-${c.photoPreview ? "photo" : "no"}`;
-    if (key === lastPreviewKey.current) return; // skip duplicate
-    lastPreviewKey.current = key;
-    if (previewDebounce.current) clearTimeout(previewDebounce.current);
-    previewDebounce.current = setTimeout(() => generateCharacterPreview(c, style), 1500);
-  }, [generateCharacterPreview]);
-
-   // Trigger preview on age selection (step 3, after gender)
-  useEffect(() => {
-    if (step === 3 && child.gender && child.age) {
-      triggerPreviewDebounced(child, data.artStyle);
-    }
-  }, [step, child.age]);
-
-  // Generate art style preview cards when entering step 4
-  useEffect(() => {
-    if (step !== 4 || !child.gender || !child.age) return;
-    if (artStylePreviewsLoading) return;
-
-    if (previewCreditsExhausted) {
-      setArtStylePreviews(
-        ART_STYLES.reduce<Record<string, string>>((acc, style) => {
-          acc[style.key] = getStylePreset(child.gender, style.key);
-          return acc;
-        }, {})
-      );
-      return;
-    }
-
-    setArtStylePreviewsLoading(true);
-
-    const generateStylePreviews = async () => {
-      const results: Record<string, string | null> = {};
-      for (const style of ART_STYLES) {
-        const cacheKey = `style-${child.gender}-${child.age}-${style.key}`;
-        if (previewCache.current.has(cacheKey)) {
-          results[style.key] = previewCache.current.get(cacheKey)!;
-          continue;
-        }
-        try {
-          const { data: result, error } = await supabase.functions.invoke("generate-character-preview", {
-            body: { gender: child.gender, age: child.age, artStyle: style.key },
-          });
-          if (error) {
-            if (isCreditsExhaustedError(error)) {
-              disableAiPreviews();
-            }
-            results[style.key] = getStylePreset(child.gender, style.key);
-          } else if (result?.imageUrl) {
-            results[style.key] = result.imageUrl;
-            previewCache.current.set(cacheKey, result.imageUrl);
-          } else {
-            results[style.key] = getStylePreset(child.gender, style.key);
-          }
-        } catch {
-          results[style.key] = getStylePreset(child.gender, style.key);
-        }
-        // Update as each arrives
-        setArtStylePreviews((prev) => ({ ...prev, [style.key]: results[style.key] }));
-      }
-      setArtStylePreviewsLoading(false);
-    };
-    generateStylePreviews();
-  }, [step, child.gender, child.age, previewCreditsExhausted, artStylePreviewsLoading, isCreditsExhaustedError, disableAiPreviews]);
 
   /* ───── photo handling ───── */
 
@@ -542,12 +409,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }
     setDir(1);
     let nextStep = step + 1;
-    // Skip gender/age/photo steps for existing children with complete profiles
+    // Skip gender/age/photo steps for existing children — but NEVER skip art style (step 4)
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4; // skip gender(2), age(3) → go to art style
-      if (allChildrenHavePhotoOrDesc()) {
-        nextStep = 6; // also skip photo/desc(5) and art style stays at 4 unless they have art_style
-      }
+    }
+    if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
+      nextStep = 6; // skip photo/desc(5)
     }
     setStep(Math.min(nextStep, TOTAL_STEPS));
   };
@@ -557,7 +424,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     let prevStep = step - 1;
     // Skip back over steps that were auto-skipped
     if (allChildrenHaveGenderAge()) {
-      if (step === 4) prevStep = 1; // skip back over age(3), gender(2)
+      if (step === 4) prevStep = 1;
       if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
     }
     setStep(Math.max(prevStep, 1));
@@ -644,11 +511,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     return (
       <div className="flex flex-col items-center gap-3">
         <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 shadow-sm">
-          {previewLoading && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60">
-              <Loader2 className="w-6 h-6 text-accent animate-spin" />
-            </div>
-          )}
           {preview ? (
             <img src={preview} alt="Character preview" className="w-full h-full object-cover" />
           ) : (
@@ -981,17 +843,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {ART_STYLES.map((s) => {
-                        const presetImg = getStylePreset(child.gender || "boy", s.key);
-                        const stylePreview = artStylePreviews[s.key] || presetImg;
+                        const stylePreview = getStylePreset(child.gender || "boy", s.key);
                         return (
                           <button
                             key={s.key}
-                            onClick={() => {
-                              update({ artStyle: s.key });
-                              if (child.gender && child.age) {
-                                triggerPreviewDebounced(child, s.key);
-                              }
-                            }}
+                            onClick={() => update({ artStyle: s.key })}
                             className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
                               data.artStyle === s.key
                                 ? "border-accent shadow-md ring-2 ring-accent/20"
@@ -1047,16 +903,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => {
-                                handlePhoto(child.id, e);
-                                // Trigger preview after photo loads
-                                setTimeout(() => {
-                                  const updatedChild = { ...child, photoPreview: child.photoPreview };
-                                  if (updatedChild.gender && updatedChild.age) {
-                                    triggerPreviewDebounced(updatedChild, data.artStyle);
-                                  }
-                                }, 1000);
-                              }}
+                              onChange={(e) => handlePhoto(child.id, e)}
                               className="absolute inset-0 opacity-0 cursor-pointer"
                             />
                           )}
@@ -1089,12 +936,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                         <Textarea
                           placeholder="e.g., Brown curly hair, olive skin, big brown eyes, loves wearing blue..."
                           value={child.description}
-                          onChange={(e) => {
-                            updateChild(child.id, { description: e.target.value });
-                            if (child.gender && child.age && e.target.value.length > 10) {
-                              triggerPreviewDebounced({ ...child, description: e.target.value }, data.artStyle);
-                            }
-                          }}
+                          onChange={(e) => updateChild(child.id, { description: e.target.value })}
                           className="rounded-xl min-h-[120px] text-sm"
                         />
                       </div>
