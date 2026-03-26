@@ -172,6 +172,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const previewDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewCache = useRef<Map<string, string>>(new Map());
   const previewFallbackNoticeShown = useRef(false);
+  const lastPreviewKey = useRef<string>("");
+  const [genProgress, setGenProgress] = useState(0);
+  const [genPhase, setGenPhase] = useState("");
 
   const child = data.children[data.activeChildIdx] || data.children[0];
 
