@@ -251,8 +251,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   }, [previewCreditsExhausted, updateChild, isCreditsExhaustedError, disableAiPreviews]);
 
   const triggerPreviewDebounced = useCallback((c: ChildProfile, style: string) => {
+    const key = `${c.gender}-${c.age}-${style}-${c.description}-${c.photoPreview ? "photo" : "no"}`;
+    if (key === lastPreviewKey.current) return; // skip duplicate
+    lastPreviewKey.current = key;
     if (previewDebounce.current) clearTimeout(previewDebounce.current);
-    previewDebounce.current = setTimeout(() => generateCharacterPreview(c, style), 600);
+    previewDebounce.current = setTimeout(() => generateCharacterPreview(c, style), 1500);
   }, [generateCharacterPreview]);
 
    // Trigger preview on age selection (step 3, after gender)
