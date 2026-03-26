@@ -6,14 +6,17 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AddChildWizard, type AddChildResult } from "@/components/dashboard/AddChildWizard";
+import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus,
   Truck, Package, Palette, Eye, Trash2, BookMarked, Pencil,
+  Pause, Play, X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBooks } from "@/hooks/useBooks";
+import { useBooks, type BookRecord } from "@/hooks/useBooks";
 import { useChildren, type ChildRecord } from "@/hooks/useChildren";
+import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -27,13 +30,21 @@ const statusStyle = (s: string) => {
 
 const statusIcon = (s: string) => (s === "delivered" ? Truck : Package);
 
+const subStatusStyle = (s: string) => {
+  if (s === "active") return "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950";
+  if (s === "paused") return "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950";
+  return "text-muted-foreground bg-muted";
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { books, isLoading: booksLoading } = useBooks();
   const { children, isLoading: childrenLoading, addChild, updateChild, deleteChild } = useChildren();
+  const { subscriptions, isLoading: subsLoading, cancelSubscription, updateSubscription } = useSubscriptions();
   const [addChildOpen, setAddChildOpen] = useState(false);
   const [editingChild, setEditingChild] = useState<ChildRecord | null>(null);
+  const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
@@ -54,6 +65,7 @@ export default function Dashboard() {
 
   const draftBooks = books.filter((b) => b.status === "draft");
   const orderedBooks = books.filter((b) => b.status !== "draft");
+  const activeSubs = subscriptions.filter((s) => s.status === "active");
 
   const handleAddChild = async (child: AddChildResult) => {
     await addChild.mutateAsync(child);
@@ -67,6 +79,8 @@ export default function Dashboard() {
     setEditingChild(null);
     toast.success("Child profile updated!");
   };
+
+  const bookPages = viewingBook?.pages_data as any[] || [];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -82,11 +96,12 @@ export default function Dashboard() {
             <p className="text-muted-foreground mb-4">Welcome back! Manage your family's Torah tales.</p>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
               {[
                 { label: "Children", value: children.length, icon: Users },
                 { label: "Books Created", value: books.length, icon: BookMarked },
                 { label: "Draft Books", value: draftBooks.length, icon: BookOpen },
+                { label: "Active Subs", value: activeSubs.length, icon: CalendarHeart },
               ].map((stat) => (
                 <div key={stat.label} className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3 shadow-soft-sm">
                   <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
@@ -266,9 +281,13 @@ export default function Dashboard() {
                             <StatusIcon className="w-3 h-3" />
                             {book.status}
                           </span>
-                          <Button variant="ghost" size="sm" className="text-xs flex-shrink-0">
-                            <Eye className="w-3.5 h-3.5" /> Preview
-                          </Button>
+                          <div className="flex gap-1.5 flex-shrink-0">
+                            {book.pages_data && (
+                              <Button variant="ghost" size="sm" className="text-xs" onClick={() => setViewingBook(book)}>
+                                <Eye className="w-3.5 h-3.5" /> View
+                              </Button>
+                            )}
+                          </div>
                         </motion.div>
                       );
                     })}
@@ -278,18 +297,120 @@ export default function Dashboard() {
 
               {/* TAB: Subscriptions */}
               <TabsContent value="subs">
-                <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm">
-                  <div className="flex items-center gap-3 mb-2">
-                    <CalendarHeart className="w-5 h-5 text-accent" />
-                    <h3 className="font-display text-lg font-semibold text-primary">Parashah Club</h3>
+                {subsLoading ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-32 rounded-2xl" />
                   </div>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    A new personalized Torah tale, delivered weekly based on the current parashah. Coming soon!
-                  </p>
-                  <Button variant="gold-outline" disabled>
-                    Coming Soon
-                  </Button>
-                </div>
+                ) : subscriptions.length === 0 ? (
+                  <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                      <CalendarHeart className="w-5 h-5 text-accent" />
+                      <h3 className="font-display text-lg font-semibold text-primary">Parashah Club</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      A new personalized Torah tale, delivered weekly based on the current parashah. Subscribe during checkout when ordering your next book!
+                    </p>
+                    <Button variant="gold" onClick={() => navigate("/")}>
+                      Create a Book & Subscribe
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {subscriptions.map((sub, i) => (
+                      <motion.div
+                        key={sub.id}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35, delay: i * 0.07, ease }}
+                        className="bg-card rounded-2xl border border-border p-5 shadow-soft-sm"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                              <CalendarHeart className="w-5 h-5 text-accent" />
+                            </div>
+                            <div>
+                              <h4 className="font-display font-semibold text-primary">Parashah Club</h4>
+                              <p className="text-xs text-muted-foreground">
+                                For {sub.child_name || "your child"} · ${sub.price_per_week}/week
+                              </p>
+                            </div>
+                          </div>
+                          <span className={`text-xs font-medium px-3 py-1 rounded-full capitalize ${subStatusStyle(sub.status)}`}>
+                            {sub.status}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-xs mb-4">
+                          <div className="bg-muted/30 rounded-xl p-3">
+                            <p className="text-muted-foreground">Art Style</p>
+                            <p className="font-medium text-primary capitalize mt-0.5">{sub.art_style === "3d-pixar" ? "3D Pixar" : sub.art_style || "Cartoon"}</p>
+                          </div>
+                          <div className="bg-muted/30 rounded-xl p-3">
+                            <p className="text-muted-foreground">Next Delivery</p>
+                            <p className="font-medium text-primary mt-0.5">
+                              {sub.next_delivery_date ? format(new Date(sub.next_delivery_date), "MMM d, yyyy") : "TBD"}
+                            </p>
+                          </div>
+                          <div className="bg-muted/30 rounded-xl p-3">
+                            <p className="text-muted-foreground">Language</p>
+                            <p className="font-medium text-primary capitalize mt-0.5">{sub.language || "English"}</p>
+                          </div>
+                          <div className="bg-muted/30 rounded-xl p-3">
+                            <p className="text-muted-foreground">Since</p>
+                            <p className="font-medium text-primary mt-0.5">{format(new Date(sub.created_at), "MMM d, yyyy")}</p>
+                          </div>
+                        </div>
+
+                        {sub.status !== "canceled" && (
+                          <div className="flex gap-2">
+                            {sub.status === "active" ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs rounded-xl gap-1.5"
+                                onClick={async () => {
+                                  await updateSubscription.mutateAsync({ id: sub.id, status: "paused" });
+                                  toast.success("Subscription paused");
+                                }}
+                              >
+                                <Pause className="w-3.5 h-3.5" /> Pause
+                              </Button>
+                            ) : sub.status === "paused" ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs rounded-xl gap-1.5"
+                                onClick={async () => {
+                                  await updateSubscription.mutateAsync({ id: sub.id, status: "active" });
+                                  toast.success("Subscription resumed!");
+                                }}
+                              >
+                                <Play className="w-3.5 h-3.5" /> Resume
+                              </Button>
+                            ) : null}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs rounded-xl gap-1.5 text-destructive hover:text-destructive"
+                              onClick={async () => {
+                                await cancelSubscription.mutateAsync(sub.id);
+                                toast.success("Subscription canceled");
+                              }}
+                            >
+                              <X className="w-3.5 h-3.5" /> Cancel
+                            </Button>
+                          </div>
+                        )}
+                      </motion.div>
+                    ))}
+
+                    {/* Add another subscription */}
+                    <Button variant="outline" className="w-full rounded-xl border-dashed border-2 h-12" onClick={() => navigate("/")}>
+                      <Plus className="w-4 h-4" /> Subscribe Another Child
+                    </Button>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </motion.div>
@@ -321,6 +442,22 @@ export default function Dashboard() {
           description: editingChild.description,
         } : undefined}
       />
+
+      {/* Book Viewer Modal */}
+      {viewingBook && (
+        <BookViewerModal
+          open={!!viewingBook}
+          onClose={() => setViewingBook(null)}
+          childName={viewingBook.child_name || ""}
+          torahPortion={viewingBook.torah_portion || ""}
+          artStyle={viewingBook.art_style || "cartoon"}
+          pages={bookPages}
+          onReorder={() => {
+            setViewingBook(null);
+            navigate("/");
+          }}
+        />
+      )}
     </div>
   );
 }

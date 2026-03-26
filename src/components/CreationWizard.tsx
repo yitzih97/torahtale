@@ -494,7 +494,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     setStep((s) => Math.max(s - 1, 1));
   };
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrder = async (subscribeWeekly: boolean = false) => {
     if (savedBookId && user) {
       try {
         await supabase.from("books").update({
@@ -503,6 +503,21 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           order_number: `MTT-${Date.now().toString().slice(-6)}`,
           updated_at: new Date().toISOString(),
         } as any).eq("id", savedBookId);
+
+        // Create weekly subscription if opted in
+        if (subscribeWeekly) {
+          await supabase.from("subscriptions" as any).insert({
+            user_id: user.id,
+            child_name: childNames,
+            child_id: data.children[0]?.id || null,
+            art_style: data.artStyle,
+            language: data.language,
+            shipping_data: shipping,
+            status: "active",
+            frequency: "weekly",
+            price_per_week: 24.99,
+          } as any);
+        }
       } catch (err) {
         console.error("Failed to update order:", err);
       }

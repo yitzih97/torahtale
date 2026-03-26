@@ -136,6 +136,65 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          art_style: string | null
+          canceled_at: string | null
+          child_id: string | null
+          child_name: string | null
+          created_at: string
+          frequency: string
+          id: string
+          language: string | null
+          next_delivery_date: string | null
+          price_per_week: number
+          shipping_data: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          art_style?: string | null
+          canceled_at?: string | null
+          child_id?: string | null
+          child_name?: string | null
+          created_at?: string
+          frequency?: string
+          id?: string
+          language?: string | null
+          next_delivery_date?: string | null
+          price_per_week?: number
+          shipping_data?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          art_style?: string | null
+          canceled_at?: string | null
+          child_id?: string | null
+          child_name?: string | null
+          created_at?: string
+          frequency?: string
+          id?: string
+          language?: string | null
+          next_delivery_date?: string | null
+          price_per_week?: number
+          shipping_data?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
