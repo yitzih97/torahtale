@@ -250,12 +250,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     previewDebounce.current = setTimeout(() => generateCharacterPreview(c, style), 600);
   }, [generateCharacterPreview]);
 
-  // Trigger preview on gender selection (step 3)
+   // Trigger preview on age selection (step 3, after gender)
   useEffect(() => {
     if (step === 3 && child.gender && child.age) {
       triggerPreviewDebounced(child, data.artStyle);
     }
-  }, [step, child.gender]);
+  }, [step, child.age]);
 
   // Generate art style preview cards when entering step 4
   useEffect(() => {
