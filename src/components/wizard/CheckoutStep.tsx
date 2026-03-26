@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CreditCard, Lock, ShieldCheck, CalendarHeart, Check } from "lucide-react";
+import { CreditCard, Lock, ShieldCheck, CalendarHeart, Check, Sparkles, TrendingDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,9 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
   const [subscribeWeekly, setSubscribeWeekly] = useState(false);
   const bookPrice = calculateBookPrice(bookOptions);
   const shippingCost = shipping.shippingMethod === "express" ? 9.99 : 0;
-  const weeklyPrice = 24.99;
+  const fullWeeklyPrice = 29.99;
+  const weeklyPrice = 23.99; // 20% off
+  const savings = fullWeeklyPrice - weeklyPrice;
   const total = bookPrice + shippingCost;
 
   return (
@@ -95,8 +97,11 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
               </div>
               {subscribeWeekly && (
                 <div className="flex justify-between text-accent">
-                  <span>Weekly Parsha Club</span>
-                  <span className="font-medium">${weeklyPrice}/wk</span>
+                  <span>Weekly Parashah Club</span>
+                  <div className="text-right">
+                    <span className="font-medium">${weeklyPrice}/wk</span>
+                    <span className="text-[10px] line-through text-muted-foreground ml-1.5">${fullWeeklyPrice}</span>
+                  </div>
                 </div>
               )}
               <div className="border-t border-border pt-3 mt-3 flex justify-between font-bold text-base">
@@ -106,32 +111,43 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
             </div>
           </div>
 
-          {/* Weekly subscription upsell */}
+          {/* Weekly subscription upsell — more engaging */}
           <button
             onClick={() => setSubscribeWeekly(!subscribeWeekly)}
-            className={`w-full rounded-2xl border-2 p-4 text-left transition-all duration-300 active:scale-[0.98] ${
+            className={`w-full rounded-2xl border-2 p-4 text-left transition-all duration-300 active:scale-[0.98] relative overflow-hidden ${
               subscribeWeekly
-                ? "border-accent bg-accent/5 shadow-sm"
-                : "border-border hover:border-accent/30"
+                ? "border-accent bg-accent/5 shadow-md shadow-accent/10"
+                : "border-border hover:border-accent/40 hover:shadow-sm"
             }`}
           >
+            {/* Savings badge */}
+            <div className="absolute top-0 right-0 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl">
+              SAVE 20%
+            </div>
+
             <div className="flex items-start gap-3">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
                 subscribeWeekly ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"
               }`}>
-                {subscribeWeekly ? <Check className="w-5 h-5" /> : <CalendarHeart className="w-5 h-5" />}
+                {subscribeWeekly ? <Check className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
               </div>
-              <div className="flex-1">
+              <div className="flex-1 pr-8">
                 <p className="font-display font-semibold text-sm text-primary">
-                  📚 Subscribe to Parashah Club
+                  ✨ Join Parashah Club — Never Miss a Story!
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Get a new personalized Torah tale for {childName} every week, based on the weekly Parsha. Only ${weeklyPrice}/week with free shipping!
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Every week, {childName} gets a brand-new personalized Torah adventure based on the weekly Parsha — delivered right to your door!
                 </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">Cancel anytime</span>
-                  <span className="text-[10px] font-medium text-primary bg-primary/5 px-2 py-0.5 rounded-full">Free shipping included</span>
+                <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-full">
+                    <TrendingDown className="w-3 h-3" /> ${weeklyPrice}/wk (was ${fullWeeklyPrice})
+                  </span>
+                  <span className="text-[10px] font-medium text-primary bg-primary/5 px-2 py-1 rounded-full">🚚 Free shipping</span>
+                  <span className="text-[10px] font-medium text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">Cancel anytime</span>
                 </div>
+                <p className="text-[11px] text-accent font-semibold mt-2">
+                  💰 You save ${savings.toFixed(2)} every week — that's ${(savings * 52).toFixed(0)}+ per year!
+                </p>
               </div>
             </div>
           </button>
@@ -140,7 +156,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
 
       <Button variant="gold" size="lg" className="w-full rounded-xl h-12 text-base" onClick={() => onPlaceOrder(subscribeWeekly)}>
         <Lock className="w-4 h-4" />
-        Place Order — ${total.toFixed(2)}
+        {subscribeWeekly ? `Subscribe & Place Order — $${total.toFixed(2)}` : `Place Order — $${total.toFixed(2)}`}
       </Button>
     </div>
   );

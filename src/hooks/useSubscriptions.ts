@@ -27,7 +27,7 @@ export function useSubscriptions() {
     queryKey: ["subscriptions", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("subscriptions" as any)
+        .from("subscriptions")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -40,7 +40,7 @@ export function useSubscriptions() {
     mutationFn: async (sub: Partial<SubscriptionRecord>) => {
       if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase
-        .from("subscriptions" as any)
+        .from("subscriptions")
         .insert({ ...sub, user_id: user.id } as any)
         .select()
         .single();
@@ -53,7 +53,7 @@ export function useSubscriptions() {
   const updateSubscription = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<SubscriptionRecord> & { id: string }) => {
       const { data, error } = await supabase
-        .from("subscriptions" as any)
+        .from("subscriptions")
         .update({ ...updates, updated_at: new Date().toISOString() } as any)
         .eq("id", id)
         .select()
@@ -67,7 +67,7 @@ export function useSubscriptions() {
   const cancelSubscription = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("subscriptions" as any)
+        .from("subscriptions")
         .update({ status: "canceled", canceled_at: new Date().toISOString(), updated_at: new Date().toISOString() } as any)
         .eq("id", id);
       if (error) throw error;
