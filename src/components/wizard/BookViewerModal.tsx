@@ -19,7 +19,7 @@ export const BookViewerModal = ({ open, onClose, childName, torahPortion, artSty
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
         <div className="p-6 sm:p-8">
-          <BookViewer childName={childName} torahPortion={torahPortion} artStyle={artStyle} pages={pages} />
+          <BookViewer childName={childName} torahPortion={torahPortion} artStyle={artStyle} pages={pages} onPagesChange={() => {}} />
           <div className="flex gap-3 mt-6 pt-6 border-t border-border">
             {onEdit && (
               <Button variant="outline" onClick={onEdit} className="rounded-xl gap-2 flex-1">
