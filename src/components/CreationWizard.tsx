@@ -18,6 +18,7 @@ import { BookLoadingSkeleton } from "./wizard/BookLoadingSkeleton";
 import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/ShippingForm";
 import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SuccessStep } from "./wizard/SuccessStep";
+import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
 import { TORAH_PORTIONS, getPortionLabel } from "./wizard/TorahPortions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -115,7 +116,7 @@ const ageToBracketLabel = (age: string): string => {
 
 /* ───────────────── constants ───────────────── */
 
-const TOTAL_STEPS = 13;
+const TOTAL_STEPS = 14;
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const slideVariants = {
@@ -128,7 +129,7 @@ const STEP_GROUPS = [
   { label: "Character", icon: Users, steps: [1, 2, 3, 4, 5] },
   { label: "Story", icon: BookOpen, steps: [6, 7, 8] },
   { label: "Create", icon: Sparkles, steps: [9, 10] },
-  { label: "Order", icon: Package, steps: [11, 12, 13] },
+  { label: "Order", icon: Package, steps: [11, 12, 13, 14] },
 ];
 
 const AGE_BRACKETS = [
@@ -161,6 +162,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [data, setData] = useState<WizardData>(initialData);
   const [generating, setGenerating] = useState(false);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
+  const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
   
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
@@ -592,7 +594,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       }
     }
     setDir(1);
-    setStep(13);
+    setStep(14);
   };
 
   /* ───── can proceed checks ───── */
@@ -608,7 +610,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       case 7: return true;
       case 8: return true;
       case 10: return true;
-      case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
+      case 11: return true; // book options always valid
+      case 12: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
       default: return false;
     }
   })();
@@ -1245,23 +1248,30 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   </motion.div>
                 )}
 
-                {/* ── STEP 11: Shipping ── */}
+                {/* ── STEP 11: Book Options ── */}
                 {step === 11 && (
                   <motion.div key="s11" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
+                    <BookOptionsStep options={bookOptions} onChange={setBookOptions} />
+                  </motion.div>
+                )}
+
+                {/* ── STEP 12: Shipping ── */}
+                {step === 12 && (
+                  <motion.div key="s12" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
                     <ShippingForm data={shipping} onChange={setShipping} />
                   </motion.div>
                 )}
 
-                {/* ── STEP 12: Checkout ── */}
-                {step === 12 && (
-                  <motion.div key="s12" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
-                    <CheckoutStep childName={childNames} torahPortion={data.torahPortion} artStyle={data.artStyle} shipping={shipping} onPlaceOrder={handlePlaceOrder} />
+                {/* ── STEP 13: Checkout ── */}
+                {step === 13 && (
+                  <motion.div key="s13" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
+                    <CheckoutStep childName={childNames} torahPortion={data.torahPortion} artStyle={data.artStyle} shipping={shipping} bookOptions={bookOptions} onPlaceOrder={handlePlaceOrder} />
                   </motion.div>
                 )}
 
-                {/* ── STEP 13: Success ── */}
-                {step === 13 && (
-                  <motion.div key="s13" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
+                {/* ── STEP 14: Success ── */}
+                {step === 14 && (
+                  <motion.div key="s14" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }}>
                     <SuccessStep childName={childNames} onGoToDashboard={() => { onClose(); navigate("/dashboard"); }} />
                   </motion.div>
                 )}
@@ -1271,7 +1281,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           </div>
 
           {/* ── Nav buttons ── */}
-          {step !== 9 && step !== 12 && step !== 13 && (
+          {step !== 9 && step !== 13 && step !== 14 && (
             <div className="flex justify-between mt-8 pt-6 border-t border-border">
               {step > 1 ? (
                 <Button variant="ghost" onClick={back} className="rounded-xl gap-2 text-muted-foreground hover:text-foreground">
@@ -1294,7 +1304,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   Looks Great! <ArrowRight className="w-4 h-4" />
                 </Button>
               )}
-              {step === 11 && (
+              {(step === 11 || step === 12) && (
                 <Button variant="gold" onClick={next} disabled={!canNext} className="rounded-xl gap-2 px-6 h-11">
                   Continue <ArrowRight className="w-4 h-4" />
                 </Button>
