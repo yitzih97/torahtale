@@ -90,8 +90,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       </Suspense>
 
       {/* Overlay - strong on left for text readability, very light on right to show background images clearly */}
-      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent dark:from-background/85 dark:via-background/30 dark:to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20 dark:from-background/40 dark:via-transparent dark:to-transparent" />
 
       <div className="relative z-10 w-full py-24 lg:py-0 pl-4 sm:pl-6 lg:pl-12 pr-4">
         <div className="flex items-center justify-start">
