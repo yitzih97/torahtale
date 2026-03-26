@@ -484,6 +484,14 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }
   };
 
+  /* ───── step skipping helpers ───── */
+
+  const allChildrenHaveGenderAge = useCallback(() =>
+    data.children.every((c) => !!c.gender && !!c.age), [data.children]);
+
+  const allChildrenHavePhotoOrDesc = useCallback(() =>
+    data.children.every((c) => !!c.photoPreview || !!c.description), [data.children]);
+
   /* ───── navigation ───── */
 
   const next = async () => {
@@ -492,12 +500,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       return;
     }
     setDir(1);
-    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    let nextStep = step + 1;
+    // Skip gender/age/photo steps for existing children with complete profiles
+    if (step === 1 && allChildrenHaveGenderAge()) {
+      nextStep = 4; // skip gender(2), age(3) → go to art style
+      if (allChildrenHavePhotoOrDesc()) {
+        nextStep = 6; // also skip photo/desc(5) and art style stays at 4 unless they have art_style
+      }
+    }
+    setStep(Math.min(nextStep, TOTAL_STEPS));
   };
 
   const back = () => {
     setDir(-1);
-    setStep((s) => Math.max(s - 1, 1));
+    let prevStep = step - 1;
+    // Skip back over steps that were auto-skipped
+    if (allChildrenHaveGenderAge()) {
+      if (step === 4) prevStep = 1; // skip back over age(3), gender(2)
+      if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
+    }
+    setStep(Math.max(prevStep, 1));
   };
 
   const handlePlaceOrder = async (subscribeWeekly: boolean = false) => {
