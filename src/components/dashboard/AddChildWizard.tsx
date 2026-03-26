@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Type, Heart, Calendar, Palette, Check, User,
@@ -98,15 +98,34 @@ interface Props {
   onClose: () => void;
   onSubmit: (child: AddChildResult) => void;
   isPending?: boolean;
+  /** Pre-fill for editing an existing child */
+  initialData?: {
+    name: string;
+    age: number | null;
+    gender: string | null;
+    art_style: string | null;
+  };
+  /** Title override for edit mode */
+  mode?: "add" | "edit";
 }
 
-export function AddChildWizard({ open, onClose, onSubmit, isPending }: Props) {
+export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData, mode = "add" }: Props) {
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [artStyle, setArtStyle] = useState("");
+
+  // Populate fields when editing
+  useEffect(() => {
+    if (open && initialData) {
+      setName(initialData.name || "");
+      setGender(initialData.gender || "");
+      setAge(initialData.age ? String(initialData.age) : "");
+      setArtStyle(initialData.art_style || "");
+    }
+  }, [open, initialData]);
 
   const reset = useCallback(() => {
     setStep(1);
@@ -155,12 +174,13 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending }: Props) {
   };
 
   const preview = getPreviewImage();
+  const isEdit = mode === "edit";
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="max-w-lg max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
+      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
         {/* ── Stepper ── */}
-        <div className="px-6 pt-6 pb-2">
+        <div className="px-6 sm:px-8 pt-6 pb-2">
           <div className="flex items-center justify-between gap-1">
             {STEP_LABELS.map((s, i) => {
               const stepNum = i + 1;
@@ -197,13 +217,13 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending }: Props) {
           </div>
         </div>
 
-        <div className="p-6 pt-4">
+        <div className="p-6 sm:p-8 pt-4">
           {/* Layout with preview */}
           <div className={step >= 2 ? "flex flex-col sm:flex-row gap-6" : ""}>
             {step >= 2 && (
               <div className="sm:order-2 flex-shrink-0 flex justify-center sm:pt-8">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 shadow-sm">
+                  <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 shadow-sm">
                     {preview ? (
                       <img src={preview} alt="Character preview" className="w-full h-full object-cover" />
                     ) : (
@@ -230,7 +250,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending }: Props) {
                   <motion.div key="s1" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
                     <div>
                       <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Type className="w-6 h-6 text-accent" /> What's your child's name?
+                        <Type className="w-6 h-6 text-accent" /> {isEdit ? "Update your child's name" : "What's your child's name?"}
                       </h2>
                       <p className="text-muted-foreground text-sm mt-1">This will be used for their profile and all future books.</p>
                     </div>
@@ -267,7 +287,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending }: Props) {
                               : "border-border hover:border-accent/30"
                           }`}
                         >
-                          <div className="aspect-[3/2] overflow-hidden">
+                          <div className="aspect-square overflow-hidden bg-muted/30">
                             <img src={g.img} alt={g.label} className="w-full h-full object-cover" />
                           </div>
                           <div className="p-3">
@@ -386,7 +406,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending }: Props) {
                 disabled={!canNext || isPending}
                 className="gap-2"
               >
-                {isPending ? "Adding..." : "Add Child"} <Check className="w-4 h-4" />
+                {isPending ? (isEdit ? "Saving..." : "Adding...") : (isEdit ? "Save Changes" : "Add Child")} <Check className="w-4 h-4" />
               </Button>
             )}
           </div>
