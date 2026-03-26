@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Type, Palette, Minus, Plus, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Palette, Minus, Plus, X, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 export interface TextStyle {
   x: number;       // percentage 0-100
@@ -10,6 +9,8 @@ export interface TextStyle {
   color: string;
   fontFamily: string;
   bgOpacity: number; // 0-1
+  width: number;     // percentage 20-100
+  textAlign: "center" | "left" | "right";
 }
 
 export const DEFAULT_TEXT_STYLE: TextStyle = {
@@ -19,6 +20,8 @@ export const DEFAULT_TEXT_STYLE: TextStyle = {
   color: "#ffffff",
   fontFamily: "'Georgia', serif",
   bgOpacity: 0.6,
+  width: 80,
+  textAlign: "center",
 };
 
 const FONT_OPTIONS = [
@@ -45,8 +48,10 @@ export const DraggableText = ({ text, style, onChange, onTextChange, containerRe
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
+  const [isResizing, setIsResizing] = useState<"left" | "right" | null>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const dragStart = useRef({ x: 0, y: 0, startX: 0, startY: 0 });
+  const resizeStart = useRef({ clientX: 0, startWidth: 0 });
 
   const handleMouseDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (isEditing) return;
@@ -63,6 +68,7 @@ export const DraggableText = ({ text, style, onChange, onTextChange, containerRe
     setShowToolbar(true);
   }, [isEditing, style.x, style.y, containerRef]);
 
+  // Drag handler
   useEffect(() => {
     if (!isDragging) return;
     
@@ -98,6 +104,50 @@ export const DraggableText = ({ text, style, onChange, onTextChange, containerRe
     };
   }, [isDragging, style, onChange, containerRef]);
 
+  // Resize handler
+  const handleResizeStart = useCallback((side: "left" | "right", e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    resizeStart.current = { clientX, startWidth: style.width };
+    setIsResizing(side);
+  }, [style.width]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+    
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const dx = ((clientX - resizeStart.current.clientX) / rect.width) * 100;
+      
+      let newWidth: number;
+      if (isResizing === "right") {
+        newWidth = resizeStart.current.startWidth + dx * 2; // *2 because centered
+      } else {
+        newWidth = resizeStart.current.startWidth - dx * 2;
+      }
+      newWidth = Math.max(20, Math.min(100, newWidth));
+      onChange({ ...style, width: newWidth });
+    };
+    
+    const handleUp = () => setIsResizing(null);
+    
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
+    window.addEventListener("touchmove", handleMove);
+    window.addEventListener("touchend", handleUp);
+    
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleUp);
+    };
+  }, [isResizing, style, onChange, containerRef]);
+
   return (
     <>
       {/* Draggable text block */}
@@ -108,7 +158,7 @@ export const DraggableText = ({ text, style, onChange, onTextChange, containerRe
           left: `${style.x}%`,
           top: `${style.y}%`,
           transform: "translate(-50%, -50%)",
-          maxWidth: "90%",
+          width: `${style.width}%`,
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleMouseDown}
@@ -118,6 +168,15 @@ export const DraggableText = ({ text, style, onChange, onTextChange, containerRe
         }}
         onDoubleClick={() => setIsEditing(true)}
       >
+        {/* Left resize handle */}
+        {showToolbar && (
+          <div
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-8 bg-accent/80 rounded-full cursor-ew-resize z-40 hover:bg-accent"
+            onMouseDown={(e) => handleResizeStart("left", e)}
+            onTouchStart={(e) => handleResizeStart("left", e)}
+          />
+        )}
+
         <div
           className="px-3 py-2 rounded-lg transition-colors"
           style={{
@@ -126,7 +185,8 @@ export const DraggableText = ({ text, style, onChange, onTextChange, containerRe
             fontSize: `${style.fontSize}px`,
             color: style.color,
             lineHeight: 1.4,
-            textAlign: "center",
+            textAlign: style.textAlign,
+            direction: style.textAlign === "right" ? "rtl" : "ltr",
           }}
         >
           {isEditing ? (
@@ -136,24 +196,52 @@ export const DraggableText = ({ text, style, onChange, onTextChange, containerRe
               onChange={(e) => onTextChange(e.target.value)}
               onBlur={() => setIsEditing(false)}
               onKeyDown={(e) => { if (e.key === "Escape") setIsEditing(false); }}
-              className="bg-transparent border-none outline-none resize-none w-full min-w-[120px] text-center"
-              style={{ font: "inherit", color: "inherit" }}
+              className="bg-transparent border-none outline-none resize-none w-full min-w-[120px]"
+              style={{ font: "inherit", color: "inherit", textAlign: style.textAlign }}
               rows={2}
             />
           ) : (
             <p className="whitespace-pre-wrap">{text || "Double-click to edit"}</p>
           )}
         </div>
+
+        {/* Right resize handle */}
+        {showToolbar && (
+          <div
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-8 bg-accent/80 rounded-full cursor-ew-resize z-40 hover:bg-accent"
+            onMouseDown={(e) => handleResizeStart("right", e)}
+            onTouchStart={(e) => handleResizeStart("right", e)}
+          />
+        )}
       </div>
 
       {/* Floating toolbar */}
-      {showToolbar && !isDragging && (
+      {showToolbar && !isDragging && !isResizing && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           className="absolute top-2 left-1/2 -translate-x-1/2 z-40 bg-card/95 backdrop-blur-sm rounded-xl border border-border shadow-lg p-2 flex items-center gap-2 flex-wrap justify-center"
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Text alignment */}
+          <div className="flex items-center gap-0.5">
+            {([
+              { align: "left" as const, Icon: AlignLeft, label: "LTR" },
+              { align: "center" as const, Icon: AlignCenter, label: "Center" },
+              { align: "right" as const, Icon: AlignRight, label: "RTL" },
+            ]).map(({ align, Icon }) => (
+              <button
+                key={align}
+                onClick={() => onChange({ ...style, textAlign: align })}
+                className={`w-6 h-6 rounded flex items-center justify-center transition-colors ${style.textAlign === align ? "bg-accent text-accent-foreground" : "hover:bg-muted"}`}
+              >
+                <Icon className="w-3 h-3" />
+              </button>
+            ))}
+          </div>
+
+          <div className="w-px h-5 bg-border" />
+
           {/* Font size */}
           <div className="flex items-center gap-1">
             <button

@@ -36,7 +36,8 @@ Details:
 Requirements:
 - Make the children the main characters and heroes of the story
 - Each story page should be 2-3 sentences, appropriate for a ${age}-year-old
-- Weave the Torah portion's key themes naturally into the adventure
+- CRITICAL: At least 70% of the pages MUST depict SPECIFIC, ACTUAL events from the Torah portion. For example, for Va'era show the plagues one by one; for Beshalach show the crossing of the sea; for Bereishit show the days of creation. The child must be IN those scenes, witnessing and participating in the actual events — not just hearing about them or being told the story.
+- DO NOT compress the Torah events into 1-2 pages. Spread the key events across most of the book, giving each major event its own page with vivid detail.
 - The story MUST teach a clear moral lesson and positive values (kindness, honesty, gratitude, courage, respect)
 - The children should discover the hidden lesson behind the Torah story through their adventure
 - End with a warm, uplifting moral that shows how they can apply the lesson in their own lives
