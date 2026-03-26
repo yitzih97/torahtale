@@ -683,6 +683,40 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         )}
 
         <div className="p-6 sm:p-8 pt-4">
+          {/* Selected kids sidebar — visible on steps 2-8 when multiple children */}
+          {step >= 2 && step <= 8 && data.children.length > 1 && (
+            <div className="mb-4">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">Selected Children</p>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {data.children.map((c, idx) => (
+                  <button
+                    key={c.id}
+                    onClick={() => update({ activeChildIdx: idx })}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all duration-200 flex-shrink-0 ${
+                      idx === data.activeChildIdx
+                        ? "border-accent bg-accent/5 shadow-sm"
+                        : "border-border hover:border-accent/30"
+                    }`}
+                  >
+                    {c.photoPreview ? (
+                      <img src={c.photoPreview} alt={c.name} className="w-7 h-7 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                        {(c.name || "?").slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="text-left min-w-0">
+                      <p className="text-xs font-semibold text-primary truncate max-w-[80px]">{c.name || `Child ${idx + 1}`}</p>
+                      <p className="text-[9px] text-muted-foreground">
+                        {c.age ? `${c.age}yo` : ""}{c.gender ? ` · ${c.gender}` : ""}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Layout: steps 2-5 show character preview on the side */}
           <div className={step >= 2 && step <= 5 ? "flex flex-col sm:flex-row gap-6" : ""}>
             {/* Character preview (top on mobile, right on desktop) */}
