@@ -163,7 +163,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               className="mt-8 flex flex-wrap items-center gap-4"
             >
               <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow rounded-full">
-                Create Your Sefer
+                Begin the Journey
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
               <span className="text-foreground/40 text-sm font-body">
