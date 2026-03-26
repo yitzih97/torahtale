@@ -482,10 +482,32 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         setBookPages((prev) => prev.map((p) => (p.id === page.id ? { ...p, image: imageUrl, imageLoading: false } : p)));
       }
 
-      // All done
+      // All done — persist final pages with images to DB
       setGenProgress(100);
       setGenPhase("Your book is ready!");
       setGenerating(false);
+
+      // Save the completed pages (with image URLs) back to the database
+      if (savedBookId) {
+        try {
+          const finalPages = allPages.map((p) => ({ ...p, imageLoading: false }));
+          // Get latest image URLs from state
+          setBookPages((prev) => {
+            const pagesWithImages = prev.map((pg) => ({ ...pg, imageLoading: false }));
+            supabase.from("books").update({
+              pages_data: pagesWithImages as any,
+              cover_image_url: pagesWithImages[0]?.image || null,
+              updated_at: new Date().toISOString(),
+            } as any).eq("id", savedBookId).then(({ error }) => {
+              if (error) console.error("Failed to save completed pages:", error);
+            });
+            return pagesWithImages;
+          });
+        } catch (err) {
+          console.error("Failed to save completed pages:", err);
+        }
+      }
+
       setStep(10);
     } catch (err: any) {
       setGenerating(false);
