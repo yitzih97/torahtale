@@ -129,7 +129,7 @@ const STEP_GROUPS = [
   { label: "Character", icon: Users, steps: [1, 2, 3, 4, 5] },
   { label: "Story", icon: BookOpen, steps: [6, 7, 8] },
   { label: "Create", icon: Sparkles, steps: [9, 10] },
-  { label: "Order", icon: Package, steps: [11, 12, 13] },
+  { label: "Order", icon: Package, steps: [11, 12, 13, 14] },
 ];
 
 const AGE_BRACKETS = [
