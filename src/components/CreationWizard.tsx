@@ -193,6 +193,45 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
+  /* ───── login prompt during generation ───── */
+
+  useEffect(() => {
+    if (step === 9 && generating && !user) {
+      loginTimerRef.current = setTimeout(() => setShowLoginPrompt(true), 5000);
+    } else {
+      setShowLoginPrompt(false);
+    }
+    return () => { if (loginTimerRef.current) clearTimeout(loginTimerRef.current); };
+  }, [step, generating, user]);
+
+  // Dismiss prompt once user logs in
+  useEffect(() => {
+    if (user && showLoginPrompt) {
+      setShowLoginPrompt(false);
+      toast.success("Signed in! Your book will be saved to your account.");
+    }
+  }, [user, showLoginPrompt]);
+
+  const handleWizardLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPassword });
+    setLoginLoading(false);
+    if (error) { toast.error(error.message); } else { toast.success("Welcome back!"); }
+  };
+
+  const handleWizardSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email: loginEmail,
+      password: loginPassword,
+      options: { data: { full_name: loginFullName }, emailRedirectTo: window.location.origin },
+    });
+    setLoginLoading(false);
+    if (error) { toast.error(error.message); } else { toast.success("Account created! Your book is being saved."); }
+  };
+
   /* ───── photo handling ───── */
 
   const handlePhoto = (childId: string, e: React.ChangeEvent<HTMLInputElement>) => {
