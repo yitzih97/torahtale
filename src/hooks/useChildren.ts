@@ -44,6 +44,20 @@ export function useChildren() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["children"] }),
   });
 
+  const updateChildMutation = useMutation({
+    mutationFn: async ({ id, ...child }: { id: string } & Partial<Omit<ChildRecord, "id" | "user_id" | "created_at">>) => {
+      const { data, error } = await supabase
+        .from("children")
+        .update(child as any)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["children"] }),
+  });
+
   const deleteChild = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("children").delete().eq("id", id);
@@ -52,5 +66,5 @@ export function useChildren() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["children"] }),
   });
 
-  return { children: childrenQuery.data || [], isLoading: childrenQuery.isLoading, addChild, deleteChild };
+  return { children: childrenQuery.data || [], isLoading: childrenQuery.isLoading, addChild, updateChild: updateChildMutation, deleteChild };
 }

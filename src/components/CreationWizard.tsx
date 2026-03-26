@@ -22,6 +22,7 @@ import { TORAH_PORTIONS, getPortionLabel } from "./wizard/TorahPortions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useChildren } from "@/hooks/useChildren";
 
 /* ── preset images ── */
 import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
@@ -154,6 +155,7 @@ interface Props {
 export const CreationWizard = ({ open, onClose }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { children: existingChildren } = useChildren();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [data, setData] = useState<WizardData>(initialData);
@@ -648,6 +650,47 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       </h2>
                       <p className="text-muted-foreground text-sm mt-1">Enter the name of the child who will star in this Torah adventure.</p>
                     </div>
+
+                    {/* Select existing child */}
+                    {existingChildren.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Select an existing child</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {existingChildren.map((ec) => {
+                            const isSelected = child.name === ec.name && child.gender === (ec.gender || "") && child.age === String(ec.age || "");
+                            return (
+                              <button
+                                key={ec.id}
+                                onClick={() => {
+                                  updateChild(child.id, {
+                                    name: ec.name,
+                                    gender: ec.gender || "",
+                                    age: ec.age ? String(ec.age) : "",
+                                  });
+                                  if (ec.art_style) update({ artStyle: ec.art_style });
+                                }}
+                                className={`rounded-xl border-2 p-3 text-left transition-all duration-200 active:scale-[0.97] ${
+                                  isSelected
+                                    ? "border-accent bg-accent/5 shadow-sm"
+                                    : "border-border hover:border-accent/30"
+                                }`}
+                              >
+                                <p className="font-display font-semibold text-sm text-primary truncate">{ec.name}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {ec.age ? `${ec.age}yo` : ""}{ec.gender ? ` · ${ec.gender}` : ""}
+                                </p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="flex items-center gap-3 pt-2">
+                          <div className="flex-1 h-px bg-border" />
+                          <span className="text-[10px] text-muted-foreground uppercase">or enter a new name</span>
+                          <div className="flex-1 h-px bg-border" />
+                        </div>
+                      </div>
+                    )}
+
                     <Input
                       placeholder="e.g., Chaya Mushka"
                       value={child.name}
