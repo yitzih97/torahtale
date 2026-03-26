@@ -5,18 +5,20 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
+import { type BookOptions, calculateBookPrice } from "./BookOptionsStep";
 
 interface Props {
   childName: string;
   torahPortion: string;
   artStyle: string;
   shipping: ShippingData;
+  bookOptions: BookOptions;
   onPlaceOrder: (subscribeWeekly: boolean) => void;
 }
 
-export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, onPlaceOrder }: Props) => {
+export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, bookOptions, onPlaceOrder }: Props) => {
   const [subscribeWeekly, setSubscribeWeekly] = useState(false);
-  const bookPrice = 34.99;
+  const bookPrice = calculateBookPrice(bookOptions);
   const shippingCost = shipping.shippingMethod === "express" ? 9.99 : 0;
   const weeklyPrice = 24.99;
   const total = bookPrice + shippingCost;
