@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, ImageIcon, Wand2, Sparkles, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
+import { DraggableText, DEFAULT_TEXT_STYLE, type TextStyle } from "./DraggableText";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export interface BookPage {
   synopsis?: string;
   dedication?: string;
   questions?: { number: number; question: string }[];
+  textStyle?: TextStyle;
 }
 
 interface Props {
@@ -36,6 +38,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   const [regenerating, setRegenerating] = useState<number | null>(null);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const page = pages[currentPage];
   const pageType = page?.type || "story";
@@ -112,7 +115,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
       </div>
 
       {/* Book viewer */}
-      <div className="relative bg-secondary rounded-book overflow-hidden">
+      <div ref={imageContainerRef} className="relative bg-secondary rounded-book overflow-hidden" onClick={() => {}}>
         {/* Image section — same for all page types */}
         {page?.image ? (
           <motion.img
@@ -137,7 +140,22 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           </div>
         )}
 
-        {/* No duplicate image rendering needed — handled above */}
+        {/* Draggable text overlay for story pages */}
+        {pageType === "story" && page?.image && (
+          <DraggableText
+            text={page.text || ""}
+            style={page.textStyle || DEFAULT_TEXT_STYLE}
+            onChange={(newStyle) => {
+              const updated = pages.map((p, i) => (i === currentPage ? { ...p, textStyle: newStyle } : p));
+              onPagesChange(updated);
+            }}
+            onTextChange={(newText) => {
+              const updated = pages.map((p, i) => (i === currentPage ? { ...p, text: newText } : p));
+              onPagesChange(updated);
+            }}
+            containerRef={imageContainerRef as React.RefObject<HTMLDivElement>}
+          />
+        )}
 
         {regenerating === currentPage && (
           <div className="absolute inset-0 flex items-center justify-center bg-primary/20 rounded-book">
@@ -182,21 +200,14 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
       </div>
 
       {/* Action buttons */}
-      {(
-        <div className="flex gap-2">
-          {!isSpecialPage && (
-            <Button variant="outline" size="sm" onClick={() => startEdit(currentPage)} className="flex-1 text-xs">
-              <Pencil className="w-3.5 h-3.5" /> Edit Text
-            </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={() => regenImage(currentPage)} disabled={regenerating !== null} className="flex-1 text-xs">
-            <RefreshCw className="w-3.5 h-3.5" /> Quick Regen
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => openPromptEditor(currentPage)} disabled={regenerating !== null} className="flex-1 text-xs">
-            <Wand2 className="w-3.5 h-3.5" /> Custom Prompt
-          </Button>
-        </div>
-      )}
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={() => regenImage(currentPage)} disabled={regenerating !== null} className="flex-1 text-xs">
+          <RefreshCw className="w-3.5 h-3.5" /> Quick Regen
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => openPromptEditor(currentPage)} disabled={regenerating !== null} className="flex-1 text-xs">
+          <Wand2 className="w-3.5 h-3.5" /> Custom Prompt
+        </Button>
+      </div>
 
       {/* Custom prompt editor */}
       {showPromptEditor && (
@@ -261,25 +272,11 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         </div>
       )}
 
-      {/* Story text display */}
+      {/* Story text hint — text is now editable on the image (double-click to edit) */}
       {pageType === "story" && (
-        editingPage === currentPage ? (
-          <div className="space-y-2">
-            <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} className="text-sm font-body" />
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" size="sm" onClick={() => setEditingPage(null)}>
-                <X className="w-3.5 h-3.5" /> Cancel
-              </Button>
-              <Button variant="gold" size="sm" onClick={saveEdit}>
-                <Check className="w-3.5 h-3.5" /> Save
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm font-body text-foreground bg-card rounded-book border border-border p-4 leading-relaxed italic">
-            "{page?.text || "Loading..."}"
-          </p>
-        )
+        <p className="text-[11px] text-muted-foreground text-center italic">
+          💡 Drag text on the image to reposition. Double-click to edit. Click to open style toolbar.
+        </p>
       )}
     </div>
   );

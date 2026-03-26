@@ -2,19 +2,19 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, ArrowRight, Upload, Loader2, Sparkles, Plus, Trash2,
-  Users, BookOpen, Palette, Package, CreditCard, Check,
+  ArrowLeft, ArrowRight, Loader2, Sparkles, Plus,
+  Users, BookOpen, Palette, Package, Check,
   Camera, Sun, User, Type, Calendar, Heart, Image, PenLine
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SparkleEffect } from "./SparkleEffect";
 import { BookViewer, type BookPage } from "./wizard/BookViewer";
+import { BookLoadingSkeleton } from "./wizard/BookLoadingSkeleton";
 import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/ShippingForm";
 import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SuccessStep } from "./wizard/SuccessStep";
@@ -161,7 +161,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [data, setData] = useState<WizardData>(initialData);
   const [generating, setGenerating] = useState(false);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
-  const [genText, setGenText] = useState("");
+  
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
@@ -172,6 +172,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const previewDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewCache = useRef<Map<string, string>>(new Map());
   const previewFallbackNoticeShown = useRef(false);
+  const lastPreviewKey = useRef<string>("");
+  const [genProgress, setGenProgress] = useState(0);
+  const [genPhase, setGenPhase] = useState("");
 
   const child = data.children[data.activeChildIdx] || data.children[0];
 
@@ -248,8 +251,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   }, [previewCreditsExhausted, updateChild, isCreditsExhaustedError, disableAiPreviews]);
 
   const triggerPreviewDebounced = useCallback((c: ChildProfile, style: string) => {
+    const key = `${c.gender}-${c.age}-${style}-${c.description}-${c.photoPreview ? "photo" : "no"}`;
+    if (key === lastPreviewKey.current) return; // skip duplicate
+    lastPreviewKey.current = key;
     if (previewDebounce.current) clearTimeout(previewDebounce.current);
-    previewDebounce.current = setTimeout(() => generateCharacterPreview(c, style), 600);
+    previewDebounce.current = setTimeout(() => generateCharacterPreview(c, style), 1500);
   }, [generateCharacterPreview]);
 
    // Trigger preview on age selection (step 3, after gender)
@@ -345,14 +351,15 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     setDir(1);
     setStep(9);
     setGenerating(true);
+    setGenProgress(0);
+    setGenPhase("Preparing your story...");
 
-    const texts = ["Weaving the magic...", "Writing story with AI...", "Illustrating pages...", "Almost there..."];
-    let i = 0;
-    setGenText(texts[0]);
-    const iv = setInterval(() => { i++; if (i < texts.length) setGenText(texts[i]); }, 2500);
+    const phaseMessages = ["Writing the story with AI...", "Story complete! Starting illustrations..."];
+    setGenPhase(phaseMessages[0]);
 
     try {
-      setGenText("Writing story with AI...");
+      setGenPhase("Writing the story...");
+      setGenProgress(5);
       const portionLabel = getPortionLabel(data.torahPortion);
       const childrenInfo = data.children.map((c) => `${c.name} (${c.age} years old, ${c.gender})`).join(", ");
 
@@ -389,9 +396,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       allPages.push({ id: pageId++, text: backCover.synopsis || "", image: null, imageLoading: true, type: "back-cover", synopsis: backCover.synopsis, dedication: backCover.dedication, questions });
 
       setBookPages(allPages);
-      clearInterval(iv);
-      setGenerating(false);
-      setStep(10);
+      setGenProgress(20);
+      setGenPhase("Story written! Now illustrating...");
 
       // Auto-save
       if (user) {
@@ -467,16 +473,35 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           console.warn(`Retrying image for page ${page.id}, attempt ${attempt + 2}`);
         }
 
+        // Update progress per page
+        const pageIdx = allPages.indexOf(page);
+        const progressPerPage = 80 / allPages.length;
+        setGenProgress(20 + Math.round((pageIdx + 1) * progressPerPage));
+        setGenPhase(`Illustrating page ${pageIdx + 1} of ${allPages.length}...`);
+
         setBookPages((prev) => prev.map((p) => (p.id === page.id ? { ...p, image: imageUrl, imageLoading: false } : p)));
       }
+
+      // All done
+      setGenProgress(100);
+      setGenPhase("Your book is ready!");
+      setGenerating(false);
+      setStep(10);
     } catch (err: any) {
-      clearInterval(iv);
       setGenerating(false);
       console.error("Generation failed:", err);
       toast.error(err?.message || "Failed to generate story. Please try again.");
       setStep(8);
     }
   };
+
+  /* ───── step skipping helpers ───── */
+
+  const allChildrenHaveGenderAge = useCallback(() =>
+    data.children.every((c) => !!c.gender && !!c.age), [data.children]);
+
+  const allChildrenHavePhotoOrDesc = useCallback(() =>
+    data.children.every((c) => !!c.photoPreview || !!c.description), [data.children]);
 
   /* ───── navigation ───── */
 
@@ -486,12 +511,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       return;
     }
     setDir(1);
-    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    let nextStep = step + 1;
+    // Skip gender/age/photo steps for existing children with complete profiles
+    if (step === 1 && allChildrenHaveGenderAge()) {
+      nextStep = 4; // skip gender(2), age(3) → go to art style
+      if (allChildrenHavePhotoOrDesc()) {
+        nextStep = 6; // also skip photo/desc(5) and art style stays at 4 unless they have art_style
+      }
+    }
+    setStep(Math.min(nextStep, TOTAL_STEPS));
   };
 
   const back = () => {
     setDir(-1);
-    setStep((s) => Math.max(s - 1, 1));
+    let prevStep = step - 1;
+    // Skip back over steps that were auto-skipped
+    if (allChildrenHaveGenderAge()) {
+      if (step === 4) prevStep = 1; // skip back over age(3), gender(2)
+      if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
+    }
+    setStep(Math.max(prevStep, 1));
   };
 
   const handlePlaceOrder = async (subscribeWeekly: boolean = false) => {
@@ -644,6 +683,40 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         )}
 
         <div className="p-6 sm:p-8 pt-4">
+          {/* Selected kids sidebar — visible on steps 2-8 when multiple children */}
+          {step >= 2 && step <= 8 && data.children.length > 1 && (
+            <div className="mb-4">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">Selected Children</p>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {data.children.map((c, idx) => (
+                  <button
+                    key={c.id}
+                    onClick={() => update({ activeChildIdx: idx })}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all duration-200 flex-shrink-0 ${
+                      idx === data.activeChildIdx
+                        ? "border-accent bg-accent/5 shadow-sm"
+                        : "border-border hover:border-accent/30"
+                    }`}
+                  >
+                    {c.photoPreview ? (
+                      <img src={c.photoPreview} alt={c.name} className="w-7 h-7 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                        {(c.name || "?").slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="text-left min-w-0">
+                      <p className="text-xs font-semibold text-primary truncate max-w-[80px]">{c.name || `Child ${idx + 1}`}</p>
+                      <p className="text-[9px] text-muted-foreground">
+                        {c.age ? `${c.age}yo` : ""}{c.gender ? ` · ${c.gender}` : ""}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Layout: steps 2-5 show character preview on the side */}
           <div className={step >= 2 && step <= 5 ? "flex flex-col sm:flex-row gap-6" : ""}>
             {/* Character preview (top on mobile, right on desktop) */}
@@ -1101,24 +1174,36 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 9: Generating ── */}
                 {step === 9 && generating && (
-                  <motion.div key="s9" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="py-16 space-y-8">
+                  <motion.div key="s9" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="py-10 space-y-6">
                     <SparkleEffect count={15} />
-                    <div className="text-center space-y-5">
+                    <div className="text-center space-y-4">
                       <div className="w-20 h-20 rounded-3xl bg-accent/10 flex items-center justify-center mx-auto">
                         <Loader2 className="w-10 h-10 text-accent animate-spin" />
                       </div>
-                      <motion.p key={genText} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="font-display text-xl text-primary font-semibold">
-                        {genText}
+                      <motion.p key={genPhase} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="font-display text-xl text-primary font-semibold">
+                        {genPhase}
                       </motion.p>
-                      <p className="text-sm text-muted-foreground max-w-xs mx-auto">Creating something extraordinary for {childNames}...</p>
+                      <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                        Creating something extraordinary for {childNames}...
+                      </p>
                     </div>
-                    <div className="space-y-4 px-4 max-w-sm mx-auto">
-                      <Skeleton className="w-full aspect-[4/3] rounded-2xl" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-3/4 rounded-full" />
-                        <Skeleton className="h-4 w-full rounded-full" />
-                        <Skeleton className="h-4 w-2/3 rounded-full" />
+
+                    {/* Progress bar */}
+                    <div className="max-w-sm mx-auto space-y-2">
+                      <div className="h-3 bg-muted rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-accent rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${genProgress}%` }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                        />
                       </div>
+                      <p className="text-xs text-muted-foreground text-center font-mono">{genProgress}%</p>
+                    </div>
+
+                    {/* Animated book skeleton */}
+                    <div className="px-4 max-w-sm mx-auto">
+                      <BookLoadingSkeleton type="story" message={genPhase} />
                     </div>
                   </motion.div>
                 )}
