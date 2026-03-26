@@ -164,10 +164,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewCreditsExhausted, setPreviewCreditsExhausted] = useState(false);
   const [artStylePreviews, setArtStylePreviews] = useState<Record<string, string | null>>({});
   const [artStylePreviewsLoading, setArtStylePreviewsLoading] = useState(false);
   const previewDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewCache = useRef<Map<string, string>>(new Map());
+  const previewFallbackNoticeShown = useRef(false);
 
   const child = data.children[data.activeChildIdx] || data.children[0];
 
@@ -184,10 +186,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
+  const isCreditsExhaustedError = useCallback((error: unknown) => {
+    const err = error as { context?: { status?: number }; status?: number; message?: string };
+    const status = err?.context?.status ?? err?.status;
+    const message = (err?.message || "").toLowerCase();
+    return status === 402 || message.includes("credits exhausted");
+  }, []);
+
+  const disableAiPreviews = useCallback(() => {
+    setPreviewCreditsExhausted(true);
+    if (!previewFallbackNoticeShown.current) {
+      previewFallbackNoticeShown.current = true;
+      toast.info("Live AI previews are temporarily unavailable, using preset illustrations.");
+    }
+  }, []);
+
   /* ───── character preview generation ───── */
 
   const generateCharacterPreview = useCallback(async (c: ChildProfile, style: string) => {
     if (!c.gender || !c.age) return;
+    if (previewCreditsExhausted) return;
     const cacheKey = `${c.gender}-${c.age}-${style}-${c.description}-${c.photoPreview ? "photo" : "no"}`;
     if (previewCache.current.has(cacheKey)) {
       updateChild(c.id, { characterPreview: previewCache.current.get(cacheKey)! });
@@ -204,18 +222,28 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           referenceImage: c.photoPreview || undefined,
         },
       });
-      if (error) throw error;
+      if (error) {
+        if (isCreditsExhaustedError(error)) {
+          disableAiPreviews();
+          return;
+        }
+        throw error;
+      }
       if (result?.imageUrl) {
         previewCache.current.set(cacheKey, result.imageUrl);
         updateChild(c.id, { characterPreview: result.imageUrl });
       }
     } catch (err: any) {
+      if (isCreditsExhaustedError(err)) {
+        disableAiPreviews();
+        return;
+      }
       // Silently fall back to presets — don't show errors for preview generation
       console.warn("Character preview unavailable, using preset:", err?.message || err);
     } finally {
       setPreviewLoading(false);
     }
-  }, [updateChild]);
+  }, [previewCreditsExhausted, updateChild, isCreditsExhaustedError, disableAiPreviews]);
 
   const triggerPreviewDebounced = useCallback((c: ChildProfile, style: string) => {
     if (previewDebounce.current) clearTimeout(previewDebounce.current);
@@ -233,6 +261,17 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   useEffect(() => {
     if (step !== 4 || !child.gender || !child.age) return;
     if (artStylePreviewsLoading) return;
+
+    if (previewCreditsExhausted) {
+      setArtStylePreviews(
+        ART_STYLES.reduce<Record<string, string>>((acc, style) => {
+          acc[style.key] = getStylePreset(child.gender, style.key);
+          return acc;
+        }, {})
+      );
+      return;
+    }
+
     setArtStylePreviewsLoading(true);
 
     const generateStylePreviews = async () => {
@@ -247,7 +286,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           const { data: result, error } = await supabase.functions.invoke("generate-character-preview", {
             body: { gender: child.gender, age: child.age, artStyle: style.key },
           });
-          if (!error && result?.imageUrl) {
+          if (error) {
+            if (isCreditsExhaustedError(error)) {
+              disableAiPreviews();
+            }
+            results[style.key] = getStylePreset(child.gender, style.key);
+          } else if (result?.imageUrl) {
             results[style.key] = result.imageUrl;
             previewCache.current.set(cacheKey, result.imageUrl);
           } else {
@@ -262,7 +306,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       setArtStylePreviewsLoading(false);
     };
     generateStylePreviews();
-  }, [step, child.gender, child.age]);
+  }, [step, child.gender, child.age, previewCreditsExhausted, artStylePreviewsLoading, isCreditsExhaustedError, disableAiPreviews]);
 
   /* ───── photo handling ───── */
 
@@ -716,6 +760,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {ART_STYLES.map((s) => {
                         const presetImg = getStylePreset(child.gender || "boy", s.key);
+                        const stylePreview = artStylePreviews[s.key] || presetImg;
                         return (
                           <button
                             key={s.key}
@@ -732,7 +777,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             }`}
                           >
                             <div className="aspect-square bg-muted/50 relative">
-                              <img src={presetImg} alt={s.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
+                              <img src={stylePreview} alt={s.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
                             </div>
                             <div className="p-3">
                               <span className="text-sm font-semibold text-primary block">{s.label}</span>
