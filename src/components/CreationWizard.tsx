@@ -351,11 +351,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     setDir(1);
     setStep(9);
     setGenerating(true);
+    setGenProgress(0);
+    setGenPhase("Preparing your story...");
 
-    const texts = ["Weaving the magic...", "Writing story with AI...", "Illustrating pages...", "Almost there..."];
-    let i = 0;
-    setGenText(texts[0]);
-    const iv = setInterval(() => { i++; if (i < texts.length) setGenText(texts[i]); }, 2500);
+    const phaseMessages = ["Writing the story with AI...", "Story complete! Starting illustrations..."];
+    setGenPhase(phaseMessages[0]);
 
     try {
       setGenText("Writing story with AI...");
