@@ -1140,24 +1140,36 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 9: Generating ── */}
                 {step === 9 && generating && (
-                  <motion.div key="s9" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="py-16 space-y-8">
+                  <motion.div key="s9" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="py-10 space-y-6">
                     <SparkleEffect count={15} />
-                    <div className="text-center space-y-5">
+                    <div className="text-center space-y-4">
                       <div className="w-20 h-20 rounded-3xl bg-accent/10 flex items-center justify-center mx-auto">
                         <Loader2 className="w-10 h-10 text-accent animate-spin" />
                       </div>
-                      <motion.p key={genText} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="font-display text-xl text-primary font-semibold">
-                        {genText}
+                      <motion.p key={genPhase} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="font-display text-xl text-primary font-semibold">
+                        {genPhase}
                       </motion.p>
-                      <p className="text-sm text-muted-foreground max-w-xs mx-auto">Creating something extraordinary for {childNames}...</p>
+                      <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                        Creating something extraordinary for {childNames}...
+                      </p>
                     </div>
-                    <div className="space-y-4 px-4 max-w-sm mx-auto">
-                      <Skeleton className="w-full aspect-[4/3] rounded-2xl" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-3/4 rounded-full" />
-                        <Skeleton className="h-4 w-full rounded-full" />
-                        <Skeleton className="h-4 w-2/3 rounded-full" />
+
+                    {/* Progress bar */}
+                    <div className="max-w-sm mx-auto space-y-2">
+                      <div className="h-3 bg-muted rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-accent rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${genProgress}%` }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                        />
                       </div>
+                      <p className="text-xs text-muted-foreground text-center font-mono">{genProgress}%</p>
+                    </div>
+
+                    {/* Animated book skeleton */}
+                    <div className="px-4 max-w-sm mx-auto">
+                      <BookLoadingSkeleton type="story" message={genPhase} />
                     </div>
                   </motion.div>
                 )}
