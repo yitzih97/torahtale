@@ -502,17 +502,20 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
         // Create weekly subscription if opted in
         if (subscribeWeekly) {
-          await supabase.from("subscriptions" as any).insert({
+          const { error: subError } = await supabase.from("subscriptions").insert({
             user_id: user.id,
             child_name: childNames,
             child_id: data.children[0]?.id || null,
             art_style: data.artStyle,
             language: data.language,
-            shipping_data: shipping,
+            shipping_data: shipping as any,
             status: "active",
             frequency: "weekly",
-            price_per_week: 24.99,
-          } as any);
+            price_per_week: 23.99,
+          });
+          if (subError) {
+            console.error("Failed to create subscription:", subError);
+          }
         }
       } catch (err) {
         console.error("Failed to update order:", err);
