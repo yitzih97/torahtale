@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (!GOOGLE_AI_API_KEY) {
+      throw new Error("GOOGLE_AI_API_KEY is not configured");
     }
 
     const { gender, age, artStyle, description, referenceImage } = await req.json();
@@ -49,56 +49,107 @@ serve(async (req) => {
 
     const prompt = `Create a character portrait illustration of a ${ageNum}-year-old Jewish ${gender} ${ageDesc}. ${genderDetails}. ${descPart} Style: ${style}. Children's book character design, bust/portrait view, clean white background, vibrant colors, warm and inviting. No text in the image.`;
 
-    // Build messages
-    const messages: any[] = [];
-    const content: any[] = [{ type: "text", text: prompt }];
+    // Build parts for Gemini API
+    const parts: any[] = [];
 
     if (referenceImage) {
-      content.push({
-        type: "image_url",
-        image_url: { url: referenceImage },
-      });
+      if (referenceImage.startsWith("data:")) {
+        const match = referenceImage.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (match) {
+          parts.push({
+            inlineData: {
+              mimeType: match[1],
+              data: match[2],
+            },
+          });
+        }
+      } else {
+        parts.push({
+          fileData: {
+            fileUri: referenceImage,
+            mimeType: "image/jpeg",
+          },
+        });
+      }
     }
 
-    messages.push({ role: "user", content });
+    parts.push({ text: prompt });
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3.1-flash-image-preview",
-          messages,
-          modalities: ["image", "text"],
-        }),
+    const imageModels = [
+      "gemini-3.1-flash-image-preview",
+      "gemini-2.5-flash-image-preview",
+      "gemini-2.5-flash-image",
+      "gemini-2.0-flash-exp-image-generation",
+      "gemini-2.0-flash-preview-image-generation",
+    ];
+
+    let response: Response | null = null;
+    let selectedModel: string | null = null;
+    let lastErrorStatus: number | null = null;
+    let lastErrorBody = "";
+
+    for (const model of imageModels) {
+      const attempt = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts }],
+            generationConfig: {
+              responseModalities: ["TEXT", "IMAGE"],
+            },
+          }),
+        }
+      );
+
+      if (attempt.ok) {
+        response = attempt;
+        selectedModel = model;
+        break;
       }
-    );
 
-    if (!response.ok) {
-      if (response.status === 429) {
+      const body = await attempt.text();
+      lastErrorStatus = attempt.status;
+      lastErrorBody = body;
+      console.error(`Gemini image generation error with model ${model}:`, attempt.status, body);
+
+      if (attempt.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limited, please try again shortly." }),
+          JSON.stringify({ error: "Rate limited — please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Credits exhausted. Please add funds." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+
+      const retryableModelError =
+        attempt.status === 404 ||
+        (attempt.status === 400 && /not found|not supported|generatecontent|responsemodalities/i.test(body));
+
+      if (!retryableModelError) {
+        throw new Error(`Gemini image generation error [${attempt.status}]`);
       }
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      throw new Error(`AI gateway error: ${response.status}`);
     }
 
+    if (!response) {
+      console.error("No compatible Gemini image model found", { lastErrorStatus, lastErrorBody });
+      throw new Error(`Gemini image generation error [${lastErrorStatus ?? 500}]`);
+    }
+
+    console.log(`Character preview using model: ${selectedModel}`);
     const data = await response.json();
-    const imageUrl =
-      data.choices?.[0]?.message?.images?.[0]?.image_url?.url || null;
+    const partsResponse = data.candidates?.[0]?.content?.parts || [];
+
+    let imageUrl: string | null = null;
+    for (const part of partsResponse) {
+      if (part.inlineData) {
+        imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+        break;
+      }
+    }
+
+    if (!imageUrl) {
+      throw new Error("No image returned from Gemini");
+    }
 
     return new Response(JSON.stringify({ imageUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
