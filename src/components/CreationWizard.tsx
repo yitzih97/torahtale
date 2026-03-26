@@ -453,34 +453,40 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       const style = styleMap[data.artStyle] || styleMap.cartoon;
       const portionLabelForImg = getPortionLabel(data.torahPortion);
 
-      // Generate images sequentially for consistency, with retry
-      for (const page of allPages) {
-        let imgPrompt: string;
-
+      // Prepare all image prompts upfront
+      const imagePrompts = allPages.map((page) => {
         if (page.type === "cover") {
-          imgPrompt = `A stunning children's book FRONT COVER illustration (4:3 landscape). Scene from the Torah story "${portionLabelForImg}". ${consistencyNote} Style: ${style}. Magical, inviting, vibrant colors. DO NOT include any text, title, or lettering in the image. No words.`;
+          return `A stunning children's book FRONT COVER illustration (4:3 landscape). Scene from the Torah story "${portionLabelForImg}". ${consistencyNote} Style: ${style}. Magical, inviting, vibrant colors. DO NOT include any text, title, or lettering in the image. No words.`;
         } else if (page.type === "back-cover") {
-          imgPrompt = `A beautiful children's book BACK COVER illustration (4:3 landscape). A warm, peaceful closing scene from the Torah story "${portionLabelForImg}". ${consistencyNote} Style: ${style}. Soft, warm colors, peaceful atmosphere. DO NOT include any text, title, or lettering in the image. No words.`;
+          return `A beautiful children's book BACK COVER illustration (4:3 landscape). A warm, peaceful closing scene from the Torah story "${portionLabelForImg}". ${consistencyNote} Style: ${style}. Soft, warm colors, peaceful atmosphere. DO NOT include any text, title, or lettering in the image. No words.`;
         } else {
-          imgPrompt = `A beautiful children's book page illustration (4:3 landscape). Scene: "${page.text}". ${consistencyNote} Torah story: "${portionLabelForImg}". Style: ${style}. Warm magical atmosphere, vibrant colors. DO NOT include any text or lettering in the image. The text will be displayed separately below the illustration.`;
+          return `A beautiful children's book page illustration (4:3 landscape). Scene: "${page.text}". ${consistencyNote} Torah story: "${portionLabelForImg}". Style: ${style}. Warm magical atmosphere, vibrant colors. DO NOT include any text or lettering in the image. The text will be displayed separately below the illustration.`;
         }
+      });
 
-        // Try up to 2 times per page
-        let imageUrl: string | null = null;
-        for (let attempt = 0; attempt < 2; attempt++) {
-          imageUrl = await generateImageForPage(page.id, imgPrompt, data.artStyle, childNames, data.torahPortion);
-          if (imageUrl) break;
-          console.warn(`Retrying image for page ${page.id}, attempt ${attempt + 2}`);
-        }
+      setGenPhase(`Illustrating all ${allPages.length} pages in parallel...`);
 
-        // Update progress per page
-        const pageIdx = allPages.indexOf(page);
-        const progressPerPage = 80 / allPages.length;
-        setGenProgress(20 + Math.round((pageIdx + 1) * progressPerPage));
-        setGenPhase(`Illustrating page ${pageIdx + 1} of ${allPages.length}...`);
+      // Generate ALL images in parallel for speed
+      let completedCount = 0;
+      const progressPerPage = 80 / allPages.length;
 
-        setBookPages((prev) => prev.map((p) => (p.id === page.id ? { ...p, image: imageUrl, imageLoading: false } : p)));
-      }
+      await Promise.all(
+        allPages.map(async (page, idx) => {
+          const imgPrompt = imagePrompts[idx];
+          // Try up to 2 times per page
+          let imageUrl: string | null = null;
+          for (let attempt = 0; attempt < 2; attempt++) {
+            imageUrl = await generateImageForPage(page.id, imgPrompt, data.artStyle, childNames, data.torahPortion);
+            if (imageUrl) break;
+            console.warn(`Retrying image for page ${page.id}, attempt ${attempt + 2}`);
+          }
+
+          completedCount++;
+          setGenProgress(20 + Math.round(completedCount * progressPerPage));
+          setGenPhase(`Illustrated ${completedCount} of ${allPages.length} pages...`);
+          setBookPages((prev) => prev.map((p) => (p.id === page.id ? { ...p, image: imageUrl, imageLoading: false } : p)));
+        })
+      );
 
       // All done — persist final pages with images to DB
       setGenProgress(100);
