@@ -170,6 +170,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [genProgress, setGenProgress] = useState(0);
   const [genPhase, setGenPhase] = useState("");
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginFullName, setLoginFullName] = useState("");
+  const [loginMode, setLoginMode] = useState<"login" | "signup">("signup");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const child = data.children[data.activeChildIdx] || data.children[0];
 
