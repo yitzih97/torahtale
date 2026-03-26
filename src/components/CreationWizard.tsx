@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SparkleEffect } from "./SparkleEffect";
 import { BookViewer, type BookPage } from "./wizard/BookViewer";
+import { BookLoadingSkeleton } from "./wizard/BookLoadingSkeleton";
 import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/ShippingForm";
 import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SuccessStep } from "./wizard/SuccessStep";
