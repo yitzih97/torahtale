@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, Mail, Lock, User, ArrowLeft } from "lucide-react";
@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
