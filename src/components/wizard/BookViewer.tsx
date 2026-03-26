@@ -115,7 +115,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
       </div>
 
       {/* Book viewer */}
-      <div className="relative bg-secondary rounded-book overflow-hidden">
+      <div ref={imageContainerRef} className="relative bg-secondary rounded-book overflow-hidden" onClick={() => {}}>
         {/* Image section — same for all page types */}
         {page?.image ? (
           <motion.img
@@ -140,7 +140,22 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           </div>
         )}
 
-        {/* No duplicate image rendering needed — handled above */}
+        {/* Draggable text overlay for story pages */}
+        {pageType === "story" && page?.image && (
+          <DraggableText
+            text={page.text || ""}
+            style={page.textStyle || DEFAULT_TEXT_STYLE}
+            onChange={(newStyle) => {
+              const updated = pages.map((p, i) => (i === currentPage ? { ...p, textStyle: newStyle } : p));
+              onPagesChange(updated);
+            }}
+            onTextChange={(newText) => {
+              const updated = pages.map((p, i) => (i === currentPage ? { ...p, text: newText } : p));
+              onPagesChange(updated);
+            }}
+            containerRef={imageContainerRef as React.RefObject<HTMLDivElement>}
+          />
+        )}
 
         {regenerating === currentPage && (
           <div className="absolute inset-0 flex items-center justify-center bg-primary/20 rounded-book">
