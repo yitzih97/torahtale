@@ -161,7 +161,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [data, setData] = useState<WizardData>(initialData);
   const [generating, setGenerating] = useState(false);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
-  const [genText, setGenText] = useState("");
+  
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
