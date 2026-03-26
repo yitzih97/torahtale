@@ -360,6 +360,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     try {
       setGenPhase("Writing the story...");
       setGenProgress(5);
+      const portionLabel = getPortionLabel(data.torahPortion);
       const childrenInfo = data.children.map((c) => `${c.name} (${c.age} years old, ${c.gender})`).join(", ");
 
       const { data: storyData, error: storyError } = await supabase.functions.invoke("generate-story", {
