@@ -280,50 +280,12 @@ export default function Dashboard() {
       </main>
       <Footer />
 
-      {/* Add Child Dialog */}
-      <Dialog open={addChildOpen} onOpenChange={setAddChildOpen}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-display">Add Child Profile</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Name</Label>
-              <Input value={newChild.name} onChange={(e) => setNewChild((p) => ({ ...p, name: e.target.value }))} placeholder="Child's name" className="mt-1.5" />
-            </div>
-            <div>
-              <Label>Age</Label>
-              <Input type="number" min="1" max="18" value={newChild.age} onChange={(e) => setNewChild((p) => ({ ...p, age: e.target.value }))} placeholder="Age" className="mt-1.5" />
-            </div>
-            <div>
-              <Label>Gender</Label>
-              <Select value={newChild.gender} onValueChange={(v) => setNewChild((p) => ({ ...p, gender: v }))}>
-                <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="boy">Boy</SelectItem>
-                  <SelectItem value="girl">Girl</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Preferred Art Style</Label>
-              <Select value={newChild.art_style} onValueChange={(v) => setNewChild((p) => ({ ...p, art_style: v }))}>
-                <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cartoon">Cartoon</SelectItem>
-                  <SelectItem value="3d-pixar">3D Pixar</SelectItem>
-                  <SelectItem value="graphic-novel">Graphic Novel</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="gold" onClick={handleAddChild} disabled={!newChild.name || addChild.isPending}>
-              {addChild.isPending ? "Adding..." : "Add Child"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddChildWizard
+        open={addChildOpen}
+        onClose={() => setAddChildOpen(false)}
+        onSubmit={handleAddChild}
+        isPending={addChild.isPending}
+      />
     </div>
   );
 }
