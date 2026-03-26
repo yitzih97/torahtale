@@ -395,8 +395,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       allPages.push({ id: pageId++, text: backCover.synopsis || "", image: null, imageLoading: true, type: "back-cover", synopsis: backCover.synopsis, dedication: backCover.dedication, questions });
 
       setBookPages(allPages);
-      clearInterval(iv);
-      setGenerating(false);
+      setGenProgress(20);
+      setGenPhase("Story written! Now illustrating...");
       setStep(10);
 
       // Auto-save
