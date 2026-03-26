@@ -557,8 +557,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     let prevStep = step - 1;
     // Skip back over steps that were auto-skipped
     if (allChildrenHaveGenderAge()) {
-      if (step === 4) prevStep = 1; // skip back over age(3), gender(2)
-      if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
+      if (step === 4) prevStep = 1;
+      if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 5;
     }
     setStep(Math.max(prevStep, 1));
   };
