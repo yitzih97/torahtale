@@ -162,6 +162,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [data, setData] = useState<WizardData>(initialData);
   const [generating, setGenerating] = useState(false);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
+  const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
   
   const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
   const [bookPages, setBookPages] = useState<BookPage[]>([]);
