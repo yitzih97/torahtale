@@ -313,6 +313,8 @@ export default function Dashboard() {
           age: editingChild.age,
           gender: editingChild.gender,
           art_style: editingChild.art_style,
+          photo_url: editingChild.photo_url,
+          description: editingChild.description,
         } : undefined}
       />
     </div>
