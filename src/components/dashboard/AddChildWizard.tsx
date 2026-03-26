@@ -2,10 +2,14 @@ import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Type, Heart, Calendar, Palette, Check, User,
+  Camera, Sun, PenLine, Image,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 /* ── preset images ── */
 import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
@@ -25,7 +29,7 @@ import presetPreteenGirl from "@/assets/presets/preteen-girl-cartoon.jpg";
 
 /* ── constants ── */
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const slideVariants = {
@@ -53,6 +57,7 @@ const STEP_LABELS = [
   { label: "Gender", icon: Heart },
   { label: "Age", icon: Calendar },
   { label: "Style", icon: Palette },
+  { label: "Photo", icon: Image },
 ];
 
 /* ── helpers ── */
@@ -91,6 +96,7 @@ export interface AddChildResult {
   gender: string | null;
   art_style: string | null;
   photo_url: string | null;
+  description: string | null;
 }
 
 interface Props {
@@ -98,32 +104,38 @@ interface Props {
   onClose: () => void;
   onSubmit: (child: AddChildResult) => void;
   isPending?: boolean;
-  /** Pre-fill for editing an existing child */
   initialData?: {
     name: string;
     age: number | null;
     gender: string | null;
     art_style: string | null;
+    photo_url: string | null;
+    description: string | null;
   };
-  /** Title override for edit mode */
   mode?: "add" | "edit";
 }
 
 export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData, mode = "add" }: Props) {
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [artStyle, setArtStyle] = useState("");
+  const [description, setDescription] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  // Populate fields when editing
   useEffect(() => {
     if (open && initialData) {
       setName(initialData.name || "");
       setGender(initialData.gender || "");
       setAge(initialData.age ? String(initialData.age) : "");
       setArtStyle(initialData.art_style || "");
+      setDescription(initialData.description || "");
+      setPhotoPreview(initialData.photo_url || null);
     }
   }, [open, initialData]);
 
@@ -134,22 +146,52 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
     setGender("");
     setAge("");
     setArtStyle("");
+    setDescription("");
+    setPhotoFile(null);
+    setPhotoPreview(null);
   }, []);
 
-  const handleClose = () => {
-    reset();
-    onClose();
+  const handleClose = () => { reset(); onClose(); };
+
+  const uploadPhoto = async (): Promise<string | null> => {
+    if (!photoFile || !user) return photoPreview; // keep existing URL if no new file
+    setUploading(true);
+    try {
+      const ext = photoFile.name.split(".").pop() || "jpg";
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("child-photos").upload(path, photoFile);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("child-photos").getPublicUrl(path);
+      return urlData.publicUrl;
+    } catch (err) {
+      console.error("Photo upload failed:", err);
+      return null;
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
+    const photoUrl = await uploadPhoto();
     onSubmit({
       name,
       age: age ? parseInt(age) : null,
       gender: gender || null,
       art_style: artStyle || null,
-      photo_url: null,
+      photo_url: photoUrl || null,
+      description: description || null,
     });
     reset();
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setPhotoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const next = () => { setDir(1); setStep((s) => Math.min(s + 1, TOTAL_STEPS)); };
@@ -161,12 +203,13 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
       case 2: return !!gender;
       case 3: return !!age;
       case 4: return !!artStyle;
+      case 5: return true; // photo/desc optional
       default: return false;
     }
   })();
 
-  /* ── preview image ── */
   const getPreviewImage = (): string | null => {
+    if (photoPreview) return photoPreview;
     if (gender && age && artStyle) return getStylePreset(gender, artStyle);
     if (gender && age) return getAgePreset(gender, ageToBracketLabel(age));
     if (gender) return getStylePreset(gender, "cartoon");
@@ -375,6 +418,81 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                     </div>
                   </motion.div>
                 )}
+
+                {/* Step 5: Photo / Description */}
+                {step === 5 && (
+                  <motion.div key="s5" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
+                        <Image className="w-6 h-6 text-accent" /> Help us draw {name || "your child"}
+                      </h2>
+                      <p className="text-muted-foreground text-sm mt-1">Upload a photo or describe your child's appearance. Both are optional!</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Upload option */}
+                      <div className="rounded-2xl border-2 border-dashed border-border p-5 text-center hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 relative">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                            <Camera className="w-6 h-6 text-accent" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-primary">Upload a Photo</p>
+                            <p className="text-xs text-muted-foreground mt-1">Best results with clear face photos</p>
+                          </div>
+                          {photoPreview ? (
+                            <div className="flex items-center gap-3 w-full">
+                              <img src={photoPreview} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
+                              <button
+                                onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                                className="text-xs text-destructive hover:underline font-medium"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ) : (
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handlePhotoSelect}
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                            />
+                          )}
+                        </div>
+
+                        <div className="mt-4 rounded-xl bg-accent/5 border border-accent/15 p-3 text-left">
+                          <p className="text-xs font-semibold text-accent mb-1.5 flex items-center gap-1.5">
+                            <Camera className="w-3.5 h-3.5" /> Tips for best results
+                          </p>
+                          <ul className="text-[11px] text-muted-foreground space-y-1">
+                            <li className="flex items-start gap-1.5"><User className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Face clearly visible</li>
+                            <li className="flex items-start gap-1.5"><Sun className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Good lighting</li>
+                            <li className="flex items-start gap-1.5"><Camera className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Close-up portrait</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Description option */}
+                      <div className="rounded-2xl border-2 border-border p-5">
+                        <div className="flex flex-col items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <PenLine className="w-6 h-6 text-primary" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-primary">Describe Instead</p>
+                            <p className="text-xs text-muted-foreground mt-1">Tell us what your child looks like</p>
+                          </div>
+                        </div>
+                        <Textarea
+                          placeholder="e.g., Brown curly hair, olive skin, big brown eyes, loves wearing blue..."
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          className="rounded-xl min-h-[120px] text-sm"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
             </div>
           </div>
@@ -403,10 +521,10 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
               <Button
                 variant="gold"
                 onClick={handleFinish}
-                disabled={!canNext || isPending}
+                disabled={!canNext || isPending || uploading}
                 className="gap-2"
               >
-                {isPending ? (isEdit ? "Saving..." : "Adding...") : (isEdit ? "Save Changes" : "Add Child")} <Check className="w-4 h-4" />
+                {uploading ? "Uploading..." : isPending ? (isEdit ? "Saving..." : "Adding...") : (isEdit ? "Save Changes" : "Add Child")} <Check className="w-4 h-4" />
               </Button>
             )}
           </div>

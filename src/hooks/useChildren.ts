@@ -10,6 +10,7 @@ export interface ChildRecord {
   gender: string | null;
   photo_url: string | null;
   art_style: string | null;
+  description: string | null;
   created_at: string;
 }
 

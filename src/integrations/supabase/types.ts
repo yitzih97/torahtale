@@ -84,6 +84,7 @@ export type Database = {
           age: number | null
           art_style: string | null
           created_at: string
+          description: string | null
           gender: string | null
           id: string
           name: string
@@ -94,6 +95,7 @@ export type Database = {
           age?: number | null
           art_style?: string | null
           created_at?: string
+          description?: string | null
           gender?: string | null
           id?: string
           name: string
@@ -104,6 +106,7 @@ export type Database = {
           age?: number | null
           art_style?: string | null
           created_at?: string
+          description?: string | null
           gender?: string | null
           id?: string
           name?: string
