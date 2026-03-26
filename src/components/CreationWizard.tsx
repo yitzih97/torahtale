@@ -511,11 +511,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     return (
       <div className="flex flex-col items-center gap-3">
         <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 shadow-sm">
-          {previewLoading && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60">
-              <Loader2 className="w-6 h-6 text-accent animate-spin" />
-            </div>
-          )}
           {preview ? (
             <img src={preview} alt="Character preview" className="w-full h-full object-cover" />
           ) : (
