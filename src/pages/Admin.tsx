@@ -48,7 +48,7 @@ export default function Admin() {
     isAdmin, isCheckingAdmin,
     books, booksLoading,
     profiles, profilesLoading,
-    children, childrenLoading,
+    children,
     subscriptions, subscriptionsLoading,
     updateBookStatus, updateSubscriptionStatus,
   } = useAdminData();
