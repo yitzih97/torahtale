@@ -78,6 +78,18 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
                 <span className="font-medium text-primary capitalize">{artStyle === "3d-pixar" ? "3D Pixar" : artStyle === "graphic-novel" ? "Graphic Novel" : "Cartoon"}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-muted-foreground">Cover</span>
+                <span className="font-medium text-primary capitalize">{bookOptions.coverType}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Size</span>
+                <span className="font-medium text-primary capitalize">{bookOptions.size}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Pages</span>
+                <span className="font-medium text-primary capitalize">{bookOptions.pageType === "board" ? "Board Pages" : "Standard"}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
                 <span className="font-medium text-primary">{shippingCost === 0 ? "Free" : `$${shippingCost.toFixed(2)}`}</span>
               </div>
