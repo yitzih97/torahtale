@@ -18,6 +18,7 @@ serve(async (req) => {
     const styleMap: Record<string, string> = {
       cartoon: "colorful cartoon illustration style, like a classic children's book, soft watercolor textures",
       "3d-pixar": "3D Pixar-style CGI render, warm lighting, soft shadows, expressive characters",
+      realistic: "photorealistic illustration, natural lighting, lifelike detail, warm cinematic tones",
       "graphic-novel": "graphic novel illustration, bold ink lines, flat colors, dynamic composition",
     };
 
