@@ -398,7 +398,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       setBookPages(allPages);
       setGenProgress(20);
       setGenPhase("Story written! Now illustrating...");
-      setStep(10);
 
       // Auto-save
       if (user) {
