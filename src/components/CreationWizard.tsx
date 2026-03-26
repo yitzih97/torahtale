@@ -233,7 +233,15 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     if (error) { toast.error(error.message); } else { toast.success("Account created! Your book is being saved."); }
   };
 
-  /* ───── photo handling ───── */
+  const handleWizardGoogleLogin = async () => {
+    setLoginLoading(true);
+    const { error } = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    setLoginLoading(false);
+    if (error) toast.error(error.message);
+  };
+
 
   const handlePhoto = (childId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
