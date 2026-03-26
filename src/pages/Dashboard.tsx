@@ -5,16 +5,15 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AddChildWizard, type AddChildResult } from "@/components/dashboard/AddChildWizard";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Users, BookOpen, CalendarHeart, Plus, Download,
-  Truck, Package, Palette, Eye, Trash2, BookMarked,
+  Users, BookOpen, CalendarHeart, Plus,
+  Truck, Package, Palette, Eye, Trash2, BookMarked, Pencil,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBooks, type BookRecord } from "@/hooks/useBooks";
-import { useChildren } from "@/hooks/useChildren";
+import { useBooks } from "@/hooks/useBooks";
+import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -32,8 +31,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { books, isLoading: booksLoading } = useBooks();
-  const { children, isLoading: childrenLoading, addChild, deleteChild } = useChildren();
+  const { children, isLoading: childrenLoading, addChild, updateChild, deleteChild } = useChildren();
   const [addChildOpen, setAddChildOpen] = useState(false);
+  const [editingChild, setEditingChild] = useState<ChildRecord | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
@@ -59,6 +59,13 @@ export default function Dashboard() {
     await addChild.mutateAsync(child);
     setAddChildOpen(false);
     toast.success("Child profile added!");
+  };
+
+  const handleEditChild = async (child: AddChildResult) => {
+    if (!editingChild) return;
+    await updateChild.mutateAsync({ id: editingChild.id, ...child });
+    setEditingChild(null);
+    toast.success("Child profile updated!");
   };
 
   return (
@@ -162,15 +169,23 @@ export default function Dashboard() {
                                 {kid.age ? `${kid.age} years old` : "Age not set"} · {kid.gender || "Not set"}
                               </p>
                             </div>
-                            <button
-                              onClick={() => {
-                                deleteChild.mutate(kid.id);
-                                toast.success("Child removed");
-                              }}
-                              className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => setEditingChild(kid)}
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  deleteChild.mutate(kid.id);
+                                  toast.success("Child removed");
+                                }}
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                           {kid.art_style && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -278,11 +293,27 @@ export default function Dashboard() {
       </main>
       <Footer />
 
+      {/* Add Child Wizard */}
       <AddChildWizard
         open={addChildOpen}
         onClose={() => setAddChildOpen(false)}
         onSubmit={handleAddChild}
         isPending={addChild.isPending}
+      />
+
+      {/* Edit Child Wizard */}
+      <AddChildWizard
+        open={!!editingChild}
+        onClose={() => setEditingChild(null)}
+        onSubmit={handleEditChild}
+        isPending={updateChild.isPending}
+        mode="edit"
+        initialData={editingChild ? {
+          name: editingChild.name,
+          age: editingChild.age,
+          gender: editingChild.gender,
+          art_style: editingChild.art_style,
+        } : undefined}
       />
     </div>
   );
