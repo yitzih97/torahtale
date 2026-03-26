@@ -218,7 +218,7 @@ export default function Dashboard() {
                               <span>Preferred: {kid.art_style}</span>
                             </div>
                           )}
-                          <Button variant="outline" size="sm" className="w-full mt-4 text-xs" onClick={() => navigate("/")}>
+                          <Button variant="outline" size="sm" className="w-full mt-4 text-xs" onClick={() => navigate("/?start=1")}>
                             <BookOpen className="w-3.5 h-3.5" /> Create New Book
                           </Button>
                         </motion.div>
