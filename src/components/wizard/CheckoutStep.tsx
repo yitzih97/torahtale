@@ -1,11 +1,57 @@
 import { useState } from "react";
-import { CreditCard, Lock, ShieldCheck, CalendarHeart, Check, Sparkles, TrendingDown } from "lucide-react";
+import { CreditCard, Lock, ShieldCheck, Check, Sparkles, TrendingDown, Crown, Zap, CalendarDays } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
 import { type BookOptions, calculateBookPrice } from "./BookOptionsStep";
+
+type PlanType = "weekly" | "monthly" | "yearly" | "once";
+
+interface Plan {
+  id: PlanType;
+  label: string;
+  price: number;
+  perWeek: number;
+  savings: string;
+  icon: typeof Crown;
+  badge?: string;
+  description: string;
+}
+
+const PLANS: Plan[] = [
+  {
+    id: "weekly",
+    label: "Weekly",
+    price: 23.99,
+    perWeek: 23.99,
+    savings: "20% off",
+    icon: Zap,
+    description: "A new Torah adventure every Shabbos",
+  },
+  {
+    id: "monthly",
+    label: "Monthly",
+    price: 79.99,
+    perWeek: 19.99,
+    savings: "33% off",
+    icon: Crown,
+    badge: "MOST POPULAR",
+    description: "4 books/month — best value for families",
+  },
+  {
+    id: "yearly",
+    label: "Yearly",
+    price: 799.99,
+    perWeek: 15.38,
+    savings: "49% off",
+    icon: CalendarDays,
+    description: "Full year of stories — biggest savings",
+  },
+];
+
+const FULL_WEEKLY_PRICE = 29.99;
 
 interface Props {
   childName: string;
@@ -17,19 +63,80 @@ interface Props {
 }
 
 export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, bookOptions, onPlaceOrder }: Props) => {
-  const [subscribeWeekly, setSubscribeWeekly] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
   const bookPrice = calculateBookPrice(bookOptions);
   const shippingCost = shipping.shippingMethod === "express" ? 9.99 : 0;
-  const fullWeeklyPrice = 29.99;
-  const weeklyPrice = 23.99; // 20% off
-  const savings = fullWeeklyPrice - weeklyPrice;
-  const total = bookPrice + shippingCost;
+
+  const isSubscription = selectedPlan !== "once";
+  const activePlan = PLANS.find((p) => p.id === selectedPlan);
+
+  // For subscriptions, first book is included in the plan price
+  const total = isSubscription
+    ? (activePlan?.price ?? 0) + shippingCost
+    : bookPrice + shippingCost;
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-bold text-primary">Complete Your Order</h2>
-        <p className="text-muted-foreground text-sm mt-1">One last step — secure checkout.</p>
+        <h2 className="font-display text-2xl font-bold text-primary">Choose Your Plan</h2>
+        <p className="text-muted-foreground text-sm mt-1">
+          Subscribe and {childName} gets a new personalized Torah book every week!
+        </p>
+      </div>
+
+      {/* Plan cards */}
+      <div className="grid sm:grid-cols-3 gap-3">
+        {PLANS.map((plan) => {
+          const isActive = selectedPlan === plan.id;
+          return (
+            <button
+              key={plan.id}
+              onClick={() => setSelectedPlan(plan.id)}
+              className={`relative rounded-2xl border-2 p-4 text-left transition-all duration-200 active:scale-[0.98] ${
+                isActive
+                  ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
+                  : "border-border hover:border-accent/30 hover:shadow-sm"
+              }`}
+            >
+              {plan.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                  {plan.badge}
+                </div>
+              )}
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 transition-colors ${
+                isActive ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"
+              }`}>
+                {isActive ? <Check className="w-5 h-5" /> : <plan.icon className="w-5 h-5" />}
+              </div>
+              <p className="font-display font-bold text-base text-primary">{plan.label}</p>
+              <div className="mt-1.5">
+                <span className="text-xl font-bold text-accent">${plan.price}</span>
+                <span className="text-xs text-muted-foreground">/{plan.id === "yearly" ? "yr" : plan.id === "monthly" ? "mo" : "wk"}</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{plan.description}</p>
+              <div className="flex items-center gap-1.5 mt-2.5">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
+                  <TrendingDown className="w-3 h-3" /> {plan.savings}
+                </span>
+                <span className="text-[10px] text-muted-foreground">${plan.perWeek.toFixed(2)}/wk</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Skip subscription link */}
+      <div className="text-center">
+        <button
+          onClick={() => setSelectedPlan(selectedPlan === "once" ? "monthly" : "once")}
+          className={`text-xs transition-colors ${
+            selectedPlan === "once"
+              ? "text-accent font-medium"
+              : "text-muted-foreground/60 hover:text-muted-foreground underline underline-offset-2"
+          }`}
+        >
+          {selectedPlan === "once" ? "✓ One-time purchase selected" : "Skip subscription — purchase this book only"}
+        </button>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-6">
@@ -69,7 +176,9 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
             <div className="space-y-2.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Book for {childName}</span>
-                <span className="font-medium text-primary">${bookPrice.toFixed(2)}</span>
+                <span className="font-medium text-primary">
+                  {isSubscription ? "Included" : `$${bookPrice.toFixed(2)}`}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Story</span>
@@ -95,12 +204,11 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
                 <span className="text-muted-foreground">Shipping</span>
                 <span className="font-medium text-primary">{shippingCost === 0 ? "Free" : `$${shippingCost.toFixed(2)}`}</span>
               </div>
-              {subscribeWeekly && (
+              {isSubscription && activePlan && (
                 <div className="flex justify-between text-accent">
-                  <span>Weekly Parashah Club</span>
+                  <span>{activePlan.label} Plan</span>
                   <div className="text-right">
-                    <span className="font-medium">${weeklyPrice}/wk</span>
-                    <span className="text-[10px] line-through text-muted-foreground ml-1.5">${fullWeeklyPrice}</span>
+                    <span className="font-medium">${activePlan.price}/{activePlan.id === "yearly" ? "yr" : activePlan.id === "monthly" ? "mo" : "wk"}</span>
                   </div>
                 </div>
               )}
@@ -108,55 +216,21 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
                 <span>Total Today</span>
                 <span className="text-accent">${total.toFixed(2)}</span>
               </div>
+              {isSubscription && (
+                <p className="text-[10px] text-muted-foreground">
+                  🚚 Free shipping on all subscription deliveries · Cancel anytime
+                </p>
+              )}
             </div>
           </div>
-
-          {/* Weekly subscription upsell — more engaging */}
-          <button
-            onClick={() => setSubscribeWeekly(!subscribeWeekly)}
-            className={`w-full rounded-2xl border-2 p-4 text-left transition-all duration-300 active:scale-[0.98] relative overflow-hidden ${
-              subscribeWeekly
-                ? "border-accent bg-accent/5 shadow-md shadow-accent/10"
-                : "border-border hover:border-accent/40 hover:shadow-sm"
-            }`}
-          >
-            {/* Savings badge */}
-            <div className="absolute top-0 right-0 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl">
-              SAVE 20%
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
-                subscribeWeekly ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"
-              }`}>
-                {subscribeWeekly ? <Check className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
-              </div>
-              <div className="flex-1 pr-8">
-                <p className="font-display font-semibold text-sm text-primary">
-                  ✨ Join Parashah Club — Never Miss a Story!
-                </p>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  Every week, {childName} gets a brand-new personalized Torah adventure based on the weekly Parsha — delivered right to your door!
-                </p>
-                <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-full">
-                    <TrendingDown className="w-3 h-3" /> ${weeklyPrice}/wk (was ${fullWeeklyPrice})
-                  </span>
-                  <span className="text-[10px] font-medium text-primary bg-primary/5 px-2 py-1 rounded-full">🚚 Free shipping</span>
-                  <span className="text-[10px] font-medium text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">Cancel anytime</span>
-                </div>
-                <p className="text-[11px] text-accent font-semibold mt-2">
-                  💰 You save ${savings.toFixed(2)} every week — that's ${(savings * 52).toFixed(0)}+ per year!
-                </p>
-              </div>
-            </div>
-          </button>
         </div>
       </div>
 
-      <Button variant="gold" size="lg" className="w-full rounded-xl h-12 text-base" onClick={() => onPlaceOrder(subscribeWeekly)}>
+      <Button variant="gold" size="lg" className="w-full rounded-xl h-12 text-base" onClick={() => onPlaceOrder(isSubscription)}>
         <Lock className="w-4 h-4" />
-        {subscribeWeekly ? `Subscribe & Place Order — $${total.toFixed(2)}` : `Place Order — $${total.toFixed(2)}`}
+        {isSubscription
+          ? `Subscribe & Place Order — $${total.toFixed(2)}`
+          : `Place Order — $${total.toFixed(2)}`}
       </Button>
     </div>
   );

@@ -12,11 +12,11 @@ const BookFlipAnimation = lazy(() =>
 const ease = [0.16, 1, 0.3, 1];
 
 const HERO_SLIDES = [
-  { headline: ["Hashem Created the World,", "Rivka Walked Through Gan Eden."], description: "Rivka discovers Hashem's beautiful creations alongside Adam and Chava in the very first garden." },
+  { headline: ["Hashem Created the World,", "Miriam Walked Through Gan Eden."], description: "Miriam discovers Hashem's beautiful creations alongside Adam and Chava in the very first garden." },
   { headline: ["Noach Built the Teivah,", "Ari Sailed Along."], description: "Ari gathers animals two by two and rides the mabul to a keshet shining with Hashem's promise." },
   { headline: ["A Tower Rose to Shamayim,", "Yehuda Learned Why It Fell."], description: "The Dor Haflagah tried to reach the sky — Yehuda discovers why achdus and anava matter most." },
   { headline: ["Avraham Counted the Stars,", "Shira Inherited the Promise."], description: "A havtacha as vast as the night sky — Shira steps into the bris of emunah that began it all." },
-  { headline: ["Yosef Wore a Coat of Colors,", "Moshe Dreamed Alongside Him."], description: "From a bor to a palace, Moshe journeys with Yosef HaTzaddik through mechilah and triumph." },
+  { headline: ["Yosef Wore a Coat of Colors,", "Avi Dreamed Alongside Him."], description: "From a bor to a palace, Avi journeys with Yosef HaTzaddik through mechilah and triumph." },
   { headline: ["A Baby Floated Down the Nile,", "Devorah Watched History Begin."], description: "Moshe Rabbeinu's journey starts — Devorah witnesses the moment that changed all of klal Yisrael forever." },
   { headline: ["The Yam Split Wide Open,", "Eli Walked to Freedom."], description: "Walls of water tower high as Eli crosses to cheirus hand in hand with Bnei Yisrael." },
   { headline: ["Thunder Shook Har Sinai,", "Chana Stood and Listened."], description: "Chana stands at Matan Torah as the Aseres HaDibros light up the sky with Hashem's voice." },
