@@ -250,12 +250,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     previewDebounce.current = setTimeout(() => generateCharacterPreview(c, style), 600);
   }, [generateCharacterPreview]);
 
-  // Trigger preview on gender selection (step 3)
+   // Trigger preview on age selection (step 3, after gender)
   useEffect(() => {
     if (step === 3 && child.gender && child.age) {
       triggerPreviewDebounced(child, data.artStyle);
     }
-  }, [step, child.gender]);
+  }, [step, child.age]);
 
   // Generate art style preview cards when entering step 4
   useEffect(() => {
@@ -675,9 +675,47 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   </motion.div>
                 )}
 
-                {/* ── STEP 2: Age ── */}
+                {/* ── STEP 2: Gender ── */}
                 {step === 2 && (
                   <motion.div key="s2" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
+                        <Heart className="w-6 h-6 text-accent" /> Is {child.name || "your hero"} a boy or a girl?
+                      </h2>
+                      <p className="text-muted-foreground text-sm mt-1">This shapes the character's appearance and clothing in the illustrations.</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { key: "boy", label: "Boy", detail: "Will wear a kippah", img: presetBoyCartoon },
+                        { key: "girl", label: "Girl", detail: "Modest dress", img: presetGirlCartoon },
+                      ].map((g) => (
+                        <button
+                          key={g.key}
+                          onClick={() => {
+                            updateChild(child.id, { gender: g.key });
+                          }}
+                          className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
+                            child.gender === g.key
+                              ? "border-accent bg-accent/5 shadow-md"
+                              : "border-border hover:border-accent/30"
+                          }`}
+                        >
+                          <div className="w-full aspect-square bg-muted/30">
+                            <img src={g.img} alt={g.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
+                          </div>
+                          <div className="p-3">
+                            <span className="text-lg font-semibold text-primary block">{g.label}</span>
+                            <span className="text-xs text-muted-foreground">{g.detail}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ── STEP 3: Age ── */}
+                {step === 3 && (
+                  <motion.div key="s3" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
                     <div>
                       <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
                         <Calendar className="w-6 h-6 text-accent" /> How old is {child.name || "your hero"}?
@@ -728,44 +766,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           <span>12</span>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* ── STEP 3: Gender ── */}
-                {step === 3 && (
-                  <motion.div key="s3" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Heart className="w-6 h-6 text-accent" /> Is {child.name || "your hero"} a boy or a girl?
-                      </h2>
-                      <p className="text-muted-foreground text-sm mt-1">This shapes the character's appearance and clothing in the illustrations.</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { key: "boy", label: "Boy", detail: "Will wear a kippah", img: presetBoyCartoon },
-                        { key: "girl", label: "Girl", detail: "Modest dress", img: presetGirlCartoon },
-                      ].map((g) => (
-                        <button
-                          key={g.key}
-                          onClick={() => {
-                            updateChild(child.id, { gender: g.key });
-                          }}
-                          className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
-                            child.gender === g.key
-                              ? "border-accent bg-accent/5 shadow-md"
-                              : "border-border hover:border-accent/30"
-                          }`}
-                        >
-                          <div className="w-full aspect-square bg-muted/30">
-                            <img src={g.img} alt={g.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
-                          </div>
-                          <div className="p-3">
-                            <span className="text-lg font-semibold text-primary block">{g.label}</span>
-                            <span className="text-xs text-muted-foreground">{g.detail}</span>
-                          </div>
-                        </button>
-                      ))}
                     </div>
                   </motion.div>
                 )}
