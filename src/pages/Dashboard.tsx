@@ -36,7 +36,6 @@ export default function Dashboard() {
   const { books, isLoading: booksLoading } = useBooks();
   const { children, isLoading: childrenLoading, addChild, deleteChild } = useChildren();
   const [addChildOpen, setAddChildOpen] = useState(false);
-  const [newChild, setNewChild] = useState({ name: "", age: "", gender: "", art_style: "" });
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
