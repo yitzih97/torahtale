@@ -594,7 +594,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       }
     }
     setDir(1);
-    setStep(13);
+    setStep(14);
   };
 
   /* ───── can proceed checks ───── */
