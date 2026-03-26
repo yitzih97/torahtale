@@ -843,17 +843,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {ART_STYLES.map((s) => {
-                        const presetImg = getStylePreset(child.gender || "boy", s.key);
-                        const stylePreview = artStylePreviews[s.key] || presetImg;
+                        const stylePreview = getStylePreset(child.gender || "boy", s.key);
                         return (
                           <button
                             key={s.key}
-                            onClick={() => {
-                              update({ artStyle: s.key });
-                              if (child.gender && child.age) {
-                                triggerPreviewDebounced(child, s.key);
-                              }
-                            }}
+                            onClick={() => update({ artStyle: s.key })}
                             className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
                               data.artStyle === s.key
                                 ? "border-accent shadow-md ring-2 ring-accent/20"
