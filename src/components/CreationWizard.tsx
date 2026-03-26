@@ -936,12 +936,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                         <Textarea
                           placeholder="e.g., Brown curly hair, olive skin, big brown eyes, loves wearing blue..."
                           value={child.description}
-                          onChange={(e) => {
-                            updateChild(child.id, { description: e.target.value });
-                            if (child.gender && child.age && e.target.value.length > 10) {
-                              triggerPreviewDebounced({ ...child, description: e.target.value }, data.artStyle);
-                            }
-                          }}
+                          onChange={(e) => updateChild(child.id, { description: e.target.value })}
                           className="rounded-xl min-h-[120px] text-sm"
                         />
                       </div>
