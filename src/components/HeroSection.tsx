@@ -12,16 +12,16 @@ const BookFlipAnimation = lazy(() =>
 const ease = [0.16, 1, 0.3, 1];
 
 const HERO_SLIDES = [
-  { headline: ["Hashem Created the World,", "Your Child Walked Through Gan Eden."], description: "Discovering Hashem's beautiful creations alongside Adam and Chava in the very first garden." },
-  { headline: ["Noach Built the Teivah,", "Your Child Sailed Along."], description: "Gathering animals two by two and riding the mabul to a keshet shining with Hashem's promise." },
-  { headline: ["A Tower Rose to Shamayim,", "Your Child Learned Why It Fell."], description: "The Dor Haflagah tried to reach the sky — your child discovers why achdus and anava matter most." },
-  { headline: ["Avraham Counted the Stars,", "Your Child Inherited the Promise."], description: "A havtacha as vast as the night sky — stepping into the bris of emunah that began it all." },
-  { headline: ["Yosef Wore a Coat of Colors,", "Your Child Dreamed Alongside Him."], description: "From a bor to a palace, journeying with Yosef HaTzaddik through mechilah and triumph." },
-  { headline: ["A Baby Floated Down the Nile,", "Your Child Watched History Begin."], description: "Moshe Rabbeinu's journey starts — witnessing the moment that changed all of klal Yisrael forever." },
-  { headline: ["The Yam Split Wide Open,", "Your Child Walked to Freedom."], description: "Walls of water tower high as your child crosses to cheirus hand in hand with Bnei Yisrael." },
-  { headline: ["Thunder Shook Har Sinai,", "Your Child Stood and Listened."], description: "Standing at Matan Torah as the Aseres HaDibros light up the sky with Hashem's voice." },
-  { headline: ["Dovid Picked Up a Stone,", "Your Child Watched Golyas Fall."], description: "Bitachon proves that even the smallest person can change the world — just like your child." },
-  { headline: ["Yonah Was Swallowed by a Dag,", "Your Child Found Hope Inside."], description: "Inside the great fish, Yonah HaNavi finds his purpose — and your child finds theirs." },
+  { headline: ["Hashem Created the World,", "Rivka Walked Through Gan Eden."], description: "Rivka discovers Hashem's beautiful creations alongside Adam and Chava in the very first garden." },
+  { headline: ["Noach Built the Teivah,", "Ari Sailed Along."], description: "Ari gathers animals two by two and rides the mabul to a keshet shining with Hashem's promise." },
+  { headline: ["A Tower Rose to Shamayim,", "Yehuda Learned Why It Fell."], description: "The Dor Haflagah tried to reach the sky — Yehuda discovers why achdus and anava matter most." },
+  { headline: ["Avraham Counted the Stars,", "Shira Inherited the Promise."], description: "A havtacha as vast as the night sky — Shira steps into the bris of emunah that began it all." },
+  { headline: ["Yosef Wore a Coat of Colors,", "Moshe Dreamed Alongside Him."], description: "From a bor to a palace, Moshe journeys with Yosef HaTzaddik through mechilah and triumph." },
+  { headline: ["A Baby Floated Down the Nile,", "Devorah Watched History Begin."], description: "Moshe Rabbeinu's journey starts — Devorah witnesses the moment that changed all of klal Yisrael forever." },
+  { headline: ["The Yam Split Wide Open,", "Eli Walked to Freedom."], description: "Walls of water tower high as Eli crosses to cheirus hand in hand with Bnei Yisrael." },
+  { headline: ["Thunder Shook Har Sinai,", "Chana Stood and Listened."], description: "Chana stands at Matan Torah as the Aseres HaDibros light up the sky with Hashem's voice." },
+  { headline: ["Dovid Picked Up a Stone,", "Shmuel Watched Golyas Fall."], description: "Bitachon proves that even the smallest person can change the world — just like Shmuel." },
+  { headline: ["Yonah Was Swallowed by a Dag,", "Leah Found Hope Inside."], description: "Inside the great fish, Yonah HaNavi finds his purpose — and Leah finds hers." },
 ];
 
 // Walking animation - characters walk in from right and exit to left like walking between story pages
