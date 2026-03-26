@@ -227,7 +227,41 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         </motion.div>
       )}
 
-      {/* Text display - only for story pages */}
+      {/* Cover info section */}
+      {pageType === "cover" && (
+        <div className="bg-card rounded-book border border-border p-4 text-center space-y-1">
+          <h3 className="font-display text-xl font-bold text-primary leading-tight">{page?.coverTitle}</h3>
+          {page?.coverSubtitle && (
+            <p className="font-body text-sm text-muted-foreground italic">{page.coverSubtitle}</p>
+          )}
+        </div>
+      )}
+
+      {/* Back cover info section */}
+      {pageType === "back-cover" && (
+        <div className="bg-card rounded-book border border-border p-4 space-y-3">
+          {page?.synopsis && (
+            <p className="font-body text-sm text-foreground italic text-center leading-relaxed">"{page.synopsis}"</p>
+          )}
+          {page?.dedication && (
+            <p className="font-display text-xs text-muted-foreground text-center">{page.dedication}</p>
+          )}
+          {page?.questions && page.questions.length > 0 && (
+            <div className="border-t border-border pt-3 mt-3">
+              <p className="font-display text-sm font-bold text-primary mb-2">📖 Discussion Questions</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {page.questions.map((q) => (
+                  <p key={q.number} className="text-xs text-muted-foreground leading-snug">
+                    <span className="font-bold text-accent">{q.number}.</span> {q.question}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Story text display */}
       {pageType === "story" && (
         editingPage === currentPage ? (
           <div className="space-y-2">
