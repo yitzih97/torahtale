@@ -57,16 +57,8 @@ export default function Dashboard() {
   const draftBooks = books.filter((b) => b.status === "draft");
   const orderedBooks = books.filter((b) => b.status !== "draft");
 
-  const handleAddChild = async () => {
-    if (!newChild.name) return;
-    await addChild.mutateAsync({
-      name: newChild.name,
-      age: newChild.age ? parseInt(newChild.age) : null,
-      gender: newChild.gender || null,
-      photo_url: null,
-      art_style: newChild.art_style || null,
-    });
-    setNewChild({ name: "", age: "", gender: "", art_style: "" });
+  const handleAddChild = async (child: AddChildResult) => {
+    await addChild.mutateAsync(child);
     setAddChildOpen(false);
     toast.success("Child profile added!");
   };
