@@ -413,27 +413,29 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         })
       );
 
-      // All done — persist final pages with images to DB
+      // All done — collect final pages directly (not from stale state)
+      // Each page's image was set via setBookPages during Promise.all, so read the latest state synchronously
+      let finalPagesSnapshot: BookPage[] = [];
+      setBookPages((prev) => {
+        finalPagesSnapshot = prev.map((pg) => ({ ...pg, imageLoading: false }));
+        return finalPagesSnapshot;
+      });
+
       setGenProgress(100);
       setGenPhase("Your book is ready!");
       setGenerating(false);
 
-      // Save the completed pages (with image URLs) back to the database
-      if (savedBookId) {
+      // Persist the completed pages (with all image URLs) to the database
+      const bookIdToUpdate = savedBookId;
+      if (bookIdToUpdate && finalPagesSnapshot.length > 0) {
         try {
-          const finalPages = allPages.map((p) => ({ ...p, imageLoading: false }));
-          // Get latest image URLs from state
-          setBookPages((prev) => {
-            const pagesWithImages = prev.map((pg) => ({ ...pg, imageLoading: false }));
-            supabase.from("books").update({
-              pages_data: pagesWithImages as any,
-              cover_image_url: pagesWithImages[0]?.image || null,
-              updated_at: new Date().toISOString(),
-            } as any).eq("id", savedBookId).then(({ error }) => {
-              if (error) console.error("Failed to save completed pages:", error);
-            });
-            return pagesWithImages;
-          });
+          const { error: updateErr } = await supabase.from("books").update({
+            pages_data: finalPagesSnapshot as any,
+            cover_image_url: finalPagesSnapshot[0]?.image || null,
+            updated_at: new Date().toISOString(),
+          } as any).eq("id", bookIdToUpdate);
+          if (updateErr) console.error("Failed to save completed pages:", updateErr);
+          else console.log("Book pages saved successfully to DB");
         } catch (err) {
           console.error("Failed to save completed pages:", err);
         }

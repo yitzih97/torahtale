@@ -80,7 +80,13 @@ export default function Dashboard() {
     toast.success("Child profile updated!");
   };
 
-  const bookPages = viewingBook?.pages_data as any[] || [];
+  const rawBookPages = viewingBook?.pages_data as any[] || [];
+  // Filter out pages that are still loading (imageLoading: true with no image)
+  const bookPages = rawBookPages.map((p: any) => ({
+    ...p,
+    imageLoading: false, // never show loading in dashboard viewer
+  }));
+  const bookStillGenerating = rawBookPages.length > 0 && rawBookPages.every((p: any) => !p.image);
 
   return (
     <div className="min-h-screen flex flex-col">
