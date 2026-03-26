@@ -38,6 +38,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   const [regenerating, setRegenerating] = useState<number | null>(null);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const page = pages[currentPage];
   const pageType = page?.type || "story";
