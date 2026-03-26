@@ -460,7 +460,7 @@ export default function Dashboard() {
           pages={bookPages}
           onReorder={() => {
             setViewingBook(null);
-            navigate("/");
+            navigate("/?start=1");
           }}
         />
       )}

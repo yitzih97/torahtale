@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { HowItWorks } from "@/components/HowItWorks";
@@ -10,7 +11,15 @@ import { CreationWizard } from "@/components/CreationWizard";
 
 
 const Index = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [wizardOpen, setWizardOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("start") === "1") {
+      setWizardOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="min-h-screen">
