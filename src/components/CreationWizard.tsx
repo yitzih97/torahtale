@@ -116,7 +116,7 @@ const ageToBracketLabel = (age: string): string => {
 
 /* ───────────────── constants ───────────────── */
 
-const TOTAL_STEPS = 13;
+const TOTAL_STEPS = 14;
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const slideVariants = {
