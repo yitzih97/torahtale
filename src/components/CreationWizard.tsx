@@ -2,8 +2,8 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, ArrowRight, Upload, Loader2, Sparkles, Plus, Trash2,
-  Users, BookOpen, Palette, Package, CreditCard, Check,
+  ArrowLeft, ArrowRight, Loader2, Sparkles, Plus,
+  Users, BookOpen, Palette, Package, Check,
   Camera, Sun, User, Type, Calendar, Heart, Image, PenLine
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
