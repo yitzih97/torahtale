@@ -514,8 +514,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const canNext = (() => {
     switch (step) {
       case 1: return !!child.name.trim();
-      case 2: return !!child.age;
-      case 3: return !!child.gender;
+      case 2: return !!child.gender;
+      case 3: return !!child.age;
       case 4: return !!data.artStyle;
       case 5: return true; // photo/desc optional
       case 6: return !!data.torahPortion;
