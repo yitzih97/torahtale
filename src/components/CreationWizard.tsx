@@ -474,10 +474,21 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           console.warn(`Retrying image for page ${page.id}, attempt ${attempt + 2}`);
         }
 
+        // Update progress per page
+        const pageIdx = allPages.indexOf(page);
+        const progressPerPage = 80 / allPages.length;
+        setGenProgress(20 + Math.round((pageIdx + 1) * progressPerPage));
+        setGenPhase(`Illustrating page ${pageIdx + 1} of ${allPages.length}...`);
+
         setBookPages((prev) => prev.map((p) => (p.id === page.id ? { ...p, image: imageUrl, imageLoading: false } : p)));
       }
+
+      // All done
+      setGenProgress(100);
+      setGenPhase("Your book is ready!");
+      setGenerating(false);
+      setStep(10);
     } catch (err: any) {
-      clearInterval(iv);
       setGenerating(false);
       console.error("Generation failed:", err);
       toast.error(err?.message || "Failed to generate story. Please try again.");
