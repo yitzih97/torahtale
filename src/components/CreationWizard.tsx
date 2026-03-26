@@ -443,7 +443,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         realistic: "photorealistic illustration, natural lighting, lifelike detail, warm cinematic tones",
       };
       const style = styleMap[data.artStyle] || styleMap.cartoon;
-      const portionLabel = getPortionLabel(data.torahPortion);
+      const portionLabelForImg = getPortionLabel(data.torahPortion);
 
       // Generate images sequentially for consistency, with retry
       for (const page of allPages) {
