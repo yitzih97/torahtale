@@ -666,23 +666,45 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       <p className="text-muted-foreground text-sm mt-1">Enter the name of the child who will star in this Torah adventure.</p>
                     </div>
 
-                    {/* Select existing child */}
+                    {/* Select existing children (multi-select) */}
                     {existingChildren.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Select an existing child</p>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Select existing children (you can pick more than one)</p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           {existingChildren.map((ec) => {
-                            const isSelected = child.name === ec.name && child.gender === (ec.gender || "") && child.age === String(ec.age || "");
+                            const isSelected = data.children.some(
+                              (c) => c.name === ec.name && c.gender === (ec.gender || "") && c.age === String(ec.age || "")
+                            );
                             return (
                               <button
                                 key={ec.id}
                                 onClick={() => {
-                                  updateChild(child.id, {
-                                    name: ec.name,
-                                    gender: ec.gender || "",
-                                    age: ec.age ? String(ec.age) : "",
-                                  });
-                                  if (ec.art_style) update({ artStyle: ec.art_style });
+                                  if (isSelected) {
+                                    // Deselect: remove this child if there are others
+                                    const remaining = data.children.filter(
+                                      (c) => !(c.name === ec.name && c.gender === (ec.gender || "") && c.age === String(ec.age || ""))
+                                    );
+                                    if (remaining.length === 0) remaining.push(createChild());
+                                    update({ children: remaining, activeChildIdx: 0 });
+                                  } else {
+                                    // Select: add as a new child profile
+                                    const newChild: ChildProfile = {
+                                      ...createChild(),
+                                      name: ec.name,
+                                      gender: ec.gender || "",
+                                      age: ec.age ? String(ec.age) : "",
+                                      description: ec.description || "",
+                                      photoPreview: ec.photo_url || null,
+                                    };
+                                    // If the current first child is blank, replace it
+                                    const currentFirst = data.children[0];
+                                    const isFirstBlank = !currentFirst.name && !currentFirst.gender && !currentFirst.age;
+                                    const newChildren = isFirstBlank
+                                      ? [newChild, ...data.children.slice(1)]
+                                      : [...data.children, newChild];
+                                    update({ children: newChildren, activeChildIdx: newChildren.length - 1 });
+                                    if (ec.art_style) update({ artStyle: ec.art_style });
+                                  }
                                 }}
                                 className={`rounded-xl border-2 p-3 text-left transition-all duration-200 active:scale-[0.97] ${
                                   isSelected
@@ -690,10 +712,24 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                     : "border-border hover:border-accent/30"
                                 }`}
                               >
-                                <p className="font-display font-semibold text-sm text-primary truncate">{ec.name}</p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {ec.age ? `${ec.age}yo` : ""}{ec.gender ? ` · ${ec.gender}` : ""}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  {ec.photo_url ? (
+                                    <img src={ec.photo_url} alt={ec.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                                  ) : (
+                                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground flex-shrink-0">
+                                      {ec.name.slice(0, 2).toUpperCase()}
+                                    </div>
+                                  )}
+                                  <div className="min-w-0">
+                                    <p className="font-display font-semibold text-sm text-primary truncate">{ec.name}</p>
+                                    <p className="text-[10px] text-muted-foreground">
+                                      {ec.age ? `${ec.age}yo` : ""}{ec.gender ? ` · ${ec.gender}` : ""}
+                                    </p>
+                                  </div>
+                                  {isSelected && (
+                                    <Check className="w-4 h-4 text-accent ml-auto flex-shrink-0" />
+                                  )}
+                                </div>
                               </button>
                             );
                           })}
