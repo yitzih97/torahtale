@@ -135,7 +135,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <Button variant="gold" size="sm" onClick={() => navigate("/")}>
-                  View Books
+                  Review My Books
                 </Button>
               </motion.div>
             )}
