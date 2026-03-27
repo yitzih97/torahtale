@@ -97,7 +97,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                   className="text-4xl sm:text-5xl lg:text-[3.2rem] font-bold leading-[1.1] tracking-tight text-white"
                 >
                   {slide.headline[0]}<br />
-                  <span className="text-accent">{slide.headline[1]}</span>
+                  <span className="text-gold-light">{slide.headline[1]}</span>
                 </motion.h1>
               </AnimatePresence>
             </div>
