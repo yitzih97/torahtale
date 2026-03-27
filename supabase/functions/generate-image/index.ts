@@ -15,17 +15,19 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
-    // Load custom image prompt template from site_settings
+    // Load custom settings
     let customImageTemplate: string | null = null;
+    let customImageModel: string | null = null;
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=eq.prompts&key=eq.image-prompt-template`, {
+      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=in.(prompts,ai)`, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
       });
       if (settingsRes.ok) {
         const settings = await settingsRes.json();
-        customImageTemplate = settings[0]?.value || null;
+        customImageTemplate = settings.find((s: any) => s.category === "prompts" && s.key === "image-prompt-template")?.value || null;
+        customImageModel = settings.find((s: any) => s.category === "ai" && s.key === "image-model")?.value || null;
       }
     } catch (e) { console.error("Failed to load site_settings:", e); }
 
@@ -77,13 +79,15 @@ serve(async (req) => {
 
     parts.push({ text: imagePrompt });
 
-    const imageModels = [
-      "gemini-3.1-flash-image-preview",
-      "gemini-2.5-flash-image-preview",
-      "gemini-2.5-flash-image",
-      "gemini-2.0-flash-exp-image-generation",
-      "gemini-2.0-flash-preview-image-generation",
-    ];
+    const imageModels = customImageModel
+      ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
+      : [
+          "gemini-3.1-flash-image-preview",
+          "gemini-2.5-flash-image-preview",
+          "gemini-2.5-flash-image",
+          "gemini-2.0-flash-exp-image-generation",
+          "gemini-2.0-flash-preview-image-generation",
+        ];
 
     let response: Response | null = null;
     let selectedModel: string | null = null;
