@@ -46,10 +46,6 @@ export const Navbar = ({ onStart }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={toggleTheme} className="p-2 rounded-full text-muted-foreground hover:text-accent hover:bg-muted transition-colors" aria-label="Toggle theme">
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-
           {user ? (
             <>
               <a href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors hidden sm:flex items-center gap-1.5">
