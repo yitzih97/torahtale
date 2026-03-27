@@ -38,7 +38,7 @@ const PLANS: Plan[] = [
     savings: "33% off",
     icon: Crown,
     badge: "MOST POPULAR",
-    description: "4 books/month — best value for families",
+    description: "4 seforim/month — best value for mishpachos",
   },
   {
     id: "yearly",
@@ -47,7 +47,7 @@ const PLANS: Plan[] = [
     perWeek: 15.38,
     savings: "49% off",
     icon: CalendarDays,
-    description: "Full year of stories — biggest savings",
+    description: "Full year of seforim — biggest savings",
   },
 ];
 

@@ -99,7 +99,7 @@ export default function Dashboard() {
             transition={{ duration: 0.6, ease }}
           >
             <h1 className="font-display text-3xl font-bold text-primary mb-1">My Dashboard</h1>
-            <p className="text-muted-foreground mb-4">Welcome back! Manage your family's Torah tales.</p>
+            <p className="text-muted-foreground mb-4">Welcome back! Manage your mishpacha's seforim.</p>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
@@ -251,9 +251,9 @@ export default function Dashboard() {
                   <div className="text-center py-16">
                     <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-display text-lg font-semibold text-primary mb-2">No books yet</h3>
-                    <p className="text-muted-foreground text-sm mb-6">Create your first personalized Torah tale!</p>
+                    <p className="text-muted-foreground text-sm mb-6">Create your first personalized Torah sefer!</p>
                     <Button variant="gold" onClick={() => navigate("/")}>
-                      Create a Story
+                      Create a Sefer
                     </Button>
                   </div>
                 ) : (
@@ -338,7 +338,7 @@ export default function Dashboard() {
                             <div>
                               <h4 className="font-display font-semibold text-primary">Parashah Club</h4>
                               <p className="text-xs text-muted-foreground">
-                                For {sub.child_name || "your child"} · ${sub.price_per_week}/week
+                                For {sub.child_name || "your kind"} · ${sub.price_per_week}/week
                               </p>
                             </div>
                           </div>

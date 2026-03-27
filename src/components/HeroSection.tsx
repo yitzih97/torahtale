@@ -104,7 +104,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             >
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/15 text-accent text-xs font-semibold tracking-wider uppercase border border-accent/20">
                 <Sparkles className="w-3.5 h-3.5" />
-                AI-Powered Torah Storytelling
+                AI-Powered Torah Stories for Frum Kinderlach
               </span>
             </motion.div>
 
@@ -192,7 +192,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 fill-accent text-accent" />)}
               </div>
               <span className="text-sm text-foreground/60">
-                <strong className="text-foreground/80">2,847+</strong> frum families
+                <strong className="text-foreground/80">2,847+</strong> Chareidi mishpachos
               </span>
             </motion.div>
           </div>

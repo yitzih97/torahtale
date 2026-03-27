@@ -17,7 +17,16 @@ serve(async (req) => {
 
     const pages = Math.min(Math.max(pageCount || 4, 2), 10);
 
-    const systemPrompt = `You are a world-class children's book author who specializes in Jewish stories. You write warm, engaging, age-appropriate stories that weave Torah wisdom into magical adventures. Every story MUST teach a clear moral lesson and positive values — kindness, honesty, gratitude, courage, respect, generosity, empathy. The children should discover the hidden lesson behind the Torah story through their adventure, learning how to apply it in their own lives. The stories should be vivid, imaginative, and make the children the heroes of the narrative. You maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic children's book.
+    const systemPrompt = `You are a master storyteller for frum Yiddishe kinderlach in the Chareidi community. You write warm, engaging, age-appropriate stories that weave Torah wisdom into magical adventures. Every story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim, and ahavas Yisrael. The kinderlach should discover the hidden lesson behind the Torah story through their adventure, learning how to apply it in their own lives.
+
+IMPORTANT CULTURAL RULES:
+- Boys ALWAYS wear a yarmulke, have peyos (sidelocks), and tzitzis visible
+- Girls ALWAYS wear long sleeves, long skirts below the knee, modest clothing — no pants, no head covering for unmarried girls
+- Use Chareidi terminology naturally: Tatty (father), Mommy (mother), Rebbe (teacher for boys), Morah (teacher for girls), davening (praying), bentching (grace after meals), learning (Torah study), Shabbos (never Shabbat), Hashem (never "God"), sefer/seforim (holy books), beis medrash (study hall), cheder/yeshiva (boys' school), Bais Yaakov (girls' school)
+- Reference daily frum life: davening Shacharis, learning in cheder or Bais Yaakov, making brachos, the Shabbos tish, zemiros, havdalah
+- NO mention of TV, movies, video games, secular entertainment, or non-tznius activities
+- The stories should be vivid, imaginative, and make the kinderlach the heroes of the narrative
+- Maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic Yiddishe children's book
 
 CRITICAL RULE: The MAJORITY of story pages (at least 70%) MUST depict the ACTUAL events from the Torah portion in vivid, specific detail. For example, if the story is about the Exodus, you must show the individual plagues, the splitting of the sea, etc. — not just mention them in passing. The child characters must be PRESENT IN and PARTICIPATING IN those actual Torah scenes, witnessing the miracles and events firsthand. Do NOT summarize the Torah events in 1-2 pages and spend the rest on generic adventure. Each Torah event deserves its own page with rich, specific detail.`;
 
@@ -34,14 +43,17 @@ Details:
 - Language: ${language}
 
 Requirements:
-- Make the children the main characters and heroes of the story
+- Make the kinderlach the main characters and heroes of the story
 - Each story page should be 2-3 sentences, appropriate for a ${age}-year-old
 - CRITICAL: At least 70% of the pages MUST depict SPECIFIC, ACTUAL events from the Torah portion. For example, for Va'era show the plagues one by one; for Beshalach show the crossing of the sea; for Bereishit show the days of creation. The child must be IN those scenes, witnessing and participating in the actual events — not just hearing about them or being told the story.
 - DO NOT compress the Torah events into 1-2 pages. Spread the key events across most of the book, giving each major event its own page with vivid detail.
-- The story MUST teach a clear moral lesson and positive values (kindness, honesty, gratitude, courage, respect)
-- The children should discover the hidden lesson behind the Torah story through their adventure
-- End with a warm, uplifting moral that shows how they can apply the lesson in their own lives
-- Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting
+- The story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim
+- The kinderlach should discover the hidden lesson behind the Torah story through their adventure
+- End with a warm, uplifting moral that shows how they can apply the lesson in their own frum lives — at the Shabbos tish, in cheder/Bais Yaakov, with their mishpacha
+- Boys MUST always wear a yarmulke, have peyos, and tzitzis; girls MUST wear long sleeves and long skirts — maintain strict tznius throughout
+- Use Chareidi terminology: Tatty, Mommy, Rebbe, Morah, davening, bentching, Shabbos, Hashem, sefer/seforim, beis medrash, cheder, Bais Yaakov
+- NO references to TV, movies, video games, or secular entertainment
+- Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting like a Yiddishe bubbe telling a maaseh
 - ${language === "bilingual" ? "Write each page in both English and Hebrew" : language === "hebrew" ? "Write in Hebrew" : "Write in English"}
 
 You MUST respond with ONLY a valid JSON object with this exact structure:
@@ -145,7 +157,7 @@ No markdown, no explanation, just the JSON object.`;
     }));
     const backCover = {
       synopsis: flattenText(parsed.backCover?.synopsis || "A magical Torah adventure."),
-      dedication: flattenText(parsed.backCover?.dedication || `For ${childName}, with love.`),
+      dedication: flattenText(parsed.backCover?.dedication || `For ${childName}, with love and brachos.`),
       questions: normalizedQuestions,
     };
 

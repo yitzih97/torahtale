@@ -90,9 +90,9 @@ export default function Auth() {
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             {mode === "login"
-              ? "Sign in to manage your Torah tales"
+              ? "Sign in to manage your seforim"
               : mode === "signup"
-              ? "Join us to create personalized Torah stories"
+              ? "Join us to create personalized Torah seforim for your kinderlach"
               : "Enter your email to receive a reset link"}
           </p>
         </div>

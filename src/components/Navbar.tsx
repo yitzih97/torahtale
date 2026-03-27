@@ -80,7 +80,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
 
           {onStart && (
             <Button variant="gold" size="sm" onClick={onStart} className="rounded-full px-5">
-              Create a Story
+              Create a Sefer
             </Button>
           )}
         </div>

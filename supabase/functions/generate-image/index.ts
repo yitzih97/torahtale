@@ -25,7 +25,7 @@ serve(async (req) => {
     const styleDesc = styleMap[artStyle] || styleMap.cartoon;
 
     let imagePrompt = prompt ||
-      `A beautiful children's book illustration of a child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. All characters must be dressed modestly (tznius) — boys wearing kippah/yarmulke and tzitzis, girls in long modest dresses with long sleeves. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
+      `A beautiful children's book illustration of a frum Yiddishe child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. Boys MUST have peyos (sidelocks), yarmulke/kippah, and visible tzitzis. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements visible. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
 
     const parts: any[] = [];
 

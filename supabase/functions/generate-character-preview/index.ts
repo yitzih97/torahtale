@@ -39,8 +39,8 @@ serve(async (req) => {
     // Gender-specific details
     const genderDetails =
       gender === "boy"
-        ? "wearing a kippah/yarmulke on his head, modest clothing"
-        : "modest dress or outfit, no head covering";
+        ? "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
+        : "modest dress with long sleeves and long skirt below the knee, no head covering, tznius appearance";
 
     // Build the prompt
     const descPart = description
