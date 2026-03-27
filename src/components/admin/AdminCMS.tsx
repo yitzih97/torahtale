@@ -8,12 +8,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Settings, Image as ImageIcon, Brain, DollarSign,
   Save, Loader2, RefreshCw, Check, AlertTriangle, Globe,
-  Upload, Palette, Printer, TestTube2,
+  Upload, Palette, Printer, TestTube2, BookOpen, Copy,
 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSiteAssets } from "@/hooks/useSiteAssets";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TORAH_PORTIONS, CATEGORY_META, TORAH_BOOKS, type TorahOption } from "@/components/wizard/TorahPortions";
 
 const DEFAULT_PROMPTS: Record<string, string> = {
   "story-system-prompt": `You are a master storyteller for frum Yiddishe kinderlach...`,
@@ -53,6 +54,312 @@ const IMAGE_MODELS = [
   { value: "gemini-2.5-flash-image-preview", label: "Gemini 2.5 Flash Image" },
   { value: "gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image (stable)" },
 ];
+
+/* ─── Extracted components (outside AdminCMS to prevent remount on every keystroke) ─── */
+
+function SettingField({ category, settingKey, label, multiline, placeholder, edits, setEdits, onSave, savingKey, getSetting }: {
+  category: string; settingKey: string; label: string; multiline?: boolean; placeholder?: string;
+  edits: Record<string, string>; setEdits: (v: Record<string, string>) => void;
+  onSave: (category: string, key: string, value: string) => void;
+  savingKey: string | null;
+  getSetting: (cat: string, key: string, fallback: string) => string;
+}) {
+  const val = edits[settingKey] ?? getSetting(category, settingKey, placeholder || "");
+  const saving = savingKey === `${category}:${settingKey}`;
+  return (
+    <div className="space-y-2">
+      <label className="text-xs font-semibold text-foreground">{label}</label>
+      {multiline ? (
+        <Textarea
+          value={val}
+          onChange={(e) => setEdits({ ...edits, [settingKey]: e.target.value })}
+          rows={6}
+          className="text-xs font-mono"
+          placeholder={placeholder}
+        />
+      ) : (
+        <Input
+          value={val}
+          onChange={(e) => setEdits({ ...edits, [settingKey]: e.target.value })}
+          className="text-sm"
+          placeholder={placeholder}
+        />
+      )}
+      <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={saving}
+        onClick={() => onSave(category, settingKey, val)}>
+        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
+      </Button>
+    </div>
+  );
+}
+
+function ModelSelect({ category, settingKey, label, models, edits, setEdits, onSave, savingKey, getSetting }: {
+  category: string; settingKey: string; label: string;
+  models: { value: string; label: string }[];
+  edits: Record<string, string>; setEdits: (v: Record<string, string>) => void;
+  onSave: (category: string, key: string, value: string) => void;
+  savingKey: string | null;
+  getSetting: (cat: string, key: string, fallback: string) => string;
+}) {
+  const val = edits[settingKey] ?? getSetting(category, settingKey, models[0]?.value || "");
+  const saving = savingKey === `${category}:${settingKey}`;
+  return (
+    <div className="space-y-2">
+      <label className="text-xs font-semibold text-foreground">{label}</label>
+      <Select value={val} onValueChange={(v) => setEdits({ ...edits, [settingKey]: v })}>
+        <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {models.map((m) => (
+            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={saving}
+        onClick={() => onSave(category, settingKey, val)}>
+        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
+      </Button>
+    </div>
+  );
+}
+
+/* ─── Book Templates Tab ─── */
+
+const PAGE_SLOTS = [
+  { key: "cover", label: "Cover" },
+  ...Array.from({ length: 8 }, (_, i) => ({ key: `page-${i + 1}`, label: `Page ${i + 1}` })),
+  { key: "back-cover", label: "Back Cover" },
+];
+
+function BookTemplatesTab({ onSave, savingKey }: {
+  onSave: (category: string, key: string, value: string) => void;
+  savingKey: string | null;
+}) {
+  const [selectedPortion, setSelectedPortion] = useState<string>("");
+  const [templates, setTemplates] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [copySource, setCopySource] = useState<string>("");
+
+  // Group portions by category
+  const groupedPortions: Record<string, TorahOption[]> = {};
+  TORAH_PORTIONS.forEach((p) => {
+    if (!groupedPortions[p.category]) groupedPortions[p.category] = [];
+    groupedPortions[p.category].push(p);
+  });
+
+  // Load templates for selected portion
+  useEffect(() => {
+    if (!selectedPortion) return;
+    setLoading(true);
+    supabase
+      .from("site_settings" as any)
+      .select("*")
+      .eq("category", "book-templates")
+      .like("key", `${selectedPortion}:%`)
+      .then(({ data, error }) => {
+        if (!error && data) {
+          const map: Record<string, string> = {};
+          (data as any[]).forEach((row: any) => {
+            // key format: portion:page-N:text or portion:page-N:image-prompt
+            const suffix = row.key.replace(`${selectedPortion}:`, "");
+            map[suffix] = row.value;
+          });
+          setTemplates(map);
+        } else {
+          setTemplates({});
+        }
+        setLoading(false);
+      });
+  }, [selectedPortion]);
+
+  const handleSaveSlot = (slotKey: string, field: "text" | "image-prompt") => {
+    const fullKey = `${selectedPortion}:${slotKey}:${field}`;
+    const value = templates[`${slotKey}:${field}`] || "";
+    onSave("book-templates", fullKey, value);
+  };
+
+  const handleCopyFrom = async () => {
+    if (!copySource || !selectedPortion) return;
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from("site_settings" as any)
+        .select("*")
+        .eq("category", "book-templates")
+        .like("key", `${copySource}:%`);
+      if (data && (data as any[]).length > 0) {
+        const newTemplates: Record<string, string> = {};
+        for (const row of data as any[]) {
+          const suffix = row.key.replace(`${copySource}:`, "");
+          newTemplates[suffix] = row.value;
+          const fullKey = `${selectedPortion}:${suffix}`;
+          onSave("book-templates", fullKey, row.value);
+        }
+        setTemplates(newTemplates);
+        toast.success(`Copied ${(data as any[]).length} templates from ${copySource}`);
+      } else {
+        toast.info("No templates found for the source portion");
+      }
+    } catch {
+      toast.error("Failed to copy templates");
+    }
+    setLoading(false);
+  };
+
+  const portionObj = TORAH_PORTIONS.find((p) => p.value === selectedPortion);
+
+  return (
+    <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm space-y-6">
+      <h3 className="font-display text-lg font-semibold text-primary flex items-center gap-2">
+        <BookOpen className="w-5 h-5 text-accent" /> Per-Book Page Templates
+      </h3>
+      <p className="text-xs text-muted-foreground">
+        Control the narrative text and image prompt for each page of each Torah portion/story. Empty fields = AI generates freely.
+        <br />
+        <span className="font-semibold">Variables:</span> <code className="text-[10px] bg-muted px-1 rounded">{"{childName}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{age}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{gender}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{artStyle}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{language}"}</code>
+      </p>
+
+      {/* Portion selector */}
+      <div className="space-y-2">
+        <label className="text-xs font-semibold text-foreground">Select Portion / Story</label>
+        <Select value={selectedPortion} onValueChange={setSelectedPortion}>
+          <SelectTrigger className="text-sm">
+            <SelectValue placeholder="Choose a Torah portion or story..." />
+          </SelectTrigger>
+          <SelectContent className="max-h-80">
+            {Object.entries(CATEGORY_META).map(([cat, meta]) => {
+              const items = groupedPortions[cat] || [];
+              if (items.length === 0) return null;
+
+              // For Torah, sub-group by book
+              if (cat === "torah") {
+                return TORAH_BOOKS.map((book) => {
+                  const bookItems = items.filter((i) => i.book === book);
+                  if (bookItems.length === 0) return null;
+                  return (
+                    <div key={book}>
+                      <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/50">
+                        {meta.emoji} {meta.label} — {book}
+                      </div>
+                      {bookItems.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>
+                          {p.emoji} {p.label} — {p.sub}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  );
+                });
+              }
+
+              return (
+                <div key={cat}>
+                  <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/50">
+                    {meta.emoji} {meta.label}
+                  </div>
+                  {items.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>
+                      {p.emoji} {p.label} — {p.sub}
+                    </SelectItem>
+                  ))}
+                </div>
+              );
+            })}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Copy from another portion */}
+      {selectedPortion && (
+        <div className="flex items-end gap-2">
+          <div className="flex-1 space-y-1">
+            <label className="text-xs font-semibold text-foreground">Copy templates from another portion</label>
+            <Select value={copySource} onValueChange={setCopySource}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Select source..." />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                {TORAH_PORTIONS.filter((p) => p.value !== selectedPortion).map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.emoji} {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={!copySource || loading}
+            onClick={handleCopyFrom}>
+            <Copy className="w-3 h-3" /> Copy
+          </Button>
+        </div>
+      )}
+
+      {/* Page editor grid */}
+      {selectedPortion && loading && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" /> Loading templates...
+        </div>
+      )}
+
+      {selectedPortion && !loading && (
+        <div className="space-y-4">
+          <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+            {portionObj?.emoji} {portionObj?.label} <span className="text-muted-foreground font-normal">— {portionObj?.sub}</span>
+          </div>
+
+          {PAGE_SLOTS.map((slot) => {
+            const textKey = `${slot.key}:text`;
+            const imgKey = `${slot.key}:image-prompt`;
+            const textVal = templates[textKey] || "";
+            const imgVal = templates[imgKey] || "";
+            const savingText = savingKey === `book-templates:${selectedPortion}:${textKey}`;
+            const savingImg = savingKey === `book-templates:${selectedPortion}:${imgKey}`;
+
+            return (
+              <div key={slot.key} className="border border-border rounded-xl p-4 space-y-3">
+                <p className="text-sm font-semibold text-foreground">{slot.label}</p>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    Narrative Text Template
+                  </label>
+                  <Textarea
+                    value={textVal}
+                    onChange={(e) => setTemplates((prev) => ({ ...prev, [textKey]: e.target.value }))}
+                    rows={3}
+                    className="text-xs font-mono"
+                    placeholder={slot.key === "cover" ? "Title and subtitle template..." : slot.key === "back-cover" ? "Synopsis and dedication template..." : `Story text for ${slot.label}...`}
+                  />
+                  <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={savingText}
+                    onClick={() => handleSaveSlot(slot.key, "text")}>
+                    {savingText ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save Text
+                  </Button>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    Image Prompt Template
+                  </label>
+                  <Textarea
+                    value={imgVal}
+                    onChange={(e) => setTemplates((prev) => ({ ...prev, [imgKey]: e.target.value }))}
+                    rows={3}
+                    className="text-xs font-mono"
+                    placeholder={`Image generation prompt for ${slot.label}...`}
+                  />
+                  <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={savingImg}
+                    onClick={() => handleSaveSlot(slot.key, "image-prompt")}>
+                    {savingImg ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save Image Prompt
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Main AdminCMS ─── */
 
 export function AdminCMS() {
   const { settings, isLoading: settingsLoading, getSetting, upsertSetting } = useSiteSettings();
@@ -143,71 +450,16 @@ export function AdminCMS() {
     setTestingPrintify(false);
   };
 
-  const SettingField = ({ category, settingKey, label, multiline, placeholder, edits, setEdits }: {
-    category: string; settingKey: string; label: string; multiline?: boolean; placeholder?: string;
-    edits: Record<string, string>; setEdits: (v: Record<string, string>) => void;
-  }) => {
-    const val = edits[settingKey] ?? getSetting(category, settingKey, placeholder || "");
-    const saving = savingKey === `${category}:${settingKey}`;
-    return (
-      <div className="space-y-2">
-        <label className="text-xs font-semibold text-foreground">{label}</label>
-        {multiline ? (
-          <Textarea
-            value={val}
-            onChange={(e) => setEdits({ ...edits, [settingKey]: e.target.value })}
-            rows={6}
-            className="text-xs font-mono"
-            placeholder={placeholder}
-          />
-        ) : (
-          <Input
-            value={val}
-            onChange={(e) => setEdits({ ...edits, [settingKey]: e.target.value })}
-            className="text-sm"
-            placeholder={placeholder}
-          />
-        )}
-        <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={saving}
-          onClick={() => handleSave(category, settingKey, val)}>
-          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
-        </Button>
-      </div>
-    );
-  };
-
-  const ModelSelect = ({ category, settingKey, label, models, edits, setEdits }: {
-    category: string; settingKey: string; label: string;
-    models: { value: string; label: string }[];
-    edits: Record<string, string>; setEdits: (v: Record<string, string>) => void;
-  }) => {
-    const val = edits[settingKey] ?? getSetting(category, settingKey, models[0]?.value || "");
-    const saving = savingKey === `${category}:${settingKey}`;
-    return (
-      <div className="space-y-2">
-        <label className="text-xs font-semibold text-foreground">{label}</label>
-        <Select value={val} onValueChange={(v) => setEdits({ ...edits, [settingKey]: v })}>
-          <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {models.map((m) => (
-              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={saving}
-          onClick={() => handleSave(category, settingKey, val)}>
-          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
-        </Button>
-      </div>
-    );
-  };
+  // Shared props for SettingField / ModelSelect
+  const fieldProps = { onSave: handleSave, savingKey, getSetting };
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="prompts" className="w-full">
-        <TabsList className="w-full grid grid-cols-7 mb-4 bg-secondary rounded-xl h-10">
+        <TabsList className="w-full grid grid-cols-8 mb-4 bg-secondary rounded-xl h-10">
           {[
             { val: "prompts", icon: Brain, label: "Prompts" },
+            { val: "templates", icon: BookOpen, label: "Templates" },
             { val: "content", icon: Globe, label: "Content" },
             { val: "images", icon: ImageIcon, label: "Images" },
             { val: "branding", icon: Palette, label: "Branding" },
@@ -228,10 +480,15 @@ export function AdminCMS() {
               <Brain className="w-5 h-5 text-accent" /> Master AI Prompts
             </h3>
             <p className="text-xs text-muted-foreground">Edit the prompts that control how stories, images, and characters are generated.</p>
-            <SettingField category="prompts" settingKey="story-system-prompt" label="Story Generation — System Prompt" multiline placeholder={DEFAULT_PROMPTS["story-system-prompt"]} edits={promptEdits} setEdits={setPromptEdits} />
-            <SettingField category="prompts" settingKey="image-prompt-template" label="Image Generation — Prompt Template" multiline placeholder={DEFAULT_PROMPTS["image-prompt-template"]} edits={promptEdits} setEdits={setPromptEdits} />
-            <SettingField category="prompts" settingKey="character-prompt-template" label="Character Preview — Prompt Template" multiline placeholder={DEFAULT_PROMPTS["character-prompt-template"]} edits={promptEdits} setEdits={setPromptEdits} />
+            <SettingField category="prompts" settingKey="story-system-prompt" label="Story Generation — System Prompt" multiline placeholder={DEFAULT_PROMPTS["story-system-prompt"]} edits={promptEdits} setEdits={setPromptEdits} {...fieldProps} />
+            <SettingField category="prompts" settingKey="image-prompt-template" label="Image Generation — Prompt Template" multiline placeholder={DEFAULT_PROMPTS["image-prompt-template"]} edits={promptEdits} setEdits={setPromptEdits} {...fieldProps} />
+            <SettingField category="prompts" settingKey="character-prompt-template" label="Character Preview — Prompt Template" multiline placeholder={DEFAULT_PROMPTS["character-prompt-template"]} edits={promptEdits} setEdits={setPromptEdits} {...fieldProps} />
           </div>
+        </TabsContent>
+
+        {/* BOOK TEMPLATES */}
+        <TabsContent value="templates">
+          <BookTemplatesTab onSave={handleSave} savingKey={savingKey} />
         </TabsContent>
 
         {/* WEBSITE CONTENT */}
@@ -245,24 +502,24 @@ export function AdminCMS() {
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">Navbar</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="brand-name" label="Brand Name" placeholder="Torah Tale" edits={contentEdits} setEdits={setContentEdits} />
-                <SettingField category="website" settingKey="navbar-cta" label="Navbar CTA Button" placeholder="Create a Sefer" edits={contentEdits} setEdits={setContentEdits} />
+                <SettingField category="website" settingKey="brand-name" label="Brand Name" placeholder="Torah Tale" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="navbar-cta" label="Navbar CTA Button" placeholder="Create a Sefer" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
 
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">Hero Section</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="hero-badge" label="Badge Text" placeholder="AI-Powered Torah Stories for Frum Kinderlach" edits={contentEdits} setEdits={setContentEdits} />
-                <SettingField category="website" settingKey="hero-cta" label="CTA Button" placeholder="Begin the Journey" edits={contentEdits} setEdits={setContentEdits} />
-                <SettingField category="website" settingKey="hero-price-text" label="Price Subtext" placeholder="From $34.99 · Ships in 5 days" edits={contentEdits} setEdits={setContentEdits} />
-                <SettingField category="website" settingKey="hero-social-proof" label="Social Proof Text" placeholder="2,847+ Chareidi mishpachos" edits={contentEdits} setEdits={setContentEdits} />
+                <SettingField category="website" settingKey="hero-badge" label="Badge Text" placeholder="AI-Powered Torah Stories for Frum Kinderlach" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="hero-cta" label="CTA Button" placeholder="Begin the Journey" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="hero-price-text" label="Price Subtext" placeholder="From $34.99 · Ships in 5 days" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="hero-social-proof" label="Social Proof Text" placeholder="2,847+ Chareidi mishpachos" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
                 {Array.from({ length: 10 }, (_, i) => (
                   <div key={i} className="space-y-2 border border-border/50 rounded-lg p-3">
                     <p className="text-[10px] font-mono text-muted-foreground">Slide {i + 1}</p>
-                    <SettingField category="website" settingKey={`hero-slide-${i}-headline-1`} label={`Headline Line 1`} placeholder={`Slide ${i + 1} headline...`} edits={contentEdits} setEdits={setContentEdits} />
-                    <SettingField category="website" settingKey={`hero-slide-${i}-headline-2`} label={`Headline Line 2 (accent)`} placeholder={`Slide ${i + 1} accent...`} edits={contentEdits} setEdits={setContentEdits} />
-                    <SettingField category="website" settingKey={`hero-slide-${i}-description`} label={`Description`} placeholder={`Slide ${i + 1} description...`} edits={contentEdits} setEdits={setContentEdits} />
+                    <SettingField category="website" settingKey={`hero-slide-${i}-headline-1`} label={`Headline Line 1`} placeholder={`Slide ${i + 1} headline...`} edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                    <SettingField category="website" settingKey={`hero-slide-${i}-headline-2`} label={`Headline Line 2 (accent)`} placeholder={`Slide ${i + 1} accent...`} edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                    <SettingField category="website" settingKey={`hero-slide-${i}-description`} label={`Description`} placeholder={`Slide ${i + 1} description...`} edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
                   </div>
                 ))}
               </div>
@@ -274,8 +531,8 @@ export function AdminCMS() {
                 {["01", "02", "03"].map((num, i) => (
                   <div key={num} className="space-y-2 border border-border/50 rounded-lg p-3">
                     <p className="text-[10px] font-mono text-muted-foreground">Step {num}</p>
-                    <SettingField category="website" settingKey={`how-step-${i}-title`} label="Title" placeholder={`Step ${num} title`} edits={contentEdits} setEdits={setContentEdits} />
-                    <SettingField category="website" settingKey={`how-step-${i}-desc`} label="Description" placeholder={`Step ${num} description`} edits={contentEdits} setEdits={setContentEdits} />
+                    <SettingField category="website" settingKey={`how-step-${i}-title`} label="Title" placeholder={`Step ${num} title`} edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                    <SettingField category="website" settingKey={`how-step-${i}-desc`} label="Description" placeholder={`Step ${num} description`} edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
                   </div>
                 ))}
               </div>
@@ -287,9 +544,9 @@ export function AdminCMS() {
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="space-y-2 border border-border/50 rounded-lg p-3">
                     <p className="text-[10px] font-mono text-muted-foreground">Testimonial {i + 1}</p>
-                    <SettingField category="website" settingKey={`testimonial-${i}-name`} label="Name" placeholder={`Name`} edits={contentEdits} setEdits={setContentEdits} />
-                    <SettingField category="website" settingKey={`testimonial-${i}-location`} label="Location" placeholder={`City, State`} edits={contentEdits} setEdits={setContentEdits} />
-                    <SettingField category="website" settingKey={`testimonial-${i}-text`} label="Quote" multiline placeholder={`Testimonial text...`} edits={contentEdits} setEdits={setContentEdits} />
+                    <SettingField category="website" settingKey={`testimonial-${i}-name`} label="Name" placeholder={`Name`} edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                    <SettingField category="website" settingKey={`testimonial-${i}-location`} label="Location" placeholder={`City, State`} edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                    <SettingField category="website" settingKey={`testimonial-${i}-text`} label="Quote" multiline placeholder={`Testimonial text...`} edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
                   </div>
                 ))}
               </div>
@@ -298,24 +555,24 @@ export function AdminCMS() {
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">CTA Section</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="cta-headline" label="Headline" placeholder="Every Yiddishe Kind Deserves to Be Part of the Story" edits={contentEdits} setEdits={setContentEdits} />
-                <SettingField category="website" settingKey="cta-subtext" label="Subtext" placeholder="Powered by AI. Printed with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} />
-                <SettingField category="website" settingKey="cta-button" label="Button Text" placeholder="Begin the Tale" edits={contentEdits} setEdits={setContentEdits} />
+                <SettingField category="website" settingKey="cta-headline" label="Headline" placeholder="Every Yiddishe Kind Deserves to Be Part of the Story" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="cta-subtext" label="Subtext" placeholder="Powered by AI. Printed with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="cta-button" label="Button Text" placeholder="Begin the Tale" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
 
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">Footer</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="footer-tagline" label="Tagline" placeholder="AI-powered personalized children's seforim rooted in Torah wisdom." edits={contentEdits} setEdits={setContentEdits} />
-                <SettingField category="website" settingKey="footer-copyright" label="Copyright" placeholder="Torah Tale. Made with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} />
+                <SettingField category="website" settingKey="footer-tagline" label="Tagline" placeholder="AI-powered personalized children's seforim rooted in Torah wisdom." edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="footer-copyright" label="Copyright" placeholder="Torah Tale. Made with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
 
             <div className="space-y-1">
               <h4 className="text-sm font-semibold text-foreground">Auth Page</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="auth-subtitle" label="Sign-In Subtitle" placeholder="Sign in to create personalized Torah seforim for your kinderlach" edits={contentEdits} setEdits={setContentEdits} />
+                <SettingField category="website" settingKey="auth-subtitle" label="Sign-In Subtitle" placeholder="Sign in to create personalized Torah seforim for your kinderlach" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
           </div>
@@ -345,12 +602,12 @@ export function AdminCMS() {
                       </div>
                       <div className="flex items-center gap-2">
                         {asset?.status === "ready" && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 flex items-center gap-1">
                             <Check className="w-2.5 h-2.5" /> Ready
                           </span>
                         )}
                         {asset?.status === "error" && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 text-red-600 flex items-center gap-1">
                             <AlertTriangle className="w-2.5 h-2.5" /> Error
                           </span>
                         )}
@@ -447,12 +704,12 @@ export function AdminCMS() {
             <h3 className="font-display text-lg font-semibold text-primary flex items-center gap-2">
               <Settings className="w-5 h-5 text-accent" /> AI Agent Settings
             </h3>
-            <ModelSelect category="ai" settingKey="story-model" label="Story Generation Model" models={AI_MODELS} edits={aiEdits} setEdits={setAiEdits} />
-            <ModelSelect category="ai" settingKey="image-model" label="Book Image Generation Model" models={IMAGE_MODELS} edits={aiEdits} setEdits={setAiEdits} />
-            <ModelSelect category="ai" settingKey="site-image-model" label="Site Image Generation Model" models={IMAGE_MODELS} edits={aiEdits} setEdits={setAiEdits} />
-            <SettingField category="ai" settingKey="story-temperature" label="Story Temperature (0-2)" placeholder="0.9" edits={aiEdits} setEdits={setAiEdits} />
-            <SettingField category="ai" settingKey="default-page-count" label="Default Page Count" placeholder="4" edits={aiEdits} setEdits={setAiEdits} />
-            <SettingField category="ai" settingKey="art-styles" label="Available Art Styles (comma-separated)" placeholder="cartoon,3d-pixar,realistic,graphic-novel" edits={aiEdits} setEdits={setAiEdits} />
+            <ModelSelect category="ai" settingKey="story-model" label="Story Generation Model" models={AI_MODELS} edits={aiEdits} setEdits={setAiEdits} {...fieldProps} />
+            <ModelSelect category="ai" settingKey="image-model" label="Book Image Generation Model" models={IMAGE_MODELS} edits={aiEdits} setEdits={setAiEdits} {...fieldProps} />
+            <ModelSelect category="ai" settingKey="site-image-model" label="Site Image Generation Model" models={IMAGE_MODELS} edits={aiEdits} setEdits={setAiEdits} {...fieldProps} />
+            <SettingField category="ai" settingKey="story-temperature" label="Story Temperature (0-2)" placeholder="0.9" edits={aiEdits} setEdits={setAiEdits} {...fieldProps} />
+            <SettingField category="ai" settingKey="default-page-count" label="Default Page Count" placeholder="4" edits={aiEdits} setEdits={setAiEdits} {...fieldProps} />
+            <SettingField category="ai" settingKey="art-styles" label="Available Art Styles (comma-separated)" placeholder="cartoon,3d-pixar,realistic,graphic-novel" edits={aiEdits} setEdits={setAiEdits} {...fieldProps} />
           </div>
         </TabsContent>
 
@@ -462,11 +719,11 @@ export function AdminCMS() {
             <h3 className="font-display text-lg font-semibold text-primary flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-accent" /> Pricing & Plans
             </h3>
-            <SettingField category="pricing" settingKey="weekly-price" label="Weekly Subscription ($)" placeholder="24.99" edits={pricingEdits} setEdits={setPricingEdits} />
-            <SettingField category="pricing" settingKey="monthly-price" label="Monthly Subscription ($)" placeholder="79.99" edits={pricingEdits} setEdits={setPricingEdits} />
-            <SettingField category="pricing" settingKey="yearly-price" label="Yearly Subscription ($)" placeholder="699.99" edits={pricingEdits} setEdits={setPricingEdits} />
-            <SettingField category="pricing" settingKey="one-time-price" label="One-Time Purchase ($)" placeholder="34.99" edits={pricingEdits} setEdits={setPricingEdits} />
-            <SettingField category="pricing" settingKey="subscription-discount" label="Subscription Discount (%)" placeholder="20" edits={pricingEdits} setEdits={setPricingEdits} />
+            <SettingField category="pricing" settingKey="weekly-price" label="Weekly Subscription ($)" placeholder="24.99" edits={pricingEdits} setEdits={setPricingEdits} {...fieldProps} />
+            <SettingField category="pricing" settingKey="monthly-price" label="Monthly Subscription ($)" placeholder="79.99" edits={pricingEdits} setEdits={setPricingEdits} {...fieldProps} />
+            <SettingField category="pricing" settingKey="yearly-price" label="Yearly Subscription ($)" placeholder="699.99" edits={pricingEdits} setEdits={setPricingEdits} {...fieldProps} />
+            <SettingField category="pricing" settingKey="one-time-price" label="One-Time Purchase ($)" placeholder="34.99" edits={pricingEdits} setEdits={setPricingEdits} {...fieldProps} />
+            <SettingField category="pricing" settingKey="subscription-discount" label="Subscription Discount (%)" placeholder="20" edits={pricingEdits} setEdits={setPricingEdits} {...fieldProps} />
           </div>
         </TabsContent>
 
@@ -493,9 +750,9 @@ export function AdminCMS() {
                 />
               </div>
 
-              <SettingField category="integrations" settingKey="printify-shop-id" label="Printify Shop ID" placeholder="Enter your Printify shop ID" edits={integrationEdits} setEdits={setIntegrationEdits} />
-              <SettingField category="integrations" settingKey="printify-blueprint-id" label="Product Blueprint ID" placeholder="e.g. 635 for hardcover book" edits={integrationEdits} setEdits={setIntegrationEdits} />
-              <SettingField category="integrations" settingKey="printify-print-provider-id" label="Print Provider ID" placeholder="e.g. 99" edits={integrationEdits} setEdits={setIntegrationEdits} />
+              <SettingField category="integrations" settingKey="printify-shop-id" label="Printify Shop ID" placeholder="Enter your Printify shop ID" edits={integrationEdits} setEdits={setIntegrationEdits} {...fieldProps} />
+              <SettingField category="integrations" settingKey="printify-blueprint-id" label="Product Blueprint ID" placeholder="e.g. 635 for hardcover book" edits={integrationEdits} setEdits={setIntegrationEdits} {...fieldProps} />
+              <SettingField category="integrations" settingKey="printify-print-provider-id" label="Print Provider ID" placeholder="e.g. 99" edits={integrationEdits} setEdits={setIntegrationEdits} {...fieldProps} />
 
               <div className="border border-border rounded-lg p-4 bg-muted/20 space-y-2">
                 <p className="text-xs font-semibold text-foreground">API Key</p>
