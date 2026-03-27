@@ -15,7 +15,7 @@ const testimonials = [
     name: "Avi Rosenberg",
     location: "Lakewood, NJ",
     initials: "AR",
-    text: "We've subscribed to the Parashah Club. Every Leil Shabbos, our son reads his new personalized story at the Shabbos table. The whole mishpacha loves it.",
+    text: "We've subscribed to the Parashah Club. Every Leil Shabbos, our son reads his new personalized sefer at the Shabbos tish. The whole mishpacha loves it — it's become part of our zemiros.",
     rating: 5,
   },
   {
