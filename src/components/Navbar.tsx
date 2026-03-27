@@ -11,7 +11,7 @@ interface NavbarProps {
 
 export const Navbar = ({ onStart }: NavbarProps) => {
   const [scrolled, setScrolled] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
   const { user, signOut } = useAuth();
   const { getSetting } = useSiteSettings("website");
   const { getAssetUrl } = useSiteAssets();
