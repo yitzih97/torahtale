@@ -96,23 +96,23 @@ export default function Admin() {
     );
   }
 
-  const handleDownloadPdf = async (book: any) => {
+  const handleDownloadZip = async (book: any) => {
     const pages = book.pages_data as any[] || [];
     if (!pages.length) { toast.error("No pages to export"); return; }
-    setDownloadingPdf(book.id);
+    setDownloadingZip(book.id);
     try {
-      const blob = await generateBookPdf(pages, book.child_name || "", book.torah_portion || "");
+      const blob = await generateBookZip(pages, book.child_name || "book", book.order_number || book.id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${book.order_number || book.id}-${book.child_name || "book"}.pdf`.replace(/\s+/g, "-").toLowerCase();
+      a.download = `${book.order_number || book.id}-${book.child_name || "book"}-images.zip`.replace(/\s+/g, "-").toLowerCase();
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success("PDF ready for Printify!");
-    } catch { toast.error("PDF generation failed"); }
-    finally { setDownloadingPdf(null); }
+      toast.success("ZIP ready for Printify!");
+    } catch { toast.error("ZIP generation failed"); }
+    finally { setDownloadingZip(null); }
   };
 
   const handleTriggerGeneration = async (book: any) => {
