@@ -114,6 +114,82 @@ export default function Admin() {
     finally { setDownloadingPdf(null); }
   };
 
+  const handleTriggerGeneration = async (book: any) => {
+    setGeneratingBookId(book.id);
+    try {
+      // Call the generate-story edge function with book params
+      const storyData = book.story_data || {};
+      const { data: storyResult, error: storyErr } = await supabase.functions.invoke("generate-story", {
+        body: {
+          childName: book.child_name,
+          childrenInfo: storyData.childrenInfo || book.child_name,
+          age: storyData.childDescriptions?.[0]?.age || "6",
+          gender: storyData.childDescriptions?.[0]?.gender || "boy",
+          torahPortion: book.torah_portion,
+          torahPortionLabel: book.torah_portion,
+          artStyle: book.art_style,
+          language: book.language || "english",
+          pageCount: storyData.pageCount || 4,
+        },
+      });
+      if (storyErr) throw storyErr;
+
+      const cover = storyResult.cover || { title: `${book.child_name}'s Torah Adventure`, subtitle: "" };
+      const backCover = storyResult.backCover || { synopsis: "", dedication: "" };
+      const questions = storyResult.backCover?.questions || storyResult.questions || [];
+
+      let pageId = 0;
+      const allPages: any[] = [];
+      allPages.push({ id: pageId++, text: cover.title, image: null, imageLoading: true, type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle });
+      for (const p of storyResult.pages || []) {
+        allPages.push({ id: pageId++, text: p.text, image: null, imageLoading: true, type: "story" });
+      }
+      allPages.push({ id: pageId++, text: backCover.synopsis || "", image: null, imageLoading: true, type: "back-cover", synopsis: backCover.synopsis, dedication: backCover.dedication, questions });
+
+      // Generate images for each page
+      const styleMap: Record<string, string> = {
+        cartoon: "colorful cartoon illustration, soft watercolor textures, children's book style",
+        "3d-pixar": "3D Pixar-style CGI render, warm lighting, soft shadows",
+        realistic: "photorealistic illustration, natural lighting, lifelike detail, warm cinematic tones",
+      };
+      const style = styleMap[book.art_style] || styleMap.cartoon;
+
+      for (let i = 0; i < allPages.length; i++) {
+        const page = allPages[i];
+        const prompt = page.type === "cover"
+          ? `A stunning children's book FRONT COVER illustration. Scene from Torah story "${book.torah_portion}". Style: ${style}. No text.`
+          : page.type === "back-cover"
+          ? `A beautiful children's book BACK COVER illustration. Torah story "${book.torah_portion}". Style: ${style}. No text.`
+          : `A beautiful children's book illustration. Scene: "${page.text}". Torah story: "${book.torah_portion}". Style: ${style}. No text.`;
+
+        try {
+          const { data: imgData } = await supabase.functions.invoke("generate-image", {
+            body: { prompt, childName: book.child_name, artStyle: book.art_style, torahPortion: book.torah_portion },
+          });
+          allPages[i] = { ...page, image: imgData?.imageUrl || null, imageLoading: false };
+        } catch {
+          allPages[i] = { ...page, image: null, imageLoading: false };
+        }
+      }
+
+      // Save to DB
+      await supabase.from("books").update({
+        pages_data: allPages as any,
+        story_data: storyResult,
+        questions,
+        cover_image_url: allPages[0]?.image || null,
+        status: "ordered",
+        updated_at: new Date().toISOString(),
+      } as any).eq("id", book.id);
+
+      toast.success("Book generated successfully! Review and approve.");
+    } catch (err: any) {
+      toast.error(err?.message || "Generation failed");
+    } finally {
+      setGeneratingBookId(null);
+    }
+  };
+
   // Stats
   const totalOrders = books.filter((b: any) => b.status !== "draft").length;
   const totalDrafts = books.filter((b: any) => b.status === "draft").length;
