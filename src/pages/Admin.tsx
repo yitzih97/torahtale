@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData } from "@/hooks/useAdminData";
+import { supabase } from "@/integrations/supabase/client";
 import { generateBookPdf } from "@/lib/generateBookPdf";
 import { format } from "date-fns";
 import { toast } from "sonner";
