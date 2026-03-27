@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Crown, Zap, CalendarDays, Check, TrendingDown, Loader2, Sparkles } from "lucide-react";
-import { useCartStore } from "@/stores/cartStore";
-import { SHOPIFY_VARIANT_IDS, type ShopifyProduct } from "@/lib/shopify";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 type PlanType = "weekly" | "monthly" | "yearly";
@@ -17,7 +17,7 @@ interface Plan {
   icon: typeof Crown;
   badge?: string;
   description: string;
-  variantId: string;
+  frequency: string;
 }
 
 const PLANS: Plan[] = [
@@ -29,7 +29,7 @@ const PLANS: Plan[] = [
     savings: "20% off",
     icon: Zap,
     description: "A new Torah adventure every Shabbos",
-    variantId: SHOPIFY_VARIANT_IDS.weeklySubscription,
+    frequency: "weekly",
   },
   {
     id: "monthly",
@@ -40,7 +40,7 @@ const PLANS: Plan[] = [
     icon: Crown,
     badge: "MOST POPULAR",
     description: "4 seforim/month — best value for mishpachos",
-    variantId: SHOPIFY_VARIANT_IDS.monthlySubscription,
+    frequency: "monthly",
   },
   {
     id: "yearly",
@@ -50,23 +50,9 @@ const PLANS: Plan[] = [
     savings: "49% off",
     icon: CalendarDays,
     description: "Full year of seforim — biggest savings",
-    variantId: SHOPIFY_VARIANT_IDS.yearlySubscription,
+    frequency: "yearly",
   },
 ];
-
-// Dummy product shape for cart items (subscription products don't have images)
-const makeSubProduct = (plan: Plan): ShopifyProduct => ({
-  node: {
-    id: `sub-${plan.id}`,
-    title: `Torah Tale ${plan.label} Subscription`,
-    description: plan.description,
-    handle: `torah-tale-${plan.id}-subscription`,
-    priceRange: { minVariantPrice: { amount: plan.price.toString(), currencyCode: "USD" } },
-    images: { edges: [] },
-    variants: { edges: [{ node: { id: plan.variantId, title: plan.label, price: { amount: plan.price.toString(), currencyCode: "USD" }, availableForSale: true, selectedOptions: [{ name: "Plan", value: plan.label }] } }] },
-    options: [{ name: "Plan", values: [plan.label] }],
-  },
-});
 
 interface Props {
   open: boolean;
@@ -77,33 +63,36 @@ interface Props {
 
 export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context = "limit-reached" }: Props) => {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
-  const { addItem, isLoading, getCheckoutUrl } = useCartStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
   const handleSubscribe = async () => {
     const plan = PLANS.find(p => p.id === selectedPlan);
-    if (!plan) return;
+    if (!plan || !user) {
+      toast.error("Please sign in to subscribe.");
+      return;
+    }
 
-    await addItem({
-      product: makeSubProduct(plan),
-      variantId: plan.variantId,
-      variantTitle: plan.label,
-      price: { amount: plan.price.toString(), currencyCode: "USD" },
-      quantity: 1,
-      selectedOptions: [{ name: "Plan", value: plan.label }],
-    });
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.from("subscriptions").insert({
+        user_id: user.id,
+        frequency: plan.frequency,
+        price_per_week: plan.perWeek,
+        status: "active",
+      });
 
-    // Small delay so cart state updates
-    setTimeout(() => {
-      const checkoutUrl = useCartStore.getState().getCheckoutUrl();
-      if (checkoutUrl) {
-        window.open(checkoutUrl, '_blank');
-        toast.success("Redirecting to checkout...");
-        onSubscribed?.();
-        onClose();
-      } else {
-        toast.error("Could not create checkout. Please try again.");
-      }
-    }, 500);
+      if (error) throw error;
+
+      toast.success(`Subscribed to the ${plan.label} plan!`);
+      onSubscribed?.();
+      onClose();
+    } catch (err: any) {
+      console.error("Subscription error:", err);
+      toast.error("Could not create subscription. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -183,7 +172,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
             )}
           </Button>
           <p className="text-center text-[10px] text-muted-foreground">
-            🚚 Free shipping · Cancel anytime · Secure checkout via Shopify
+            🚚 Free shipping · Cancel anytime · Secure checkout
           </p>
         </div>
       </DialogContent>

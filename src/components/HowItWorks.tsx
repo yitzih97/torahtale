@@ -20,11 +20,11 @@ export const HowItWorks = () => {
   }));
 
   return (
-    <section id="how-it-works" className="py-24 lg:py-32 bg-background">
-      <div className="container max-w-5xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, ease }} className="text-center mb-16">
-          <span className="text-sm font-semibold text-accent mb-3 block tracking-wider uppercase">How It Works</span>
-          <h2 className="text-3xl lg:text-5xl font-bold text-foreground leading-tight">
+    <section id="how-it-works" className="py-16 sm:py-24 lg:py-32 bg-background">
+      <div className="container max-w-5xl mx-auto px-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, ease }} className="text-center mb-10 sm:mb-16">
+          <span className="text-xs sm:text-sm font-semibold text-accent mb-3 block tracking-wider uppercase">How It Works</span>
+          <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-foreground leading-tight">
             Three simple steps to a<br /><span className="text-accent">personalized Torah sefer</span>
           </h2>
         </motion.div>
