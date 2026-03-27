@@ -41,8 +41,8 @@ export const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">Legal</h4>
             <nav className="flex flex-col gap-2.5">
-              <a href="#" className="text-sm text-muted-foreground hover:text-accent transition-colors">Privacy Policy</a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-accent transition-colors">Terms of Service</a>
+              <a href="/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">Privacy Policy</a>
+              <a href="/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">Terms of Service</a>
             </nav>
           </div>
         </div>
