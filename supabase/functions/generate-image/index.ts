@@ -10,7 +10,18 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, childName, artStyle, torahPortion, referenceImage } = await req.json();
+    const { prompt, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType } = await req.json();
+
+    /* ── Printify print-area dimensions by format ── */
+    const PRINT_SPECS: Record<string, { page: [number, number]; cover: [number, number] }> = {
+      "softcover-8x8":   { page: [2400, 2400], cover: [4790, 2400] },
+      "hardcover-8x8":   { page: [2325, 2325], cover: [5370, 2850] },
+      "hardcover-11x8.5":{ page: [2325, 2325], cover: [5370, 2850] },
+      "board-6x6":       { page: [3675, 1875], cover: [3863, 1875] },
+    };
+    const specs = bookFormat ? PRINT_SPECS[bookFormat] : null;
+    const isCover = pageType === "cover" || pageType === "back-cover";
+    const dims = specs ? (isCover ? specs.cover : specs.page) : null;
 
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
@@ -50,6 +61,11 @@ serve(async (req) => {
         .replace("{styleDesc}", styleDesc);
     } else {
       imagePrompt = `A beautiful children's book illustration of a frum Yiddishe child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. Boys MUST have peyos (sidelocks), yarmulke/kippah, and visible tzitzis. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements visible. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
+    }
+
+    // Append dimension instructions for Printify print-ready output
+    if (dims) {
+      imagePrompt += ` The output image MUST be exactly ${dims[0]}x${dims[1]} pixels.`;
     }
 
     const parts: any[] = [];

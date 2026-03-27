@@ -283,6 +283,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
               childrenInfo,
               portionLabel,
               pageCount: data.pageCount,
+              bookOptions: bookOptions,
               childDescriptions: data.children.map((c) => ({
                 name: c.name,
                 age: c.age,

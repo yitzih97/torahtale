@@ -17,7 +17,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData } from "@/hooks/useAdminData";
 import { supabase } from "@/integrations/supabase/client";
-import { generateBookPdf } from "@/lib/generateBookPdf";
+import { generateBookZip } from "@/lib/generateBookZip";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { AdminCMS } from "@/components/admin/AdminCMS";
@@ -62,7 +62,7 @@ export default function Admin() {
   const [viewingBook, setViewingBook] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [generatingBookId, setGeneratingBookId] = useState<string | null>(null);
-  const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null);
+  const [downloadingZip, setDownloadingZip] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -96,23 +96,23 @@ export default function Admin() {
     );
   }
 
-  const handleDownloadPdf = async (book: any) => {
+  const handleDownloadZip = async (book: any) => {
     const pages = book.pages_data as any[] || [];
     if (!pages.length) { toast.error("No pages to export"); return; }
-    setDownloadingPdf(book.id);
+    setDownloadingZip(book.id);
     try {
-      const blob = await generateBookPdf(pages, book.child_name || "", book.torah_portion || "");
+      const blob = await generateBookZip(pages, book.child_name || "book", book.order_number || book.id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${book.order_number || book.id}-${book.child_name || "book"}.pdf`.replace(/\s+/g, "-").toLowerCase();
+      a.download = `${book.order_number || book.id}-${book.child_name || "book"}-images.zip`.replace(/\s+/g, "-").toLowerCase();
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success("PDF ready for Printify!");
-    } catch { toast.error("PDF generation failed"); }
-    finally { setDownloadingPdf(null); }
+      toast.success("ZIP ready for Printify!");
+    } catch { toast.error("ZIP generation failed"); }
+    finally { setDownloadingZip(null); }
   };
 
   const handleTriggerGeneration = async (book: any) => {
@@ -163,9 +163,19 @@ export default function Admin() {
           ? `A beautiful children's book BACK COVER illustration. Torah story "${book.torah_portion}". Style: ${style}. No text.`
           : `A beautiful children's book illustration. Scene: "${page.text}". Torah story: "${book.torah_portion}". Style: ${style}. No text.`;
 
+      const storyData = book.story_data || {};
+      const bookOpts = storyData.bookOptions || {};
+      const productType = bookOpts.productType || "softcover";
+      const hardcoverSize = bookOpts.hardcoverSize || "8x8";
+      const bookFormat = productType === "hardcover"
+        ? `hardcover-${hardcoverSize}`
+        : productType === "board"
+        ? "board-6x6"
+        : "softcover-8x8";
+
         try {
           const { data: imgData } = await supabase.functions.invoke("generate-image", {
-            body: { prompt, childName: book.child_name, artStyle: book.art_style, torahPortion: book.torah_portion },
+            body: { prompt, childName: book.child_name, artStyle: book.art_style, torahPortion: book.torah_portion, bookFormat, pageType: page.type },
           });
           allPages[i] = { ...page, image: imgData?.imageUrl || null, imageLoading: false };
         } catch {
@@ -376,10 +386,11 @@ export default function Admin() {
                                           variant="ghost"
                                           size="sm"
                                           className="text-[11px] h-7 px-2"
-                                          disabled={downloadingPdf === book.id}
-                                          onClick={() => handleDownloadPdf(book)}
+                                          disabled={downloadingZip === book.id}
+                                          onClick={() => handleDownloadZip(book)}
+                                          title="Download images (ZIP)"
                                         >
-                                          {downloadingPdf === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                                          {downloadingZip === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                                         </Button>
                                       )}
                                       {book.pages_data && book.status === "ordered" && (
@@ -493,7 +504,7 @@ export default function Admin() {
                                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setViewingBook(book)}>
                                         <Eye className="w-3 h-3" />
                                       </Button>
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleDownloadPdf(book)}>
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleDownloadZip(book)} title="Download images (ZIP)">
                                         <Download className="w-3 h-3" />
                                       </Button>
                                     </div>

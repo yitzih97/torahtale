@@ -15,7 +15,7 @@ export const DEFAULT_BOOK_OPTIONS: BookOptions = {
 const PRODUCT_INFO = {
   softcover: {
     label: "Softcover Photo Book",
-    price: 24.99,
+    price: 7.05,
     dims: '8″ × 8″',
     icon: BookOpen,
     color: "from-blue-500/20 to-blue-600/10",
@@ -29,7 +29,7 @@ const PRODUCT_INFO = {
   },
   hardcover: {
     label: "Hardcover Photo Book",
-    price: 39.99,
+    price: 9.95,
     dims: '8″ × 8″ or 11″ × 8.5″',
     icon: Shield,
     color: "from-accent/20 to-accent/10",
@@ -44,7 +44,7 @@ const PRODUCT_INFO = {
   },
   board: {
     label: "Board Book",
-    price: 44.99,
+    price: 18.28,
     dims: '6″ × 6″',
     icon: Baby,
     color: "from-pink-500/20 to-pink-600/10",
@@ -63,7 +63,7 @@ const HARDCOVER_SIZES = [
   { key: "11x8.5" as const, label: '11″ × 8.5″', desc: "Landscape — bigger illustrations" },
 ];
 
-export const BASE_BOOK_PRICE = 24.99;
+export const BASE_BOOK_PRICE = 7.05;
 
 export function calculateBookPrice(options: BookOptions): number {
   return PRODUCT_INFO[options.productType].price;
