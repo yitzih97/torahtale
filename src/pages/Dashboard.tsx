@@ -251,7 +251,7 @@ export default function Dashboard() {
                   <div className="text-center py-16">
                     <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-display text-lg font-semibold text-primary mb-2">No books yet</h3>
-                    <p className="text-muted-foreground text-sm mb-6">Create your first personalized Torah tale!</p>
+                    <p className="text-muted-foreground text-sm mb-6">Create your first personalized Torah sefer!</p>
                     <Button variant="gold" onClick={() => navigate("/")}>
                       Create a Story
                     </Button>
