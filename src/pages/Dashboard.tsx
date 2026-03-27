@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [addChildOpen, setAddChildOpen] = useState(false);
   const [editingChild, setEditingChild] = useState<ChildRecord | null>(null);
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
+  const [activeTab, setActiveTab] = useState("kids");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
