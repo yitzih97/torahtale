@@ -422,9 +422,14 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }
   })();
 
-  const filteredPortions = portionFilter === "all"
-    ? TORAH_PORTIONS
-    : TORAH_PORTIONS.filter((p) => p.category === portionFilter);
+  const filteredPortions = (() => {
+    let list = portionFilter === "all" ? TORAH_PORTIONS : TORAH_PORTIONS.filter((p) => p.category === portionFilter);
+    if (portionSearch.trim()) {
+      const q = portionSearch.toLowerCase();
+      list = list.filter((p) => p.label.toLowerCase().includes(q) || p.sub.toLowerCase().includes(q));
+    }
+    return list;
+  })();
 
   const activeGroupIdx = STEP_GROUPS.findIndex((g) => g.steps.includes(step));
 
