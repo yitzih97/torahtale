@@ -1068,29 +1068,33 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   </motion.div>
                 )}
 
-                {/* ── STEP 8: Page Count + Auth Gate ── */}
+                {/* ── STEP 8: Review & Generate ── */}
                 {step === 8 && (
                   <motion.div key="s8" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
                     <div>
-                      <h2 className="font-display text-2xl font-bold text-primary">How many pages?</h2>
-                      <p className="text-muted-foreground text-sm mt-1">Choose how long {childNames}'s story should be.</p>
+                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
+                        <Sparkles className="w-6 h-6 text-accent" /> Ready to Create!
+                      </h2>
+                      <p className="text-muted-foreground text-sm mt-1">Review your selections and generate {childNames}'s personalized sefer.</p>
                     </div>
-                    <div className="py-8">
-                      <div className="text-center mb-6">
-                        <span className="text-6xl font-bold text-accent">{data.pageCount}</span>
-                        <span className="text-lg text-muted-foreground ml-2">pages</span>
+
+                    {/* Summary cards */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-border bg-card p-3">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Character</p>
+                        <p className="text-sm font-semibold text-primary">{childNames}</p>
                       </div>
-                      <Slider
-                        value={[data.pageCount]}
-                        onValueChange={([v]) => update({ pageCount: v })}
-                        min={2}
-                        max={10}
-                        step={1}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground mt-3">
-                        <span>Short story</span>
-                        <span>Epic adventure</span>
+                      <div className="rounded-xl border border-border bg-card p-3">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Story</p>
+                        <p className="text-sm font-semibold text-primary">{getPortionLabel(data.torahPortion) || "—"}</p>
+                      </div>
+                      <div className="rounded-xl border border-border bg-card p-3">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Art Style</p>
+                        <p className="text-sm font-semibold text-primary capitalize">{data.artStyle}</p>
+                      </div>
+                      <div className="rounded-xl border border-border bg-card p-3">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Pages</p>
+                        <p className="text-sm font-semibold text-primary">10 pages</p>
                       </div>
                     </div>
 

@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { BookOpen, Check, Sparkles, Shield, Baby, ChevronRight } from "lucide-react";
 
+import softcoverImg from "@/assets/books/softcover-preview.jpg";
+import hardcoverImg from "@/assets/books/hardcover-preview.jpg";
+import boardImg from "@/assets/books/board-preview.jpg";
+
 export interface BookOptions {
   productType: "softcover" | "hardcover" | "board";
   hardcoverSize?: "8x8" | "11x8.5";
