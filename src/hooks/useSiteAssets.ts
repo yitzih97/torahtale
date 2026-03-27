@@ -22,7 +22,7 @@ export function useSiteAssets() {
         .select("*")
         .order("asset_key");
       if (error) throw error;
-      return (data || []) as SiteAsset[];
+      return (data || []) as unknown as SiteAsset[];
     },
     staleTime: 5 * 60 * 1000,
   });

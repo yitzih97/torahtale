@@ -41,11 +41,12 @@ export function useSiteSettings(category?: string) {
         .eq("key", key)
         .maybeSingle();
 
-      if (existing) {
+      const existingRow = existing as any;
+      if (existingRow) {
         const { error } = await supabase
           .from("site_settings" as any)
           .update({ value, updated_at: new Date().toISOString() } as any)
-          .eq("id", existing.id);
+          .eq("id", existingRow.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
