@@ -560,59 +560,7 @@ export default function Admin() {
 
               {/* ═══ TAB: SETTINGS ═══ */}
               <TabsContent value="settings">
-                <div className="space-y-6">
-                  <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm">
-                    <h3 className="font-display text-lg font-semibold text-primary flex items-center gap-2 mb-4">
-                      <Settings className="w-5 h-5 text-accent" /> Platform Settings
-                    </h3>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="bg-muted/30 rounded-xl p-4">
-                        <p className="text-xs text-muted-foreground mb-1">Default Subscription Price</p>
-                        <p className="text-lg font-bold text-primary font-display">$24.99/week</p>
-                      </div>
-                      <div className="bg-muted/30 rounded-xl p-4">
-                        <p className="text-xs text-muted-foreground mb-1">Art Styles Available</p>
-                        <p className="text-sm font-medium text-primary">Cartoon, 3D Pixar, Realistic</p>
-                      </div>
-                      <div className="bg-muted/30 rounded-xl p-4">
-                        <p className="text-xs text-muted-foreground mb-1">Print Integration</p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-primary">Printify</p>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
-                            Coming Soon
-                          </span>
-                        </div>
-                      </div>
-                      <div className="bg-muted/30 rounded-xl p-4">
-                        <p className="text-xs text-muted-foreground mb-1">Payment Processing</p>
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-muted-foreground" />
-                          <p className="text-sm font-medium text-primary">Stripe</p>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
-                            Coming Soon
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm">
-                    <h3 className="font-display text-lg font-semibold text-primary flex items-center gap-2 mb-4">
-                      <FileText className="w-5 h-5 text-accent" /> Export Data
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      <Button variant="outline" className="rounded-xl text-xs gap-2" onClick={() => toast.info("Export feature coming soon!")}>
-                        <Download className="w-3.5 h-3.5" /> Export Orders CSV
-                      </Button>
-                      <Button variant="outline" className="rounded-xl text-xs gap-2" onClick={() => toast.info("Export feature coming soon!")}>
-                        <Download className="w-3.5 h-3.5" /> Export Users CSV
-                      </Button>
-                      <Button variant="outline" className="rounded-xl text-xs gap-2" onClick={() => toast.info("Export feature coming soon!")}>
-                        <Download className="w-3.5 h-3.5" /> Export Subscriptions CSV
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                <AdminCMS />
               </TabsContent>
             </Tabs>
           </motion.div>

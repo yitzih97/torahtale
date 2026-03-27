@@ -45,7 +45,7 @@ const SITE_IMAGE_KEYS = [
 
 export function AdminCMS() {
   const { settings, isLoading: settingsLoading, getSetting, upsertSetting } = useSiteSettings();
-  const { assets, isLoading: assetsLoading, regenerateImage } = useSiteAssets();
+  const { assets, regenerateImage } = useSiteAssets();
 
   const [promptEdits, setPromptEdits] = useState<Record<string, string>>({});
   const [contentEdits, setContentEdits] = useState<Record<string, string>>({});
