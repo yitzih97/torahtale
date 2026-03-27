@@ -1351,5 +1351,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         </div>
       </DialogContent>
     </Dialog>
+
+    <SubscriptionUpsellDialog
+      open={showUpsellDialog}
+      onClose={() => setShowUpsellDialog(false)}
+      context="limit-reached"
+    />
+    </>
   );
 };
