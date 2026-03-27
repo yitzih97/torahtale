@@ -133,7 +133,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }} className="mt-10 flex items-center gap-3">
               <div className="flex -space-x-2">
                 {["S", "D", "M", "R"].map((initial, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-primary/30 flex items-center justify-center text-[10px] font-semibold text-accent backdrop-blur-sm">
+                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white/20 bg-white/10 flex items-center justify-center text-[10px] font-semibold text-gold-light backdrop-blur-sm">
                     {initial}
                   </div>
                 ))}
