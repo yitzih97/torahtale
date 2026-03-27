@@ -20,6 +20,7 @@ import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/Ship
 import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
+import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
 import { useCartStore } from "@/stores/cartStore";
 import { SHOPIFY_VARIANT_IDS, type ShopifyProduct } from "@/lib/shopify";
 import { TORAH_PORTIONS, getPortionLabel } from "./wizard/TorahPortions";
