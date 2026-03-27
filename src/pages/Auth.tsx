@@ -83,7 +83,7 @@ export default function Auth() {
             <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-accent-foreground" />
             </div>
-            <span className="font-display text-2xl font-bold text-foreground">MyTorahTale</span>
+            <span className="font-display text-2xl font-bold text-foreground">Torah Tale</span>
           </a>
           <h1 className="font-display text-2xl font-bold text-primary">
             {mode === "login" ? "Welcome Back" : mode === "signup" ? "Create Account" : "Reset Password"}

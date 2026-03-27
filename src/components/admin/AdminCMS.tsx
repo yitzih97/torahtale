@@ -308,7 +308,7 @@ export function AdminCMS() {
               <h4 className="text-sm font-semibold text-foreground">Footer</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
                 <SettingField category="website" settingKey="footer-tagline" label="Tagline" placeholder="AI-powered personalized children's seforim rooted in Torah wisdom." edits={contentEdits} setEdits={setContentEdits} />
-                <SettingField category="website" settingKey="footer-copyright" label="Copyright" placeholder="MyTorahTale. Made with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} />
+                <SettingField category="website" settingKey="footer-copyright" label="Copyright" placeholder="Torah Tale. Made with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} />
               </div>
             </div>
 

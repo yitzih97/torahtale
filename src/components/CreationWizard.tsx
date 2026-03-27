@@ -494,7 +494,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         await supabase.from("books").update({
           status: "ordered",
           shipping_data: shipping,
-          order_number: `MTT-${Date.now().toString().slice(-6)}`,
+          order_number: `TT-${Date.now().toString().slice(-6)}`,
           pages_data: bookPages.map((p) => ({ ...p, imageLoading: false })) as any,
           cover_image_url: bookPages[0]?.image || null,
           updated_at: new Date().toISOString(),

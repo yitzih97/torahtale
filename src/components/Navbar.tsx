@@ -17,7 +17,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
   const { getSetting } = useSiteSettings("website");
   const { getAssetUrl } = useSiteAssets();
 
-  const brandName = getSetting("website", "brand-name", "MyTorahTale");
+  const brandName = getSetting("website", "brand-name", "Torah Tale");
   const navbarCta = getSetting("website", "navbar-cta", "Create a Sefer");
   const logoUrl = getAssetUrl("logo", "");
 
