@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [addChildOpen, setAddChildOpen] = useState(false);
   const [editingChild, setEditingChild] = useState<ChildRecord | null>(null);
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
+  const [activeTab, setActiveTab] = useState("kids");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
@@ -134,7 +135,7 @@ export default function Dashboard() {
                     You have {draftBooks.length} draft book{draftBooks.length > 1 ? "s" : ""} waiting to be ordered.
                   </p>
                 </div>
-                <Button variant="gold" size="sm" onClick={() => navigate("/")}>
+                <Button variant="gold" size="sm" onClick={() => setActiveTab("books")}>
                   Review My Books
                 </Button>
               </motion.div>
@@ -146,7 +147,7 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.6, delay: 0.1, ease }}
           >
-            <Tabs defaultValue="kids" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full grid grid-cols-3 mb-8 bg-secondary rounded-2xl h-12">
                 <TabsTrigger value="kids" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm">
                   <Users className="w-4 h-4" /> My Kids
