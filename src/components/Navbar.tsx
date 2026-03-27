@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Sun, Moon, LogOut, User } from "lucide-react";
+import { BookOpen, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSiteAssets } from "@/hooks/useSiteAssets";
