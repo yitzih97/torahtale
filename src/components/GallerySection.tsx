@@ -12,6 +12,7 @@ const books = [
     portion: "Parashas Noach",
     style: "3D Pixar",
     image: storyNoach,
+    assetKey: "story-noach",
     description: "Join the animals two by two on the greatest adventure at sea — with a keshet of Hashem's promise waiting at the end.",
   },
   {
@@ -19,6 +20,7 @@ const books = [
     portion: "Parashas Beshalach",
     style: "3D Pixar",
     image: storyBeshalach,
+    assetKey: "story-beshalach",
     description: "Walk between towering walls of water on a golden path to cheirus. Bnei Yisrael's emunah has never looked so beautiful.",
   },
   {
@@ -26,6 +28,7 @@ const books = [
     portion: "Parashas Bereishis",
     style: "3D Pixar",
     image: storyBereishit,
+    assetKey: "story-bereishit",
     description: "Explore Hashem's magnificent garden where every creature is a friend and golden light fills the air with wonder.",
   },
 ];
