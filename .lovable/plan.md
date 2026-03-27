@@ -1,58 +1,27 @@
 
 
-## Plan: Update Image Specs, JPEG Zip Download, and 20% Margin Pricing
+## Plan: Lock to Light Mode + Dark Hero Overlay
 
-### Summary
-Three changes: (1) embed Printify print-area dimensions into AI image generation prompts so images match exact specs, (2) replace admin PDF download with a JPEG zip download organized by page, (3) update pricing to Printify cost + 20% margin.
+### 1. Remove Theme Toggle from Navbar
+**File:** `src/components/Navbar.tsx`
+- Remove the `useTheme` import and the `theme`/`toggleTheme` usage
+- Remove the Sun/Moon toggle button entirely
+- Remove unused `Sun`, `Moon` icon imports
 
----
+### 2. Force Light Mode on Load
+**File:** `src/main.tsx`
+- Remove the localStorage theme check
+- Always ensure `document.documentElement` does NOT have the `dark` class
 
-### 1. Update Image Generation with Printify Specs
+### 3. Keep Dark Overlay on Hero Section Only
+**File:** `src/components/HeroSection.tsx`
+- Replace the `dark:` prefixed gradient classes with hardcoded dark-style gradients (the more transparent ones that showcase the image)
+- Use the dark variant values directly: `from-[hsl(220,30%,8%)]/85 via-[hsl(220,30%,8%)]/30 to-transparent` so the hero always has a dark cinematic overlay regardless of light mode
+- Also force light text colors in the hero section (white/light text) so it remains readable against the dark overlay
 
-**Files:** `supabase/functions/generate-image/index.ts`, `src/pages/Admin.tsx` (handleTriggerGeneration)
-
-Add a `bookFormat` parameter to the generate-image edge function. Based on format, append exact pixel dimensions to the image prompt:
-
-| Format | Page Size | Cover Size |
-|--------|-----------|------------|
-| Softcover 8x8 | 2400 x 2400 px | 4790 x 2400 px (back+spine+front) |
-| Hardcover 8x8 | 2325 x 2325 px | 5370 x 2850 px (back+spine+front) |
-| Board Book 6x6 | 3675 x 1875 px (spread, 2 pages) | 3863 x 1875 px (back+spine+front) |
-
-- For page images: append `"The output image MUST be exactly {W}x{H} pixels."` to prompt
-- For cover images: generate as full wrap (back cover + spine + front cover) at the cover dimensions
-- Store the `bookFormat` in the book record's `story_data` so admin generation knows which specs to use
-- Update `handleTriggerGeneration` in Admin.tsx to pass `bookFormat` from the book's options data
-
-### 2. Replace PDF with JPEG Zip Download
-
-**Files:** `src/pages/Admin.tsx`, add new utility `src/lib/generateBookZip.ts`
-
-- Install/use `jszip` library (already available or add it)
-- Create `generateBookZip()` that:
-  - Takes pages array and book format info
-  - For each page, converts the base64/URL image to JPEG blob
-  - Names files systematically: `cover-front.jpg`, `page-01.jpg`, `page-02.jpg`, ..., `cover-back.jpg`
-  - Packages all into a zip using JSZip
-  - Returns the zip blob for download
-- In Admin.tsx, replace `handleDownloadPdf` with `handleDownloadZip`:
-  - Change the download button icon/label from "PDF" to "Download Images (ZIP)"
-  - Download as `{order}-{childname}-images.zip`
-- Remove the `generateBookPdf` import from Admin (keep the file for potential future use)
-
-### 3. Update Pricing to 20% Margin
-
-**File:** `src/components/wizard/BookOptionsStep.tsx`
-
-New prices (Printify cost + 20%):
-- Softcover 8x8: $5.87 × 1.2 = **$7.05**
-- Hardcover 8x8: $8.29 × 1.2 = **$9.95**
-- Hardcover 11x8.5: $8.29 × 1.2 = **$9.95** (same Printify product)
-- Board Book 6x6: $15.23 × 1.2 = **$18.28**
-
-Update `PRODUCT_INFO` prices and `BASE_BOOK_PRICE` accordingly.
-
-Also update `CheckoutStep.tsx` if it references old prices.
+### 4. Cleanup
+**File:** `src/hooks/use-theme.tsx`
+- Can be left in place (unused code) or removed. Will remove it to keep things clean.
 
 ---
 
@@ -60,10 +29,8 @@ Also update `CheckoutStep.tsx` if it references old prices.
 
 | File | Change |
 |------|--------|
-| `supabase/functions/generate-image/index.ts` | Accept `bookFormat` param, add dimension instructions to prompt |
-| `src/pages/Admin.tsx` | Pass bookFormat to generation, replace PDF download with ZIP download |
-| `src/lib/generateBookZip.ts` | New utility — JPEG zip creation with JSZip |
-| `src/components/wizard/BookOptionsStep.tsx` | Update prices to cost + 20% |
-| `src/components/wizard/CheckoutStep.tsx` | Update any hardcoded price references |
-| `src/components/CreationWizard.tsx` | Store bookFormat in book record when saving |
+| `src/main.tsx` | Remove theme logic, force light mode |
+| `src/components/Navbar.tsx` | Remove toggle button |
+| `src/components/HeroSection.tsx` | Hardcode dark overlay + light text |
+| `src/hooks/use-theme.tsx` | Remove (unused) |
 
