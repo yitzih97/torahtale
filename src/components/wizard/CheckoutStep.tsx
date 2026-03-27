@@ -47,7 +47,7 @@ const PLANS: Plan[] = [
     perWeek: 15.38,
     savings: "49% off",
     icon: CalendarDays,
-    description: "Full year of stories — biggest savings",
+    description: "Full year of seforim — biggest savings",
   },
 ];
 

@@ -18,7 +18,7 @@ const steps = [
     icon: Truck,
     number: "03",
     title: "Delivered to Your Door",
-    description: "A gorgeous hardcover arrives — a personalized Torah sefer your family will treasure for years.",
+    description: "A gorgeous hardcover arrives — a personalized sefer your mishpacha will treasure l'doros.",
   },
 ];
 

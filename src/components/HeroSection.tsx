@@ -192,7 +192,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 fill-accent text-accent" />)}
               </div>
               <span className="text-sm text-foreground/60">
-                <strong className="text-foreground/80">2,847+</strong> frum families
+                <strong className="text-foreground/80">2,847+</strong> Chareidi mishpachos
               </span>
             </motion.div>
           </div>

@@ -154,7 +154,7 @@ No markdown, no explanation, just the JSON object.`;
     }));
     const backCover = {
       synopsis: flattenText(parsed.backCover?.synopsis || "A magical Torah adventure."),
-      dedication: flattenText(parsed.backCover?.dedication || `For ${childName}, with love.`),
+      dedication: flattenText(parsed.backCover?.dedication || `For ${childName}, with love and brachos.`),
       questions: normalizedQuestions,
     };
 

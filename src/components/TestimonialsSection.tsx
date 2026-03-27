@@ -19,10 +19,10 @@ const testimonials = [
     rating: 5,
   },
   {
-    name: "Racheli Katz",
+    name: "Rivky Weinberg",
     location: "Monsey, NY",
-    initials: "RK",
-    text: "The illustrations are stunning and completely tznius. The AI captured the essence of the parasha perfectly for our 5-year-old. A real kiddush Hashem.",
+    initials: "RW",
+    text: "The illustrations are stunning and completely tznius — peyos, tzitzis, everything just right. The AI captured the essence of the parasha perfectly for our kinderlach. Mamash a kiddush Hashem.",
     rating: 5,
   },
 ];

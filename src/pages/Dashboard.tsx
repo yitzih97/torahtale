@@ -338,7 +338,7 @@ export default function Dashboard() {
                             <div>
                               <h4 className="font-display font-semibold text-primary">Parashah Club</h4>
                               <p className="text-xs text-muted-foreground">
-                                For {sub.child_name || "your child"} · ${sub.price_per_week}/week
+                                For {sub.child_name || "your kind"} · ${sub.price_per_week}/week
                               </p>
                             </div>
                           </div>

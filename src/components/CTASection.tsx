@@ -28,7 +28,7 @@ export const CTASection = ({ onStart }: Props) => (
         <img src={heroGirl} alt="" className="absolute -right-4 bottom-0 w-24 opacity-30 lg:opacity-50 pointer-events-none hidden sm:block" />
 
         <h2 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight mb-4 relative z-10">
-          Every Child Deserves
+          Every Yiddishe Kind Deserves
           <br /> to Be Part of the <span className="text-accent">Story</span>
         </h2>
         <p className="text-muted-foreground font-body leading-relaxed mb-8 max-w-md mx-auto relative z-10">
