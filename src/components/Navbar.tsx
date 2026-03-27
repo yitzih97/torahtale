@@ -34,7 +34,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"}`} data-scrolled={scrolled}>
       <div className="container flex items-center justify-between h-16 lg:h-18">
         <a href="/" className="flex items-center gap-2.5 group">
           {logoUrl ? (
@@ -44,27 +44,27 @@ export const Navbar = ({ onStart }: NavbarProps) => {
               <BookOpen className="w-4 h-4 text-accent-foreground" />
             </div>
           )}
-          <span className="font-display text-lg font-bold tracking-tight text-foreground">{brandName}</span>
+          <span className={`font-display text-lg font-bold tracking-tight transition-colors duration-500 ${scrolled ? "text-foreground" : "text-white"}`}>{brandName}</span>
         </a>
 
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">{link.label}</a>
+            <a key={link.href} href={link.href} className={`text-sm font-medium transition-colors duration-500 ${scrolled ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>{link.label}</a>
           ))}
         </div>
 
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <a href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors hidden sm:flex items-center gap-1.5">
+              <a href="/dashboard" className={`text-sm font-medium transition-colors duration-500 hidden sm:flex items-center gap-1.5 ${scrolled ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>
                 <User className="w-4 h-4" /> Dashboard
               </a>
-              <button onClick={signOut} className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-muted transition-colors hidden sm:block" aria-label="Sign out">
+              <button onClick={signOut} className={`p-2 rounded-full transition-colors hidden sm:block ${scrolled ? "text-muted-foreground hover:text-destructive hover:bg-muted" : "text-white/70 hover:text-white hover:bg-white/10"}`} aria-label="Sign out">
                 <LogOut className="w-4 h-4" />
               </button>
             </>
           ) : (
-            <a href="/auth" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors hidden sm:block">Login</a>
+            <a href="/auth" className={`text-sm font-medium transition-colors duration-500 hidden sm:block ${scrolled ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>Login</a>
           )}
 
           {onStart && (
@@ -72,7 +72,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
           )}
 
           {/* Mobile hamburger */}
-          <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-colors" aria-label="Open menu">
+          <button onClick={() => setMobileOpen(true)} className={`md:hidden p-2 rounded-lg transition-colors ${scrolled ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`} aria-label="Open menu">
             <Menu className="w-5 h-5" />
           </button>
         </div>
