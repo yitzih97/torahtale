@@ -6,9 +6,9 @@ export const Footer = () => {
   const { getSetting } = useSiteSettings("website");
   const { getAssetUrl } = useSiteAssets();
 
-  const brandName = getSetting("website", "brand-name", "MyTorahTale");
+  const brandName = getSetting("website", "brand-name", "Torah Tale");
   const tagline = getSetting("website", "footer-tagline", "AI-powered personalized children's seforim rooted in Torah wisdom. A legacy for doros to come.");
-  const copyright = getSetting("website", "footer-copyright", "MyTorahTale. Made with ahavas Yisrael.");
+  const copyright = getSetting("website", "footer-copyright", "Torah Tale. Made with ahavas Yisrael.");
   const logoUrl = getAssetUrl("logo", "");
 
   return (

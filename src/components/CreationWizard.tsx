@@ -195,21 +195,30 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
   /* ───── login prompt during generation ───── */
+  const pendingGenerationRef = useRef(false);
 
   useEffect(() => {
     if (step === 9 && generating && !user) {
       loginTimerRef.current = setTimeout(() => setShowLoginPrompt(true), 5000);
-    } else {
+    } else if (step !== 8) {
+      // Don't auto-dismiss on step 8 — that's the auth gate
       setShowLoginPrompt(false);
     }
     return () => { if (loginTimerRef.current) clearTimeout(loginTimerRef.current); };
   }, [step, generating, user]);
 
-  // Dismiss prompt once user logs in
+  // Dismiss prompt once user logs in, and retry generation if gated
   useEffect(() => {
     if (user && showLoginPrompt) {
       setShowLoginPrompt(false);
-      toast.success("Signed in! Your book will be saved to your account.");
+      if (step === 8 && pendingGenerationRef.current) {
+        pendingGenerationRef.current = false;
+        toast.success("Signed in! Starting your sefer...");
+        // Re-trigger generation via next()
+        startGeneration();
+      } else {
+        toast.success("Signed in! Your book will be saved to your account.");
+      }
     }
   }, [user, showLoginPrompt]);
 
@@ -462,6 +471,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const next = async () => {
     if (step === 8) {
+      // Gate: require sign-in before generation
+      if (!user) {
+        pendingGenerationRef.current = true;
+        setShowLoginPrompt(true);
+        toast.info("Please sign in to generate your sefer.");
+        return;
+      }
+      // Gate: 2 free books per month
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const { count, error: countErr } = await supabase
+        .from("books")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("created_at", startOfMonth.toISOString());
+      if (!countErr && (count ?? 0) >= 2) {
+        toast.error("You've used your 2 free book previews this month. Subscribe for unlimited seforim!");
+        return;
+      }
       await startGeneration();
       return;
     }
@@ -494,7 +523,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         await supabase.from("books").update({
           status: "ordered",
           shipping_data: shipping,
-          order_number: `MTT-${Date.now().toString().slice(-6)}`,
+          order_number: `TT-${Date.now().toString().slice(-6)}`,
           pages_data: bookPages.map((p) => ({ ...p, imageLoading: false })) as any,
           cover_image_url: bookPages[0]?.image || null,
           updated_at: new Date().toISOString(),

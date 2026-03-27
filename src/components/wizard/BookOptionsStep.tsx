@@ -1,45 +1,72 @@
 import { useState } from "react";
-import { BookOpen, Ruler, FileText, Check } from "lucide-react";
+import { BookOpen, Check, Sparkles, Shield, Baby, ChevronRight } from "lucide-react";
 
 export interface BookOptions {
-  coverType: "softcover" | "hardcover";
-  size: "small" | "medium" | "large";
-  pageType: "standard" | "board";
+  productType: "softcover" | "hardcover" | "board";
+  hardcoverSize?: "8x8" | "11x8.5";
 }
 
 export const DEFAULT_BOOK_OPTIONS: BookOptions = {
-  coverType: "softcover",
-  size: "medium",
-  pageType: "standard",
+  productType: "softcover",
 };
 
-/* ── pricing logic ── */
+/* ── pricing (Printify cost + our margin) ── */
 
-const COVER_PRICES: Record<BookOptions["coverType"], number> = {
-  softcover: 0,
-  hardcover: 12,
-};
+const PRODUCT_INFO = {
+  softcover: {
+    label: "Softcover Photo Book",
+    price: 24.99,
+    dims: '8″ × 8″',
+    icon: BookOpen,
+    color: "from-blue-500/20 to-blue-600/10",
+    features: [
+      "100lb semi-gloss paper",
+      "Lightweight & flexible",
+      "Perfect for everyday reading",
+      "Saddle-stitch binding",
+    ],
+    tagline: "Classic & affordable",
+  },
+  hardcover: {
+    label: "Hardcover Photo Book",
+    price: 39.99,
+    dims: '8″ × 8″ or 11″ × 8.5″',
+    icon: Shield,
+    color: "from-accent/20 to-accent/10",
+    badge: "MOST POPULAR",
+    features: [
+      "Glossy or matte finish",
+      "Premium case-wrap binding",
+      "Sturdy & gift-worthy",
+      "Two size options",
+    ],
+    tagline: "Premium & durable",
+  },
+  board: {
+    label: "Board Book",
+    price: 44.99,
+    dims: '6″ × 6″',
+    icon: Baby,
+    color: "from-pink-500/20 to-pink-600/10",
+    features: [
+      '1/16″ thick chipboard pages',
+      "Rounded safety corners",
+      "Matte lamination",
+      "Perfect for toddlers",
+    ],
+    tagline: "Built for little hands",
+  },
+} as const;
 
-const SIZE_PRICES: Record<BookOptions["size"], number> = {
-  small: 0,
-  medium: 5,
-  large: 10,
-};
-
-const PAGE_PRICES: Record<BookOptions["pageType"], number> = {
-  standard: 0,
-  board: 8,
-};
+const HARDCOVER_SIZES = [
+  { key: "8x8" as const, label: '8″ × 8″', desc: "Square — compact & cozy" },
+  { key: "11x8.5" as const, label: '11″ × 8.5″', desc: "Landscape — bigger illustrations" },
+];
 
 export const BASE_BOOK_PRICE = 24.99;
 
 export function calculateBookPrice(options: BookOptions): number {
-  return (
-    BASE_BOOK_PRICE +
-    COVER_PRICES[options.coverType] +
-    SIZE_PRICES[options.size] +
-    PAGE_PRICES[options.pageType]
-  );
+  return PRODUCT_INFO[options.productType].price;
 }
 
 /* ── component ── */
@@ -50,128 +77,143 @@ interface Props {
 }
 
 export const BookOptionsStep = ({ options, onChange }: Props) => {
-  const set = (partial: Partial<BookOptions>) =>
-    onChange({ ...options, ...partial });
+  const [subStep, setSubStep] = useState<"type" | "size">("type");
+
+  const selectType = (type: BookOptions["productType"]) => {
+    if (type === "hardcover") {
+      onChange({ productType: "hardcover", hardcoverSize: options.hardcoverSize || "8x8" });
+      setSubStep("size");
+    } else {
+      onChange({ productType: type, hardcoverSize: undefined });
+      setSubStep("type");
+    }
+  };
 
   const price = calculateBookPrice(options);
-
-  const coverOptions: { key: BookOptions["coverType"]; label: string; desc: string; extra: number }[] = [
-    { key: "softcover", label: "Softcover", desc: "Lightweight & flexible — perfect for everyday reading", extra: COVER_PRICES.softcover },
-    { key: "hardcover", label: "Hardcover", desc: "Premium feel, durable & gift-worthy", extra: COVER_PRICES.hardcover },
-  ];
-
-  const sizeOptions: { key: BookOptions["size"]; label: string; dims: string; extra: number }[] = [
-    { key: "small", label: "Small", dims: '6″ × 8″', extra: SIZE_PRICES.small },
-    { key: "medium", label: "Medium", dims: '8.5″ × 11″', extra: SIZE_PRICES.medium },
-    { key: "large", label: "Large", dims: '11″ × 14″', extra: SIZE_PRICES.large },
-  ];
-
-  const pageOptions: { key: BookOptions["pageType"]; label: string; desc: string; extra: number }[] = [
-    { key: "standard", label: "Standard Pages", desc: "Classic paper pages — light & easy to flip", extra: PAGE_PRICES.standard },
-    { key: "board", label: "Board Pages", desc: "Thick & sturdy — great for toddlers", extra: PAGE_PRICES.board },
-  ];
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-          <BookOpen className="w-6 h-6 text-accent" /> Customize Your Book
+          <Sparkles className="w-6 h-6 text-accent" /> Choose Your Sefer
         </h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Choose the cover, size, and page type that's right for your family.
+          Select the perfect format for your family.
         </p>
       </div>
 
-      {/* Cover type */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Cover Type</p>
-        <div className="grid grid-cols-2 gap-3">
-          {coverOptions.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => set({ coverType: c.key })}
-              className={`rounded-2xl border-2 p-4 text-left transition-all duration-300 active:scale-[0.97] ${
-                options.coverType === c.key
-                  ? "border-accent bg-accent/5 shadow-sm"
-                  : "border-border hover:border-accent/30"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-display font-semibold text-sm text-primary">{c.label}</span>
-                {options.coverType === c.key && <Check className="w-4 h-4 text-accent" />}
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-snug">{c.desc}</p>
-              <p className="text-xs font-semibold text-accent mt-2">
-                {c.extra === 0 ? "Included" : `+$${c.extra.toFixed(2)}`}
-              </p>
-            </button>
-          ))}
+      {/* Step indicator */}
+      {options.productType === "hardcover" && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <button
+            onClick={() => setSubStep("type")}
+            className={`transition-colors ${subStep === "type" ? "text-accent font-semibold" : "hover:text-foreground"}`}
+          >
+            Book Type
+          </button>
+          <ChevronRight className="w-3 h-3" />
+          <button
+            onClick={() => setSubStep("size")}
+            className={`transition-colors ${subStep === "size" ? "text-accent font-semibold" : "hover:text-foreground"}`}
+          >
+            Size
+          </button>
         </div>
-      </div>
+      )}
 
-      {/* Size */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-          <Ruler className="w-3.5 h-3.5" /> Book Size
-        </p>
-        <div className="grid grid-cols-3 gap-3">
-          {sizeOptions.map((s) => (
-            <button
-              key={s.key}
-              onClick={() => set({ size: s.key })}
-              className={`rounded-2xl border-2 p-4 text-center transition-all duration-300 active:scale-[0.97] ${
-                options.size === s.key
-                  ? "border-accent bg-accent/5 shadow-sm"
-                  : "border-border hover:border-accent/30"
-              }`}
-            >
-              <span className="font-display font-semibold text-sm text-primary block">{s.label}</span>
-              <span className="text-[11px] text-muted-foreground block mt-0.5">{s.dims}</span>
-              <p className="text-xs font-semibold text-accent mt-2">
-                {s.extra === 0 ? "Included" : `+$${s.extra.toFixed(2)}`}
-              </p>
-              {options.size === s.key && <Check className="w-4 h-4 text-accent mx-auto mt-1" />}
-            </button>
-          ))}
-        </div>
-      </div>
+      {subStep === "type" && (
+        <div className="grid gap-4">
+          {(Object.keys(PRODUCT_INFO) as Array<keyof typeof PRODUCT_INFO>).map((key) => {
+            const info = PRODUCT_INFO[key];
+            const isActive = options.productType === key;
+            const Icon = info.icon;
 
-      {/* Page type */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-          <FileText className="w-3.5 h-3.5" /> Page Type
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          {pageOptions.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => set({ pageType: p.key })}
-              className={`rounded-2xl border-2 p-4 text-left transition-all duration-300 active:scale-[0.97] ${
-                options.pageType === p.key
-                  ? "border-accent bg-accent/5 shadow-sm"
-                  : "border-border hover:border-accent/30"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-display font-semibold text-sm text-primary">{p.label}</span>
-                {options.pageType === p.key && <Check className="w-4 h-4 text-accent" />}
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-snug">{p.desc}</p>
-              <p className="text-xs font-semibold text-accent mt-2">
-                {p.extra === 0 ? "Included" : `+$${p.extra.toFixed(2)}`}
-              </p>
-            </button>
-          ))}
+            return (
+              <button
+                key={key}
+                onClick={() => selectType(key)}
+                className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-300 active:scale-[0.98] ${
+                  isActive
+                    ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
+                    : "border-border hover:border-accent/30 hover:shadow-sm"
+                }`}
+              >
+                {"badge" in info && info.badge && (
+                  <div className="absolute -top-3 right-4 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full">
+                    {info.badge}
+                  </div>
+                )}
+
+                <div className="flex items-start gap-4">
+                  {/* Icon */}
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${info.color} flex items-center justify-center shrink-0`}>
+                    {isActive ? (
+                      <Check className="w-6 h-6 text-accent" />
+                    ) : (
+                      <Icon className="w-6 h-6 text-accent" />
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-display font-bold text-base text-primary">{info.label}</span>
+                      <span className="text-lg font-bold text-accent">${info.price.toFixed(2)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">{info.tagline} · {info.dims}</p>
+                    <div className="grid grid-cols-2 gap-1">
+                      {info.features.map((f, i) => (
+                        <p key={i} className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                          <span className="w-1 h-1 rounded-full bg-accent/60 shrink-0" />
+                          {f}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      )}
+
+      {/* Hardcover size sub-step */}
+      {subStep === "size" && options.productType === "hardcover" && (
+        <div className="space-y-3">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Choose Your Hardcover Size</p>
+          <div className="grid grid-cols-2 gap-4">
+            {HARDCOVER_SIZES.map((s) => {
+              const isActive = options.hardcoverSize === s.key;
+              return (
+                <button
+                  key={s.key}
+                  onClick={() => onChange({ ...options, hardcoverSize: s.key })}
+                  className={`rounded-2xl border-2 p-5 text-center transition-all duration-300 active:scale-[0.97] ${
+                    isActive
+                      ? "border-accent bg-accent/5 shadow-sm"
+                      : "border-border hover:border-accent/30"
+                  }`}
+                >
+                  <span className="font-display font-bold text-lg text-primary block">{s.label}</span>
+                  <span className="text-xs text-muted-foreground block mt-1">{s.desc}</span>
+                  {isActive && <Check className="w-5 h-5 text-accent mx-auto mt-2" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Live price summary */}
       <div className="rounded-2xl bg-muted/30 border border-border p-5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-primary">Your Book Price</p>
+            <p className="text-sm font-semibold text-primary">Your Selection</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {options.coverType === "hardcover" ? "Hardcover" : "Softcover"} · {options.size.charAt(0).toUpperCase() + options.size.slice(1)} · {options.pageType === "board" ? "Board pages" : "Standard pages"}
+              {PRODUCT_INFO[options.productType].label}
+              {options.productType === "hardcover" && options.hardcoverSize
+                ? ` · ${options.hardcoverSize === "11x8.5" ? '11″×8.5″' : '8″×8″'}`
+                : ` · ${PRODUCT_INFO[options.productType].dims}`}
             </p>
           </div>
           <span className="text-2xl font-bold text-accent">${price.toFixed(2)}</span>

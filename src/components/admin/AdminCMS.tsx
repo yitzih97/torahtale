@@ -34,8 +34,8 @@ const SITE_IMAGE_KEYS = [
   { key: "hero-scene-10", label: "Hero Scene 10 — Yonah", defaultPrompt: "A magical 3D Pixar-style illustration of Yonah inside the great fish, frum girl finding hope." },
   { key: "hero-boy", label: "Hero Boy Character", defaultPrompt: "A 3D Pixar-style character portrait of a Chareidi Jewish boy with peyos, yarmulke, and tzitzis." },
   { key: "hero-girl", label: "Hero Girl Character", defaultPrompt: "A 3D Pixar-style character portrait of a Chareidi Jewish girl in a modest long-sleeved dress." },
-  { key: "logo", label: "Site Logo", defaultPrompt: "A clean modern logo for MyTorahTale — a children's Torah book brand." },
-  { key: "favicon", label: "Favicon", defaultPrompt: "A small icon for MyTorahTale — a Torah book icon." },
+  { key: "logo", label: "Site Logo", defaultPrompt: "A clean modern logo for Torah Tale — a children's Torah book brand." },
+  { key: "favicon", label: "Favicon", defaultPrompt: "A small icon for Torah Tale — a Torah book icon." },
   { key: "story-noach", label: "Gallery — Noach", defaultPrompt: "A 3D Pixar-style book cover: Noach's Teivah with animals and frum kinderlach." },
   { key: "story-beshalach", label: "Gallery — Beshalach", defaultPrompt: "A 3D Pixar-style book cover: Krias Yam Suf with frum kinderlach." },
   { key: "story-bereishit", label: "Gallery — Bereishis", defaultPrompt: "A 3D Pixar-style book cover: Gan Eden with frum kinderlach." },
@@ -245,7 +245,7 @@ export function AdminCMS() {
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">Navbar</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="brand-name" label="Brand Name" placeholder="MyTorahTale" edits={contentEdits} setEdits={setContentEdits} />
+                <SettingField category="website" settingKey="brand-name" label="Brand Name" placeholder="Torah Tale" edits={contentEdits} setEdits={setContentEdits} />
                 <SettingField category="website" settingKey="navbar-cta" label="Navbar CTA Button" placeholder="Create a Sefer" edits={contentEdits} setEdits={setContentEdits} />
               </div>
             </div>
@@ -308,7 +308,7 @@ export function AdminCMS() {
               <h4 className="text-sm font-semibold text-foreground">Footer</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
                 <SettingField category="website" settingKey="footer-tagline" label="Tagline" placeholder="AI-powered personalized children's seforim rooted in Torah wisdom." edits={contentEdits} setEdits={setContentEdits} />
-                <SettingField category="website" settingKey="footer-copyright" label="Copyright" placeholder="MyTorahTale. Made with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} />
+                <SettingField category="website" settingKey="footer-copyright" label="Copyright" placeholder="Torah Tale. Made with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} />
               </div>
             </div>
 
