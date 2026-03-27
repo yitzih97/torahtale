@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { Crown, Lock, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ExternalLink } from "lucide-react";
+import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
 import { type BookOptions, calculateBookPrice } from "./BookOptionsStep";
-import { useCartStore } from "@/stores/cartStore";
-import { SHOPIFY_VARIANT_IDS, type ShopifyProduct } from "@/lib/shopify";
 
 type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
@@ -18,7 +16,6 @@ interface Plan {
   icon: typeof Crown;
   badge?: string;
   description: string;
-  variantId: string;
 }
 
 const PLANS: Plan[] = [
@@ -30,7 +27,6 @@ const PLANS: Plan[] = [
     savings: "20% off",
     icon: Zap,
     description: "A new Torah adventure every Shabbos",
-    variantId: SHOPIFY_VARIANT_IDS.weeklySubscription,
   },
   {
     id: "monthly",
@@ -41,7 +37,6 @@ const PLANS: Plan[] = [
     icon: Crown,
     badge: "MOST POPULAR",
     description: "4 seforim/month — best value for mishpachos",
-    variantId: SHOPIFY_VARIANT_IDS.monthlySubscription,
   },
   {
     id: "yearly",
@@ -51,36 +46,8 @@ const PLANS: Plan[] = [
     savings: "49% off",
     icon: CalendarDays,
     description: "Full year of seforim — biggest savings",
-    variantId: SHOPIFY_VARIANT_IDS.yearlySubscription,
   },
 ];
-
-const getBookVariantId = (options: BookOptions): string => {
-  if (options.productType === "softcover") return SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
-  if (options.productType === "board") return SHOPIFY_VARIANT_IDS.bookBoardBook6x6;
-  if (options.hardcoverSize === "11x8.5") return SHOPIFY_VARIANT_IDS.bookHardcover11x85;
-  return SHOPIFY_VARIANT_IDS.bookHardcover8x8;
-};
-
-const getBookVariantTitle = (options: BookOptions): string => {
-  if (options.productType === "softcover") return "Softcover 8x8";
-  if (options.productType === "board") return "Board Book 6x6";
-  if (options.hardcoverSize === "11x8.5") return "Hardcover 11x8.5";
-  return "Hardcover 8x8";
-};
-
-const makeDummyProduct = (title: string, price: number, variantId: string, variantTitle: string): ShopifyProduct => ({
-  node: {
-    id: `book-${variantId}`,
-    title,
-    description: "",
-    handle: "torah-tale-book",
-    priceRange: { minVariantPrice: { amount: price.toString(), currencyCode: "USD" } },
-    images: { edges: [] },
-    variants: { edges: [{ node: { id: variantId, title: variantTitle, price: { amount: price.toString(), currencyCode: "USD" }, availableForSale: true, selectedOptions: [{ name: "Type", value: variantTitle }] } }] },
-    options: [{ name: "Type", values: [variantTitle] }],
-  },
-});
 
 interface Props {
   childName: string;
@@ -93,8 +60,7 @@ interface Props {
 
 export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, bookOptions, onPlaceOrder }: Props) => {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
-  const [checkingOut, setCheckingOut] = useState(false);
-  const { addItem, getCheckoutUrl } = useCartStore();
+  const [placingOrder, setPlacingOrder] = useState(false);
   const bookPrice = calculateBookPrice(bookOptions);
   const shippingCost = shipping.shippingMethod === "express" ? 9.99 : 0;
 
@@ -105,56 +71,14 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
     ? (activePlan?.price ?? 0) + shippingCost
     : bookPrice + shippingCost;
 
-  const handleCheckout = async () => {
-    setCheckingOut(true);
+  const handlePlaceOrder = async () => {
+    setPlacingOrder(true);
     try {
-      // Add the appropriate item to Shopify cart
-      if (isSubscription && activePlan) {
-        const subProduct = makeDummyProduct(
-          `Torah Tale ${activePlan.label} Subscription`,
-          activePlan.price,
-          activePlan.variantId,
-          activePlan.label
-        );
-        await addItem({
-          product: subProduct,
-          variantId: activePlan.variantId,
-          variantTitle: activePlan.label,
-          price: { amount: activePlan.price.toString(), currencyCode: "USD" },
-          quantity: 1,
-          selectedOptions: [{ name: "Plan", value: activePlan.label }],
-        });
-      } else {
-        const variantId = getBookVariantId(bookOptions);
-        const variantTitle = getBookVariantTitle(bookOptions);
-        const bookProduct = makeDummyProduct(
-          `Torah Tale - ${childName}'s Sefer`,
-          bookPrice,
-          variantId,
-          variantTitle
-        );
-        await addItem({
-          product: bookProduct,
-          variantId,
-          variantTitle,
-          price: { amount: bookPrice.toString(), currencyCode: "USD" },
-          quantity: 1,
-          selectedOptions: [{ name: "Type", value: variantTitle }],
-        });
-      }
-
-      // Small delay for state to update, then open checkout
-      setTimeout(() => {
-        const checkoutUrl = useCartStore.getState().getCheckoutUrl();
-        if (checkoutUrl) {
-          window.open(checkoutUrl, '_blank');
-          onPlaceOrder(isSubscription);
-        }
-        setCheckingOut(false);
-      }, 500);
+      await onPlaceOrder(isSubscription);
     } catch (err) {
-      console.error("Checkout failed:", err);
-      setCheckingOut(false);
+      console.error("Order failed:", err);
+    } finally {
+      setPlacingOrder(false);
     }
   };
 
@@ -275,24 +199,24 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
       {/* Secure checkout info */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-xl p-3">
         <ShieldCheck className="w-4 h-4 text-accent" />
-        <span>Secure checkout powered by Shopify · 256-bit encryption</span>
+        <span>Secure checkout · 256-bit encryption · Your payment details are safe</span>
       </div>
 
       <Button
         variant="gold"
         size="lg"
         className="w-full rounded-xl h-12 text-base"
-        onClick={handleCheckout}
-        disabled={checkingOut}
+        onClick={handlePlaceOrder}
+        disabled={placingOrder}
       >
-        {checkingOut ? (
+        {placingOrder ? (
           <Loader2 className="w-4 h-4 animate-spin" />
         ) : (
           <>
-            <ExternalLink className="w-4 h-4" />
+            <Sparkles className="w-4 h-4" />
             {isSubscription
-              ? `Subscribe & Checkout — $${total.toFixed(2)}`
-              : `Checkout — $${total.toFixed(2)}`}
+              ? `Subscribe & Place Order — $${total.toFixed(2)}`
+              : `Place Order — $${total.toFixed(2)}`}
           </>
         )}
       </Button>
