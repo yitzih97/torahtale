@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { BookOpen, LogOut, User } from "lucide-react";
+import { BookOpen, LogOut, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSiteAssets } from "@/hooks/useSiteAssets";
@@ -11,6 +12,7 @@ interface NavbarProps {
 
 export const Navbar = ({ onStart }: NavbarProps) => {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { getSetting } = useSiteSettings("website");
   const { getAssetUrl } = useSiteAssets();
@@ -24,6 +26,12 @@ export const Navbar = ({ onStart }: NavbarProps) => {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const navLinks = [
+    { label: "How It Works", href: "#how-it-works" },
+    { label: "Gallery", href: "#gallery" },
+    { label: "Reviews", href: "#testimonials" },
+  ];
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"}`}>
@@ -40,9 +48,9 @@ export const Navbar = ({ onStart }: NavbarProps) => {
         </a>
 
         <div className="hidden md:flex items-center gap-8">
-          <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">How It Works</a>
-          <a href="#gallery" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">Gallery</a>
-          <a href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">Reviews</a>
+          {navLinks.map((link) => (
+            <a key={link.href} href={link.href} className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">{link.label}</a>
+          ))}
         </div>
 
         <div className="flex items-center gap-3">
@@ -60,10 +68,60 @@ export const Navbar = ({ onStart }: NavbarProps) => {
           )}
 
           {onStart && (
-            <Button variant="gold" size="sm" onClick={onStart} className="rounded-full px-5">{navbarCta}</Button>
+            <Button variant="gold" size="sm" onClick={onStart} className="rounded-full px-5 hidden sm:inline-flex">{navbarCta}</Button>
           )}
+
+          {/* Mobile hamburger */}
+          <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 rounded-lg text-foreground hover:bg-muted transition-colors" aria-label="Open menu">
+            <Menu className="w-5 h-5" />
+          </button>
         </div>
       </div>
+
+      {/* Mobile sheet menu */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="top" className="pt-12 pb-8">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Navigation Menu</SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col gap-4">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border"
+              >
+                {link.label}
+              </a>
+            ))}
+
+            {user ? (
+              <>
+                <a href="/dashboard" onClick={() => setMobileOpen(false)} className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border flex items-center gap-2">
+                  <User className="w-4 h-4" /> Dashboard
+                </a>
+                <button
+                  onClick={() => { signOut(); setMobileOpen(false); }}
+                  className="text-base font-medium text-destructive hover:text-destructive/80 transition-colors py-2 text-left flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" /> Sign Out
+                </button>
+              </>
+            ) : (
+              <a href="/auth" onClick={() => setMobileOpen(false)} className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border">
+                Login
+              </a>
+            )}
+
+            {onStart && (
+              <Button variant="gold" size="lg" onClick={() => { onStart(); setMobileOpen(false); }} className="rounded-full mt-2 w-full">
+                {navbarCta}
+              </Button>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </nav>
   );
 };

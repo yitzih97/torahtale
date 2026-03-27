@@ -75,26 +75,27 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         <BookFlipAnimation onPageChange={handlePageChange} />
       </Suspense>
 
-      <div className="absolute inset-0 bg-gradient-to-r from-[hsl(220,30%,8%)]/85 via-[hsl(220,30%,8%)]/30 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[hsl(220,30%,8%)]/40 via-transparent to-transparent" />
+      {/* Gradient overlays — stronger on mobile for readability */}
+      <div className="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-[hsl(220,30%,8%)]/95 via-[hsl(220,30%,8%)]/70 to-[hsl(220,30%,8%)]/40 sm:from-[hsl(220,30%,8%)]/85 sm:via-[hsl(220,30%,8%)]/30 sm:to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[hsl(220,30%,8%)]/60 sm:from-[hsl(220,30%,8%)]/40 via-transparent to-transparent" />
 
-      <div className="relative z-10 w-full py-24 lg:py-0 pl-4 sm:pl-6 lg:pl-12 pr-4">
-        <div className="flex items-center justify-start">
-          <div className="max-w-xl text-left">
+      <div className="relative z-10 w-full py-24 lg:py-0 px-4 sm:pl-6 lg:pl-12 sm:pr-4">
+        <div className="flex items-center justify-center sm:justify-start">
+          <div className="max-w-xl text-center sm:text-left">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }} className="mb-5">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/15 text-accent text-xs font-semibold tracking-wider uppercase border border-accent/20">
-                <Sparkles className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-accent/15 text-accent text-[10px] sm:text-xs font-semibold tracking-wider uppercase border border-accent/20">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 {badgeText}
               </span>
             </motion.div>
 
-            <div className="min-h-[140px] sm:min-h-[160px] lg:min-h-[180px]">
+            <div className="min-h-[100px] sm:min-h-[140px] lg:min-h-[180px]">
               <AnimatePresence mode="wait">
                 <motion.h1
                   key={`headline-${activeSlide}`}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                  className="text-4xl sm:text-5xl lg:text-[3.2rem] font-bold leading-[1.1] tracking-tight text-white"
+                  className="text-2xl sm:text-4xl lg:text-[3.2rem] font-bold leading-[1.1] tracking-tight text-white"
                 >
                   {slide.headline[0]}<br />
                   <span className="text-gold-light">{slide.headline[1]}</span>
@@ -102,46 +103,46 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               </AnimatePresence>
             </div>
 
-            <div className="min-h-[70px] mt-4">
+            <div className="min-h-[50px] sm:min-h-[70px] mt-3 sm:mt-4">
               <AnimatePresence mode="wait">
                 <motion.p
                   key={`desc-${activeSlide}`}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
-                  className="text-base lg:text-lg text-white/65 font-body max-w-md leading-relaxed"
+                  className="text-sm sm:text-base lg:text-lg text-white/65 font-body max-w-md mx-auto sm:mx-0 leading-relaxed"
                 >
                   {slide.description}
                 </motion.p>
               </AnimatePresence>
             </div>
 
-            <div className="flex gap-1.5 mt-6">
+            <div className="flex gap-1.5 mt-4 sm:mt-6 justify-center sm:justify-start">
               {slides.map((_, i) => (
                 <div key={i} className="h-1 rounded-full transition-all duration-500"
                   style={{ width: i === activeSlide ? 28 : 6, background: i === activeSlide ? "hsl(var(--accent))" : "hsl(var(--foreground) / 0.2)" }} />
               ))}
             </div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4, ease }} className="mt-8 flex flex-wrap items-center gap-4">
-              <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow rounded-full">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4, ease }} className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 sm:gap-4">
+              <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow rounded-full w-full sm:w-auto">
                 {ctaText}
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
-              <span className="text-white/40 text-sm font-body">{priceText}</span>
+              <span className="text-white/40 text-xs sm:text-sm font-body">{priceText}</span>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }} className="mt-10 flex items-center gap-3">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }} className="mt-6 sm:mt-10 flex items-center gap-2 sm:gap-3 justify-center sm:justify-start">
               <div className="flex -space-x-2">
                 {["S", "D", "M", "R"].map((initial, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white/20 bg-white/10 flex items-center justify-center text-[10px] font-semibold text-gold-light backdrop-blur-sm">
+                  <div key={i} className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white/20 bg-white/10 flex items-center justify-center text-[8px] sm:text-[10px] font-semibold text-gold-light backdrop-blur-sm">
                     {initial}
                   </div>
                 ))}
               </div>
-              <div className="flex items-center gap-1">
-                {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 fill-accent text-accent" />)}
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                {[1,2,3,4,5].map(i => <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-accent text-accent" />)}
               </div>
-              <span className="text-sm text-white/60" dangerouslySetInnerHTML={{ __html: socialProof.replace(/(\d[\d,]+\+?)/, '<strong class="text-white/80">$1</strong>') }} />
+              <span className="text-xs sm:text-sm text-white/60" dangerouslySetInnerHTML={{ __html: socialProof.replace(/(\d[\d,]+\+?)/, '<strong class="text-white/80">$1</strong>') }} />
             </motion.div>
           </div>
         </div>
