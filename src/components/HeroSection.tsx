@@ -127,7 +127,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {ctaText}
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
-              <span className="text-foreground/40 text-sm font-body">{priceText}</span>
+              <span className="text-white/40 text-sm font-body">{priceText}</span>
             </motion.div>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }} className="mt-10 flex items-center gap-3">
