@@ -265,7 +265,9 @@ export default function Admin() {
                                       </SelectTrigger>
                                       <SelectContent>
                                         <SelectItem value="draft">Draft</SelectItem>
+                                        <SelectItem value="generating">Generating</SelectItem>
                                         <SelectItem value="ordered">Ordered</SelectItem>
+                                        <SelectItem value="approved">Approved</SelectItem>
                                         <SelectItem value="printing">Printing</SelectItem>
                                         <SelectItem value="shipped">Shipped</SelectItem>
                                         <SelectItem value="delivered">Delivered</SelectItem>
