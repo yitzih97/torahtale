@@ -71,11 +71,13 @@ serve(async (req) => {
     }
 
     // Generate image with Gemini
-    const imageModels = [
-      "gemini-3.1-flash-image-preview",
-      "gemini-2.5-flash-image-preview",
-      "gemini-2.5-flash-image",
-    ];
+    const imageModels = customSiteImageModel
+      ? [customSiteImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
+      : [
+          "gemini-3.1-flash-image-preview",
+          "gemini-2.5-flash-image-preview",
+          "gemini-2.5-flash-image",
+        ];
 
     let imageData: string | null = null;
     let mimeType = "image/png";
