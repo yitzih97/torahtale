@@ -33,7 +33,7 @@ export const ShippingForm = ({ data, onChange }: Props) => {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-bold text-primary">Where Should We Ship?</h2>
-        <p className="text-muted-foreground text-sm mt-1">We'll deliver this treasure right to your door.</p>
+        
       </div>
 
       <div className="space-y-4">
