@@ -181,6 +181,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [loginMode, setLoginMode] = useState<"login" | "signup">("signup");
   const [loginLoading, setLoginLoading] = useState(false);
   const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showUpsellDialog, setShowUpsellDialog] = useState(false);
 
   const child = data.children[data.activeChildIdx] || data.children[0];
 
