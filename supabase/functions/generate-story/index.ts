@@ -43,14 +43,17 @@ Details:
 - Language: ${language}
 
 Requirements:
-- Make the children the main characters and heroes of the story
+- Make the kinderlach the main characters and heroes of the story
 - Each story page should be 2-3 sentences, appropriate for a ${age}-year-old
 - CRITICAL: At least 70% of the pages MUST depict SPECIFIC, ACTUAL events from the Torah portion. For example, for Va'era show the plagues one by one; for Beshalach show the crossing of the sea; for Bereishit show the days of creation. The child must be IN those scenes, witnessing and participating in the actual events — not just hearing about them or being told the story.
 - DO NOT compress the Torah events into 1-2 pages. Spread the key events across most of the book, giving each major event its own page with vivid detail.
-- The story MUST teach a clear moral lesson and positive values (kindness, honesty, gratitude, courage, respect)
-- The children should discover the hidden lesson behind the Torah story through their adventure
-- End with a warm, uplifting moral that shows how they can apply the lesson in their own lives
-- Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting
+- The story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim
+- The kinderlach should discover the hidden lesson behind the Torah story through their adventure
+- End with a warm, uplifting moral that shows how they can apply the lesson in their own frum lives — at the Shabbos tish, in cheder/Bais Yaakov, with their mishpacha
+- Boys MUST always wear a yarmulke, have peyos, and tzitzis; girls MUST wear long sleeves and long skirts — maintain strict tznius throughout
+- Use Chareidi terminology: Tatty, Mommy, Rebbe, Morah, davening, bentching, Shabbos, Hashem, sefer/seforim, beis medrash, cheder, Bais Yaakov
+- NO references to TV, movies, video games, or secular entertainment
+- Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting like a Yiddishe bubbe telling a maaseh
 - ${language === "bilingual" ? "Write each page in both English and Hebrew" : language === "hebrew" ? "Write in Hebrew" : "Write in English"}
 
 You MUST respond with ONLY a valid JSON object with this exact structure:
