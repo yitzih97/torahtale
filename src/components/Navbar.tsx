@@ -64,7 +64,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
               </button>
             </>
           ) : (
-            <a href="/auth" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors hidden sm:block">Login</a>
+            <a href="/auth" className={`text-sm font-medium transition-colors duration-500 hidden sm:block ${scrolled ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>Login</a>
           )}
 
           {onStart && (
