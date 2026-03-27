@@ -63,15 +63,15 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
   const kb = KEN_BURNS_VARIANTS[currentPage];
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden">
-      <AnimatePresence mode="wait">
+    <div className="absolute inset-0 w-full h-full overflow-hidden bg-[hsl(220,30%,8%)]">
+      <AnimatePresence initial={false}>
         <motion.div
           key={currentPage}
           className="absolute inset-0 w-full h-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ duration: 1.8, ease: [0.4, 0, 0.2, 1] }}
         >
           <motion.img
             src={PAGES[currentPage]}
