@@ -72,7 +72,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
           )}
 
           {/* Mobile hamburger */}
-          <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-colors" aria-label="Open menu">
+          <button onClick={() => setMobileOpen(true)} className={`md:hidden p-2 rounded-lg transition-colors ${scrolled ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`} aria-label="Open menu">
             <Menu className="w-5 h-5" />
           </button>
         </div>
