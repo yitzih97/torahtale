@@ -135,7 +135,7 @@ export default function Dashboard() {
                     You have {draftBooks.length} draft book{draftBooks.length > 1 ? "s" : ""} waiting to be ordered.
                   </p>
                 </div>
-                <Button variant="gold" size="sm" onClick={() => navigate("/")}>
+                <Button variant="gold" size="sm" onClick={() => setActiveTab("books")}>
                   Review My Books
                 </Button>
               </motion.div>
