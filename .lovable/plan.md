@@ -1,80 +1,87 @@
 
 
-## Plan: Fix Security Vulnerabilities + Add Legal Pages
+## Plan: Restructure Wizard — Remove User Book Preview, Add Animation, Local Checkout
 
-### 1. Fix `user_roles` Privilege Escalation (Critical)
+### Overview
+Remove the book preview/edit step from the user wizard. After "Generate Book", show a 10-second animated sequence, then a message about email confirmation within 24 hours. Then proceed to book options → shipping → local checkout → success. Book preview and approval moves to the admin panel.
 
-Add RLS policies to `user_roles` that restrict INSERT, UPDATE, and DELETE to admins only.
+---
 
-```sql
-CREATE POLICY "Only admins can insert roles"
-ON public.user_roles FOR INSERT TO authenticated
-WITH CHECK (public.has_role(auth.uid(), 'admin'::app_role));
+### 1. Restructure Wizard Steps (reduce from 14 to 12)
 
-CREATE POLICY "Only admins can update roles"
-ON public.user_roles FOR UPDATE TO authenticated
-USING (public.has_role(auth.uid(), 'admin'::app_role))
-WITH CHECK (public.has_role(auth.uid(), 'admin'::app_role));
+**File:** `src/components/CreationWizard.tsx`
 
-CREATE POLICY "Only admins can delete roles"
-ON public.user_roles FOR DELETE TO authenticated
-USING (public.has_role(auth.uid(), 'admin'::app_role));
-```
+Current → New step mapping:
+- Steps 1–8: unchanged (character, story, page count)
+- Step 9: **NEW** — 10-second book creation animation + email confirmation message (replaces actual generation wait + preview)
+- Step 10: Book options (was step 11)
+- Step 11: Shipping (was step 12)
+- Step 12: Checkout — locally hosted (was step 13)
+- Step 13: Success (was step 14)
 
-### 2. Restrict `site_settings` Public Read Access
+Changes:
+- `TOTAL_STEPS = 13`, update `STEP_GROUPS` accordingly
+- On "Generate Book" click (step 8): require auth + check limit (same), then kick off generation **in the background** (fire-and-forget to edge function), show 10-second animation with phases like "Writing the story...", "Illustrating pages...", "Almost done!"
+- After 10 seconds, auto-advance to a confirmation screen: "Your book is being created! You'll receive a preview in your email within 24 hours for you to review and confirm."
+- Then a "Continue to Order" button advances to book options (step 10)
+- Remove `bookPages` state, `BookViewer` import, and step 10 (old book viewer)
+- Keep `startGeneration` but make it fire-and-forget (save book to DB as "generating" status, don't wait for images)
+- Remove all image generation logic from the client — the edge function will handle it asynchronously
 
-Replace the current "Anyone can read" SELECT policy with an authenticated-only policy:
+### 2. New "Book Creating" Animation Step
 
-```sql
-DROP POLICY "Anyone can read site_settings" ON public.site_settings;
-CREATE POLICY "Authenticated users can read site_settings"
-ON public.site_settings FOR SELECT TO authenticated
-USING (true);
-```
+**In:** `src/components/CreationWizard.tsx` (step 9)
 
-Also add a public SELECT policy limited to non-sensitive categories (website content only, not AI config):
+- 10-second animated sequence with phases:
+  - 0-3s: "Writing your Torah story..." with book/quill animation
+  - 3-6s: "Illustrating beautiful scenes..." with paintbrush animation
+  - 6-9s: "Adding the finishing touches..." with sparkle animation
+  - 9-10s: "Almost ready!" with checkmark
+- After 10s, show confirmation card:
+  - "Your sefer is being created!"
+  - "You'll receive an email within 24 hours with a preview of the book and shipping details for you to confirm."
+  - Mail icon + child name
+  - "Continue to Choose Your Book" button → advances to step 10
 
-```sql
-CREATE POLICY "Public can read website settings"
-ON public.site_settings FOR SELECT TO anon
-USING (category IN ('website', 'branding'));
-```
+### 3. Background Generation (Fire-and-Forget)
 
-### 3. Enable Leaked Password Protection
+**File:** `src/components/CreationWizard.tsx`
 
-Guide the user to enable it: Cloud → Users → Auth Settings → Email → Password HIBP Check toggle.
+- When user clicks "Generate Book", save a book record to DB with status `"generating"` containing all the story parameters (child info, torah portion, art style, language, page count)
+- The actual story + image generation will happen server-side (admin triggers or a background edge function)
+- Remove client-side `generateImageForPage`, `Promise.all` image gen, progress tracking
+- The book record stores all needed info for the admin to generate/approve later
 
-### 4. Create Terms of Service Page (`src/pages/Terms.tsx`)
+### 4. Local Checkout (Remove Shopify Redirect)
 
-Full legal page covering:
-- Service description (AI-generated personalized Torah children's books)
-- Account registration and responsibilities
-- Free tier limits (2 books/month) and subscription plans
-- Payment processing via Shopify
-- Print-on-demand fulfillment via Printify
-- Intellectual property (AI-generated content ownership)
-- User content and children's data
-- Refund/cancellation policy
-- Limitation of liability
-- Termination rights
+**File:** `src/components/wizard/CheckoutStep.tsx`
 
-### 5. Create Privacy Policy Page (`src/pages/Privacy.tsx`)
+- Remove Shopify cart/checkout redirect logic
+- Build a local order summary + "Place Order" button
+- On place order: update book status to `"ordered"`, save shipping + book options to DB
+- Keep subscription plan selection UI
+- Show order confirmation locally (no external redirect)
 
-Full legal page covering:
-- Data collected (name, email, children's info, photos, shipping addresses)
-- How data is used (book generation, order fulfillment, AI processing)
-- Third-party services (Shopify payments, Printify fulfillment, Google AI)
-- Children's privacy (COPPA considerations)
-- Data storage and security
-- Cookie usage
-- User rights (access, deletion, correction)
-- Data retention
-- Contact information
+### 5. Admin Book Preview & Approval
 
-### 6. Wire Up Routes and Links
+**File:** `src/components/admin/AdminCMS.tsx` or `src/pages/Admin.tsx`
 
-- Add `/terms` and `/privacy` routes in `src/App.tsx`
-- Update footer links in `src/components/Footer.tsx` from `href="#"` to `/terms` and `/privacy`
+- Add a "Books" tab/section showing books with status `"generating"` or `"ordered"`
+- Admin can:
+  - View the book parameters (child name, portion, style, etc.)
+  - Trigger generation (or re-generation) for the book
+  - Preview the generated book (using existing `BookViewer` component)
+  - Approve the book → changes status to `"approved"` → triggers Printify submission
+  - Edit pages before approving
+- Add a "Generate Now" button per book that calls the existing edge functions
+- Add an "Approve & Send to Print" button
+
+### 6. Update Success Step
+
+**File:** `src/components/wizard/SuccessStep.tsx`
+
+- Update messaging: "Your order has been placed! We're creating your personalized sefer and you'll receive an email preview within 24 hours."
+- Remove "being printed" language since it hasn't been approved yet
 
 ---
 
@@ -82,9 +89,9 @@ Full legal page covering:
 
 | File | Change |
 |------|--------|
-| DB migration | RLS policies for `user_roles` and `site_settings` |
-| `src/pages/Terms.tsx` | New Terms of Service page |
-| `src/pages/Privacy.tsx` | New Privacy Policy page |
-| `src/App.tsx` | Add routes |
-| `src/components/Footer.tsx` | Update links |
+| `src/components/CreationWizard.tsx` | Restructure to 13 steps, remove book viewer step, add 10-sec animation, fire-and-forget generation |
+| `src/components/wizard/CheckoutStep.tsx` | Local checkout instead of Shopify redirect |
+| `src/components/wizard/SuccessStep.tsx` | Update messaging |
+| `src/pages/Admin.tsx` | Add book management/preview/approval section |
+| `src/components/admin/AdminCMS.tsx` | May add book approval tab |
 
