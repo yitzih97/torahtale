@@ -59,7 +59,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
               <a href="/dashboard" className={`text-sm font-medium transition-colors duration-500 hidden sm:flex items-center gap-1.5 ${scrolled ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>
                 <User className="w-4 h-4" /> Dashboard
               </a>
-              <button onClick={signOut} className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-muted transition-colors hidden sm:block" aria-label="Sign out">
+              <button onClick={signOut} className={`p-2 rounded-full transition-colors hidden sm:block ${scrolled ? "text-muted-foreground hover:text-destructive hover:bg-muted" : "text-white/70 hover:text-white hover:bg-white/10"}`} aria-label="Sign out">
                 <LogOut className="w-4 h-4" />
               </button>
             </>
