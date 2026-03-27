@@ -253,7 +253,7 @@ export default function Dashboard() {
                     <h3 className="font-display text-lg font-semibold text-primary mb-2">No books yet</h3>
                     <p className="text-muted-foreground text-sm mb-6">Create your first personalized Torah sefer!</p>
                     <Button variant="gold" onClick={() => navigate("/")}>
-                      Create a Story
+                      Create a Sefer
                     </Button>
                   </div>
                 ) : (
