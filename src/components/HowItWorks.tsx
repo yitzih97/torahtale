@@ -12,7 +12,7 @@ const steps = [
     icon: Wand2,
     number: "02",
     title: "AI Creates the Sefer",
-    description: "Our AI writes the narrative and illustrates every page — all tznius, age-appropriate, and beautiful.",
+    description: "Our AI writes the narrative and illustrates every page — all tznius, age-appropriate, and aligned with Chareidi hashkafah.",
   },
   {
     icon: Truck,
