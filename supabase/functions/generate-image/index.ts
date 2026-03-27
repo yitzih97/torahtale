@@ -15,6 +15,20 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
+    // Load custom image prompt template from site_settings
+    let customImageTemplate: string | null = null;
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=eq.prompts&key=eq.image-prompt-template`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+      });
+      if (settingsRes.ok) {
+        const settings = await settingsRes.json();
+        customImageTemplate = settings[0]?.value || null;
+      }
+    } catch (e) { console.error("Failed to load site_settings:", e); }
+
     const styleMap: Record<string, string> = {
       cartoon: "colorful cartoon illustration style, like a classic children's book, soft watercolor textures",
       "3d-pixar": "3D Pixar-style CGI render, warm lighting, soft shadows, expressive characters",
@@ -24,8 +38,17 @@ serve(async (req) => {
 
     const styleDesc = styleMap[artStyle] || styleMap.cartoon;
 
-    let imagePrompt = prompt ||
-      `A beautiful children's book illustration of a frum Yiddishe child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. Boys MUST have peyos (sidelocks), yarmulke/kippah, and visible tzitzis. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements visible. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
+    let imagePrompt: string;
+    if (prompt) {
+      imagePrompt = prompt;
+    } else if (customImageTemplate) {
+      imagePrompt = customImageTemplate
+        .replace("{childName}", childName || "a child")
+        .replace("{torahPortion}", torahPortion || "Torah")
+        .replace("{styleDesc}", styleDesc);
+    } else {
+      imagePrompt = `A beautiful children's book illustration of a frum Yiddishe child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. Boys MUST have peyos (sidelocks), yarmulke/kippah, and visible tzitzis. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements visible. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
+    }
 
     const parts: any[] = [];
 
