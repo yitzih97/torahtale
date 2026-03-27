@@ -63,7 +63,7 @@ const HARDCOVER_SIZES = [
   { key: "11x8.5" as const, label: '11″ × 8.5″', desc: "Landscape — bigger illustrations" },
 ];
 
-export const BASE_BOOK_PRICE = 24.99;
+export const BASE_BOOK_PRICE = 7.05;
 
 export function calculateBookPrice(options: BookOptions): number {
   return PRODUCT_INFO[options.productType].price;

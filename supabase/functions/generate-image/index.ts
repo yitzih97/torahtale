@@ -63,6 +63,11 @@ serve(async (req) => {
       imagePrompt = `A beautiful children's book illustration of a frum Yiddishe child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. Boys MUST have peyos (sidelocks), yarmulke/kippah, and visible tzitzis. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements visible. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
     }
 
+    // Append dimension instructions for Printify print-ready output
+    if (dims) {
+      imagePrompt += ` The output image MUST be exactly ${dims[0]}x${dims[1]} pixels.`;
+    }
+
     const parts: any[] = [];
 
     if (referenceImage) {
