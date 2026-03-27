@@ -5,10 +5,10 @@ const ease = [0.16, 1, 0.3, 1];
 
 const testimonials = [
   {
-    name: "Talia Ben-Ami",
+    name: "Chaya Leah Friedman",
     location: "Brooklyn, NY",
-    initials: "TB",
-    text: "My daughter's face when she saw herself as the heroine of the Purim story — I will never forget it. This is more than a sefer, it's a treasure.",
+    initials: "CF",
+    text: "My daughter's face when she saw herself as the heroine of the Purim story — mamash a kiddush Hashem. The kinderlach ask for it every Leil Shabbos.",
     rating: 5,
   },
   {
