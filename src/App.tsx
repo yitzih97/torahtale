@@ -13,6 +13,8 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Terms from "./pages/Terms.tsx";
 import Privacy from "./pages/Privacy.tsx";
+import Contact from "./pages/Contact.tsx";
+import About from "./pages/About.tsx";
 
 const queryClient = new QueryClient();
 

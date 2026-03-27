@@ -86,7 +86,7 @@ const Privacy = () => {
                 <h2 className="text-2xl font-display font-semibold text-foreground mb-4">Introduction</h2>
                 <p>Torah Tale, LLC ("Torah Tale," "we," "us," or "our") is committed to protecting your privacy and the privacy of your children. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our AI-powered personalized children's book platform (the "Service").</p>
                 <p className="mt-3">This Policy applies to all users of our website, applications, and related services. By using the Service, you consent to the data practices described in this Policy. If you do not agree, please discontinue use of the Service.</p>
-                <p className="mt-3">We encourage you to read this Policy in its entirety. For questions, contact us at <a href="mailto:privacy@torahtale.com" className="text-accent hover:underline">privacy@torahtale.com</a>.</p>
+                <p className="mt-3">We encourage you to read this Policy in its entirety. For questions, contact us at <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a>.</p>
               </section>
 
               <section id="info-collect">
@@ -184,7 +184,7 @@ const Privacy = () => {
                   <li>Request deletion of your child's data at any time</li>
                   <li>Revoke consent for future collection and use of your child's information</li>
                 </ul>
-                <p className="mt-3">To exercise these rights, contact us at <a href="mailto:privacy@torahtale.com" className="text-accent hover:underline">privacy@torahtale.com</a>. We will respond within 30 days.</p>
+                <p className="mt-3">To exercise these rights, contact us at <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a>. We will respond within 30 days.</p>
               </section>
 
               <section id="storage">
@@ -252,7 +252,7 @@ const Privacy = () => {
                   <li><strong className="text-foreground">Objection:</strong> Object to the processing of your data for certain purposes</li>
                   <li><strong className="text-foreground">Withdrawal:</strong> Withdraw consent at any time where processing is based on consent</li>
                 </ul>
-                <p className="mt-3">To exercise any of these rights, email us at <a href="mailto:privacy@torahtale.com" className="text-accent hover:underline">privacy@torahtale.com</a>. We will respond within 30 days. We may need to verify your identity before processing your request.</p>
+                <p className="mt-3">To exercise any of these rights, email us at <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a>. We will respond within 30 days. We may need to verify your identity before processing your request.</p>
               </section>
 
               <section id="retention">
@@ -277,7 +277,7 @@ const Privacy = () => {
                   <li><strong className="text-foreground">Right to Opt-Out:</strong> We do not sell personal information, so no opt-out is necessary</li>
                   <li><strong className="text-foreground">Non-Discrimination:</strong> We will not discriminate against you for exercising your CCPA rights</li>
                 </ul>
-                <p className="mt-3">To make a CCPA request, contact us at <a href="mailto:privacy@torahtale.com" className="text-accent hover:underline">privacy@torahtale.com</a>. We will verify your identity and respond within 45 days.</p>
+                <p className="mt-3">To make a CCPA request, contact us at <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a>. We will verify your identity and respond within 45 days.</p>
               </section>
 
               <section id="gdpr">
@@ -285,7 +285,7 @@ const Privacy = () => {
                 <p>If you are located in the European Economic Area (EEA), United Kingdom, or Switzerland, you have rights under the General Data Protection Regulation (GDPR):</p>
                 <ul className="list-disc pl-6 mt-3 space-y-2">
                   <li><strong className="text-foreground">Legal Basis:</strong> We process your data based on consent (child data, account creation), contract performance (service delivery), and legitimate interests (security, improvement)</li>
-                  <li><strong className="text-foreground">Data Protection Officer:</strong> You may contact our DPO at <a href="mailto:dpo@torahtale.com" className="text-accent hover:underline">dpo@torahtale.com</a></li>
+                  <li><strong className="text-foreground">Data Protection Officer:</strong> You may contact our DPO at <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></li>
                   <li><strong className="text-foreground">Supervisory Authority:</strong> You have the right to lodge a complaint with your local data protection authority</li>
                 </ul>
               </section>
@@ -306,9 +306,9 @@ const Privacy = () => {
                 <p>For privacy-related questions, concerns, or to exercise your rights, please contact us:</p>
                 <div className="mt-4 p-6 rounded-2xl bg-muted/40 border border-border space-y-2">
                   <p><strong className="text-foreground">Torah Tale, LLC</strong></p>
-                  <p>Privacy Team: <a href="mailto:privacy@torahtale.com" className="text-accent hover:underline">privacy@torahtale.com</a></p>
-                  <p>Data Protection Officer: <a href="mailto:dpo@torahtale.com" className="text-accent hover:underline">dpo@torahtale.com</a></p>
-                  <p>General Support: <a href="mailto:support@torahtale.com" className="text-accent hover:underline">support@torahtale.com</a></p>
+                  <p>Privacy Team: <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></p>
+                  <p>Data Protection Officer: <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></p>
+                  <p>General Support: <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></p>
                 </div>
                 <p className="mt-4 text-sm">We aim to respond to all privacy-related inquiries within 30 days.</p>
               </section>
