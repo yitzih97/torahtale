@@ -19,6 +19,20 @@ serve(async (req) => {
 
     const { gender, age, artStyle, description, referenceImage } = await req.json();
 
+    // Load custom character prompt from site_settings
+    let customCharacterTemplate: string | null = null;
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=eq.prompts&key=eq.character-prompt-template`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+      });
+      if (settingsRes.ok) {
+        const settings = await settingsRes.json();
+        customCharacterTemplate = settings[0]?.value || null;
+      }
+    } catch (e) { console.error("Failed to load site_settings:", e); }
+
     // Build age-appropriate description
     const ageNum = parseInt(age) || 5;
     let ageDesc = "child";
@@ -47,7 +61,18 @@ serve(async (req) => {
       ? `Physical appearance: ${description}.`
       : "cheerful, bright-eyed expression, friendly smile.";
 
-    const prompt = `Create a character portrait illustration of a ${ageNum}-year-old Jewish ${gender} ${ageDesc}. ${genderDetails}. ${descPart} Style: ${style}. Children's book character design, bust/portrait view, clean white background, vibrant colors, warm and inviting. No text in the image.`;
+    let prompt: string;
+    if (customCharacterTemplate) {
+      prompt = customCharacterTemplate
+        .replace("{age}", String(ageNum))
+        .replace("{gender}", gender || "child")
+        .replace("{ageDesc}", ageDesc)
+        .replace("{genderDetails}", genderDetails)
+        .replace("{descPart}", descPart)
+        .replace("{style}", style);
+    } else {
+      prompt = `Create a character portrait illustration of a ${ageNum}-year-old Jewish ${gender} ${ageDesc}. ${genderDetails}. ${descPart} Style: ${style}. Children's book character design, bust/portrait view, clean white background, vibrant colors, warm and inviting. No text in the image.`;
+    }
 
     // Build parts for Gemini API
     const parts: any[] = [];
