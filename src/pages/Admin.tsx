@@ -163,9 +163,19 @@ export default function Admin() {
           ? `A beautiful children's book BACK COVER illustration. Torah story "${book.torah_portion}". Style: ${style}. No text.`
           : `A beautiful children's book illustration. Scene: "${page.text}". Torah story: "${book.torah_portion}". Style: ${style}. No text.`;
 
+      const storyData = book.story_data || {};
+      const bookOpts = storyData.bookOptions || {};
+      const productType = bookOpts.productType || "softcover";
+      const hardcoverSize = bookOpts.hardcoverSize || "8x8";
+      const bookFormat = productType === "hardcover"
+        ? `hardcover-${hardcoverSize}`
+        : productType === "board"
+        ? "board-6x6"
+        : "softcover-8x8";
+
         try {
           const { data: imgData } = await supabase.functions.invoke("generate-image", {
-            body: { prompt, childName: book.child_name, artStyle: book.art_style, torahPortion: book.torah_portion },
+            body: { prompt, childName: book.child_name, artStyle: book.art_style, torahPortion: book.torah_portion, bookFormat, pageType: page.type },
           });
           allPages[i] = { ...page, image: imgData?.imageUrl || null, imageLoading: false };
         } catch {
