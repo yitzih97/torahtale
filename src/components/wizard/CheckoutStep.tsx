@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { CreditCard, Lock, ShieldCheck, Check, Sparkles, TrendingDown, Crown, Zap, CalendarDays } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Crown, Lock, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
 import { type BookOptions, calculateBookPrice } from "./BookOptionsStep";
+import { useCartStore } from "@/stores/cartStore";
+import { SHOPIFY_VARIANT_IDS, type ShopifyProduct } from "@/lib/shopify";
 
 type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
@@ -18,6 +18,7 @@ interface Plan {
   icon: typeof Crown;
   badge?: string;
   description: string;
+  variantId: string;
 }
 
 const PLANS: Plan[] = [
@@ -29,6 +30,7 @@ const PLANS: Plan[] = [
     savings: "20% off",
     icon: Zap,
     description: "A new Torah adventure every Shabbos",
+    variantId: SHOPIFY_VARIANT_IDS.weeklySubscription,
   },
   {
     id: "monthly",
@@ -39,6 +41,7 @@ const PLANS: Plan[] = [
     icon: Crown,
     badge: "MOST POPULAR",
     description: "4 seforim/month — best value for mishpachos",
+    variantId: SHOPIFY_VARIANT_IDS.monthlySubscription,
   },
   {
     id: "yearly",
@@ -48,10 +51,36 @@ const PLANS: Plan[] = [
     savings: "49% off",
     icon: CalendarDays,
     description: "Full year of seforim — biggest savings",
+    variantId: SHOPIFY_VARIANT_IDS.yearlySubscription,
   },
 ];
 
-const FULL_WEEKLY_PRICE = 29.99;
+const getBookVariantId = (options: BookOptions): string => {
+  if (options.productType === "softcover") return SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
+  if (options.productType === "board") return SHOPIFY_VARIANT_IDS.bookBoardBook6x6;
+  if (options.hardcoverSize === "11x8.5") return SHOPIFY_VARIANT_IDS.bookHardcover11x85;
+  return SHOPIFY_VARIANT_IDS.bookHardcover8x8;
+};
+
+const getBookVariantTitle = (options: BookOptions): string => {
+  if (options.productType === "softcover") return "Softcover 8x8";
+  if (options.productType === "board") return "Board Book 6x6";
+  if (options.hardcoverSize === "11x8.5") return "Hardcover 11x8.5";
+  return "Hardcover 8x8";
+};
+
+const makeDummyProduct = (title: string, price: number, variantId: string, variantTitle: string): ShopifyProduct => ({
+  node: {
+    id: `book-${variantId}`,
+    title,
+    description: "",
+    handle: "torah-tale-book",
+    priceRange: { minVariantPrice: { amount: price.toString(), currencyCode: "USD" } },
+    images: { edges: [] },
+    variants: { edges: [{ node: { id: variantId, title: variantTitle, price: { amount: price.toString(), currencyCode: "USD" }, availableForSale: true, selectedOptions: [{ name: "Type", value: variantTitle }] } }] },
+    options: [{ name: "Type", values: [variantTitle] }],
+  },
+});
 
 interface Props {
   childName: string;
@@ -64,23 +93,77 @@ interface Props {
 
 export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, bookOptions, onPlaceOrder }: Props) => {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
+  const [checkingOut, setCheckingOut] = useState(false);
+  const { addItem, getCheckoutUrl } = useCartStore();
   const bookPrice = calculateBookPrice(bookOptions);
   const shippingCost = shipping.shippingMethod === "express" ? 9.99 : 0;
 
   const isSubscription = selectedPlan !== "once";
   const activePlan = PLANS.find((p) => p.id === selectedPlan);
 
-  // For subscriptions, first book is included in the plan price
   const total = isSubscription
     ? (activePlan?.price ?? 0) + shippingCost
     : bookPrice + shippingCost;
+
+  const handleCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      // Add the appropriate item to Shopify cart
+      if (isSubscription && activePlan) {
+        const subProduct = makeDummyProduct(
+          `Torah Tale ${activePlan.label} Subscription`,
+          activePlan.price,
+          activePlan.variantId,
+          activePlan.label
+        );
+        await addItem({
+          product: subProduct,
+          variantId: activePlan.variantId,
+          variantTitle: activePlan.label,
+          price: { amount: activePlan.price.toString(), currencyCode: "USD" },
+          quantity: 1,
+          selectedOptions: [{ name: "Plan", value: activePlan.label }],
+        });
+      } else {
+        const variantId = getBookVariantId(bookOptions);
+        const variantTitle = getBookVariantTitle(bookOptions);
+        const bookProduct = makeDummyProduct(
+          `Torah Tale - ${childName}'s Sefer`,
+          bookPrice,
+          variantId,
+          variantTitle
+        );
+        await addItem({
+          product: bookProduct,
+          variantId,
+          variantTitle,
+          price: { amount: bookPrice.toString(), currencyCode: "USD" },
+          quantity: 1,
+          selectedOptions: [{ name: "Type", value: variantTitle }],
+        });
+      }
+
+      // Small delay for state to update, then open checkout
+      setTimeout(() => {
+        const checkoutUrl = useCartStore.getState().getCheckoutUrl();
+        if (checkoutUrl) {
+          window.open(checkoutUrl, '_blank');
+          onPlaceOrder(isSubscription);
+        }
+        setCheckingOut(false);
+      }, 500);
+    } catch (err) {
+      console.error("Checkout failed:", err);
+      setCheckingOut(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-bold text-primary">Choose Your Plan</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Subscribe and {childName} gets a new personalized Torah book every week!
+          Subscribe and {childName} gets a new personalized Torah sefer every Shabbos!
         </p>
       </div>
 
@@ -139,96 +222,79 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
         </button>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-6">
-        {/* Payment */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-xl p-3">
-            <ShieldCheck className="w-4 h-4 text-accent" />
-            <span>256-bit encrypted payment</span>
+      {/* Order summary */}
+      <div className="bg-muted/30 rounded-2xl p-5 space-y-3 border border-border">
+        <h3 className="font-display text-lg font-semibold text-primary">Order Summary</h3>
+        <div className="space-y-2.5 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Book for {childName}</span>
+            <span className="font-medium text-primary">
+              {isSubscription ? "Included" : `$${bookPrice.toFixed(2)}`}
+            </span>
           </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Card Number</Label>
-            <div className="relative mt-1.5">
-              <Input placeholder="4242 4242 4242 4242" className="pl-10 rounded-xl h-11" />
-              <CreditCard className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Story</span>
+            <span className="font-medium text-primary">{getPortionLabel(torahPortion)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Art Style</span>
+            <span className="font-medium text-primary capitalize">{artStyle === "3d-pixar" ? "3D Pixar" : artStyle === "graphic-novel" ? "Graphic Novel" : "Cartoon"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Format</span>
+            <span className="font-medium text-primary">
+              {bookOptions.productType === "hardcover"
+                ? `Hardcover ${bookOptions.hardcoverSize === "11x8.5" ? '11″×8.5″' : '8″×8″'}`
+                : bookOptions.productType === "board"
+                ? 'Board Book 6″×6″'
+                : 'Softcover 8″×8″'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Shipping</span>
+            <span className="font-medium text-primary">{shippingCost === 0 ? "Free" : `$${shippingCost.toFixed(2)}`}</span>
+          </div>
+          {isSubscription && activePlan && (
+            <div className="flex justify-between text-accent">
+              <span>{activePlan.label} Plan</span>
+              <span className="font-medium">${activePlan.price}/{activePlan.id === "yearly" ? "yr" : activePlan.id === "monthly" ? "mo" : "wk"}</span>
             </div>
+          )}
+          <div className="border-t border-border pt-3 mt-3 flex justify-between font-bold text-base">
+            <span>Total Today</span>
+            <span className="text-accent">${total.toFixed(2)}</span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs text-muted-foreground">Expiry</Label>
-              <Input placeholder="MM / YY" className="mt-1.5 rounded-xl h-11" />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">CVC</Label>
-              <Input placeholder="123" className="mt-1.5 rounded-xl h-11" />
-            </div>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Name on Card</Label>
-            <Input placeholder="Rachel Goldberg" className="mt-1.5 rounded-xl h-11" />
-          </div>
-        </div>
-
-        {/* Order summary */}
-        <div className="space-y-4">
-          <div className="bg-muted/30 rounded-2xl p-5 space-y-3 h-fit border border-border">
-            <h3 className="font-display text-lg font-semibold text-primary">Order Summary</h3>
-            <div className="space-y-2.5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Book for {childName}</span>
-                <span className="font-medium text-primary">
-                  {isSubscription ? "Included" : `$${bookPrice.toFixed(2)}`}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Story</span>
-                <span className="font-medium text-primary">{getPortionLabel(torahPortion)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Art Style</span>
-                <span className="font-medium text-primary capitalize">{artStyle === "3d-pixar" ? "3D Pixar" : artStyle === "graphic-novel" ? "Graphic Novel" : "Cartoon"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Format</span>
-                <span className="font-medium text-primary">
-                  {bookOptions.productType === "hardcover"
-                    ? `Hardcover ${bookOptions.hardcoverSize === "11x8.5" ? '11″×8.5″' : '8″×8″'}`
-                    : bookOptions.productType === "board"
-                    ? 'Board Book 6″×6″'
-                    : 'Softcover 8″×8″'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Shipping</span>
-                <span className="font-medium text-primary">{shippingCost === 0 ? "Free" : `$${shippingCost.toFixed(2)}`}</span>
-              </div>
-              {isSubscription && activePlan && (
-                <div className="flex justify-between text-accent">
-                  <span>{activePlan.label} Plan</span>
-                  <div className="text-right">
-                    <span className="font-medium">${activePlan.price}/{activePlan.id === "yearly" ? "yr" : activePlan.id === "monthly" ? "mo" : "wk"}</span>
-                  </div>
-                </div>
-              )}
-              <div className="border-t border-border pt-3 mt-3 flex justify-between font-bold text-base">
-                <span>Total Today</span>
-                <span className="text-accent">${total.toFixed(2)}</span>
-              </div>
-              {isSubscription && (
-                <p className="text-[10px] text-muted-foreground">
-                  🚚 Free shipping on all subscription deliveries · Cancel anytime
-                </p>
-              )}
-            </div>
-          </div>
+          {isSubscription && (
+            <p className="text-[10px] text-muted-foreground">
+              🚚 Free shipping on all subscription deliveries · Cancel anytime
+            </p>
+          )}
         </div>
       </div>
 
-      <Button variant="gold" size="lg" className="w-full rounded-xl h-12 text-base" onClick={() => onPlaceOrder(isSubscription)}>
-        <Lock className="w-4 h-4" />
-        {isSubscription
-          ? `Subscribe & Place Order — $${total.toFixed(2)}`
-          : `Place Order — $${total.toFixed(2)}`}
+      {/* Secure checkout info */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-xl p-3">
+        <ShieldCheck className="w-4 h-4 text-accent" />
+        <span>Secure checkout powered by Shopify · 256-bit encryption</span>
+      </div>
+
+      <Button
+        variant="gold"
+        size="lg"
+        className="w-full rounded-xl h-12 text-base"
+        onClick={handleCheckout}
+        disabled={checkingOut}
+      >
+        {checkingOut ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <>
+            <ExternalLink className="w-4 h-4" />
+            {isSubscription
+              ? `Subscribe & Checkout — $${total.toFixed(2)}`
+              : `Checkout — $${total.toFixed(2)}`}
+          </>
+        )}
       </Button>
     </div>
   );
