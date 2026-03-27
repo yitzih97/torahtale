@@ -25,14 +25,18 @@ const ease = [0.22, 1, 0.36, 1];
 
 const orderStatusColor = (s: string) => {
   if (s === "draft") return "text-muted-foreground bg-muted";
+  if (s === "generating") return "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950";
   if (s === "ordered" || s === "printing") return "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950";
+  if (s === "approved") return "text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-950";
   if (s === "shipped" || s === "delivered") return "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-950";
   return "text-accent bg-accent/10";
 };
 
 const orderStatusIcon = (s: string) => {
   if (s === "draft") return <Wand2 className="w-3.5 h-3.5" />;
+  if (s === "generating") return <Loader2 className="w-3.5 h-3.5 animate-spin" />;
   if (s === "ordered" || s === "printing") return <Package className="w-3.5 h-3.5" />;
+  if (s === "approved") return <CheckCircle2 className="w-3.5 h-3.5" />;
   return <Truck className="w-3.5 h-3.5" />;
 };
 
