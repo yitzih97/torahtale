@@ -80,7 +80,7 @@ const initialData: WizardData = {
   torahPortion: "",
   artStyle: "cartoon",
   language: "english",
-  pageCount: 4,
+  pageCount: 10,
   activeChildIdx: 0,
 };
 
