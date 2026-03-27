@@ -63,7 +63,7 @@ export const GallerySection = () => {
       </motion.div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-        {books.map((book, i) => (
+        {resolvedBooks.map((book, i) => (
           <motion.div
             key={book.title}
             initial={{ opacity: 0, y: 24 }}
@@ -93,4 +93,5 @@ export const GallerySection = () => {
       </div>
     </div>
   </section>
-);
+  );
+};
