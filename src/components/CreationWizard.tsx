@@ -625,6 +625,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
         {/* ── Grouped Stepper ── */}
