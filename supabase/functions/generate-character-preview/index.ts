@@ -19,17 +19,19 @@ serve(async (req) => {
 
     const { gender, age, artStyle, description, referenceImage } = await req.json();
 
-    // Load custom character prompt from site_settings
+    // Load custom settings
     let customCharacterTemplate: string | null = null;
+    let customImageModel: string | null = null;
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=eq.prompts&key=eq.character-prompt-template`, {
+      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=in.(prompts,ai)`, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
       });
       if (settingsRes.ok) {
         const settings = await settingsRes.json();
-        customCharacterTemplate = settings[0]?.value || null;
+        customCharacterTemplate = settings.find((s: any) => s.category === "prompts" && s.key === "character-prompt-template")?.value || null;
+        customImageModel = settings.find((s: any) => s.category === "ai" && s.key === "image-model")?.value || null;
       }
     } catch (e) { console.error("Failed to load site_settings:", e); }
 
