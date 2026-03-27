@@ -169,7 +169,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
   const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
   
-  const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
+  const [portionFilter, setPortionFilter] = useState<TorahOption["category"] | "all">("all");
+  const [portionSearch, setPortionSearch] = useState("");
+  const [expandedBook, setExpandedBook] = useState<string | null>(null);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
