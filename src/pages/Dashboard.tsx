@@ -99,7 +99,7 @@ export default function Dashboard() {
             transition={{ duration: 0.6, ease }}
           >
             <h1 className="font-display text-3xl font-bold text-primary mb-1">My Dashboard</h1>
-            <p className="text-muted-foreground mb-4">Welcome back! Manage your family's Torah tales.</p>
+            <p className="text-muted-foreground mb-4">Welcome back! Manage your mishpacha's seforim.</p>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
