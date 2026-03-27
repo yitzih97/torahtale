@@ -20,7 +20,7 @@ export function useSiteSettings(category?: string) {
       if (category) q = q.eq("category", category);
       const { data, error } = await q.order("key");
       if (error) throw error;
-      return (data || []) as SiteSetting[];
+      return (data || []) as unknown as SiteSetting[];
     },
     staleTime: 5 * 60 * 1000,
   });
