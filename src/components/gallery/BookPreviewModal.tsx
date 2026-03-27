@@ -1,19 +1,20 @@
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { X, Star, Quote } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface BookData {
   title: string;
   portion: string;
   child: string;
+  childPhoto?: string;
   coverImage: string;
-  pages: string[]; // interior page images (pairs)
+  pages: string[];
   backCoverImage: string;
   questions: string[];
   review: string;
   reviewer: string;
   location: string;
+  rating?: number;
 }
 
 interface BookPreviewModalProps {
@@ -23,193 +24,102 @@ interface BookPreviewModalProps {
 }
 
 export const BookPreviewModal = ({ book, open, onClose }: BookPreviewModalProps) => {
-  const [currentSpread, setCurrentSpread] = useState(0);
-
   if (!book) return null;
 
-  // Build spreads:
-  // Spread 0: Cover (single page, right side)
-  // Spread 1..N: Two interior pages side by side
-  // Last spread: Back cover with questions (single page, left side)
-  const interiorPages = book.pages;
-  const interiorSpreads: [string, string | null][] = [];
-  for (let i = 0; i < interiorPages.length; i += 2) {
-    interiorSpreads.push([
-      interiorPages[i],
-      i + 1 < interiorPages.length ? interiorPages[i + 1] : null,
-    ]);
-  }
-
-  const totalSpreads = 1 + interiorSpreads.length + 1; // cover + interior + back
-  const isCover = currentSpread === 0;
-  const isBack = currentSpread === totalSpreads - 1;
-  const interiorIndex = currentSpread - 1;
-
-  const goNext = () => setCurrentSpread((s) => Math.min(s + 1, totalSpreads - 1));
-  const goPrev = () => setCurrentSpread((s) => Math.max(s - 1, 0));
-
   const handleOpenChange = (o: boolean) => {
-    if (!o) {
-      onClose();
-      setCurrentSpread(0);
-    }
+    if (!o) onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-5xl w-[95vw] p-0 bg-transparent border-none shadow-none overflow-visible [&>button]:hidden">
-        <div className="relative flex flex-col items-center">
+      <DialogContent className="max-w-3xl w-[95vw] p-0 bg-transparent border-none shadow-none overflow-visible [&>button]:hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="relative flex flex-col items-center"
+        >
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute -top-3 -right-3 z-50 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm border border-border flex items-center justify-center text-foreground hover:bg-background transition-colors"
+            className="absolute -top-3 -right-3 z-50 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm border border-border flex items-center justify-center text-foreground hover:bg-background transition-colors shadow-lg"
           >
             <X className="w-4 h-4" />
           </button>
 
-          {/* Book container — fixed aspect ratio */}
-          <div className="w-full aspect-[16/10] bg-[#1a1410] rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex relative">
-            <AnimatePresence mode="wait">
-              {isCover && (
-                <motion.div
-                  key="cover"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex w-full h-full"
-                >
-                  {/* Left side — dark/empty spine feel */}
-                  <div className="w-1/2 h-full bg-[#0f0c08] flex items-center justify-center p-8">
-                    <div className="text-center">
-                      <p className="text-accent/60 text-xs uppercase tracking-[0.3em] mb-3 font-body">A Personalized Torah Story</p>
-                      <h2 className="font-display text-2xl lg:text-3xl font-bold text-foreground/90 leading-tight">{book.title}</h2>
-                      <p className="text-muted-foreground text-sm mt-3 font-body">{book.portion}</p>
-                      <p className="text-accent text-sm mt-1 font-body">Featuring <strong>{book.child}</strong></p>
+          {/* Main content card */}
+          <div className="w-full bg-card rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-border/50">
+            <div className="flex flex-col md:flex-row">
+              {/* Book cover — left side */}
+              <div className="md:w-[45%] relative">
+                <div className="aspect-[3/4] md:aspect-auto md:h-full relative overflow-hidden">
+                  <img
+                    src={book.coverImage}
+                    alt={`${book.title} — Cover`}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Subtle overlay for depth */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                  {/* Title overlay on cover */}
+                  <div className="absolute bottom-0 inset-x-0 p-5">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-white/70 mb-1 font-body">{book.portion}</p>
+                    <h2 className="font-display text-xl lg:text-2xl font-bold text-white leading-tight drop-shadow-lg">{book.title}</h2>
+                  </div>
+                </div>
+              </div>
+
+              {/* Review content — right side */}
+              <div className="md:w-[55%] p-6 lg:p-8 flex flex-col justify-center">
+                {/* Child profile with photo */}
+                <div className="flex items-center gap-4 mb-6">
+                  {book.childPhoto ? (
+                    <img
+                      src={book.childPhoto}
+                      alt={book.child}
+                      className="w-14 h-14 rounded-full object-cover border-2 border-accent/30 shadow-md"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-accent/10 border-2 border-accent/30 flex items-center justify-center">
+                      <span className="text-lg font-bold text-accent">{book.child[0]}</span>
                     </div>
+                  )}
+                  <div>
+                    <p className="font-display text-base font-semibold text-foreground">
+                      Featuring <span className="text-accent">{book.child}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground font-body">{book.portion}</p>
                   </div>
-                  {/* Right side — cover image */}
-                  <div className="w-1/2 h-full">
-                    <img
-                      src={book.coverImage}
-                      alt={`${book.title} — Cover`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </motion.div>
-              )}
+                </div>
 
-              {!isCover && !isBack && interiorSpreads[interiorIndex] && (
-                <motion.div
-                  key={`spread-${interiorIndex}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex w-full h-full"
-                >
-                  {/* Left page */}
-                  <div className="w-1/2 h-full border-r border-[#2a2218]">
-                    <img
-                      src={interiorSpreads[interiorIndex][0]}
-                      alt={`Page ${interiorIndex * 2 + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  {/* Right page */}
-                  <div className="w-1/2 h-full">
-                    {interiorSpreads[interiorIndex][1] ? (
-                      <img
-                        src={interiorSpreads[interiorIndex][1]!}
-                        alt={`Page ${interiorIndex * 2 + 2}`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[#f5edd6] flex items-center justify-center">
-                        <p className="text-[#3d2e1c] font-body text-sm italic">The End</p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
+                {/* Stars */}
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: book.rating || 5 }).map((_, j) => (
+                    <Star key={j} className="w-4 h-4 fill-accent text-accent" />
+                  ))}
+                </div>
 
-              {isBack && (
-                <motion.div
-                  key="back"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex w-full h-full"
-                >
-                  {/* Left side — questions */}
-                  <div className="w-1/2 h-full bg-[#f5edd6] p-6 lg:p-8 overflow-y-auto flex flex-col">
-                    <h3 className="font-display text-lg font-bold text-[#3d2e1c] mb-1">Discussion Questions</h3>
-                    <p className="text-xs text-[#7a6a52] mb-4 font-body">Talk about the story together</p>
-                    <ol className="space-y-2 flex-1">
-                      {book.questions.map((q, i) => (
-                        <li key={i} className="flex gap-2 text-xs leading-relaxed text-[#3d2e1c] font-body">
-                          <span className="font-bold text-accent shrink-0">{i + 1}.</span>
-                          <span>{q}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                  {/* Right side — back cover image */}
-                  <div className="w-1/2 h-full">
-                    <img
-                      src={book.backCoverImage}
-                      alt={`${book.title} — Back Cover`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                {/* Review quote */}
+                <div className="relative mb-6">
+                  <Quote className="w-8 h-8 text-accent/15 absolute -top-2 -left-1" />
+                  <p className="text-foreground text-base lg:text-lg leading-relaxed font-body italic pl-6">
+                    {book.review}
+                  </p>
+                </div>
 
-            {/* Navigation arrows */}
-            {currentSpread > 0 && (
-              <button
-                onClick={goPrev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-background/90 transition-all z-10"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-            )}
-            {currentSpread < totalSpreads - 1 && (
-              <button
-                onClick={goNext}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-background/90 transition-all z-10"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            )}
-
-            {/* Page indicator */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-              {Array.from({ length: totalSpreads }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentSpread(i)}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === currentSpread ? "bg-accent w-6" : "bg-foreground/30 w-1.5"
-                  }`}
-                />
-              ))}
-            </div>
-
-            {/* Spread label */}
-            <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-sm text-foreground text-[10px] font-medium px-2 py-1 rounded-full z-10">
-              {isCover ? "Cover" : isBack ? "Back Cover" : `Pages ${interiorIndex * 2 + 1}–${Math.min(interiorIndex * 2 + 2, interiorPages.length)}`}
+                {/* Reviewer */}
+                <div className="border-t border-border pt-4">
+                  <p className="text-sm font-semibold text-foreground">
+                    {book.reviewer}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-body">
+                    {book.location}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Review below book */}
-          <div className="mt-4 max-w-2xl mx-auto text-center px-4">
-            <p className="text-sm text-muted-foreground font-body italic">"{book.review}"</p>
-            <p className="text-xs text-accent mt-1 font-medium">— {book.reviewer}, {book.location}</p>
-          </div>
-        </div>
+        </motion.div>
       </DialogContent>
     </Dialog>
   );
