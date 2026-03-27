@@ -462,6 +462,25 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const next = async () => {
     if (step === 8) {
+      // Gate: require sign-in before generation
+      if (!user) {
+        setShowLoginPrompt(true);
+        toast.info("Please sign in to generate your sefer.");
+        return;
+      }
+      // Gate: 2 free books per month
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const { count, error: countErr } = await supabase
+        .from("books")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("created_at", startOfMonth.toISOString());
+      if (!countErr && (count ?? 0) >= 2) {
+        toast.error("You've used your 2 free book previews this month. Subscribe for unlimited seforim!");
+        return;
+      }
       await startGeneration();
       return;
     }
