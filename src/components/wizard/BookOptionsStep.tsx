@@ -104,9 +104,6 @@ export const BookOptionsStep = ({ options, onChange }: Props) => {
         <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
           <Sparkles className="w-6 h-6 text-accent" /> Choose Your Sefer
         </h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          Select the perfect format for your family.
-        </p>
       </div>
 
       {/* Step indicator */}

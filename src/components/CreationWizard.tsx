@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SparkleEffect } from "./SparkleEffect";
@@ -130,18 +129,10 @@ const STEP_GROUPS = [
   { label: "Order", icon: Package, steps: [10, 11, 12, 13] },
 ];
 
-const AGE_BRACKETS = [
-  { min: 2, max: 3, label: "2-3", desc: "Toddler", emoji: "👶" },
-  { min: 4, max: 5, label: "4-5", desc: "Preschool", emoji: "🧒" },
-  { min: 6, max: 7, label: "6-7", desc: "Early Reader", emoji: "📖" },
-  { min: 8, max: 9, label: "8-9", desc: "Explorer", emoji: "🔍" },
-  { min: 10, max: 12, label: "10-12", desc: "Preteen", emoji: "🌟" },
-];
-
 const ART_STYLES = [
-  { key: "cartoon", label: "Cartoon", desc: "Colorful & whimsical" },
-  { key: "3d-pixar", label: "3D Pixar", desc: "Cinematic & polished" },
-  { key: "realistic", label: "Realistic", desc: "Lifelike & detailed" },
+  { key: "cartoon", label: "Cartoon" },
+  { key: "3d-pixar", label: "3D Pixar" },
+  { key: "realistic", label: "Realistic" },
 ];
 
 /* ── animation phases for the 10-second creation sequence ── */
@@ -187,6 +178,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [animDone, setAnimDone] = useState(false);
 
   const pendingGenerationRef = useRef(false);
+  const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const child = data.children[data.activeChildIdx] || data.children[0];
 
@@ -202,6 +194,24 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   }, []);
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
+
+  // Cleanup auto-advance timer
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+    };
+  }, []);
+
+  const autoAdvance = useCallback(() => {
+    if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+    autoAdvanceTimerRef.current = setTimeout(() => {
+      setDir(1);
+      setStep((s) => {
+        let nextStep = s + 1;
+        return Math.min(nextStep, TOTAL_STEPS);
+      });
+    }, 350);
+  }, []);
 
   /* ───── login prompt during step 8 auth gate ───── */
 
@@ -306,11 +316,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }
 
     // Run 10-second animation sequence
-    let elapsed = 0;
     for (let i = 0; i < GENERATION_PHASES.length; i++) {
       setAnimPhaseIdx(i);
       await new Promise((r) => setTimeout(r, GENERATION_PHASES[i].duration));
-      elapsed += GENERATION_PHASES[i].duration;
     }
 
     setAnimating(false);
@@ -329,14 +337,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const next = async () => {
     if (step === 8) {
-      // Gate: require sign-in before generation
       if (!user) {
         pendingGenerationRef.current = true;
         setShowLoginPrompt(true);
         toast.info("Please sign in to generate your sefer.");
         return;
       }
-      // Gate: 2 free books per month
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
@@ -410,7 +416,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     switch (step) {
       case 1: return data.children.some((c) => !!c.name.trim());
       case 2: return !!child.gender;
-      case 3: return !!child.age;
+      case 3: return !!child.age && parseInt(child.age) >= 1 && parseInt(child.age) <= 15;
       case 4: return !!data.artStyle;
       case 5: return true;
       case 6: return !!data.torahPortion;
@@ -449,8 +455,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     if (step < 2 || step > 5) return null;
     const preview = getPreviewImage();
     return (
-      <div className="flex flex-col items-center gap-3">
-        <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 shadow-sm">
+      <div className="flex flex-col items-center gap-2">
+        <div className="relative w-24 h-24 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 shadow-sm">
           {preview ? (
             <img src={preview} alt="Character preview" className="w-full h-full object-cover" />
           ) : (
@@ -473,18 +479,18 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   return (
     <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
+      <DialogContent className="max-w-3xl max-h-[100dvh] sm:max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
         {/* ── Grouped Stepper ── */}
         {step !== 13 && (
-          <div className="px-6 sm:px-8 pt-6 pb-2">
+          <div className="px-4 sm:px-8 pt-4 sm:pt-6 pb-2">
             <div className="flex items-center justify-between gap-1">
               {STEP_GROUPS.map((g, i) => {
                 const isActive = i === activeGroupIdx;
                 const isCompleted = i < activeGroupIdx;
                 return (
                   <div key={g.label} className="flex items-center flex-1 last:flex-initial">
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-500 ${
+                    <div className="flex flex-col items-center gap-1">
+                      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-500 ${
                         isCompleted ? "bg-accent text-accent-foreground"
                         : isActive ? "bg-accent/15 text-accent ring-2 ring-accent/30"
                         : "bg-muted text-muted-foreground"
@@ -517,11 +523,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           </div>
         )}
 
-        <div className="p-6 sm:p-8 pt-4">
+        <div className="p-4 sm:p-8 pt-2 sm:pt-4">
           {/* Selected kids sidebar — visible on steps 2-8 when multiple children */}
           {step >= 2 && step <= 8 && data.children.length > 1 && (
             <div className="mb-4">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">Selected Children</p>
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {data.children.map((c, idx) => (
                   <button
@@ -553,7 +558,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
           )}
 
           {/* Layout: steps 2-5 show character preview on the side */}
-          <div className={step >= 2 && step <= 5 ? "flex flex-col sm:flex-row gap-6" : ""}>
+          <div className={step >= 2 && step <= 5 ? "flex flex-col sm:flex-row gap-4 sm:gap-6" : ""}>
             {step >= 2 && step <= 5 && (
               <div className="sm:order-2 flex-shrink-0 flex justify-center sm:pt-8">
                 <CharacterPreview />
@@ -565,17 +570,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 1: Name ── */}
                 {step === 1 && (
-                  <motion.div key="s1" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Type className="w-6 h-6 text-accent" /> What's your hero's name?
-                      </h2>
-                      <p className="text-muted-foreground text-sm mt-1">Enter the name of the child who will star in this Torah adventure.</p>
-                    </div>
+                  <motion.div key="s1" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+                      <Type className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> What's your hero's name?
+                    </h2>
 
                     {existingChildren.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Select existing children (you can pick more than one)</p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           {existingChildren.map((ec) => {
                             const isSelected = data.children.some(
@@ -649,7 +650,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       placeholder="e.g., Chaya Mushka"
                       value={child.name}
                       onChange={(e) => updateChild(child.id, { name: e.target.value })}
-                      className="rounded-xl h-14 text-lg px-5"
+                      className="rounded-xl h-12 sm:h-14 text-base sm:text-lg px-4 sm:px-5"
                       autoFocus
                     />
                     {data.children.length > 1 && (
@@ -674,21 +675,21 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 2: Gender ── */}
                 {step === 2 && (
-                  <motion.div key="s2" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Heart className="w-6 h-6 text-accent" /> Is {child.name || "your hero"} a boy or a girl?
-                      </h2>
-                      <p className="text-muted-foreground text-sm mt-1">This shapes the character's appearance and clothing in the illustrations.</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                  <motion.div key="s2" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> Is {child.name || "your hero"} a boy or a girl?
+                    </h2>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       {[
-                        { key: "boy", label: "Boy", detail: "Will wear a kippah", img: presetBoyCartoon },
-                        { key: "girl", label: "Girl", detail: "Modest dress", img: presetGirlCartoon },
+                        { key: "boy", label: "Boy", img: presetBoyCartoon },
+                        { key: "girl", label: "Girl", img: presetGirlCartoon },
                       ].map((g) => (
                         <button
                           key={g.key}
-                          onClick={() => updateChild(child.id, { gender: g.key })}
+                          onClick={() => {
+                            updateChild(child.id, { gender: g.key });
+                            autoAdvance();
+                          }}
                           className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
                             child.gender === g.key
                               ? "border-accent bg-accent/5 shadow-md"
@@ -698,9 +699,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           <div className="w-full aspect-square bg-muted/30">
                             <img src={g.img} alt={g.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
                           </div>
-                          <div className="p-3">
-                            <span className="text-lg font-semibold text-primary block">{g.label}</span>
-                            <span className="text-xs text-muted-foreground">{g.detail}</span>
+                          <div className="p-2 sm:p-3">
+                            <span className="text-base sm:text-lg font-semibold text-primary block">{g.label}</span>
                           </div>
                         </button>
                       ))}
@@ -708,76 +708,51 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   </motion.div>
                 )}
 
-                {/* ── STEP 3: Age ── */}
+                {/* ── STEP 3: Age (simple input) ── */}
                 {step === 3 && (
-                  <motion.div key="s3" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Calendar className="w-6 h-6 text-accent" /> How old is {child.name || "your hero"}?
-                      </h2>
-                      <p className="text-muted-foreground text-sm mt-1">This helps us tailor the story to the right reading level.</p>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {AGE_BRACKETS.map((bracket) => {
-                        const ageNum = child.age ? parseInt(child.age) : 0;
-                        const isSelected = ageNum >= bracket.min && ageNum <= bracket.max;
-                        const presetImg = getAgePreset(child.gender || "boy", bracket.label);
-                        return (
-                          <button
-                            key={bracket.label}
-                            onClick={() => updateChild(child.id, { age: String(bracket.min) })}
-                            className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
-                              isSelected
-                                ? "border-accent bg-accent/5 shadow-sm"
-                                : "border-border hover:border-accent/30"
-                            }`}
-                          >
-                            <div className="w-full aspect-square bg-muted/30 relative">
-                              <img src={presetImg} alt={bracket.desc} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
-                            </div>
-                            <div className="p-2">
-                              <span className="text-sm font-semibold text-primary block">{bracket.label} yrs</span>
-                              <span className="text-[11px] text-muted-foreground">{bracket.desc}</span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                      <div className="col-span-full mt-2">
-                        <Label className="text-xs text-muted-foreground">Or set exact age:</Label>
-                        <Slider
-                          value={[parseInt(child.age) || 5]}
-                          onValueChange={([v]) => updateChild(child.id, { age: String(v) })}
-                          min={2}
-                          max={12}
-                          step={1}
-                          className="mt-2"
-                        />
-                        <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-                          <span>2</span>
-                          <span className="font-semibold text-accent">{child.age || "5"} years old</span>
-                          <span>12</span>
-                        </div>
-                      </div>
-                    </div>
+                  <motion.div key="s3" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+                      <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> How old is {child.name || "your hero"}?
+                    </h2>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={15}
+                      placeholder="Enter age (1-15)"
+                      value={child.age}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "" || (parseInt(val) >= 0 && parseInt(val) <= 15)) {
+                          updateChild(child.id, { age: val });
+                        }
+                      }}
+                      className="rounded-xl h-14 text-2xl text-center font-bold px-5"
+                      autoFocus
+                    />
+                    {child.age && (
+                      <p className="text-center text-sm font-semibold text-accent">
+                        {child.age} years old
+                      </p>
+                    )}
                   </motion.div>
                 )}
 
                 {/* ── STEP 4: Art Style ── */}
                 {step === 4 && (
-                  <motion.div key="s4" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Palette className="w-6 h-6 text-accent" /> Choose an illustration style
-                      </h2>
-                      <p className="text-muted-foreground text-sm mt-1">See how {child.name || "your hero"} looks in each style.</p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <motion.div key="s4" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+                      <Palette className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> Choose an illustration style
+                    </h2>
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
                       {ART_STYLES.map((s) => {
                         const stylePreview = getStylePreset(child.gender || "boy", s.key);
                         return (
                           <button
                             key={s.key}
-                            onClick={() => update({ artStyle: s.key })}
+                            onClick={() => {
+                              update({ artStyle: s.key });
+                              autoAdvance();
+                            }}
                             className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
                               data.artStyle === s.key
                                 ? "border-accent shadow-md ring-2 ring-accent/20"
@@ -787,9 +762,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             <div className="aspect-square bg-muted/50 relative">
                               <img src={stylePreview} alt={s.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
                             </div>
-                            <div className="p-3">
-                              <span className="text-sm font-semibold text-primary block">{s.label}</span>
-                              <span className="text-[11px] text-muted-foreground">{s.desc}</span>
+                            <div className="p-2 sm:p-3">
+                              <span className="text-xs sm:text-sm font-semibold text-primary block">{s.label}</span>
                             </div>
                           </button>
                         );
@@ -800,24 +774,18 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 5: Photo / Description ── */}
                 {step === 5 && (
-                  <motion.div key="s5" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Image className="w-6 h-6 text-accent" /> Help us draw {child.name || "your hero"}
-                      </h2>
-                      <p className="text-muted-foreground text-sm mt-1">Upload a photo or describe your child's appearance. Both are optional!</p>
-                    </div>
+                  <motion.div key="s5" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+                      <Image className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> Help us draw {child.name || "your hero"}
+                    </h2>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="rounded-2xl border-2 border-dashed border-border p-5 text-center hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 relative">
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                            <Camera className="w-6 h-6 text-accent" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="rounded-2xl border-2 border-dashed border-border p-4 sm:p-5 text-center hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 relative">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                            <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                           </div>
-                          <div>
-                            <p className="text-sm font-semibold text-primary">Upload a Photo</p>
-                            <p className="text-xs text-muted-foreground mt-1">Best results with clear face photos</p>
-                          </div>
+                          <p className="text-sm font-semibold text-primary">Upload a Photo</p>
                           {child.photoPreview ? (
                             <div className="flex items-center gap-3 w-full">
                               <img src={child.photoPreview} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
@@ -837,33 +805,20 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             />
                           )}
                         </div>
-                        <div className="mt-4 rounded-xl bg-accent/5 border border-accent/15 p-3 text-left">
-                          <p className="text-xs font-semibold text-accent mb-1.5 flex items-center gap-1.5">
-                            <Camera className="w-3.5 h-3.5" /> Tips for best results
-                          </p>
-                          <ul className="text-[11px] text-muted-foreground space-y-1">
-                            <li className="flex items-start gap-1.5"><User className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Face clearly visible</li>
-                            <li className="flex items-start gap-1.5"><Sun className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Good lighting</li>
-                            <li className="flex items-start gap-1.5"><Camera className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Close-up portrait</li>
-                          </ul>
-                        </div>
                       </div>
 
-                      <div className="rounded-2xl border-2 border-border p-5">
-                        <div className="flex flex-col items-center gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                            <PenLine className="w-6 h-6 text-primary" />
+                      <div className="rounded-2xl border-2 border-border p-4 sm:p-5">
+                        <div className="flex flex-col items-center gap-2 mb-3">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <PenLine className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                           </div>
-                          <div className="text-center">
-                            <p className="text-sm font-semibold text-primary">Describe Instead</p>
-                            <p className="text-xs text-muted-foreground mt-1">Tell us what your child looks like</p>
-                          </div>
+                          <p className="text-sm font-semibold text-primary">Describe Instead</p>
                         </div>
                         <Textarea
-                          placeholder="e.g., Brown curly hair, olive skin, big brown eyes, loves wearing blue..."
+                          placeholder="e.g., Brown curly hair, olive skin, big brown eyes..."
                           value={child.description}
                           onChange={(e) => updateChild(child.id, { description: e.target.value })}
-                          className="rounded-xl min-h-[120px] text-sm"
+                          className="rounded-xl min-h-[100px] text-sm"
                         />
                       </div>
                     </div>
@@ -881,7 +836,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           }));
                           setStep(1);
                         }}
-                        className="w-full border-dashed border-2 rounded-xl h-11"
+                        className="w-full border-dashed border-2 rounded-xl h-10"
                       >
                         <Plus className="w-4 h-4" /> Add Another Child
                       </Button>
@@ -891,21 +846,18 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 6: Torah Portion ── */}
                 {step === 6 && (
-                  <motion.div key="s6" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary">Choose a Torah Story</h2>
-                      <p className="text-muted-foreground text-sm mt-1">Which adventure will {childNames} explore?</p>
-                    </div>
+                  <motion.div key="s6" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-3">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary">Choose a Torah Story</h2>
 
                     {/* Category tabs */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {(["all", "torah", "neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
-                        const meta = cat === "all" ? { label: "All Stories", emoji: "📚" } : CATEGORY_META[cat];
+                        const meta = cat === "all" ? { label: "All", emoji: "📚" } : CATEGORY_META[cat];
                         return (
                           <button
                             key={cat}
                             onClick={() => { setPortionFilter(cat); setExpandedBook(null); }}
-                            className={`text-xs font-medium px-3 py-1.5 rounded-full transition-all duration-300 flex items-center gap-1 ${
+                            className={`text-[11px] sm:text-xs font-medium px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all duration-300 flex items-center gap-1 ${
                               portionFilter === cat
                                 ? "bg-accent text-accent-foreground shadow-sm"
                                 : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
@@ -922,13 +874,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       placeholder="Search stories..."
                       value={portionSearch}
                       onChange={(e) => setPortionSearch(e.target.value)}
-                      className="rounded-xl h-10"
+                      className="rounded-xl h-9 sm:h-10 text-sm"
                     />
 
                     {/* Story cards */}
-                    <div className="max-h-[40vh] overflow-y-auto pr-1 scrollbar-thin space-y-3">
+                    <div className="max-h-[35vh] sm:max-h-[40vh] overflow-y-auto pr-1 scrollbar-thin space-y-2 sm:space-y-3">
                       {(portionFilter === "torah" || portionFilter === "all") && !portionSearch.trim() && (
-                        /* Torah sub-grouped by Chumash book */
                         <>
                           {TORAH_BOOKS.map((book) => {
                             const bookPortions = filteredPortions.filter((p) => p.category === "torah" && p.book === book);
@@ -941,23 +892,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                   className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-muted/50 hover:bg-muted transition-colors text-sm font-semibold text-primary"
                                 >
                                   <span>📖 Sefer {book}</span>
-                                  <span className="text-xs text-muted-foreground">{bookPortions.length} portions {isExpanded ? "▲" : "▼"}</span>
+                                  <span className="text-xs text-muted-foreground">{bookPortions.length} {isExpanded ? "▲" : "▼"}</span>
                                 </button>
                                 {isExpanded && (
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 mt-2">
                                     {bookPortions.map((p) => (
                                       <button
                                         key={p.value}
-                                        onClick={() => update({ torahPortion: p.value })}
-                                        className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                                        onClick={() => {
+                                          update({ torahPortion: p.value });
+                                          autoAdvance();
+                                        }}
+                                        className={`relative p-2.5 sm:p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                                           data.torahPortion === p.value
                                             ? "border-accent bg-accent/5 shadow-sm"
                                             : "border-border hover:border-accent/30 hover:bg-card"
                                         }`}
                                       >
-                                        <span className="text-xl block mb-1">{p.emoji || "📜"}</span>
-                                        <span className="font-display text-sm font-semibold text-primary block leading-tight">{p.label}</span>
-                                        <span className="text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
+                                        <span className="text-lg sm:text-xl block mb-1">{p.emoji || "📜"}</span>
+                                        <span className="font-display text-xs sm:text-sm font-semibold text-primary block leading-tight">{p.label}</span>
+                                        <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
                                         {data.torahPortion === p.value && (
                                           <div className="absolute top-2 right-2">
                                             <Check className="w-4 h-4 text-accent" />
@@ -970,7 +924,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                               </div>
                             );
                           })}
-                          {/* Non-Torah portions when "all" filter is active */}
                           {portionFilter === "all" && (
                             <>
                               {(["neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
@@ -982,20 +935,23 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                     <div className="px-3 py-2 rounded-xl bg-muted/50 text-sm font-semibold text-primary mb-2">
                                       {meta.emoji} {meta.label}
                                     </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
                                       {catPortions.map((p) => (
                                         <button
                                           key={p.value}
-                                          onClick={() => update({ torahPortion: p.value })}
-                                          className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                                          onClick={() => {
+                                            update({ torahPortion: p.value });
+                                            autoAdvance();
+                                          }}
+                                          className={`relative p-2.5 sm:p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                                             data.torahPortion === p.value
                                               ? "border-accent bg-accent/5 shadow-sm"
                                               : "border-border hover:border-accent/30 hover:bg-card"
                                           }`}
                                         >
-                                          <span className="text-xl block mb-1">{p.emoji || "📖"}</span>
-                                          <span className="font-display text-sm font-semibold text-primary block leading-tight">{p.label}</span>
-                                          <span className="text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
+                                          <span className="text-lg sm:text-xl block mb-1">{p.emoji || "📖"}</span>
+                                          <span className="font-display text-xs sm:text-sm font-semibold text-primary block leading-tight">{p.label}</span>
+                                          <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
                                           {data.torahPortion === p.value && (
                                             <div className="absolute top-2 right-2">
                                               <Check className="w-4 h-4 text-accent" />
@@ -1012,22 +968,24 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                         </>
                       )}
 
-                      {/* Non-torah specific category or search results */}
                       {((portionFilter !== "torah" && portionFilter !== "all") || portionSearch.trim()) && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
                           {filteredPortions.map((p) => (
                             <button
                               key={p.value}
-                              onClick={() => update({ torahPortion: p.value })}
-                              className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                              onClick={() => {
+                                update({ torahPortion: p.value });
+                                autoAdvance();
+                              }}
+                              className={`relative p-2.5 sm:p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                                 data.torahPortion === p.value
                                   ? "border-accent bg-accent/5 shadow-sm"
                                   : "border-border hover:border-accent/30 hover:bg-card"
                               }`}
                             >
-                              <span className="text-xl block mb-1">{p.emoji || "📜"}</span>
-                              <span className="font-display text-sm font-semibold text-primary block leading-tight">{p.label}</span>
-                              <span className="text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
+                              <span className="text-lg sm:text-xl block mb-1">{p.emoji || "📜"}</span>
+                              <span className="font-display text-xs sm:text-sm font-semibold text-primary block leading-tight">{p.label}</span>
+                              <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
                               {data.torahPortion === p.value && (
                                 <div className="absolute top-2 right-2">
                                   <Check className="w-4 h-4 text-accent" />
@@ -1036,7 +994,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             </button>
                           ))}
                           {filteredPortions.length === 0 && (
-                            <p className="col-span-full text-center text-sm text-muted-foreground py-8">No stories found. Try a different search.</p>
+                            <p className="col-span-full text-center text-sm text-muted-foreground py-8">No stories found.</p>
                           )}
                         </div>
                       )}
@@ -1046,22 +1004,22 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 7: Language ── */}
                 {step === 7 && (
-                  <motion.div key="s7" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary">Choose a Language</h2>
-                      <p className="text-muted-foreground text-sm mt-1">In which language should the story be written?</p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
+                  <motion.div key="s7" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary">Choose a Language</h2>
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
                       {[
                         { key: "english", label: "English", emoji: "🇺🇸" },
                         { key: "hebrew", label: "Hebrew", emoji: "🇮🇱" },
                         { key: "bilingual", label: "Both", emoji: "🌍" },
                       ].map((l) => (
-                        <button key={l.key} onClick={() => update({ language: l.key })} className={`p-5 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
+                        <button key={l.key} onClick={() => {
+                          update({ language: l.key });
+                          autoAdvance();
+                        }} className={`p-4 sm:p-5 rounded-2xl border-2 text-center transition-all duration-300 active:scale-[0.97] ${
                           data.language === l.key ? "border-accent bg-accent/5 shadow-sm" : "border-border hover:border-accent/30"
                         }`}>
-                          <span className="text-3xl block mb-2">{l.emoji}</span>
-                          <span className="text-sm font-semibold text-primary">{l.label}</span>
+                          <span className="text-2xl sm:text-3xl block mb-1 sm:mb-2">{l.emoji}</span>
+                          <span className="text-xs sm:text-sm font-semibold text-primary">{l.label}</span>
                         </button>
                       ))}
                     </div>
@@ -1070,16 +1028,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 8: Review & Generate ── */}
                 {step === 8 && (
-                  <motion.div key="s8" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Sparkles className="w-6 h-6 text-accent" /> Ready to Create!
-                      </h2>
-                      <p className="text-muted-foreground text-sm mt-1">Review your selections and generate {childNames}'s personalized sefer.</p>
-                    </div>
+                  <motion.div key="s8" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-accent" /> Ready to Create!
+                    </h2>
 
                     {/* Summary cards */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <div className="rounded-xl border border-border bg-card p-3">
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Character</p>
                         <p className="text-sm font-semibold text-primary">{childNames}</p>
@@ -1103,16 +1058,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="rounded-2xl border-2 border-accent/30 bg-accent/5 p-5 space-y-4"
+                        className="rounded-2xl border-2 border-accent/30 bg-accent/5 p-4 sm:p-5 space-y-3"
                       >
                         <div className="flex items-center gap-2">
                           <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
                             <LogIn className="w-5 h-5 text-accent" />
                           </div>
-                          <div>
-                            <p className="font-display font-semibold text-sm text-primary">Sign in to generate your sefer</p>
-                            <p className="text-[11px] text-muted-foreground">Create an account or sign in to continue.</p>
-                          </div>
+                          <p className="font-display font-semibold text-sm text-primary">Sign in to generate your sefer</p>
                         </div>
 
                         <form onSubmit={loginMode === "login" ? handleWizardLogin : handleWizardSignup} className="space-y-3">
@@ -1165,7 +1117,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 9: Generation Animation + Confirmation ── */}
                 {step === 9 && (
-                  <motion.div key="s9" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="py-8 space-y-6">
+                  <motion.div key="s9" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="py-6 sm:py-8 space-y-6">
                     {animating && !animDone && (
                       <>
                         <SparkleEffect count={15} />
@@ -1186,16 +1138,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             key={`phase-text-${animPhaseIdx}`}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="font-display text-xl text-primary font-semibold"
+                            className="font-display text-lg sm:text-xl text-primary font-semibold"
                           >
                             {GENERATION_PHASES[animPhaseIdx]?.text}
                           </motion.p>
-                          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                            Creating something extraordinary for {childNames}...
-                          </p>
                         </div>
 
-                        {/* Animated progress */}
                         <div className="max-w-sm mx-auto">
                           <div className="h-3 bg-muted rounded-full overflow-hidden">
                             <motion.div
@@ -1221,13 +1169,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           <Mail className="w-10 h-10 text-accent" />
                         </div>
                         <div>
-                          <h2 className="font-display text-2xl font-bold text-primary">Your sefer is being created!</h2>
+                          <h2 className="font-display text-xl sm:text-2xl font-bold text-primary">Your sefer is being created!</h2>
                           <p className="text-muted-foreground text-sm mt-2 max-w-sm mx-auto leading-relaxed">
-                            You'll receive an email within <span className="font-semibold text-accent">24 hours</span> with a preview of {childNames}'s book and shipping details for you to confirm.
+                            You'll receive an email within <span className="font-semibold text-accent">24 hours</span> with a preview of {childNames}'s book.
                           </p>
                         </div>
 
-                        <div className="bg-muted/30 rounded-2xl border border-border p-5 max-w-sm mx-auto space-y-2">
+                        <div className="bg-muted/30 rounded-2xl border border-border p-4 sm:p-5 max-w-sm mx-auto space-y-2">
                           <div className="flex items-center gap-3 justify-center">
                             <BookOpen className="w-5 h-5 text-accent" />
                             <div className="text-left">
@@ -1241,7 +1189,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           variant="gold"
                           size="lg"
                           onClick={() => { setDir(1); setStep(10); }}
-                          className="rounded-xl h-12 px-8"
+                          className="rounded-xl h-11 sm:h-12 px-6 sm:px-8"
                         >
                           Continue to Choose Your Book <ArrowRight className="w-4 h-4" />
                         </Button>
@@ -1284,25 +1232,25 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
           {/* ── Nav buttons ── */}
           {step !== 9 && step !== 12 && step !== 13 && (
-            <div className="flex justify-between mt-8 pt-6 border-t border-border">
+            <div className="flex justify-between mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-border">
               {step > 1 ? (
-                <Button variant="ghost" onClick={back} className="rounded-xl gap-2 text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" onClick={back} className="rounded-xl gap-1.5 sm:gap-2 text-muted-foreground hover:text-foreground text-sm">
                   <ArrowLeft className="w-4 h-4" /> Back
                 </Button>
               ) : <div />}
 
               {step <= 7 && (
-                <Button variant="gold" onClick={next} disabled={!canNext} className="rounded-xl gap-2 px-6 h-11">
+                <Button variant="gold" onClick={next} disabled={!canNext} className="rounded-xl gap-1.5 sm:gap-2 px-4 sm:px-6 h-10 sm:h-11 text-sm">
                   Continue <ArrowRight className="w-4 h-4" />
                 </Button>
               )}
               {step === 8 && (
-                <Button variant="gold" onClick={next} className="rounded-xl gap-2 px-6 h-11">
+                <Button variant="gold" onClick={next} className="rounded-xl gap-1.5 sm:gap-2 px-4 sm:px-6 h-10 sm:h-11 text-sm">
                   <Sparkles className="w-4 h-4" /> Generate Book
                 </Button>
               )}
               {(step === 10 || step === 11) && (
-                <Button variant="gold" onClick={next} disabled={!canNext} className="rounded-xl gap-2 px-6 h-11">
+                <Button variant="gold" onClick={next} disabled={!canNext} className="rounded-xl gap-1.5 sm:gap-2 px-4 sm:px-6 h-10 sm:h-11 text-sm">
                   Continue <ArrowRight className="w-4 h-4" />
                 </Button>
               )}
