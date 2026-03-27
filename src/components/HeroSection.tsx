@@ -66,7 +66,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   const slide = slides[activeSlide];
   const badgeText = getSetting("website", "hero-badge", "AI-Powered Torah Stories for Frum Kinderlach");
   const ctaText = getSetting("website", "hero-cta", "Begin the Journey");
-  const priceText = getSetting("website", "hero-price-text", "From $34.99 · Ships in 5 days");
+  const priceText = getSetting("website", "hero-price-text", "From $24.99 · Ships in 3 days");
   const socialProof = getSetting("website", "hero-social-proof", "2,847+ Chareidi mishpachos");
 
   return (
