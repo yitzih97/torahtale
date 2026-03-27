@@ -19,7 +19,7 @@ import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
-import { TORAH_PORTIONS, getPortionLabel } from "./wizard/TorahPortions";
+import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, type TorahOption } from "./wizard/TorahPortions";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
@@ -169,7 +169,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
   const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
   
-  const [portionFilter, setPortionFilter] = useState<"all" | "torah" | "holiday">("all");
+  const [portionFilter, setPortionFilter] = useState<TorahOption["category"] | "all">("all");
+  const [portionSearch, setPortionSearch] = useState("");
+  const [expandedBook, setExpandedBook] = useState<string | null>(null);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -420,9 +422,14 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     }
   })();
 
-  const filteredPortions = portionFilter === "all"
-    ? TORAH_PORTIONS
-    : TORAH_PORTIONS.filter((p) => p.category === portionFilter);
+  const filteredPortions = (() => {
+    let list = portionFilter === "all" ? TORAH_PORTIONS : TORAH_PORTIONS.filter((p) => p.category === portionFilter);
+    if (portionSearch.trim()) {
+      const q = portionSearch.toLowerCase();
+      list = list.filter((p) => p.label.toLowerCase().includes(q) || p.sub.toLowerCase().includes(q));
+    }
+    return list;
+  })();
 
   const activeGroupIdx = STEP_GROUPS.findIndex((g) => g.steps.includes(step));
 
@@ -884,31 +891,155 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 6: Torah Portion ── */}
                 {step === 6 && (
-                  <motion.div key="s6" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-5">
+                  <motion.div key="s6" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
                     <div>
                       <h2 className="font-display text-2xl font-bold text-primary">Choose a Torah Story</h2>
                       <p className="text-muted-foreground text-sm mt-1">Which adventure will {childNames} explore?</p>
                     </div>
 
-                    <div className="flex gap-2">
-                      {(["all", "torah", "holiday"] as const).map((f) => (
-                        <button key={f} onClick={() => setPortionFilter(f)} className={`text-xs font-medium px-4 py-2 rounded-full transition-all duration-300 capitalize ${
-                          portionFilter === f ? "bg-accent text-accent-foreground shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
-                        }`}>
-                          {f === "all" ? "All Stories" : f === "torah" ? "Torah Portions" : "Holidays"}
-                        </button>
-                      ))}
+                    {/* Category tabs */}
+                    <div className="flex flex-wrap gap-2">
+                      {(["all", "torah", "neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
+                        const meta = cat === "all" ? { label: "All Stories", emoji: "📚" } : CATEGORY_META[cat];
+                        return (
+                          <button
+                            key={cat}
+                            onClick={() => { setPortionFilter(cat); setExpandedBook(null); }}
+                            className={`text-xs font-medium px-3 py-1.5 rounded-full transition-all duration-300 flex items-center gap-1 ${
+                              portionFilter === cat
+                                ? "bg-accent text-accent-foreground shadow-sm"
+                                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                            }`}
+                          >
+                            <span>{meta.emoji}</span> {meta.label}
+                          </button>
+                        );
+                      })}
                     </div>
 
-                    <div className="grid gap-2 max-h-[45vh] overflow-y-auto pr-1 scrollbar-thin">
-                      {filteredPortions.map((p) => (
-                        <button key={p.value} onClick={() => update({ torahPortion: p.value })} className={`p-4 rounded-2xl border-2 text-left transition-all duration-300 active:scale-[0.98] ${
-                          data.torahPortion === p.value ? "border-accent bg-accent/5 shadow-sm" : "border-border hover:border-accent/30 hover:bg-card"
-                        }`}>
-                          <span className="font-display text-base font-semibold text-primary">{p.label}</span>
-                          <span className="block text-xs text-muted-foreground mt-0.5">{p.sub}</span>
-                        </button>
-                      ))}
+                    {/* Search */}
+                    <Input
+                      placeholder="Search stories..."
+                      value={portionSearch}
+                      onChange={(e) => setPortionSearch(e.target.value)}
+                      className="rounded-xl h-10"
+                    />
+
+                    {/* Story cards */}
+                    <div className="max-h-[40vh] overflow-y-auto pr-1 scrollbar-thin space-y-3">
+                      {(portionFilter === "torah" || portionFilter === "all") && !portionSearch.trim() && (
+                        /* Torah sub-grouped by Chumash book */
+                        <>
+                          {TORAH_BOOKS.map((book) => {
+                            const bookPortions = filteredPortions.filter((p) => p.category === "torah" && p.book === book);
+                            if (bookPortions.length === 0) return null;
+                            const isExpanded = expandedBook === book;
+                            return (
+                              <div key={book}>
+                                <button
+                                  onClick={() => setExpandedBook(isExpanded ? null : book)}
+                                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-muted/50 hover:bg-muted transition-colors text-sm font-semibold text-primary"
+                                >
+                                  <span>📖 Sefer {book}</span>
+                                  <span className="text-xs text-muted-foreground">{bookPortions.length} portions {isExpanded ? "▲" : "▼"}</span>
+                                </button>
+                                {isExpanded && (
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                                    {bookPortions.map((p) => (
+                                      <button
+                                        key={p.value}
+                                        onClick={() => update({ torahPortion: p.value })}
+                                        className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                                          data.torahPortion === p.value
+                                            ? "border-accent bg-accent/5 shadow-sm"
+                                            : "border-border hover:border-accent/30 hover:bg-card"
+                                        }`}
+                                      >
+                                        <span className="text-xl block mb-1">{p.emoji || "📜"}</span>
+                                        <span className="font-display text-sm font-semibold text-primary block leading-tight">{p.label}</span>
+                                        <span className="text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
+                                        {data.torahPortion === p.value && (
+                                          <div className="absolute top-2 right-2">
+                                            <Check className="w-4 h-4 text-accent" />
+                                          </div>
+                                        )}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                          {/* Non-Torah portions when "all" filter is active */}
+                          {portionFilter === "all" && (
+                            <>
+                              {(["neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
+                                const catPortions = filteredPortions.filter((p) => p.category === cat);
+                                if (catPortions.length === 0) return null;
+                                const meta = CATEGORY_META[cat];
+                                return (
+                                  <div key={cat}>
+                                    <div className="px-3 py-2 rounded-xl bg-muted/50 text-sm font-semibold text-primary mb-2">
+                                      {meta.emoji} {meta.label}
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                      {catPortions.map((p) => (
+                                        <button
+                                          key={p.value}
+                                          onClick={() => update({ torahPortion: p.value })}
+                                          className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                                            data.torahPortion === p.value
+                                              ? "border-accent bg-accent/5 shadow-sm"
+                                              : "border-border hover:border-accent/30 hover:bg-card"
+                                          }`}
+                                        >
+                                          <span className="text-xl block mb-1">{p.emoji || "📖"}</span>
+                                          <span className="font-display text-sm font-semibold text-primary block leading-tight">{p.label}</span>
+                                          <span className="text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
+                                          {data.torahPortion === p.value && (
+                                            <div className="absolute top-2 right-2">
+                                              <Check className="w-4 h-4 text-accent" />
+                                            </div>
+                                          )}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </>
+                          )}
+                        </>
+                      )}
+
+                      {/* Non-torah specific category or search results */}
+                      {((portionFilter !== "torah" && portionFilter !== "all") || portionSearch.trim()) && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {filteredPortions.map((p) => (
+                            <button
+                              key={p.value}
+                              onClick={() => update({ torahPortion: p.value })}
+                              className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                                data.torahPortion === p.value
+                                  ? "border-accent bg-accent/5 shadow-sm"
+                                  : "border-border hover:border-accent/30 hover:bg-card"
+                              }`}
+                            >
+                              <span className="text-xl block mb-1">{p.emoji || "📜"}</span>
+                              <span className="font-display text-sm font-semibold text-primary block leading-tight">{p.label}</span>
+                              <span className="text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
+                              {data.torahPortion === p.value && (
+                                <div className="absolute top-2 right-2">
+                                  <Check className="w-4 h-4 text-accent" />
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                          {filteredPortions.length === 0 && (
+                            <p className="col-span-full text-center text-sm text-muted-foreground py-8">No stories found. Try a different search.</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
