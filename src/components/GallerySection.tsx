@@ -30,7 +30,15 @@ const books = [
   },
 ];
 
-export const GallerySection = () => (
+export const GallerySection = () => {
+  const { getAssetUrl } = useSiteAssets();
+
+  const resolvedBooks = books.map((book) => ({
+    ...book,
+    image: getAssetUrl(book.assetKey, book.image),
+  }));
+
+  return (
   <section id="gallery" className="py-24 lg:py-32 bg-card">
     <div className="container max-w-6xl mx-auto">
       <motion.div

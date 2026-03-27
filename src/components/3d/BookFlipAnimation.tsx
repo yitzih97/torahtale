@@ -44,6 +44,10 @@ interface BookFlipAnimationProps {
 
 export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
   const [currentPage, setCurrentPage] = useState(0);
+  const { getAssetUrl } = useSiteAssets();
+
+  // Build pages with overrides
+  const PAGES = STATIC_PAGES.map((staticUrl, i) => getAssetUrl(ASSET_KEYS[i], staticUrl));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -54,7 +58,7 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
       });
     }, PAGE_INTERVAL);
     return () => clearInterval(timer);
-  }, [onPageChange]);
+  }, [onPageChange, PAGES.length]);
 
   const kb = KEN_BURNS_VARIANTS[currentPage];
 
