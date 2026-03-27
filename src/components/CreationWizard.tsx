@@ -18,6 +18,7 @@ import { BookViewer, type BookPage } from "./wizard/BookViewer";
 import { BookLoadingSkeleton } from "./wizard/BookLoadingSkeleton";
 import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/ShippingForm";
 import { CheckoutStep } from "./wizard/CheckoutStep";
+import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
 import { TORAH_PORTIONS, getPortionLabel } from "./wizard/TorahPortions";
@@ -178,6 +179,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [loginMode, setLoginMode] = useState<"login" | "signup">("signup");
   const [loginLoading, setLoginLoading] = useState(false);
   const loginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showUpsellDialog, setShowUpsellDialog] = useState(false);
 
   const child = data.children[data.activeChildIdx] || data.children[0];
 
@@ -488,7 +490,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         .eq("user_id", user.id)
         .gte("created_at", startOfMonth.toISOString());
       if (!countErr && (count ?? 0) >= 2) {
-        toast.error("You've used your 2 free book previews this month. Subscribe for unlimited seforim!");
+        setShowUpsellDialog(true);
         return;
       }
       await startGeneration();
@@ -621,6 +623,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
         {/* ── Grouped Stepper ── */}
@@ -1347,5 +1350,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         </div>
       </DialogContent>
     </Dialog>
+
+    <SubscriptionUpsellDialog
+      open={showUpsellDialog}
+      onClose={() => setShowUpsellDialog(false)}
+      context="limit-reached"
+    />
+    </>
   );
 };
