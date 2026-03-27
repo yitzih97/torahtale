@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Sun, Moon, LogOut, User } from "lucide-react";
+import { BookOpen, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSiteAssets } from "@/hooks/useSiteAssets";
@@ -12,7 +11,6 @@ interface NavbarProps {
 
 export const Navbar = ({ onStart }: NavbarProps) => {
   const [scrolled, setScrolled] = useState(false);
-  const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
   const { getSetting } = useSiteSettings("website");
   const { getAssetUrl } = useSiteAssets();
@@ -48,10 +46,6 @@ export const Navbar = ({ onStart }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={toggleTheme} className="p-2 rounded-full text-muted-foreground hover:text-accent hover:bg-muted transition-colors" aria-label="Toggle theme">
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-
           {user ? (
             <>
               <a href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors hidden sm:flex items-center gap-1.5">

@@ -75,8 +75,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         <BookFlipAnimation onPageChange={handlePageChange} />
       </Suspense>
 
-      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent dark:from-background/85 dark:via-background/30 dark:to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/20 dark:from-background/40 dark:via-transparent dark:to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[hsl(220,30%,8%)]/85 via-[hsl(220,30%,8%)]/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[hsl(220,30%,8%)]/40 via-transparent to-transparent" />
 
       <div className="relative z-10 w-full py-24 lg:py-0 pl-4 sm:pl-6 lg:pl-12 pr-4">
         <div className="flex items-center justify-start">
@@ -94,10 +94,10 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                   key={`headline-${activeSlide}`}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                  className="text-4xl sm:text-5xl lg:text-[3.2rem] font-bold leading-[1.1] tracking-tight text-foreground"
+                  className="text-4xl sm:text-5xl lg:text-[3.2rem] font-bold leading-[1.1] tracking-tight text-white"
                 >
                   {slide.headline[0]}<br />
-                  <span className="text-accent">{slide.headline[1]}</span>
+                  <span className="text-gold-light">{slide.headline[1]}</span>
                 </motion.h1>
               </AnimatePresence>
             </div>
@@ -108,7 +108,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                   key={`desc-${activeSlide}`}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
-                  className="text-base lg:text-lg text-foreground/65 font-body max-w-md leading-relaxed"
+                  className="text-base lg:text-lg text-white/65 font-body max-w-md leading-relaxed"
                 >
                   {slide.description}
                 </motion.p>
@@ -127,13 +127,13 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {ctaText}
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
-              <span className="text-foreground/40 text-sm font-body">{priceText}</span>
+              <span className="text-white/40 text-sm font-body">{priceText}</span>
             </motion.div>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }} className="mt-10 flex items-center gap-3">
               <div className="flex -space-x-2">
                 {["S", "D", "M", "R"].map((initial, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-primary/30 flex items-center justify-center text-[10px] font-semibold text-accent backdrop-blur-sm">
+                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white/20 bg-white/10 flex items-center justify-center text-[10px] font-semibold text-gold-light backdrop-blur-sm">
                     {initial}
                   </div>
                 ))}
@@ -141,7 +141,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               <div className="flex items-center gap-1">
                 {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 fill-accent text-accent" />)}
               </div>
-              <span className="text-sm text-foreground/60" dangerouslySetInnerHTML={{ __html: socialProof.replace(/(\d[\d,]+\+?)/, '<strong class="text-foreground/80">$1</strong>') }} />
+              <span className="text-sm text-white/60" dangerouslySetInnerHTML={{ __html: socialProof.replace(/(\d[\d,]+\+?)/, '<strong class="text-white/80">$1</strong>') }} />
             </motion.div>
           </div>
         </div>
