@@ -1,142 +1,123 @@
 
 
-## Plan: Regenerate Images for Chareidi Audience + Admin Content Management System
+## Plan: Enhanced Admin Controls + Printify Integration
 
-### Part 1: Image Regeneration
-
-**Problem**: The current static images (hero scenes, gallery covers, hero characters) may not accurately depict Chareidi children with peyos, yarmulkes, tzitzis, and modest clothing.
-
-**Approach**: Create an admin-triggered image regeneration system rather than replacing 150+ static files manually.
-
-**Steps**:
-
-1. **Create a `site_images` storage bucket** in Supabase to store regenerated images.
-
-2. **Create a `site_assets` database table** to track which images have been regenerated and store their URLs:
-   - `id`, `asset_key` (e.g. "hero-scene-1"), `image_url`, `prompt_used`, `status`, `created_at`
-
-3. **Create an `admin-generate-image` edge function** that:
-   - Accepts an asset key and prompt
-   - Calls the Gemini image generation API with Chareidi-specific prompts (boys with peyos/yarmulke/tzitzis, girls in modest long-sleeved dresses)
-   - Uploads result to the `site_images` bucket
-   - Updates the `site_assets` table
-
-4. **Update image-consuming components** (`BookFlipAnimation`, `GallerySection`, `HeroSection`) to check `site_assets` for overrides before falling back to static assets.
-
-5. **Add "Regenerate Images" section in Admin Settings tab** with:
-   - List of all key site images with thumbnails
-   - Edit prompt per image
-   - "Regenerate" button per image and "Regenerate All" batch button
-   - Progress indicators
-
-**Key images to regenerate** (prioritized):
-- 10 hero background scenes (hero-scene-1 through 10)
-- 2 hero characters (hero-boy, hero-girl)
-- 3 gallery cover images (story-noach, story-beshalach, story-bereishit)
-
-Gallery book pages (120+) can be regenerated over time via the admin tool.
+### Overview
+Expand the admin CMS with more website text editing fields, image upload capability (alongside AI generation), AI model selection dropdowns, logo/favicon management, and a new Printify print-on-demand integration section.
 
 ---
 
-### Part 2: Admin Content Management System
+### 1. Expand Website Content Editor
 
-**Problem**: Currently all website text, AI prompts, and settings are hardcoded. Admin needs to edit them without code changes.
+Add more editable text fields to the "Content" tab in `AdminCMS.tsx`:
 
-**Steps**:
+- Hero headline templates (per slide — 10 slides)
+- Hero description text (per slide)
+- How It Works step titles and descriptions
+- Testimonial names, quotes, and locations
+- Footer text
+- Navbar brand name and CTA button text
+- Auth page text (sign-in/sign-up subtitles)
+- Success step text
 
-1. **Create a `site_settings` database table**:
-   - `id`, `category` (e.g. "prompts", "website", "pricing"), `key`, `value` (text), `updated_at`, `updated_by`
-   - RLS: only admins can read/write
+These all use the existing `site_settings` table with `category: "website"` — no DB changes needed.
 
-2. **Create a `useSiteSettings` hook** that fetches settings and provides fallback defaults.
+Update frontend components (`HeroSection`, `HowItWorks`, `TestimonialsSection`, `CTASection`, `Navbar`, `Footer`, `Auth`) to read from `useSiteSettings` hook with fallback defaults.
 
-3. **Expand the Admin Settings tab** with sub-sections:
+### 2. Image Upload Option (alongside AI generation)
 
-   **a. Master Prompts** (editable text areas):
-   - Story generation system prompt
-   - Story generation user prompt template
-   - Image generation prompt template
-   - Character preview prompt template
+In the Images tab, add an "Upload Image" button next to "Regenerate" for each site image. This lets the admin upload a custom photo/logo directly instead of AI-generating it.
 
-   **b. Website Content** (editable fields):
-   - Hero badge text, CTA button text
-   - Section headings and descriptions
-   - Testimonial names and quotes
-   - Pricing labels
+- Upload goes to the existing `site-images` storage bucket
+- Updates `site_assets` table with the uploaded URL and `status: "ready"`
+- Add an `uploadImage` mutation to `useSiteAssets` hook
 
-   **c. AI Agent Settings**:
-   - Default AI model selection
-   - Temperature setting
-   - Page count defaults
-   - Art style options list
+### 3. Logo / Favicon Management
 
-   **d. Pricing & Plans**:
-   - Weekly/Monthly/Yearly subscription prices
-   - One-time purchase price
-   - Discount percentage display
+Add a new "Branding" section (or sub-section in Content/Images) with:
+- Upload site logo (stored in `site-images` bucket as `logo.png`)
+- Upload favicon (stored as `favicon.ico` or `favicon.png`)
+- Navbar and `<head>` read from `site_assets` with fallback to current static assets
 
-4. **Update edge functions** (`generate-story`, `generate-image`, `generate-character-preview`) to read master prompts from `site_settings` table, falling back to hardcoded defaults if not set.
+### 4. AI Model Selection Dropdown
 
-5. **Update frontend components** to read website copy from `site_settings` via the hook, falling back to current hardcoded values.
+Replace the plain text input for "Story Generation Model" and add proper dropdowns listing all available Lovable AI models:
+- `google/gemini-2.5-pro`
+- `google/gemini-2.5-flash`
+- `google/gemini-3-flash-preview`
+- `google/gemini-3.1-pro-preview`
+- `openai/gpt-5`
+- `openai/gpt-5-mini`
+- etc.
+
+Add separate dropdowns for:
+- **Story text model** (for generating story content)
+- **Image generation model** (for book illustrations)
+- **Site image generation model** (for admin image regen)
+
+These save to `site_settings` with `category: "ai"`.
+
+Update edge functions to read the selected model from settings.
+
+### 5. Printify Integration Section
+
+Add a new "Printify" tab in the admin CMS for print-on-demand automation.
+
+**Database**: Add settings in `site_settings` for:
+- `integrations/printify-api-key` — stored as a secret
+- `integrations/printify-shop-id`
+- `integrations/printify-product-template-id` (blueprint)
+- `integrations/printify-enabled` (true/false toggle)
+
+**New edge function**: `supabase/functions/printify-submit/index.ts`
+- Triggered when a book status changes to "ordered"
+- Sends the book PDF (or page images) to Printify's API
+- Creates a product + publishes + creates an order
+- Updates the book record with Printify order ID and status
+
+**Admin UI** (new "Printify" tab):
+- API Key input (saved as secret via `add_secret` tool)
+- Shop ID input
+- Product blueprint/template selector
+- Enable/disable toggle
+- Test connection button
+- Order history log showing Printify sync status per book
+
+**Auto-fulfillment flow**:
+1. User completes checkout → book status = "ordered"
+2. Edge function or DB trigger fires → sends to Printify
+3. Printify prints + ships → webhook updates status to "shipped"
+
+**Webhook endpoint**: `supabase/functions/printify-webhook/index.ts`
+- Receives Printify order status updates
+- Updates book status (printing → shipped → delivered)
 
 ---
 
-### Database Changes
+### Files to Create
 
-```sql
--- site_assets table for image overrides
-CREATE TABLE public.site_assets (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  asset_key text UNIQUE NOT NULL,
-  image_url text,
-  prompt_used text,
-  status text DEFAULT 'pending',
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
+| File | Purpose |
+|------|---------|
+| `supabase/functions/printify-submit/index.ts` | Submit orders to Printify API |
+| `supabase/functions/printify-webhook/index.ts` | Receive Printify status webhooks |
 
--- site_settings table for CMS
-CREATE TABLE public.site_settings (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  category text NOT NULL,
-  key text NOT NULL,
-  value text NOT NULL,
-  updated_at timestamptz DEFAULT now(),
-  updated_by uuid,
-  UNIQUE(category, key)
-);
-
--- RLS: admin-only
-ALTER TABLE public.site_assets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Admins can CRUD site_assets" ON public.site_assets FOR ALL TO authenticated
-  USING (has_role(auth.uid(), 'admin')) WITH CHECK (has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "Anyone can read site_assets" ON public.site_assets FOR SELECT TO public
-  USING (true);
-
-CREATE POLICY "Admins can CRUD site_settings" ON public.site_settings FOR ALL TO authenticated
-  USING (has_role(auth.uid(), 'admin')) WITH CHECK (has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "Anyone can read site_settings" ON public.site_settings FOR SELECT TO public
-  USING (true);
-```
-
-### Files to Change/Create
+### Files to Modify
 
 | File | Change |
 |------|--------|
-| Migration SQL | Create `site_assets` and `site_settings` tables |
-| `supabase/functions/admin-generate-image/index.ts` | New edge function for admin image regen |
-| `src/hooks/useSiteSettings.ts` | New hook to fetch/cache site settings |
-| `src/hooks/useSiteAssets.ts` | New hook to fetch image overrides |
-| `src/pages/Admin.tsx` | Expand Settings tab with Prompts, Content, Images, AI sections |
-| `src/components/3d/BookFlipAnimation.tsx` | Use image overrides from site_assets |
-| `src/components/GallerySection.tsx` | Use image overrides from site_assets |
-| `src/components/HeroSection.tsx` | Use site_settings for copy |
-| `supabase/functions/generate-story/index.ts` | Read prompts from site_settings |
-| `supabase/functions/generate-image/index.ts` | Read prompts from site_settings |
-| `supabase/functions/generate-character-preview/index.ts` | Read prompts from site_settings |
-| Storage bucket | Create `site-images` bucket |
+| `src/components/admin/AdminCMS.tsx` | Add Content fields, Upload button, Model dropdowns, Branding section, Printify tab |
+| `src/hooks/useSiteAssets.ts` | Add `uploadImage` mutation |
+| `src/hooks/useSiteSettings.ts` | No changes needed (already generic) |
+| `src/components/HeroSection.tsx` | Read slide text from site_settings |
+| `src/components/HowItWorks.tsx` | Read step text from site_settings |
+| `src/components/TestimonialsSection.tsx` | Read testimonials from site_settings |
+| `src/components/CTASection.tsx` | Read headline/subtext from site_settings |
+| `src/components/Navbar.tsx` | Read logo from site_assets, brand name from site_settings |
+| `src/components/Footer.tsx` | Read footer text from site_settings |
+| `supabase/functions/admin-generate-image/index.ts` | Read selected image model from site_settings |
+| `supabase/functions/generate-story/index.ts` | Read selected story model from site_settings (already partially done) |
+| `supabase/functions/generate-image/index.ts` | Read selected image model from site_settings |
+
+### Secrets Needed
+- `PRINTIFY_API_KEY` — will be requested from the user via `add_secret` tool during implementation
 
