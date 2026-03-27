@@ -130,6 +130,64 @@ const PAGE_SLOTS = [
   { key: "back-cover", label: "Back Cover" },
 ];
 
+const PRINT_SPECS: Record<string, { cover: string; page: string }> = {
+  "cover": {
+    cover: "Softcover 8×8: 4790×2400 | Hardcover 8×8: 5370×2850 | Board 6×6: 3863×1875",
+    page: "",
+  },
+  "back-cover": {
+    cover: "Softcover 8×8: 4790×2400 | Hardcover 8×8: 5370×2850 | Board 6×6: 3863×1875",
+    page: "",
+  },
+  "story": {
+    cover: "",
+    page: "Softcover 8×8: 2400×2400 | Hardcover 8×8: 2325×2325 | Board 6×6: 3675×1875",
+  },
+};
+
+const DEFAULT_PAGE_TEMPLATES: Record<string, { text: string; "image-prompt": string }> = {
+  "cover": {
+    text: `{childName}'s {torahPortion} Adventure\nA personalized Torah tale`,
+    "image-prompt": `A stunning children's book cover illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, as the hero. The scene depicts the opening moment of the {torahPortion} story. Warm, magical atmosphere with golden light. Include subtle Torah motifs (stars of David, olive branches, scrollwork border). Title area at top. Safe for children. High resolution for print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
+  },
+  "page-1": {
+    text: `In a cozy Yiddishe home, {childName} discovered something extraordinary — a glowing sefer that would transport them into the story of {torahPortion}...`,
+    "image-prompt": `A warm, inviting children's book illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, sitting in a cozy room filled with seforim. A magical Torah scroll glows with golden light. The child reaches toward it with wonder. Warm home setting with Jewish decor (menorah, mezuzah visible). Print dimensions: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+  },
+  "page-2": {
+    text: `Suddenly, the world around {childName} shimmered and changed. The story of {torahPortion} came alive before their very eyes...`,
+    "image-prompt": `A magical transformation scene in {artStyle} style. {childName}, a frum Yiddishe {gender} age {age}, being transported through swirling light into the Biblical scene of {torahPortion}. Sparkles and Torah letters float in the air. The ancient landscape begins to materialize. Vibrant colors, child-safe imagery. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+  },
+  "page-3": {
+    text: `{childName} looked around in amazement at the ancient land. The {torahPortion} story was unfolding, and they were right in the middle of it!`,
+    "image-prompt": `A breathtaking panoramic scene in {artStyle} style showing the Biblical setting of {torahPortion}. {childName}, a frum Yiddishe {gender} age {age}, stands in awe looking at the landscape. Include historically appropriate details for the Torah story. Lush, colorful, warm lighting. Safe for children. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+  },
+  "page-4": {
+    text: `{childName} met the great Torah figures from {torahPortion}. They shared words of wisdom and showed kindness that touched {childName}'s heart.`,
+    "image-prompt": `A heartwarming meeting scene in {artStyle} style. {childName}, a frum Yiddishe {gender} age {age}, meets the key Biblical figure(s) from {torahPortion}. The Torah character is depicted with dignity and warmth. They interact kindly with the child. Beautiful background appropriate to the story. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+  },
+  "page-5": {
+    text: `The most exciting moment arrived — the central miracle of {torahPortion}! {childName} watched with wide eyes as Hashem's power was revealed.`,
+    "image-prompt": `A dramatic, awe-inspiring scene in {artStyle} style depicting the central event/miracle of {torahPortion}. {childName}, a frum Yiddishe {gender} age {age}, witnesses the event with wonder. Dramatic lighting, vibrant colors, sense of divine power. Appropriate for the specific Torah portion. Child-safe. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+  },
+  "page-6": {
+    text: `{childName} learned an important lesson: just as in the story of {torahPortion}, Hashem is always watching over us with love.`,
+    "image-prompt": `A reflective, emotional scene in {artStyle} style. {childName}, a frum Yiddishe {gender} age {age}, sits peacefully reflecting on what they witnessed in {torahPortion}. Soft golden light suggesting divine protection. Serene landscape. Torah-appropriate imagery. Warm and comforting. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+  },
+  "page-7": {
+    text: `With a grateful heart, {childName} understood the moral of {torahPortion}: we must always trust in Hashem and follow His Torah.`,
+    "image-prompt": `A meaningful scene in {artStyle} style showing {childName}, a frum Yiddishe {gender} age {age}, applying the moral lesson from {torahPortion}. The child performs a related mitzvah or act of kindness. Warm community setting with other frum characters. Uplifting atmosphere. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+  },
+  "page-8": {
+    text: `As the magical journey ended, {childName} returned home, carrying the beautiful lessons of {torahPortion} forever in their heart. The End.`,
+    "image-prompt": `A warm closing scene in {artStyle} style. {childName}, a frum Yiddishe {gender} age {age}, back in their cozy home, hugging a Torah scroll or sefer. The magical glow fades gently. Family members nearby. Shabbos candles or Jewish home elements visible. Sense of completion and warmth. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+  },
+  "back-cover": {
+    text: `Synopsis: Join {childName} on an unforgettable adventure through the story of {torahPortion}, where Torah wisdom comes alive!\n\nDedication: With love and brachos`,
+    "image-prompt": `A beautiful back cover design in {artStyle} style for a children's Torah book. Soft, decorative background with subtle Torah motifs (olive branches, scrollwork, stars). Space for text overlay with synopsis and dedication. Warm, elegant color palette. No characters needed — decorative only. Print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
+  },
+};
+
 function BookTemplatesTab({ onSave, savingKey }: {
   onSave: (category: string, key: string, value: string) => void;
   savingKey: string | null;
@@ -138,6 +196,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
   const [templates, setTemplates] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [copySource, setCopySource] = useState<string>("");
+  const [fillingDefaults, setFillingDefaults] = useState(false);
 
   // Group portions by category
   const groupedPortions: Record<string, TorahOption[]> = {};
@@ -159,7 +218,6 @@ function BookTemplatesTab({ onSave, savingKey }: {
         if (!error && data) {
           const map: Record<string, string> = {};
           (data as any[]).forEach((row: any) => {
-            // key format: portion:page-N:text or portion:page-N:image-prompt
             const suffix = row.key.replace(`${selectedPortion}:`, "");
             map[suffix] = row.value;
           });
@@ -175,6 +233,29 @@ function BookTemplatesTab({ onSave, savingKey }: {
     const fullKey = `${selectedPortion}:${slotKey}:${field}`;
     const value = templates[`${slotKey}:${field}`] || "";
     onSave("book-templates", fullKey, value);
+  };
+
+  const handleFillDefaults = async () => {
+    if (!selectedPortion) return;
+    setFillingDefaults(true);
+    const newTemplates = { ...templates };
+    let count = 0;
+    for (const slot of PAGE_SLOTS) {
+      const defaults = DEFAULT_PAGE_TEMPLATES[slot.key];
+      if (!defaults) continue;
+      for (const field of ["text", "image-prompt"] as const) {
+        const tKey = `${slot.key}:${field}`;
+        if (!newTemplates[tKey]) {
+          newTemplates[tKey] = defaults[field];
+          const fullKey = `${selectedPortion}:${tKey}`;
+          onSave("book-templates", fullKey, defaults[field]);
+          count++;
+        }
+      }
+    }
+    setTemplates(newTemplates);
+    setFillingDefaults(false);
+    toast.success(`Filled ${count} empty template fields with defaults`);
   };
 
   const handleCopyFrom = async () => {
@@ -215,7 +296,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
       <p className="text-xs text-muted-foreground">
         Control the narrative text and image prompt for each page of each Torah portion/story. Empty fields = AI generates freely.
         <br />
-        <span className="font-semibold">Variables:</span> <code className="text-[10px] bg-muted px-1 rounded">{"{childName}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{age}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{gender}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{artStyle}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{language}"}</code>
+        <span className="font-semibold">Variables:</span> <code className="text-[10px] bg-muted px-1 rounded">{"{childName}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{age}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{gender}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{artStyle}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{language}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{torahPortion}"}</code>
       </p>
 
       {/* Portion selector */}
@@ -230,7 +311,6 @@ function BookTemplatesTab({ onSave, savingKey }: {
               const items = groupedPortions[cat] || [];
               if (items.length === 0) return null;
 
-              // For Torah, sub-group by book
               if (cat === "torah") {
                 return TORAH_BOOKS.map((book) => {
                   const bookItems = items.filter((i) => i.book === book);
@@ -267,10 +347,10 @@ function BookTemplatesTab({ onSave, savingKey }: {
         </Select>
       </div>
 
-      {/* Copy from another portion */}
+      {/* Copy from another portion + Fill defaults */}
       {selectedPortion && (
-        <div className="flex items-end gap-2">
-          <div className="flex-1 space-y-1">
+        <div className="flex items-end gap-2 flex-wrap">
+          <div className="flex-1 min-w-[200px] space-y-1">
             <label className="text-xs font-semibold text-foreground">Copy templates from another portion</label>
             <Select value={copySource} onValueChange={setCopySource}>
               <SelectTrigger className="text-sm">
@@ -288,6 +368,11 @@ function BookTemplatesTab({ onSave, savingKey }: {
           <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={!copySource || loading}
             onClick={handleCopyFrom}>
             <Copy className="w-3 h-3" /> Copy
+          </Button>
+          <Button size="sm" variant="default" className="text-xs gap-1.5" disabled={fillingDefaults}
+            onClick={handleFillDefaults}>
+            {fillingDefaults ? <Loader2 className="w-3 h-3 animate-spin" /> : <BookOpen className="w-3 h-3" />}
+            Fill All Defaults
           </Button>
         </div>
       )}
@@ -312,10 +397,20 @@ function BookTemplatesTab({ onSave, savingKey }: {
             const imgVal = templates[imgKey] || "";
             const savingText = savingKey === `book-templates:${selectedPortion}:${textKey}`;
             const savingImg = savingKey === `book-templates:${selectedPortion}:${imgKey}`;
+            const defaults = DEFAULT_PAGE_TEMPLATES[slot.key];
+            const specType = slot.key === "cover" || slot.key === "back-cover" ? slot.key : "story";
+            const specs = PRINT_SPECS[specType];
 
             return (
               <div key={slot.key} className="border border-border rounded-xl p-4 space-y-3">
-                <p className="text-sm font-semibold text-foreground">{slot.label}</p>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <p className="text-sm font-semibold text-foreground">{slot.label}</p>
+                  {specs && (
+                    <div className="text-[9px] font-mono text-muted-foreground bg-muted/50 rounded-lg px-2 py-1">
+                      📐 {specs.cover || specs.page}
+                    </div>
+                  )}
+                </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
@@ -326,7 +421,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
                     onChange={(e) => setTemplates((prev) => ({ ...prev, [textKey]: e.target.value }))}
                     rows={3}
                     className="text-xs font-mono"
-                    placeholder={slot.key === "cover" ? "Title and subtitle template..." : slot.key === "back-cover" ? "Synopsis and dedication template..." : `Story text for ${slot.label}...`}
+                    placeholder={defaults?.text || (slot.key === "cover" ? "Title and subtitle template..." : slot.key === "back-cover" ? "Synopsis and dedication template..." : `Story text for ${slot.label}...`)}
                   />
                   <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={savingText}
                     onClick={() => handleSaveSlot(slot.key, "text")}>
@@ -343,7 +438,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
                     onChange={(e) => setTemplates((prev) => ({ ...prev, [imgKey]: e.target.value }))}
                     rows={3}
                     className="text-xs font-mono"
-                    placeholder={`Image generation prompt for ${slot.label}...`}
+                    placeholder={defaults?.["image-prompt"] || `Image generation prompt for ${slot.label}...`}
                   />
                   <Button size="sm" variant="outline" className="text-xs gap-1.5" disabled={savingImg}
                     onClick={() => handleSaveSlot(slot.key, "image-prompt")}>
