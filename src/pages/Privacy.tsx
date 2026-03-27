@@ -306,9 +306,7 @@ const Privacy = () => {
                 <p>For privacy-related questions, concerns, or to exercise your rights, please contact us:</p>
                 <div className="mt-4 p-6 rounded-2xl bg-muted/40 border border-border space-y-2">
                   <p><strong className="text-foreground">Torah Tale, LLC</strong></p>
-                  <p>Privacy Team: <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></p>
-                  <p>Data Protection Officer: <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></p>
-                  <p>General Support: <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></p>
+                  <p>Email: <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></p>
                 </div>
                 <p className="mt-4 text-sm">We aim to respond to all privacy-related inquiries within 30 days.</p>
               </section>
