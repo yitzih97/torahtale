@@ -1,123 +1,95 @@
 
 
-## Plan: Enhanced Admin Controls + Printify Integration
+## Plan: Rename to "Torah Tale", Gate Generation Behind Auth + Limit, Update Book Options with Real Printify Pricing
 
-### Overview
-Expand the admin CMS with more website text editing fields, image upload capability (alongside AI generation), AI model selection dropdowns, logo/favicon management, and a new Printify print-on-demand integration section.
+### 1. Rename "MyTorahTale" → "Torah Tale" everywhere
 
----
+**Files**: `index.html`, `src/components/Navbar.tsx`, `src/components/Footer.tsx`, `src/pages/Auth.tsx`, `src/pages/ResetPassword.tsx`, `src/components/admin/AdminCMS.tsx` (default placeholders)
 
-### 1. Expand Website Content Editor
-
-Add more editable text fields to the "Content" tab in `AdminCMS.tsx`:
-
-- Hero headline templates (per slide — 10 slides)
-- Hero description text (per slide)
-- How It Works step titles and descriptions
-- Testimonial names, quotes, and locations
-- Footer text
-- Navbar brand name and CTA button text
-- Auth page text (sign-in/sign-up subtitles)
-- Success step text
-
-These all use the existing `site_settings` table with `category: "website"` — no DB changes needed.
-
-Update frontend components (`HeroSection`, `HowItWorks`, `TestimonialsSection`, `CTASection`, `Navbar`, `Footer`, `Auth`) to read from `useSiteSettings` hook with fallback defaults.
-
-### 2. Image Upload Option (alongside AI generation)
-
-In the Images tab, add an "Upload Image" button next to "Regenerate" for each site image. This lets the admin upload a custom photo/logo directly instead of AI-generating it.
-
-- Upload goes to the existing `site-images` storage bucket
-- Updates `site_assets` table with the uploaded URL and `status: "ready"`
-- Add an `uploadImage` mutation to `useSiteAssets` hook
-
-### 3. Logo / Favicon Management
-
-Add a new "Branding" section (or sub-section in Content/Images) with:
-- Upload site logo (stored in `site-images` bucket as `logo.png`)
-- Upload favicon (stored as `favicon.ico` or `favicon.png`)
-- Navbar and `<head>` read from `site_assets` with fallback to current static assets
-
-### 4. AI Model Selection Dropdown
-
-Replace the plain text input for "Story Generation Model" and add proper dropdowns listing all available Lovable AI models:
-- `google/gemini-2.5-pro`
-- `google/gemini-2.5-flash`
-- `google/gemini-3-flash-preview`
-- `google/gemini-3.1-pro-preview`
-- `openai/gpt-5`
-- `openai/gpt-5-mini`
-- etc.
-
-Add separate dropdowns for:
-- **Story text model** (for generating story content)
-- **Image generation model** (for book illustrations)
-- **Site image generation model** (for admin image regen)
-
-These save to `site_settings` with `category: "ai"`.
-
-Update edge functions to read the selected model from settings.
-
-### 5. Printify Integration Section
-
-Add a new "Printify" tab in the admin CMS for print-on-demand automation.
-
-**Database**: Add settings in `site_settings` for:
-- `integrations/printify-api-key` — stored as a secret
-- `integrations/printify-shop-id`
-- `integrations/printify-product-template-id` (blueprint)
-- `integrations/printify-enabled` (true/false toggle)
-
-**New edge function**: `supabase/functions/printify-submit/index.ts`
-- Triggered when a book status changes to "ordered"
-- Sends the book PDF (or page images) to Printify's API
-- Creates a product + publishes + creates an order
-- Updates the book record with Printify order ID and status
-
-**Admin UI** (new "Printify" tab):
-- API Key input (saved as secret via `add_secret` tool)
-- Shop ID input
-- Product blueprint/template selector
-- Enable/disable toggle
-- Test connection button
-- Order history log showing Printify sync status per book
-
-**Auto-fulfillment flow**:
-1. User completes checkout → book status = "ordered"
-2. Edge function or DB trigger fires → sends to Printify
-3. Printify prints + ships → webhook updates status to "shipped"
-
-**Webhook endpoint**: `supabase/functions/printify-webhook/index.ts`
-- Receives Printify order status updates
-- Updates book status (printing → shipped → delivered)
+Replace all hardcoded `MyTorahTale` references with `Torah Tale`.
 
 ---
 
-### Files to Create
+### 2. Require Sign-In Before Book Generation + 2 Free Books/Month Limit
 
-| File | Purpose |
-|------|---------|
-| `supabase/functions/printify-submit/index.ts` | Submit orders to Printify API |
-| `supabase/functions/printify-webhook/index.ts` | Receive Printify status webhooks |
+**Problem**: Users can generate unlimited books without signing in, exploiting AI tokens.
 
-### Files to Modify
+**Changes in `src/components/CreationWizard.tsx`**:
+- At Step 8 (when user clicks "Generate"), check if `user` is null
+- If not signed in, show a sign-in/sign-up modal (reuse existing login prompt UI) BEFORE calling `startGeneration()`
+- Only proceed to generation after successful auth
+- After auth, query the `books` table to count books created this month by the user
+- If count >= 2, show a message: "You've used your 2 free book previews this month. Subscribe to create unlimited seforim!" with a CTA to subscribe
+- If count < 2, proceed with generation
+
+**Database**: No migration needed — just query existing `books` table with `created_at` filter.
+
+---
+
+### 3. Update BookOptionsStep with Real Printify Pricing + Visuals
+
+Based on the uploaded Printify screenshots:
+
+| Type | Printify Cost | Our Price (with margin) |
+|------|--------------|------------------------|
+| **Softcover** 8×8 | $5.87 | Included in base |
+| **Hardcover** 8×8 or 11×8.5 | $8.29 | +$15.00 |
+| **Board Book** 6×6 | $15.23 | +$20.00 |
+
+**Updated size options** (matching Printify's actual products):
+- Softcover: 8″×8″ only
+- Hardcover: 8″×8″ or 11″×8.5″
+- Board Book: 6″×6″ only
+
+**Revised approach**: Change from 3 separate sections (cover/size/page) to a **single step-by-step product selector** since the Printify products are discrete items, not mix-and-match:
+
+**Step A — Choose Your Book Type** (3 cards with illustrations):
+1. **Softcover Photo Book** — 8″×8″, lightweight, 100lb semi-gloss paper — Base price ($24.99)
+2. **Hardcover Photo Book** — glossy/matte, 8″×8″ or 11″×8.5″, sturdy binding — +$15 ($39.99)
+3. **Board Book** — 6″×6″, 1/16″ thick chipboard, rounded corners, matte lamination — +$20 ($44.99)
+
+Each card shows:
+- A descriptive illustration (CSS-styled book icon/graphic, not uploaded images)
+- Key features as bullet points
+- Price badge
+
+**Step B** (only for Hardcover): Choose size — 8″×8″ or 11″×8.5″
+
+Remove the old 3-section layout. Make it feel like a premium product selection.
+
+**Files**: `src/components/wizard/BookOptionsStep.tsx`
+
+Update `BookOptions` interface:
+```typescript
+interface BookOptions {
+  productType: "softcover" | "hardcover" | "board";
+  hardcoverSize?: "8x8" | "11x8.5";
+}
+```
+
+Update `calculateBookPrice` accordingly. Update `CheckoutStep.tsx` to reflect new options.
+
+---
+
+### 4. Update CheckoutStep order summary
+
+Reflect the new product type names and remove old cover/size/page fields. Show the selected product clearly.
+
+**File**: `src/components/wizard/CheckoutStep.tsx`
+
+---
+
+### Files to Change
 
 | File | Change |
 |------|--------|
-| `src/components/admin/AdminCMS.tsx` | Add Content fields, Upload button, Model dropdowns, Branding section, Printify tab |
-| `src/hooks/useSiteAssets.ts` | Add `uploadImage` mutation |
-| `src/hooks/useSiteSettings.ts` | No changes needed (already generic) |
-| `src/components/HeroSection.tsx` | Read slide text from site_settings |
-| `src/components/HowItWorks.tsx` | Read step text from site_settings |
-| `src/components/TestimonialsSection.tsx` | Read testimonials from site_settings |
-| `src/components/CTASection.tsx` | Read headline/subtext from site_settings |
-| `src/components/Navbar.tsx` | Read logo from site_assets, brand name from site_settings |
-| `src/components/Footer.tsx` | Read footer text from site_settings |
-| `supabase/functions/admin-generate-image/index.ts` | Read selected image model from site_settings |
-| `supabase/functions/generate-story/index.ts` | Read selected story model from site_settings (already partially done) |
-| `supabase/functions/generate-image/index.ts` | Read selected image model from site_settings |
-
-### Secrets Needed
-- `PRINTIFY_API_KEY` — will be requested from the user via `add_secret` tool during implementation
+| `index.html` | Rename MyTorahTale → Torah Tale |
+| `src/components/Navbar.tsx` | Default brand name fallback |
+| `src/components/Footer.tsx` | Default brand/copyright fallback |
+| `src/pages/Auth.tsx` | Brand name |
+| `src/pages/ResetPassword.tsx` | Brand name |
+| `src/components/admin/AdminCMS.tsx` | Default placeholders |
+| `src/components/CreationWizard.tsx` | Gate generation behind auth + 2/month limit |
+| `src/components/wizard/BookOptionsStep.tsx` | Rewrite with real Printify products, step-by-step, engaging cards |
+| `src/components/wizard/CheckoutStep.tsx` | Update order summary for new product types |
 
