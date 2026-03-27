@@ -473,6 +473,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     if (step === 8) {
       // Gate: require sign-in before generation
       if (!user) {
+        pendingGenerationRef.current = true;
         setShowLoginPrompt(true);
         toast.info("Please sign in to generate your sefer.");
         return;
