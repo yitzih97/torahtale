@@ -21,7 +21,6 @@ import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
-import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
 import { TORAH_PORTIONS, getPortionLabel } from "./wizard/TorahPortions";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
