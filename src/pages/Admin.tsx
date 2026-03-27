@@ -60,6 +60,7 @@ export default function Admin() {
 
   const [viewingBook, setViewingBook] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [generatingBookId, setGeneratingBookId] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
