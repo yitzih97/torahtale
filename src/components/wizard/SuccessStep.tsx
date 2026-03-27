@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { PartyPopper, ArrowRight, BookOpen } from "lucide-react";
+import { PartyPopper, ArrowRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 
@@ -61,7 +61,7 @@ export const SuccessStep = ({ childName, onGoToDashboard }: Props) => {
         transition={{ delay: 0.5, duration: 0.5 }}
         className="text-muted-foreground max-w-sm mx-auto leading-relaxed"
       >
-        {childName || "Your child"}'s personalized Torah sefer is being printed and will be on its way soon!
+        Your order has been placed! We're creating {childName || "your child"}'s personalized Torah sefer and you'll receive an email preview within 24 hours for you to review and confirm.
       </motion.p>
 
       <motion.div
@@ -71,11 +71,23 @@ export const SuccessStep = ({ childName, onGoToDashboard }: Props) => {
         className="bg-muted/30 rounded-2xl border border-border p-6 max-w-xs mx-auto text-sm space-y-2"
       >
         <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mx-auto mb-3">
-          <BookOpen className="w-5 h-5 text-accent" />
+          <Mail className="w-5 h-5 text-accent" />
         </div>
-        <p className="font-semibold text-primary">Order Confirmed</p>
-        <p className="text-muted-foreground text-xs">Order #MTT-{Math.floor(1000 + Math.random() * 9000)}</p>
-        <p className="text-muted-foreground text-xs">Estimated delivery: 5–7 business days</p>
+        <p className="font-semibold text-primary">What happens next?</p>
+        <ul className="text-muted-foreground text-xs space-y-1.5 text-left">
+          <li className="flex items-start gap-2">
+            <span className="text-accent font-bold">1.</span>
+            We generate your book with AI illustrations
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-accent font-bold">2.</span>
+            You'll get an email preview within 24 hours
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-accent font-bold">3.</span>
+            Confirm and we'll print & ship your sefer!
+          </li>
+        </ul>
       </motion.div>
 
       <motion.div
