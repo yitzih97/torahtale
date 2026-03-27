@@ -504,7 +504,7 @@ export default function Admin() {
                                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setViewingBook(book)}>
                                         <Eye className="w-3 h-3" />
                                       </Button>
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleDownloadPdf(book)}>
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleDownloadZip(book)} title="Download images (ZIP)">
                                         <Download className="w-3 h-3" />
                                       </Button>
                                     </div>
