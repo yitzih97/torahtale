@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Settings, FileText, Image as ImageIcon, Brain, DollarSign,
+  Settings, Image as ImageIcon, Brain, DollarSign,
   Save, Loader2, RefreshCw, Check, AlertTriangle, Globe,
 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
