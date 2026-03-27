@@ -95,7 +95,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                   key={`headline-${activeSlide}`}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                  className="text-2xl sm:text-4xl lg:text-[3.2rem] font-bold leading-[1.1] tracking-tight text-white"
+                  className="text-2xl sm:text-4xl lg:text-[3.2rem] font-display font-bold leading-[1.1] tracking-tight text-white drop-shadow-lg"
                 >
                   {slide.headline[0]}<br />
                   <span className="text-gold-light">{slide.headline[1]}</span>
