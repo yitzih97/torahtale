@@ -19,6 +19,7 @@ import { useAdminData } from "@/hooks/useAdminData";
 import { generateBookPdf } from "@/lib/generateBookPdf";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { AdminCMS } from "@/components/admin/AdminCMS";
 
 const ease = [0.22, 1, 0.36, 1];
 
