@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useSiteAssets } from "@/hooks/useSiteAssets";
 import storyNoach from "@/assets/story-noach.jpg";
 import storyBeshalach from "@/assets/story-beshalach.jpg";
 import storyBereishit from "@/assets/story-bereishit.jpg";
