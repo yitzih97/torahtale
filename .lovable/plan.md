@@ -1,113 +1,142 @@
 
 
-## Plan: Customize All Text for Ultra-Orthodox (Chareidi) Audience
+## Plan: Regenerate Images for Chareidi Audience + Admin Content Management System
 
-### Overview
-Update all user-facing text, prompts, and AI generation instructions to speak naturally to an ultra-Orthodox / Chareidi audience. This means using familiar Yiddish-inflected terms (e.g., "kinderlach" not "children," "Tatty/Mommy" not "Dad/Mom"), referencing yeshiva/Bais Yaakov culture, and ensuring AI prompts enforce strict tznius and hashkafah standards.
+### Part 1: Image Regeneration
+
+**Problem**: The current static images (hero scenes, gallery covers, hero characters) may not accurately depict Chareidi children with peyos, yarmulkes, tzitzis, and modest clothing.
+
+**Approach**: Create an admin-triggered image regeneration system rather than replacing 150+ static files manually.
+
+**Steps**:
+
+1. **Create a `site_images` storage bucket** in Supabase to store regenerated images.
+
+2. **Create a `site_assets` database table** to track which images have been regenerated and store their URLs:
+   - `id`, `asset_key` (e.g. "hero-scene-1"), `image_url`, `prompt_used`, `status`, `created_at`
+
+3. **Create an `admin-generate-image` edge function** that:
+   - Accepts an asset key and prompt
+   - Calls the Gemini image generation API with Chareidi-specific prompts (boys with peyos/yarmulke/tzitzis, girls in modest long-sleeved dresses)
+   - Uploads result to the `site_images` bucket
+   - Updates the `site_assets` table
+
+4. **Update image-consuming components** (`BookFlipAnimation`, `GallerySection`, `HeroSection`) to check `site_assets` for overrides before falling back to static assets.
+
+5. **Add "Regenerate Images" section in Admin Settings tab** with:
+   - List of all key site images with thumbnails
+   - Edit prompt per image
+   - "Regenerate" button per image and "Regenerate All" batch button
+   - Progress indicators
+
+**Key images to regenerate** (prioritized):
+- 10 hero background scenes (hero-scene-1 through 10)
+- 2 hero characters (hero-boy, hero-girl)
+- 3 gallery cover images (story-noach, story-beshalach, story-bereishit)
+
+Gallery book pages (120+) can be regenerated over time via the admin tool.
 
 ---
 
-### 1. AI Story Generation Prompts (`supabase/functions/generate-story/index.ts`)
+### Part 2: Admin Content Management System
 
-Update the system prompt and user prompt:
-- Replace "children's book author who specializes in Jewish stories" with language like "storyteller for frum Yiddishe kinderlach in the Chareidi community"
-- Add explicit instructions:
-  - Boys always wear a yarmulke, tzitzis, and peyos
-  - Girls wear long sleeves, long skirts, no pants, hair down (no head covering for girls who are unmarried)
-  - Use Chareidi terminology: Tatty, Mommy, Rebbe, Morah, davening, bentching, learning, Shabbos (not Shabbat), Hashem (never "God"), sefer/seforim, beis medrash
-  - Stories should reference daily frum life: davening Shacharis, learning in cheder/yeshiva/Bais Yaakov, making brachos, Shabbos table, zemiros
-  - Moral lessons should reference middos tovos, yiras Shamayim, kibud av va'em, emes, chesed
-  - No mention of TV, movies, secular entertainment, or non-tznius activities
-- Update the dedication default to use "With love and brachos"
+**Problem**: Currently all website text, AI prompts, and settings are hardcoded. Admin needs to edit them without code changes.
 
-### 2. Image Generation Prompts (`supabase/functions/generate-image/index.ts`)
+**Steps**:
 
-- Update the default image prompt to specify: "boys with peyos, yarmulke, and tzitzis visible; girls in long modest dresses with long sleeves and long skirts"
-- Add: "Orthodox Jewish setting — no modern secular elements visible"
+1. **Create a `site_settings` database table**:
+   - `id`, `category` (e.g. "prompts", "website", "pricing"), `key`, `value` (text), `updated_at`, `updated_by`
+   - RLS: only admins can read/write
 
-### 3. Character Preview Prompts (`supabase/functions/generate-character-preview/index.ts`)
+2. **Create a `useSiteSettings` hook** that fetches settings and provides fallback defaults.
 
-- Update gender-specific details:
-  - Boy: "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
-  - Girl: "modest dress with long sleeves and long skirt, no head covering, tznius appearance"
+3. **Expand the Admin Settings tab** with sub-sections:
 
-### 4. Homepage — Hero Section (`src/components/HeroSection.tsx`)
+   **a. Master Prompts** (editable text areas):
+   - Story generation system prompt
+   - Story generation user prompt template
+   - Image generation prompt template
+   - Character preview prompt template
 
-- Badge: "AI-Powered Torah Storytelling" → "AI-Powered Torah Stories for Frum Kinderlach"
-- Button: keep "Begin the Journey"
-- Social proof: "frum families" → "Chareidi mishpachos"
-- Price line: keep as-is
+   **b. Website Content** (editable fields):
+   - Hero badge text, CTA button text
+   - Section headings and descriptions
+   - Testimonial names and quotes
+   - Pricing labels
 
-### 5. Homepage — How It Works (`src/components/HowItWorks.tsx`)
+   **c. AI Agent Settings**:
+   - Default AI model selection
+   - Temperature setting
+   - Page count defaults
+   - Art style options list
 
-- Step 1: "Tell Us About Your Child" stays, description: "Share their name, age, and a photo. They become the hero of a timeless Torah adventure."
-- Step 2: "AI Creates the Sefer" stays, description update: "...all tznius, age-appropriate, and aligned with Chareidi hashkafah."
-- Step 3: "Delivered to Your Door" stays, description: "A gorgeous hardcover arrives — a personalized sefer your mishpacha will treasure l'doros."
+   **d. Pricing & Plans**:
+   - Weekly/Monthly/Yearly subscription prices
+   - One-time purchase price
+   - Discount percentage display
 
-### 6. Homepage — Testimonials (`src/components/TestimonialsSection.tsx`)
+4. **Update edge functions** (`generate-story`, `generate-image`, `generate-character-preview`) to read master prompts from `site_settings` table, falling back to hardcoded defaults if not set.
 
-- Update reviewer names/locations to more Chareidi-typical:
-  - "Talia Ben-Ami" → "Chaya Leah Friedman"
-  - "Avi Rosenberg" stays (fine)
-  - "Racheli Katz" → "Rivky Weinberg"
-- Update testimonial text to use Chareidi language: "Leil Shabbos" → keep, add "the kinderlach," "our Shabbos tish," "mamash a kiddush Hashem," etc.
-- Section subtitle: keep "Treasured L'Doros"
+5. **Update frontend components** to read website copy from `site_settings` via the hook, falling back to current hardcoded values.
 
-### 7. Homepage — CTA Section (`src/components/CTASection.tsx`)
+---
 
-- "Every Child Deserves to Be Part of the Story" → "Every Yiddishe Kind Deserves to Be Part of the Story"
-- Subtext: "Powered by AI. Printed with ahavas Yisrael." — keep as-is
+### Database Changes
 
-### 8. Footer (`src/components/Footer.tsx`)
+```sql
+-- site_assets table for image overrides
+CREATE TABLE public.site_assets (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  asset_key text UNIQUE NOT NULL,
+  image_url text,
+  prompt_used text,
+  status text DEFAULT 'pending',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 
-- "Made with ahavas Yisrael" — keep
-- "Powered by AI · Inspired by Torah" — keep
+-- site_settings table for CMS
+CREATE TABLE public.site_settings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  category text NOT NULL,
+  key text NOT NULL,
+  value text NOT NULL,
+  updated_at timestamptz DEFAULT now(),
+  updated_by uuid,
+  UNIQUE(category, key)
+);
 
-### 9. Navbar (`src/components/Navbar.tsx`)
+-- RLS: admin-only
+ALTER TABLE public.site_assets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 
-- "Create a Story" → "Create a Sefer" (button text)
+CREATE POLICY "Admins can CRUD site_assets" ON public.site_assets FOR ALL TO authenticated
+  USING (has_role(auth.uid(), 'admin')) WITH CHECK (has_role(auth.uid(), 'admin'));
 
-### 10. Auth Page (`src/pages/Auth.tsx`)
+CREATE POLICY "Anyone can read site_assets" ON public.site_assets FOR SELECT TO public
+  USING (true);
 
-- "Sign in to manage your Torah tales" → "Sign in to manage your seforim"
-- "Join us to create personalized Torah stories" → "Join us to create personalized Torah seforim for your kinderlach"
+CREATE POLICY "Admins can CRUD site_settings" ON public.site_settings FOR ALL TO authenticated
+  USING (has_role(auth.uid(), 'admin')) WITH CHECK (has_role(auth.uid(), 'admin'));
 
-### 11. Checkout (`src/components/wizard/CheckoutStep.tsx`)
+CREATE POLICY "Anyone can read site_settings" ON public.site_settings FOR SELECT TO public
+  USING (true);
+```
 
-- "A new Torah adventure every Shabbos" — keep
-- "4 books/month — best value for families" → "4 seforim/month — best value for mishpachos"
-- "Full year of stories — biggest savings" → "Full year of seforim — biggest savings"
-- Placeholder name on card: "Rachel Goldberg" — keep
+### Files to Change/Create
 
-### 12. Success Step (`src/components/wizard/SuccessStep.tsx`)
-
-- "Mazel Tov!" — keep
-- "personalized Torah sefer is being printed" — keep
-
-### 13. Shipping Form (`src/components/wizard/ShippingForm.tsx`)
-
-- "We'll deliver this treasure right to your door." — keep (fine)
-
-### 14. Book Options (`src/components/wizard/BookOptionsStep.tsx`)
-
-- No changes needed — generic enough
-
-### 15. Dashboard (`src/pages/Dashboard.tsx`)
-
-- Spot-check for any "children" → "kinderlach" or "family" → "mishpacha" references in visible text
-
-### Files to Change
-
-| File | Scope |
-|------|-------|
-| `supabase/functions/generate-story/index.ts` | System + user prompt Chareidi customization |
-| `supabase/functions/generate-image/index.ts` | Image prompt tznius details (peyos, tzitzis) |
-| `supabase/functions/generate-character-preview/index.ts` | Character prompt update |
-| `src/components/HeroSection.tsx` | Badge text, social proof text |
-| `src/components/HowItWorks.tsx` | Step descriptions |
-| `src/components/TestimonialsSection.tsx` | Names, review text |
-| `src/components/CTASection.tsx` | Headline text |
-| `src/components/Navbar.tsx` | Button text |
-| `src/pages/Auth.tsx` | Subtitle text |
-| `src/components/wizard/CheckoutStep.tsx` | Plan descriptions |
+| File | Change |
+|------|--------|
+| Migration SQL | Create `site_assets` and `site_settings` tables |
+| `supabase/functions/admin-generate-image/index.ts` | New edge function for admin image regen |
+| `src/hooks/useSiteSettings.ts` | New hook to fetch/cache site settings |
+| `src/hooks/useSiteAssets.ts` | New hook to fetch image overrides |
+| `src/pages/Admin.tsx` | Expand Settings tab with Prompts, Content, Images, AI sections |
+| `src/components/3d/BookFlipAnimation.tsx` | Use image overrides from site_assets |
+| `src/components/GallerySection.tsx` | Use image overrides from site_assets |
+| `src/components/HeroSection.tsx` | Use site_settings for copy |
+| `supabase/functions/generate-story/index.ts` | Read prompts from site_settings |
+| `supabase/functions/generate-image/index.ts` | Read prompts from site_settings |
+| `supabase/functions/generate-character-preview/index.ts` | Read prompts from site_settings |
+| Storage bucket | Create `site-images` bucket |
 
