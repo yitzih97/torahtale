@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useSiteAssets } from "@/hooks/useSiteAssets";
 import storyNoach from "@/assets/story-noach.jpg";
 import storyBeshalach from "@/assets/story-beshalach.jpg";
 import storyBereishit from "@/assets/story-bereishit.jpg";
@@ -11,6 +12,7 @@ const books = [
     portion: "Parashas Noach",
     style: "3D Pixar",
     image: storyNoach,
+    assetKey: "story-noach",
     description: "Join the animals two by two on the greatest adventure at sea — with a keshet of Hashem's promise waiting at the end.",
   },
   {
@@ -18,6 +20,7 @@ const books = [
     portion: "Parashas Beshalach",
     style: "3D Pixar",
     image: storyBeshalach,
+    assetKey: "story-beshalach",
     description: "Walk between towering walls of water on a golden path to cheirus. Bnei Yisrael's emunah has never looked so beautiful.",
   },
   {
@@ -25,11 +28,20 @@ const books = [
     portion: "Parashas Bereishis",
     style: "3D Pixar",
     image: storyBereishit,
+    assetKey: "story-bereishit",
     description: "Explore Hashem's magnificent garden where every creature is a friend and golden light fills the air with wonder.",
   },
 ];
 
-export const GallerySection = () => (
+export const GallerySection = () => {
+  const { getAssetUrl } = useSiteAssets();
+
+  const resolvedBooks = books.map((book) => ({
+    ...book,
+    image: getAssetUrl(book.assetKey, book.image),
+  }));
+
+  return (
   <section id="gallery" className="py-24 lg:py-32 bg-card">
     <div className="container max-w-6xl mx-auto">
       <motion.div
@@ -51,7 +63,7 @@ export const GallerySection = () => (
       </motion.div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-        {books.map((book, i) => (
+        {resolvedBooks.map((book, i) => (
           <motion.div
             key={book.title}
             initial={{ opacity: 0, y: 24 }}
@@ -81,4 +93,5 @@ export const GallerySection = () => (
       </div>
     </div>
   </section>
-);
+  );
+};

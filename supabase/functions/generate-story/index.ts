@@ -17,7 +17,28 @@ serve(async (req) => {
 
     const pages = Math.min(Math.max(pageCount || 4, 2), 10);
 
-    const systemPrompt = `You are a master storyteller for frum Yiddishe kinderlach in the Chareidi community. You write warm, engaging, age-appropriate stories that weave Torah wisdom into magical adventures. Every story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim, and ahavas Yisrael. The kinderlach should discover the hidden lesson behind the Torah story through their adventure, learning how to apply it in their own lives.
+    // Try to load custom prompts from site_settings
+    let customSystemPrompt: string | null = null;
+    let customModel: string | null = null;
+    let customTemperature: number | null = null;
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=in.(prompts,ai)`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+      });
+      if (settingsRes.ok) {
+        const settings = await settingsRes.json();
+        customSystemPrompt = settings.find((s: any) => s.category === "prompts" && s.key === "story-system-prompt")?.value || null;
+        customModel = settings.find((s: any) => s.category === "ai" && s.key === "story-model")?.value || null;
+        customTemperature = (() => {
+          const v = settings.find((s: any) => s.category === "ai" && s.key === "story-temperature")?.value;
+          return v ? parseFloat(v) : null;
+        })();
+      }
+    } catch (e) { console.error("Failed to load site_settings:", e); }
+
+    const systemPrompt = customSystemPrompt || `You are a master storyteller for frum Yiddishe kinderlach in the Chareidi community. You write warm, engaging, age-appropriate stories that weave Torah wisdom into magical adventures. Every story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim, and ahavas Yisrael. The kinderlach should discover the hidden lesson behind the Torah story through their adventure, learning how to apply it in their own lives.
 
 IMPORTANT CULTURAL RULES:
 - Boys ALWAYS wear a yarmulke, have peyos (sidelocks), and tzitzis visible
@@ -87,8 +108,11 @@ The questions should be part of the back cover (inside the backCover object):
 
 No markdown, no explanation, just the JSON object.`;
 
+    const storyModel = customModel || "gemini-2.5-pro";
+    const temperature = customTemperature ?? 0.9;
+
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_AI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${storyModel}:generateContent?key=${GOOGLE_AI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -97,7 +121,7 @@ No markdown, no explanation, just the JSON object.`;
           contents: [{ role: "user", parts: [{ text: userPrompt }] }],
           generationConfig: {
             responseMimeType: "application/json",
-            temperature: 0.9,
+            temperature,
           },
         }),
       }

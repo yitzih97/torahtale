@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSiteAssets } from "@/hooks/useSiteAssets";
 import heroScene1 from "@/assets/hero-scene-1.jpg";
 import heroScene2 from "@/assets/hero-scene-2.jpg";
 import heroScene3 from "@/assets/hero-scene-3.jpg";
@@ -11,9 +12,14 @@ import heroScene8 from "@/assets/hero-scene-8.jpg";
 import heroScene9 from "@/assets/hero-scene-9.jpg";
 import heroScene10 from "@/assets/hero-scene-10.jpg";
 
-export const PAGES = [
+const STATIC_PAGES = [
   heroScene1, heroScene2, heroScene3, heroScene4, heroScene5,
   heroScene6, heroScene7, heroScene8, heroScene9, heroScene10,
+];
+
+const ASSET_KEYS = [
+  "hero-scene-1", "hero-scene-2", "hero-scene-3", "hero-scene-4", "hero-scene-5",
+  "hero-scene-6", "hero-scene-7", "hero-scene-8", "hero-scene-9", "hero-scene-10",
 ];
 
 // Each image gets a unique Ken Burns animation direction
@@ -38,6 +44,10 @@ interface BookFlipAnimationProps {
 
 export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
   const [currentPage, setCurrentPage] = useState(0);
+  const { getAssetUrl } = useSiteAssets();
+
+  // Build pages with overrides
+  const PAGES = STATIC_PAGES.map((staticUrl, i) => getAssetUrl(ASSET_KEYS[i], staticUrl));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -48,7 +58,7 @@ export const BookFlipAnimation = ({ onPageChange }: BookFlipAnimationProps) => {
       });
     }, PAGE_INTERVAL);
     return () => clearInterval(timer);
-  }, [onPageChange]);
+  }, [onPageChange, PAGES.length]);
 
   const kb = KEN_BURNS_VARIANTS[currentPage];
 
