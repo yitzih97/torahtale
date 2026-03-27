@@ -24,6 +24,7 @@ export function useChildren() {
       const { data, error } = await supabase
         .from("children")
         .select("*")
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data as ChildRecord[];
