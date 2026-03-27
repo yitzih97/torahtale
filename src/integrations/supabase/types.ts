@@ -302,7 +302,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      site_assets_public: {
+        Row: {
+          asset_key: string | null
+          created_at: string | null
+          id: string | null
+          image_url: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset_key?: string | null
+          created_at?: string | null
+          id?: string | null
+          image_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset_key?: string | null
+          created_at?: string | null
+          id?: string | null
+          image_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

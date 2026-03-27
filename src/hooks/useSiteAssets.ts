@@ -17,8 +17,9 @@ export function useSiteAssets() {
   const query = useQuery({
     queryKey: ["site-assets"],
     queryFn: async () => {
+      // Use the public view to avoid exposing prompt_used column
       const { data, error } = await supabase
-        .from("site_assets")
+        .from("site_assets_public" as any)
         .select("*")
         .order("asset_key");
       if (error) throw error;
