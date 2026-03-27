@@ -195,21 +195,30 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
   /* ───── login prompt during generation ───── */
+  const pendingGenerationRef = useRef(false);
 
   useEffect(() => {
     if (step === 9 && generating && !user) {
       loginTimerRef.current = setTimeout(() => setShowLoginPrompt(true), 5000);
-    } else {
+    } else if (step !== 8) {
+      // Don't auto-dismiss on step 8 — that's the auth gate
       setShowLoginPrompt(false);
     }
     return () => { if (loginTimerRef.current) clearTimeout(loginTimerRef.current); };
   }, [step, generating, user]);
 
-  // Dismiss prompt once user logs in
+  // Dismiss prompt once user logs in, and retry generation if gated
   useEffect(() => {
     if (user && showLoginPrompt) {
       setShowLoginPrompt(false);
-      toast.success("Signed in! Your book will be saved to your account.");
+      if (step === 8 && pendingGenerationRef.current) {
+        pendingGenerationRef.current = false;
+        toast.success("Signed in! Starting your sefer...");
+        // Re-trigger generation via next()
+        startGeneration();
+      } else {
+        toast.success("Signed in! Your book will be saved to your account.");
+      }
     }
   }, [user, showLoginPrompt]);
 
