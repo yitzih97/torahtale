@@ -108,7 +108,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                   key={`desc-${activeSlide}`}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
-                  className="text-base lg:text-lg text-foreground/65 font-body max-w-md leading-relaxed"
+                  className="text-base lg:text-lg text-white/65 font-body max-w-md leading-relaxed"
                 >
                   {slide.description}
                 </motion.p>
