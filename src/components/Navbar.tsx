@@ -49,7 +49,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
 
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">{link.label}</a>
+            <a key={link.href} href={link.href} className={`text-sm font-medium transition-colors duration-500 ${scrolled ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>{link.label}</a>
           ))}
         </div>
 
