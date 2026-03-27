@@ -1,47 +1,51 @@
 
 
-## Plan: Fix Children Visibility + Revamp Torah Story Selection
+## Plan: Mobile Responsive Fixes + Local Checkout Cleanup
 
-### 1. Fix Children Query — Filter by User ID
+### 1. Add Mobile Hamburger Menu to Navbar
 
-**File:** `src/hooks/useChildren.ts`
+**File:** `src/components/Navbar.tsx`
 
-The query currently relies solely on RLS to filter children. Add an explicit `.eq("user_id", user.id)` filter to the query as a defense-in-depth measure, ensuring each user only sees their own children regardless of RLS behavior.
+- Add a hamburger menu button (visible on `md:hidden`)
+- On tap, open a slide-down or sheet menu with nav links: How It Works, Gallery, Reviews, Dashboard/Login, Sign Out
+- Use the existing Sheet component from `src/components/ui/sheet.tsx`
+- Import `Menu` icon from lucide-react
 
-### 2. Expand Torah Portions to Full Library
+### 2. Fix Hero Section Mobile Layout
 
-**File:** `src/components/wizard/TorahPortions.ts`
+**File:** `src/components/HeroSection.tsx`
 
-Replace the current ~30 entries with a comprehensive library organized into 4 categories:
+- On mobile (`sm:` and below), stack content vertically and center-align text
+- Reduce heading text size for mobile: `text-2xl` base (currently `text-4xl`)
+- Reduce min-heights for headline/description containers on mobile
+- Make the gradient overlay stronger on mobile (full coverage instead of left-only) so text is readable over the background image
+- Adjust padding: less left padding on mobile, centered layout
+- Make CTA button full-width on mobile
+- Reduce social proof section size on mobile
 
-| Category | Content |
-|----------|---------|
-| **Torah** (Chumash) | All 54 weekly parshiot across Bereishit, Shemot, Vayikra, Bamidbar, Devarim |
-| **Nevi'im** (Prophets) | Key stories: Joshua crossing the Jordan, Deborah, Samson, David & Goliath, Elijah on Mt. Carmel, Jonah, etc. |
-| **Ketuvim** (Writings) | Key stories: Psalms of David, Job's Faith, Daniel in the Lion's Den, Ruth's Loyalty, etc. |
-| **Megillot** (Scrolls) | Esther (Purim), Ruth, Lamentations, Ecclesiastes, Song of Songs |
+### 3. Fix HowItWorks Mobile Layout
 
-Update the `TorahOption` category type from `"torah" | "holiday"` to `"torah" | "neviim" | "ketuvim" | "megillot" | "holiday"`.
+**File:** `src/components/HowItWorks.tsx`
 
-### 3. Redesign Torah Selection UI — Engaging Visual Cards
+- The grid is already `md:grid-cols-3` which stacks on mobile — this is fine
+- Reduce vertical padding on mobile: `py-16 lg:py-32`
+- Reduce heading size on mobile
 
-**File:** `src/components/CreationWizard.tsx` (Step 6)
+### 4. Make SubscriptionUpsellDialog Fully Local (Remove Shopify Redirect)
 
-Replace the current plain list with an engaging, visual selection experience:
+**File:** `src/components/wizard/SubscriptionUpsellDialog.tsx`
 
-- **Category tabs** at top: Torah · Nevi'im · Ketuvim · Megillot · Holidays (styled as pill buttons with icons: 📜 ⚔️ ✍️ 📖 🕯️)
-- **Visual story cards** in a grid (2-3 columns) instead of plain text rows:
-  - Each card has an emoji/icon representing the story (e.g., 🌊 for Parting the Sea, 🦁 for Daniel)
-  - Story title in bold, portion/source name underneath
-  - Subtle colored left-border or background tint per category
-  - Hover animation with slight scale
-- **Search/filter input** at the top to quickly find a portion by name
-- **Sub-grouping within Torah**: collapsible sections by Chumash book (Bereishit, Shemot, Vayikra, Bamidbar, Devarim)
-- Selected card gets accent border + checkmark badge
+- Remove `useCartStore`, `SHOPIFY_VARIANT_IDS`, `ShopifyProduct` imports
+- Remove `window.open(checkoutUrl)` redirect
+- Instead, save subscription to the database (like `handlePlaceOrder` does in CreationWizard) and call `onSubscribed`/`onClose`
+- Update footer text from "Secure checkout via Shopify" to "Secure checkout"
+- Accept `userId` prop or use `useAuth` to get the current user for DB insert
 
-### 4. Keep Holiday Section
+### 5. Verify CheckoutStep is Fully Local
 
-Holidays remain as a separate tab with the existing entries (Pesach, Purim, Chanukah, etc.).
+**File:** `src/components/wizard/CheckoutStep.tsx`
+
+- Already confirmed: no Shopify redirect exists here. The checkout calls `onPlaceOrder` which saves to DB locally. No changes needed.
 
 ---
 
@@ -49,7 +53,8 @@ Holidays remain as a separate tab with the existing entries (Pesach, Purim, Chan
 
 | File | Change |
 |------|--------|
-| `src/hooks/useChildren.ts` | Add `.eq("user_id", user.id)` to query |
-| `src/components/wizard/TorahPortions.ts` | Expand to all 54 parshiot + Nevi'im/Ketuvim/Megillot stories, update category type |
-| `src/components/CreationWizard.tsx` | Redesign step 6 with visual cards, category tabs, search, book sub-groups |
+| `src/components/Navbar.tsx` | Add mobile hamburger menu with Sheet |
+| `src/components/HeroSection.tsx` | Mobile-responsive text, layout, gradient |
+| `src/components/HowItWorks.tsx` | Mobile padding/sizing tweaks |
+| `src/components/wizard/SubscriptionUpsellDialog.tsx` | Remove Shopify redirect, save subscription locally |
 
