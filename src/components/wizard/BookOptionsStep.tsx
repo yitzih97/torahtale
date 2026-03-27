@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { BookOpen, Check, Sparkles, Shield, Baby, ChevronRight } from "lucide-react";
 
+import softcoverImg from "@/assets/books/softcover-preview.jpg";
+import hardcoverImg from "@/assets/books/hardcover-preview.jpg";
+import boardImg from "@/assets/books/board-preview.jpg";
+
 export interface BookOptions {
   productType: "softcover" | "hardcover" | "board";
   hardcoverSize?: "8x8" | "11x8.5";
@@ -19,6 +23,7 @@ const PRODUCT_INFO = {
     dims: '8″ × 8″',
     icon: BookOpen,
     color: "from-blue-500/20 to-blue-600/10",
+    image: softcoverImg,
     features: [
       "100lb semi-gloss paper",
       "Lightweight & flexible",
@@ -34,6 +39,7 @@ const PRODUCT_INFO = {
     icon: Shield,
     color: "from-accent/20 to-accent/10",
     badge: "MOST POPULAR",
+    image: hardcoverImg,
     features: [
       "Glossy or matte finish",
       "Premium case-wrap binding",
@@ -48,6 +54,7 @@ const PRODUCT_INFO = {
     dims: '6″ × 6″',
     icon: Baby,
     color: "from-pink-500/20 to-pink-600/10",
+    image: boardImg,
     features: [
       '1/16″ thick chipboard pages',
       "Rounded safety corners",
@@ -145,12 +152,10 @@ export const BookOptionsStep = ({ options, onChange }: Props) => {
                 )}
 
                 <div className="flex items-start gap-4">
-                  {/* Icon */}
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${info.color} flex items-center justify-center shrink-0`}>
-                    {isActive ? (
-                      <Check className="w-6 h-6 text-accent" />
-                    ) : (
-                      <Icon className="w-6 h-6 text-accent" />
+                  {/* Preview image */}
+                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50">
+                    {"image" in info && (
+                      <img src={info.image} alt={info.label} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
                     )}
                   </div>
 
