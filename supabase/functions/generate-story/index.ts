@@ -108,8 +108,11 @@ The questions should be part of the back cover (inside the backCover object):
 
 No markdown, no explanation, just the JSON object.`;
 
+    const storyModel = customModel || "gemini-2.5-pro";
+    const temperature = customTemperature ?? 0.9;
+
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GOOGLE_AI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${storyModel}:generateContent?key=${GOOGLE_AI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,7 +121,7 @@ No markdown, no explanation, just the JSON object.`;
           contents: [{ role: "user", parts: [{ text: userPrompt }] }],
           generationConfig: {
             responseMimeType: "application/json",
-            temperature: 0.9,
+            temperature,
           },
         }),
       }
