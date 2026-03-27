@@ -44,7 +44,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
               <BookOpen className="w-4 h-4 text-accent-foreground" />
             </div>
           )}
-          <span className="font-display text-lg font-bold tracking-tight text-foreground">{brandName}</span>
+          <span className={`font-display text-lg font-bold tracking-tight transition-colors duration-500 ${scrolled ? "text-foreground" : "text-white"}`}>{brandName}</span>
         </a>
 
         <div className="hidden md:flex items-center gap-8">
