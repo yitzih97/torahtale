@@ -386,10 +386,11 @@ export default function Admin() {
                                           variant="ghost"
                                           size="sm"
                                           className="text-[11px] h-7 px-2"
-                                          disabled={downloadingPdf === book.id}
-                                          onClick={() => handleDownloadPdf(book)}
+                                          disabled={downloadingZip === book.id}
+                                          onClick={() => handleDownloadZip(book)}
+                                          title="Download images (ZIP)"
                                         >
-                                          {downloadingPdf === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                                          {downloadingZip === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                                         </Button>
                                       )}
                                       {book.pages_data && book.status === "ordered" && (
