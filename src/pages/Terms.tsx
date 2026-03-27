@@ -340,8 +340,7 @@ const Terms = () => {
                 <p>If you have questions about these Terms, please contact us:</p>
                 <div className="mt-4 p-6 rounded-2xl bg-muted/40 border border-border space-y-2">
                   <p><strong className="text-foreground">Torah Tale, LLC</strong></p>
-                  <p>Email: <a href="mailto:legal@torahtale.com" className="text-accent hover:underline">legal@torahtale.com</a></p>
-                  <p>Support: <a href="mailto:support@torahtale.com" className="text-accent hover:underline">support@torahtale.com</a></p>
+                  <p>Email: <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></p>
                 </div>
               </section>
 

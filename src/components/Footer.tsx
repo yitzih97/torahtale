@@ -14,7 +14,7 @@ export const Footer = () => {
   return (
     <footer className="py-14 bg-background border-t border-border">
       <div className="container max-w-5xl mx-auto">
-        <div className="grid sm:grid-cols-3 gap-10 sm:gap-8">
+        <div className="grid sm:grid-cols-4 gap-10 sm:gap-8">
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
               {logoUrl ? (
@@ -35,6 +35,15 @@ export const Footer = () => {
               <a href="/" className="text-sm text-muted-foreground hover:text-accent transition-colors">Home</a>
               <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-accent transition-colors">How It Works</a>
               <a href="/dashboard" className="text-sm text-muted-foreground hover:text-accent transition-colors">Dashboard</a>
+              <a href="/about" className="text-sm text-muted-foreground hover:text-accent transition-colors">About Us</a>
+            </nav>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">Support</h4>
+            <nav className="flex flex-col gap-2.5">
+              <a href="/contact" className="text-sm text-muted-foreground hover:text-accent transition-colors">Contact Us</a>
+              <a href="mailto:help@torahtale.com" className="text-sm text-muted-foreground hover:text-accent transition-colors">help@torahtale.com</a>
             </nav>
           </div>
 
