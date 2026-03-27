@@ -492,7 +492,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         .eq("user_id", user.id)
         .gte("created_at", startOfMonth.toISOString());
       if (!countErr && (count ?? 0) >= 2) {
-        toast.error("You've used your 2 free book previews this month. Subscribe for unlimited seforim!");
+        setShowUpsellDialog(true);
         return;
       }
       await startGeneration();
