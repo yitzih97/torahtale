@@ -104,7 +104,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             >
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/15 text-accent text-xs font-semibold tracking-wider uppercase border border-accent/20">
                 <Sparkles className="w-3.5 h-3.5" />
-                AI-Powered Torah Storytelling
+                AI-Powered Torah Stories for Frum Kinderlach
               </span>
             </motion.div>
 
