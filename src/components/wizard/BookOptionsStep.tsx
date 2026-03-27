@@ -152,12 +152,10 @@ export const BookOptionsStep = ({ options, onChange }: Props) => {
                 )}
 
                 <div className="flex items-start gap-4">
-                  {/* Icon */}
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${info.color} flex items-center justify-center shrink-0`}>
-                    {isActive ? (
-                      <Check className="w-6 h-6 text-accent" />
-                    ) : (
-                      <Icon className="w-6 h-6 text-accent" />
+                  {/* Preview image */}
+                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50">
+                    {"image" in info && (
+                      <img src={info.image} alt={info.label} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
                     )}
                   </div>
 
