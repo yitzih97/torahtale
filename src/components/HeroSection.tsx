@@ -141,7 +141,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               <div className="flex items-center gap-1">
                 {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 fill-accent text-accent" />)}
               </div>
-              <span className="text-sm text-foreground/60" dangerouslySetInnerHTML={{ __html: socialProof.replace(/(\d[\d,]+\+?)/, '<strong class="text-foreground/80">$1</strong>') }} />
+              <span className="text-sm text-white/60" dangerouslySetInnerHTML={{ __html: socialProof.replace(/(\d[\d,]+\+?)/, '<strong class="text-white/80">$1</strong>') }} />
             </motion.div>
           </div>
         </div>
