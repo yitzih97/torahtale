@@ -21,10 +21,11 @@ serve(async (req) => {
     let customSystemPrompt: string | null = null;
     let customModel: string | null = null;
     let customTemperature: number | null = null;
+    const pageTemplates: Record<string, string> = {}; // e.g. "cover:text" -> template, "page-1:text" -> template
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=in.(prompts,ai)`, {
+      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=in.(prompts,ai,book-templates)`, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
       });
       if (settingsRes.ok) {
@@ -35,6 +36,17 @@ serve(async (req) => {
           const v = settings.find((s: any) => s.category === "ai" && s.key === "story-temperature")?.value;
           return v ? parseFloat(v) : null;
         })();
+
+        // Load book-templates for this Torah portion
+        if (torahPortion) {
+          settings
+            .filter((s: any) => s.category === "book-templates" && s.key.startsWith(`${torahPortion}:`))
+            .forEach((s: any) => {
+              // key format: portion:page-N:text or portion:cover:text
+              const suffix = s.key.replace(`${torahPortion}:`, "");
+              pageTemplates[suffix] = s.value;
+            });
+        }
       }
     } catch (e) { console.error("Failed to load site_settings:", e); }
 
@@ -54,6 +66,29 @@ CRITICAL RULE: The MAJORITY of story pages (at least 70%) MUST depict the ACTUAL
     const characterDesc = childrenInfo
       ? `Characters: ${childrenInfo}`
       : `Main character: ${childName}, ${age} years old, ${gender}`;
+
+    // Build per-page template guidance if admin has set templates
+    let templateGuidance = "";
+    const hasTemplates = Object.keys(pageTemplates).some((k) => k.endsWith(":text") && pageTemplates[k]?.trim());
+    if (hasTemplates) {
+      const lines: string[] = [];
+      lines.push("\n\nADMIN PAGE TEMPLATES — Follow these narrative guidelines closely for each page:");
+      const coverText = pageTemplates["cover:text"];
+      if (coverText?.trim()) {
+        lines.push(`- COVER: ${coverText.replace(/\{childName\}/g, childName || "the child").replace(/\{age\}/g, age || "").replace(/\{gender\}/g, gender || "").replace(/\{artStyle\}/g, artStyle || "").replace(/\{language\}/g, language || "english")}`);
+      }
+      for (let i = 1; i <= pages; i++) {
+        const t = pageTemplates[`page-${i}:text`];
+        if (t?.trim()) {
+          lines.push(`- PAGE ${i}: ${t.replace(/\{childName\}/g, childName || "the child").replace(/\{age\}/g, age || "").replace(/\{gender\}/g, gender || "").replace(/\{artStyle\}/g, artStyle || "").replace(/\{language\}/g, language || "english")}`);
+        }
+      }
+      const backText = pageTemplates["back-cover:text"];
+      if (backText?.trim()) {
+        lines.push(`- BACK COVER: ${backText.replace(/\{childName\}/g, childName || "the child").replace(/\{age\}/g, age || "").replace(/\{gender\}/g, gender || "").replace(/\{artStyle\}/g, artStyle || "").replace(/\{language\}/g, language || "english")}`);
+      }
+      templateGuidance = lines.join("\n");
+    }
 
     const userPrompt = `Write a personalized children's book with a front cover, ${pages} story pages, a back cover, and 10 discussion questions.
 
@@ -76,6 +111,7 @@ Requirements:
 - NO references to TV, movies, video games, or secular entertainment
 - Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting like a Yiddishe bubbe telling a maaseh
 - ${language === "bilingual" ? "Write each page in both English and Hebrew" : language === "hebrew" ? "Write in Hebrew" : "Write in English"}
+${templateGuidance}
 
 You MUST respond with ONLY a valid JSON object with this exact structure:
 {

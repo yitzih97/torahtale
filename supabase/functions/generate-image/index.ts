@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType } = await req.json();
+    const { prompt, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber } = await req.json();
 
     /* ── Printify print-area dimensions by format ── */
     const PRINT_SPECS: Record<string, { page: [number, number]; cover: [number, number] }> = {
@@ -26,19 +26,35 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
-    // Load custom settings
+    // Load custom settings + book-templates
     let customImageTemplate: string | null = null;
     let customImageModel: string | null = null;
+    let pageImageTemplate: string | null = null;
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=in.(prompts,ai)`, {
+      const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=in.(prompts,ai,book-templates)`, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
       });
       if (settingsRes.ok) {
         const settings = await settingsRes.json();
         customImageTemplate = settings.find((s: any) => s.category === "prompts" && s.key === "image-prompt-template")?.value || null;
         customImageModel = settings.find((s: any) => s.category === "ai" && s.key === "image-model")?.value || null;
+
+        // Look for page-specific image prompt template
+        if (torahPortion) {
+          let templateKey: string | null = null;
+          if (pageType === "cover") templateKey = `${torahPortion}:cover:image-prompt`;
+          else if (pageType === "back-cover") templateKey = `${torahPortion}:back-cover:image-prompt`;
+          else if (pageNumber) templateKey = `${torahPortion}:page-${pageNumber}:image-prompt`;
+
+          if (templateKey) {
+            const found = settings.find((s: any) => s.category === "book-templates" && s.key === templateKey);
+            if (found?.value?.trim()) {
+              pageImageTemplate = found.value;
+            }
+          }
+        }
       }
     } catch (e) { console.error("Failed to load site_settings:", e); }
 
@@ -52,8 +68,19 @@ serve(async (req) => {
     const styleDesc = styleMap[artStyle] || styleMap.cartoon;
 
     let imagePrompt: string;
+
+    // Priority: 1) explicit prompt param, 2) page-specific template, 3) custom global template, 4) default
     if (prompt) {
       imagePrompt = prompt;
+    } else if (pageImageTemplate) {
+      // Admin-defined per-page image prompt template
+      imagePrompt = pageImageTemplate
+        .replace(/\{childName\}/g, childName || "a child")
+        .replace(/\{torahPortion\}/g, torahPortion || "Torah")
+        .replace(/\{styleDesc\}/g, styleDesc)
+        .replace(/\{artStyle\}/g, artStyle || "cartoon")
+        .replace(/\{pageNumber\}/g, String(pageNumber || ""))
+        .replace(/\{pageType\}/g, pageType || "page");
     } else if (customImageTemplate) {
       imagePrompt = customImageTemplate
         .replace("{childName}", childName || "a child")
