@@ -245,7 +245,7 @@ export function AdminCMS() {
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">Navbar</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="brand-name" label="Brand Name" placeholder="MyTorahTale" edits={contentEdits} setEdits={setContentEdits} />
+                <SettingField category="website" settingKey="brand-name" label="Brand Name" placeholder="Torah Tale" edits={contentEdits} setEdits={setContentEdits} />
                 <SettingField category="website" settingKey="navbar-cta" label="Navbar CTA Button" placeholder="Create a Sefer" edits={contentEdits} setEdits={setContentEdits} />
               </div>
             </div>
