@@ -36,6 +36,19 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
+    // Load preferred site image model from settings
+    let customSiteImageModel: string | null = null;
+    try {
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || serviceKey;
+      const sRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=eq.ai&key=eq.site-image-model`, {
+        headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+      });
+      if (sRes.ok) {
+        const ss = await sRes.json();
+        customSiteImageModel = ss[0]?.value || null;
+      }
+    } catch (e) { console.error("Failed to load site image model:", e); }
+
     // Upsert site_assets record as "generating"
     const { data: existing } = await supabase
       .from("site_assets")
