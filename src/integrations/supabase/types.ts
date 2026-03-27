@@ -136,6 +136,63 @@ export type Database = {
         }
         Relationships: []
       }
+      site_assets: {
+        Row: {
+          asset_key: string
+          created_at: string | null
+          id: string
+          image_url: string | null
+          prompt_used: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset_key: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          prompt_used?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset_key?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          prompt_used?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          category: string
+          id: string
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          category: string
+          id?: string
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: string
+        }
+        Update: {
+          category?: string
+          id?: string
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           art_style: string | null
