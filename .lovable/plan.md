@@ -1,36 +1,64 @@
 
 
-## Plan: Fix Page Count to 10 + Add Book Type Preview Images
+## Plan: Populate Default Templates, Add Print Specs, Fix Text-on-Image Export
 
-### 1. Remove Page Count Selection (Step 8)
+### Problem
+1. The Templates tab in admin settings has empty placeholders — no actual default prompts are pre-filled for the admin to edit.
+2. No print dimension info is shown per page slot in the template editor.
+3. When downloading JPEG/ZIP exports, the text overlay (from `DraggableText`) is not rendered onto the image — only the raw illustration is exported.
 
-**File:** `src/components/CreationWizard.tsx`
+---
 
-- Remove the page count slider UI from step 8
-- Hardcode `pageCount: 10` in `initialData` (currently 4)
-- Step 8 becomes just the auth gate / review summary before generation — show a summary of selections (child name, story, style, language) with a "Generate My Sefer" call-to-action
-- Remove `pageCount` from `WizardData` interface or keep it fixed at 10
-- Update the `story_data` saved to DB to always use 10
+### 1. Pre-fill Default Prompt Templates
 
-### 2. Add Reference Images to BookOptionsStep
+**File:** `src/components/admin/AdminCMS.tsx`
 
-**File:** `src/components/wizard/BookOptionsStep.tsx`
+Add a `DEFAULT_PAGE_TEMPLATES` constant with actual master prompts for each of the 10 page slots. These will be used as `placeholder` values in the template textareas AND as a "Fill Defaults" button that populates all fields at once.
 
-- Copy the two uploaded PDF template images to `src/assets/books/` as reference visuals:
-  - `board-cover-template.jpg` (from BoardBook_Cover_Templat.pdf)
-  - `board-spread-template.jpg` (from BoardBook_InsideSpread_Template.pdf)
-- Add preview images to each product type card showing what the format looks like:
-  - Softcover: placeholder illustration of a softcover book
-  - Hardcover: placeholder illustration of a hardcover book  
-  - Board Book: use the uploaded template images as reference so users can see the spread layout and cover format
-- Each card gets a small thumbnail/preview area above or beside the features list
+Default prompts per slot:
+- **Cover** — text: `{childName}'s {torahPortion} Adventure` / image: full cover prompt with art style, Printify cover dimensions, child description
+- **Pages 1–8** — text: narrative guidance per page (intro, Torah event pages, moral lesson, conclusion) / image: scene-specific prompt with style, dimensions, cultural rules
+- **Back Cover** — text: synopsis + dedication template / image: back cover design prompt
 
-### 3. Update Generate-Story to Use Fixed 10 Pages
+Each placeholder will include the Printify dimension note (e.g., "Board Book 6×6: 3675×1875px") and cultural rules.
 
-**File:** `supabase/functions/generate-story/index.ts`
+Add a **"Fill All Defaults"** button that populates all empty template fields with these defaults so the admin can immediately save and edit them.
 
-- Ensure the generation prompt always requests 10 pages regardless of any legacy `pageCount` value
-- Board books use spreads (left+right per spread), so 10 pages = 5 spreads — add a note in the prompt for board book format
+---
+
+### 2. Show Print Specs Per Page Slot
+
+**File:** `src/components/admin/AdminCMS.tsx`
+
+In the `PAGE_SLOTS` rendering, add a small info badge showing the target print dimensions for each page type:
+- Cover/Back Cover: show cover dimensions per format
+- Story pages: show page dimensions per format
+
+Display as a compact reference table or badges below each slot label, e.g.:
+```
+Softcover 8×8: 2400×2400 | Hardcover: 2325×2325 | Board 6×6: 3675×1875
+```
+
+---
+
+### 3. Fix JPEG/ZIP Export to Composite Text Overlay
+
+**File:** `src/lib/generateBookZip.ts`
+
+The current `generateBookZip` just exports raw `page.image` blobs. It ignores `textStyle` and `text`. Fix by:
+
+- Accept `BookPage` from `BookViewer` (with `textStyle` and `text` fields)
+- For story pages with text + textStyle, use an **offscreen canvas** to:
+  1. Draw the source image
+  2. Draw the text overlay at the correct position/font/color/bgOpacity matching `DraggableText` rendering
+  3. Export the composited canvas as JPEG blob
+- Cover and back-cover pages export image-only (text is baked into the generated image or handled separately)
+
+Update the `BookPage` interface in `generateBookZip.ts` to include `textStyle` and use the `TextStyle` type.
+
+**File:** `src/lib/generateBookPdf.ts`
+
+Similarly update the PDF generator: for story pages, instead of drawing text below the image, composite the text ON the image using the same position/style logic, then embed the composited image in the PDF.
 
 ---
 
@@ -38,8 +66,7 @@
 
 | File | Change |
 |------|--------|
-| `src/components/CreationWizard.tsx` | Hardcode pageCount=10, replace step 8 slider with summary/auth gate |
-| `src/components/wizard/BookOptionsStep.tsx` | Add book type reference images to product cards |
-| `supabase/functions/generate-story/index.ts` | Force 10-page generation |
-| `src/assets/books/` | Add template reference images |
+| `src/components/admin/AdminCMS.tsx` | Add DEFAULT_PAGE_TEMPLATES with real prompts, "Fill Defaults" button, print spec badges per slot |
+| `src/lib/generateBookZip.ts` | Composite text overlay onto images using offscreen canvas before JPEG export |
+| `src/lib/generateBookPdf.ts` | Composite text overlay onto PDF page images |
 
