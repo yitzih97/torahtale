@@ -40,6 +40,9 @@ import presetExplorerBoy from "@/assets/presets/explorer-boy-cartoon.jpg";
 import presetExplorerGirl from "@/assets/presets/explorer-girl-cartoon.jpg";
 import presetPreteenBoy from "@/assets/presets/preteen-boy-cartoon.jpg";
 import presetPreteenGirl from "@/assets/presets/preteen-girl-cartoon.jpg";
+import presetDuoCartoon from "@/assets/presets/duo-cartoon.jpg";
+import presetDuo3dPixar from "@/assets/presets/duo-3d-pixar.jpg";
+import presetDuoRealistic from "@/assets/presets/duo-realistic.jpg";
 
 /* ───────────────── types ───────────────── */
 
@@ -116,6 +119,7 @@ const getStylePreset = (gender: string, style: string): string => {
   const map: Record<string, Record<string, string>> = {
     boy: { cartoon: presetBoyCartoon, "3d-pixar": presetBoy3dPixar, realistic: presetBoyRealistic },
     girl: { cartoon: presetGirlCartoon, "3d-pixar": presetGirl3dPixar, realistic: presetGirlRealistic },
+    duo: { cartoon: presetDuoCartoon, "3d-pixar": presetDuo3dPixar, realistic: presetDuoRealistic },
   };
   return map[gender]?.[style] || presetBoyCartoon;
 };
@@ -772,7 +776,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     </h2>
                     <div className="grid grid-cols-3 gap-2 sm:gap-4">
                       {ART_STYLES.map((s) => {
-                        const stylePreview = getStylePreset(child.gender || "boy", s.key);
+                        const previewGender = data.children.length >= 2 ? "duo" : (child.gender || "boy");
+                        const stylePreview = getStylePreset(previewGender, s.key);
                         return (
                           <button
                             key={s.key}
