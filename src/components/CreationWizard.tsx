@@ -83,6 +83,33 @@ const initialData: WizardData = {
   activeChildIdx: 0,
 };
 
+/* ───────────────── AutoAdvanceStep ───────────────── */
+
+function AutoAdvanceStep({ onAdvance, delayMs, children }: { onAdvance: () => void; delayMs: number; children: (progress: number) => React.ReactNode }) {
+  const [progress, setProgress] = useState(0);
+  const startRef = useRef(Date.now());
+  const firedRef = useRef(false);
+
+  useEffect(() => {
+    let raf: number;
+    const tick = () => {
+      const elapsed = Date.now() - startRef.current;
+      const p = Math.min(elapsed / delayMs, 1);
+      setProgress(p);
+      if (p >= 1 && !firedRef.current) {
+        firedRef.current = true;
+        onAdvance();
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [delayMs, onAdvance]);
+
+  return <>{children(progress)}</>;
+}
+
 /* ───────────────── preset lookup helpers ───────────────── */
 
 const getStylePreset = (gender: string, style: string): string => {
