@@ -119,6 +119,7 @@ const getStylePreset = (gender: string, style: string): string => {
   const map: Record<string, Record<string, string>> = {
     boy: { cartoon: presetBoyCartoon, "3d-pixar": presetBoy3dPixar, realistic: presetBoyRealistic },
     girl: { cartoon: presetGirlCartoon, "3d-pixar": presetGirl3dPixar, realistic: presetGirlRealistic },
+    duo: { cartoon: presetDuoCartoon, "3d-pixar": presetDuo3dPixar, realistic: presetDuoRealistic },
   };
   return map[gender]?.[style] || presetBoyCartoon;
 };
