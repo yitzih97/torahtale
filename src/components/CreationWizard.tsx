@@ -40,6 +40,9 @@ import presetExplorerBoy from "@/assets/presets/explorer-boy-cartoon.jpg";
 import presetExplorerGirl from "@/assets/presets/explorer-girl-cartoon.jpg";
 import presetPreteenBoy from "@/assets/presets/preteen-boy-cartoon.jpg";
 import presetPreteenGirl from "@/assets/presets/preteen-girl-cartoon.jpg";
+import presetDuoCartoon from "@/assets/presets/duo-cartoon.jpg";
+import presetDuo3dPixar from "@/assets/presets/duo-3d-pixar.jpg";
+import presetDuoRealistic from "@/assets/presets/duo-realistic.jpg";
 
 /* ───────────────── types ───────────────── */
 
