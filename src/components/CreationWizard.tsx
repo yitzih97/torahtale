@@ -83,6 +83,33 @@ const initialData: WizardData = {
   activeChildIdx: 0,
 };
 
+/* ───────────────── AutoAdvanceStep ───────────────── */
+
+function AutoAdvanceStep({ onAdvance, delayMs, children }: { onAdvance: () => void; delayMs: number; children: (progress: number) => React.ReactNode }) {
+  const [progress, setProgress] = useState(0);
+  const startRef = useRef(Date.now());
+  const firedRef = useRef(false);
+
+  useEffect(() => {
+    let raf: number;
+    const tick = () => {
+      const elapsed = Date.now() - startRef.current;
+      const p = Math.min(elapsed / delayMs, 1);
+      setProgress(p);
+      if (p >= 1 && !firedRef.current) {
+        firedRef.current = true;
+        onAdvance();
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [delayMs, onAdvance]);
+
+  return <>{children(progress)}</>;
+}
+
 /* ───────────────── preset lookup helpers ───────────────── */
 
 const getStylePreset = (gender: string, style: string): string => {
@@ -1159,41 +1186,51 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     )}
 
                     {animDone && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="text-center space-y-6"
-                      >
-                        <div className="w-20 h-20 rounded-3xl bg-accent/10 flex items-center justify-center mx-auto">
-                          <Mail className="w-10 h-10 text-accent" />
-                        </div>
-                        <div>
-                          <h2 className="font-display text-xl sm:text-2xl font-bold text-primary">Your sefer is being created!</h2>
-                          <p className="text-muted-foreground text-sm mt-2 max-w-sm mx-auto leading-relaxed">
-                            You'll receive an email within <span className="font-semibold text-accent">24 hours</span> with a preview of {childNames}'s book.
-                          </p>
-                        </div>
-
-                        <div className="bg-muted/30 rounded-2xl border border-border p-4 sm:p-5 max-w-sm mx-auto space-y-2">
-                          <div className="flex items-center gap-3 justify-center">
-                            <BookOpen className="w-5 h-5 text-accent" />
-                            <div className="text-left">
-                              <p className="text-sm font-semibold text-primary">{childNames}'s Torah Adventure</p>
-                              <p className="text-xs text-muted-foreground">{getPortionLabel(data.torahPortion)} · {data.artStyle === "3d-pixar" ? "3D Pixar" : data.artStyle === "realistic" ? "Realistic" : "Cartoon"}</p>
+                      <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(10); }} delayMs={5000}>
+                        {(progress) => (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="text-center space-y-6"
+                          >
+                            <div className="w-20 h-20 rounded-3xl bg-accent/10 flex items-center justify-center mx-auto">
+                              <Mail className="w-10 h-10 text-accent" />
                             </div>
-                          </div>
-                        </div>
+                            <div>
+                              <h2 className="font-display text-xl sm:text-2xl font-bold text-primary">Your sefer is being created!</h2>
+                              <p className="text-muted-foreground text-sm mt-2 max-w-sm mx-auto leading-relaxed">
+                                You'll receive an email within <span className="font-semibold text-accent">24 hours</span> with a preview of {childNames}'s book.
+                              </p>
+                            </div>
 
-                        <Button
-                          variant="gold"
-                          size="lg"
-                          onClick={() => { setDir(1); setStep(10); }}
-                          className="rounded-xl h-11 sm:h-12 px-6 sm:px-8"
-                        >
-                          Continue to Choose Your Book <ArrowRight className="w-4 h-4" />
-                        </Button>
-                      </motion.div>
+                            <div className="bg-muted/30 rounded-2xl border border-border p-4 sm:p-5 max-w-sm mx-auto space-y-2">
+                              <div className="flex items-center gap-3 justify-center">
+                                <BookOpen className="w-5 h-5 text-accent" />
+                                <div className="text-left">
+                                  <p className="text-sm font-semibold text-primary">{childNames}'s Torah Adventure</p>
+                                  <p className="text-xs text-muted-foreground">{getPortionLabel(data.torahPortion)} · {data.artStyle === "3d-pixar" ? "3D Pixar" : data.artStyle === "realistic" ? "Realistic" : "Cartoon"}</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => { setDir(1); setStep(10); }}
+                              className="relative inline-flex items-center justify-center gap-2 rounded-xl h-11 sm:h-12 px-6 sm:px-8 font-semibold text-accent-foreground overflow-hidden cursor-pointer border-0"
+                              style={{ background: 'hsl(var(--accent))' }}
+                            >
+                              {/* progress bar background */}
+                              <span
+                                className="absolute inset-0 bg-black/15 origin-left transition-none"
+                                style={{ transform: `scaleX(${progress})` }}
+                              />
+                              <span className="relative z-10 flex items-center gap-2">
+                                Continue to Choose Your Book <ArrowRight className="w-4 h-4" />
+                              </span>
+                            </button>
+                          </motion.div>
+                        )}
+                      </AutoAdvanceStep>
                     )}
                   </motion.div>
                 )}
