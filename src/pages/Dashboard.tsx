@@ -285,10 +285,20 @@ export default function Dashboard() {
                               For {book.child_name || "Unknown"} · {format(new Date(book.created_at), "MMM d, yyyy")}
                             </p>
                           </div>
-                          <span className={`text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0 capitalize ${statusStyle(book.status)}`}>
-                            <StatusIcon className="w-3 h-3" />
-                            {book.status}
-                          </span>
+                          {book.status === "generating" ? (
+                            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                              <span className={`text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1.5 capitalize ${statusStyle(book.status)}`}>
+                                <StatusIcon className="w-3 h-3" />
+                                {book.status}
+                              </span>
+                              <CountdownTimer createdAt={book.created_at} />
+                            </div>
+                          ) : (
+                            <span className={`text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0 capitalize ${statusStyle(book.status)}`}>
+                              <StatusIcon className="w-3 h-3" />
+                              {book.status}
+                            </span>
+                          )}
                           <div className="flex gap-1.5 flex-shrink-0">
                             {book.pages_data && (
                               <Button variant="ghost" size="sm" className="text-xs" onClick={() => setViewingBook(book)}>
