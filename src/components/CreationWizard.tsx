@@ -776,7 +776,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     </h2>
                     <div className="grid grid-cols-3 gap-2 sm:gap-4">
                       {ART_STYLES.map((s) => {
-                        const stylePreview = getStylePreset(child.gender || "boy", s.key);
+                        const previewGender = data.children.length >= 2 ? "duo" : (child.gender || "boy");
+                        const stylePreview = getStylePreset(previewGender, s.key);
                         return (
                           <button
                             key={s.key}
