@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AddChildWizard, type AddChildResult } from "@/components/dashboard/AddChildWizard";
+import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
