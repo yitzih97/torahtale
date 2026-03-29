@@ -878,39 +878,43 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 {/* ── STEP 6: Torah Portion ── */}
                 {step === 6 && (
-                  <motion.div key="s6" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-3">
-                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary">Choose a Torah Story</h2>
+                  <motion.div key="s6" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-4">
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-primary text-center">Choose a Parsha</h2>
 
-                    {/* Category tabs */}
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                    {/* Category pills */}
+                    <div className="flex justify-center flex-wrap gap-2">
                       {(["all", "torah", "neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
                         const meta = cat === "all" ? { label: "All", emoji: "📚" } : CATEGORY_META[cat];
+                        const isActive = portionFilter === cat;
                         return (
                           <button
                             key={cat}
                             onClick={() => { setPortionFilter(cat); setExpandedBook(null); }}
-                            className={`text-[11px] sm:text-xs font-medium px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all duration-300 flex items-center gap-1 ${
-                              portionFilter === cat
-                                ? "bg-accent text-accent-foreground shadow-sm"
-                                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                            className={`text-xs font-medium px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-1.5 ${
+                              isActive
+                                ? "bg-accent text-accent-foreground shadow-md scale-105"
+                                : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-accent/40 hover:shadow-sm"
                             }`}
                           >
-                            <span>{meta.emoji}</span> {meta.label}
+                            <span className="text-sm">{meta.emoji}</span> {meta.label}
                           </button>
                         );
                       })}
                     </div>
 
                     {/* Search */}
-                    <Input
-                      placeholder="Search stories..."
-                      value={portionSearch}
-                      onChange={(e) => setPortionSearch(e.target.value)}
-                      className="rounded-xl h-9 sm:h-10 text-sm"
-                    />
+                    <div className="relative">
+                      <Input
+                        placeholder="Search parsha..."
+                        value={portionSearch}
+                        onChange={(e) => setPortionSearch(e.target.value)}
+                        className="rounded-2xl h-11 text-sm pl-10 bg-card border-border focus:border-accent shadow-sm"
+                      />
+                      <BookOpen className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    </div>
 
                     {/* Story cards */}
-                    <div className="max-h-[35vh] sm:max-h-[40vh] overflow-y-auto pr-1 scrollbar-thin space-y-2 sm:space-y-3">
+                    <div className="max-h-[38vh] sm:max-h-[42vh] overflow-y-auto pr-1 scrollbar-thin space-y-3">
                       {(portionFilter === "torah" || portionFilter === "all") && !portionSearch.trim() && (
                         <>
                           {TORAH_BOOKS.map((book) => {
@@ -918,41 +922,53 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             if (bookPortions.length === 0) return null;
                             const isExpanded = expandedBook === book;
                             return (
-                              <div key={book}>
+                              <div key={book} className="rounded-2xl border border-border bg-card/50 overflow-hidden">
                                 <button
                                   onClick={() => setExpandedBook(isExpanded ? null : book)}
-                                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-muted/50 hover:bg-muted transition-colors text-sm font-semibold text-primary"
+                                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
                                 >
-                                  <span>📖 Sefer {book}</span>
-                                  <span className="text-xs text-muted-foreground">{bookPortions.length} {isExpanded ? "▲" : "▼"}</span>
+                                  <span className="font-display text-sm font-semibold text-primary flex items-center gap-2">
+                                    <span className="text-base">📖</span> Sefer {book}
+                                  </span>
+                                  <span className={`text-xs text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>▼</span>
                                 </button>
-                                {isExpanded && (
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 mt-2">
-                                    {bookPortions.map((p) => (
-                                      <button
-                                        key={p.value}
-                                        onClick={() => {
-                                          update({ torahPortion: p.value });
-                                          autoAdvance();
-                                        }}
-                                        className={`relative p-2.5 sm:p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-                                          data.torahPortion === p.value
-                                            ? "border-accent bg-accent/5 shadow-sm"
-                                            : "border-border hover:border-accent/30 hover:bg-card"
-                                        }`}
-                                      >
-                                        <span className="text-lg sm:text-xl block mb-1">{p.emoji || "📜"}</span>
-                                        <span className="font-display text-xs sm:text-sm font-semibold text-primary block leading-tight">{p.label}</span>
-                                        <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
-                                        {data.torahPortion === p.value && (
-                                          <div className="absolute top-2 right-2">
-                                            <Check className="w-4 h-4 text-accent" />
-                                          </div>
-                                        )}
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: "auto", opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.25 }}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 pt-0">
+                                        {bookPortions.map((p) => (
+                                          <button
+                                            key={p.value}
+                                            onClick={() => {
+                                              update({ torahPortion: p.value });
+                                              autoAdvance();
+                                            }}
+                                            className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] group ${
+                                              data.torahPortion === p.value
+                                                ? "border-accent bg-accent/10 shadow-md"
+                                                : "border-transparent bg-muted/40 hover:border-accent/30 hover:bg-muted/70"
+                                            }`}
+                                          >
+                                            <span className="text-lg block mb-1.5">{p.emoji || "📜"}</span>
+                                            <span className="font-display text-xs sm:text-sm font-semibold text-primary block leading-tight">{p.label}</span>
+                                            <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{p.sub}</span>
+                                            {data.torahPortion === p.value && (
+                                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                                                <Check className="w-3 h-3 text-accent-foreground" />
+                                              </div>
+                                            )}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
                               </div>
                             );
                           })}
@@ -963,11 +979,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                 if (catPortions.length === 0) return null;
                                 const meta = CATEGORY_META[cat];
                                 return (
-                                  <div key={cat}>
-                                    <div className="px-3 py-2 rounded-xl bg-muted/50 text-sm font-semibold text-primary mb-2">
-                                      {meta.emoji} {meta.label}
+                                  <div key={cat} className="rounded-2xl border border-border bg-card/50 overflow-hidden">
+                                    <div className="px-4 py-3">
+                                      <span className="font-display text-sm font-semibold text-primary flex items-center gap-2">
+                                        <span className="text-base">{meta.emoji}</span> {meta.label}
+                                      </span>
                                     </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 pt-0">
                                       {catPortions.map((p) => (
                                         <button
                                           key={p.value}
@@ -975,18 +993,18 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                             update({ torahPortion: p.value });
                                             autoAdvance();
                                           }}
-                                          className={`relative p-2.5 sm:p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                                          className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] group ${
                                             data.torahPortion === p.value
-                                              ? "border-accent bg-accent/5 shadow-sm"
-                                              : "border-border hover:border-accent/30 hover:bg-card"
+                                              ? "border-accent bg-accent/10 shadow-md"
+                                              : "border-transparent bg-muted/40 hover:border-accent/30 hover:bg-muted/70"
                                           }`}
                                         >
-                                          <span className="text-lg sm:text-xl block mb-1">{p.emoji || "📖"}</span>
+                                          <span className="text-lg block mb-1.5">{p.emoji || "📖"}</span>
                                           <span className="font-display text-xs sm:text-sm font-semibold text-primary block leading-tight">{p.label}</span>
-                                          <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
+                                          <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{p.sub}</span>
                                           {data.torahPortion === p.value && (
-                                            <div className="absolute top-2 right-2">
-                                              <Check className="w-4 h-4 text-accent" />
+                                            <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                                              <Check className="w-3 h-3 text-accent-foreground" />
                                             </div>
                                           )}
                                         </button>
@@ -1001,7 +1019,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       )}
 
                       {((portionFilter !== "torah" && portionFilter !== "all") || portionSearch.trim()) && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           {filteredPortions.map((p) => (
                             <button
                               key={p.value}
@@ -1009,18 +1027,18 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                 update({ torahPortion: p.value });
                                 autoAdvance();
                               }}
-                              className={`relative p-2.5 sm:p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                              className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] group ${
                                 data.torahPortion === p.value
-                                  ? "border-accent bg-accent/5 shadow-sm"
-                                  : "border-border hover:border-accent/30 hover:bg-card"
+                                  ? "border-accent bg-accent/10 shadow-md"
+                                  : "border-transparent bg-muted/40 hover:border-accent/30 hover:bg-muted/70"
                               }`}
                             >
-                              <span className="text-lg sm:text-xl block mb-1">{p.emoji || "📜"}</span>
+                              <span className="text-lg block mb-1.5">{p.emoji || "📜"}</span>
                               <span className="font-display text-xs sm:text-sm font-semibold text-primary block leading-tight">{p.label}</span>
-                              <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 block">{p.sub}</span>
+                              <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{p.sub}</span>
                               {data.torahPortion === p.value && (
-                                <div className="absolute top-2 right-2">
-                                  <Check className="w-4 h-4 text-accent" />
+                                <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                                  <Check className="w-3 h-3 text-accent-foreground" />
                                 </div>
                               )}
                             </button>
