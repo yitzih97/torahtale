@@ -174,7 +174,11 @@ const springTransition = {
 /* Stagger container & children */
 const staggerContainer = {
   center: {
+    y: 0,
+    opacity: 1,
+    scale: 1,
     transition: {
+      ...springTransition,
       staggerChildren: 0.05,
       delayChildren: 0.08,
     },
