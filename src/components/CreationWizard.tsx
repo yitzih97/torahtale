@@ -45,10 +45,10 @@ import presetDuo3dPixar from "@/assets/presets/duo-3d-pixar.jpg";
 import presetDuoRealistic from "@/assets/presets/duo-realistic.jpg";
 
 /* ── Animated placeholder input ── */
-const TYPING_SPEED = 80;
-const ERASING_SPEED = 50;
-const PAUSE_AFTER_TYPE = 1500;
-const PAUSE_AFTER_ERASE = 400;
+const TYPING_SPEED = 140;
+const ERASING_SPEED = 90;
+const PAUSE_AFTER_TYPE = 2200;
+const PAUSE_AFTER_ERASE = 600;
 
 function AnimatedPlaceholderInput({
   names,
