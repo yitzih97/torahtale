@@ -542,8 +542,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   return (
     <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[100dvh] sm:max-h-[90vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-3xl border-0 sm:border sm:border-border/30 shadow-2xl bg-background/95 backdrop-blur-xl flex flex-col">
-        
+      <DialogContent className="max-w-3xl max-h-[100dvh] sm:max-h-[90vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-3xl border-0 sm:border sm:border-border/30 shadow-2xl bg-background backdrop-blur-xl flex flex-col" aria-describedby={undefined}>
+        <DialogTitle className="sr-only">Create Your Book</DialogTitle>
+
         {/* ── Minimal progress bar + step counter ── */}
         {step <= 8 && (
           <div className="px-6 sm:px-8 pt-5 sm:pt-6 pb-0 flex-shrink-0">
