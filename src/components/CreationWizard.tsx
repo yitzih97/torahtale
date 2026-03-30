@@ -411,10 +411,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .gte("created_at", startOfMonth.toISOString());
-      if (!countErr && (count ?? 0) >= 2) {
+      if (!countErr && (count ?? 0) >= 2 && !justSubscribedRef.current) {
         setShowUpsellDialog(true);
         return;
       }
+      justSubscribedRef.current = false;
       await startGeneration();
       return;
     }
