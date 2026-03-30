@@ -44,6 +44,55 @@ import presetDuoCartoon from "@/assets/presets/duo-cartoon.jpg";
 import presetDuo3dPixar from "@/assets/presets/duo-3d-pixar.jpg";
 import presetDuoRealistic from "@/assets/presets/duo-realistic.jpg";
 
+/* ── Animated placeholder input ── */
+const TYPING_SPEED = 80;
+const ERASING_SPEED = 50;
+const PAUSE_AFTER_TYPE = 1500;
+const PAUSE_AFTER_ERASE = 400;
+
+function AnimatedPlaceholderInput({
+  names,
+  value,
+  ...props
+}: { names: string[] } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const [placeholder, setPlaceholder] = useState("");
+  const rafRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (value) return;            // stop animation once user types
+    let idx = 0, charIdx = 0, erasing = false, cancelled = false;
+
+    const tick = () => {
+      if (cancelled) return;
+      const word = names[idx];
+      if (!erasing) {
+        charIdx++;
+        setPlaceholder(word.slice(0, charIdx));
+        if (charIdx >= word.length) {
+          erasing = true;
+          rafRef.current = setTimeout(tick, PAUSE_AFTER_TYPE);
+        } else {
+          rafRef.current = setTimeout(tick, TYPING_SPEED);
+        }
+      } else {
+        charIdx--;
+        setPlaceholder(word.slice(0, charIdx));
+        if (charIdx <= 0) {
+          erasing = false;
+          idx = (idx + 1) % names.length;
+          rafRef.current = setTimeout(tick, PAUSE_AFTER_ERASE);
+        } else {
+          rafRef.current = setTimeout(tick, ERASING_SPEED);
+        }
+      }
+    };
+    rafRef.current = setTimeout(tick, PAUSE_AFTER_ERASE);
+    return () => { cancelled = true; if (rafRef.current) clearTimeout(rafRef.current); };
+  }, [names, value]);
+
+  return <Input {...props} value={value} placeholder={placeholder || names[0]} />;
+}
+
 /* ───────────────── types ───────────────── */
 
 export interface ChildProfile {
