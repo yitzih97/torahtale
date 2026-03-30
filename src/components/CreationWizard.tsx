@@ -677,8 +677,8 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       </div>
                     )}
 
-                    <Input
-                      placeholder="e.g., Chaya Mushka"
+                    <AnimatedPlaceholderInput
+                      names={["Adina", "Ari", "David", "Dani"]}
                       value={child.name}
                       onChange={(e) => updateChild(child.id, { name: e.target.value })}
                       className="rounded-xl h-12 sm:h-14 text-base sm:text-lg px-4 sm:px-5"
