@@ -7,7 +7,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { AdminBookGenerationModal } from "@/components/admin/AdminBookGenerationModal";
 import { Input } from "@/components/ui/input";
 import {
