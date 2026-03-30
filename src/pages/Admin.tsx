@@ -140,7 +140,7 @@ export default function Admin() {
   const userChildren = selectedUserId ? children.filter((c: any) => c.user_id === selectedUserId) : [];
   const userSubs = selectedUserId ? subscriptions.filter((s: any) => s.user_id === selectedUserId) : [];
 
-  const bookPages = viewingBook?.pages_data as any[] || [];
+  
 
   return (
     <div className="min-h-screen flex flex-col">
