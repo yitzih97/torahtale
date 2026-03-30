@@ -232,6 +232,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [loginMode, setLoginMode] = useState<"login" | "signup">("signup");
   const [loginLoading, setLoginLoading] = useState(false);
   const [showUpsellDialog, setShowUpsellDialog] = useState(false);
+  const justSubscribedRef = useRef(false);
   
   // Generation animation state
   const [animating, setAnimating] = useState(false);
