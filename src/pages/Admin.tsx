@@ -416,7 +416,7 @@ export default function Admin() {
                                   </span>
                                   {book.pages_data && (
                                     <div className="flex gap-1">
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setViewingBook(book)}>
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setGeneratingBook(book)}>
                                         <Eye className="w-3 h-3" />
                                       </Button>
                                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleDownloadZip(book)} title="Download images (ZIP)">
