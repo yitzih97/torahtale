@@ -608,15 +608,16 @@ export default function Admin() {
       </main>
       <Footer />
 
-      {/* Book Viewer Modal */}
-      {viewingBook && (
-        <BookViewerModal
-          open={!!viewingBook}
-          onClose={() => setViewingBook(null)}
-          childName={viewingBook.child_name || ""}
-          torahPortion={viewingBook.torah_portion || ""}
-          artStyle={viewingBook.art_style || "cartoon"}
-          pages={bookPages}
+      {/* Admin Book Generation & Editing Modal */}
+      {generatingBook && (
+        <AdminBookGenerationModal
+          open={!!generatingBook}
+          onClose={() => setGeneratingBook(null)}
+          book={generatingBook}
+          onBookUpdated={() => {
+            // Refresh book list
+            window.location.reload();
+          }}
         />
       )}
     </div>
