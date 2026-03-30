@@ -232,6 +232,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [loginMode, setLoginMode] = useState<"login" | "signup">("signup");
   const [loginLoading, setLoginLoading] = useState(false);
   const [showUpsellDialog, setShowUpsellDialog] = useState(false);
+  const justSubscribedRef = useRef(false);
   
   // Generation animation state
   const [animating, setAnimating] = useState(false);
@@ -410,10 +411,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .gte("created_at", startOfMonth.toISOString());
-      if (!countErr && (count ?? 0) >= 2) {
+      if (!countErr && (count ?? 0) >= 2 && !justSubscribedRef.current) {
         setShowUpsellDialog(true);
         return;
       }
+      justSubscribedRef.current = false;
       await startGeneration();
       return;
     }
@@ -1637,6 +1639,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     <SubscriptionUpsellDialog
       open={showUpsellDialog}
       onClose={() => setShowUpsellDialog(false)}
+      onSubscribed={() => {
+        justSubscribedRef.current = true;
+        setShowUpsellDialog(false);
+        startGeneration();
+      }}
       context="limit-reached"
     />
     </>
