@@ -1,66 +1,74 @@
 
 
-## Plan: Replace Age Brackets with Input, Remove Descriptions, Auto-Advance + Mobile Fix
+## Plan: Redesign Creation Wizard — Sleek, Clean, Animated
 
-### 1. Replace Age Selection with Simple Input (Step 3)
+### Design Direction
 
-**File:** `src/components/CreationWizard.tsx`
+Inspired by modern onboarding flows (like Nookly): minimal chrome, generous whitespace, full-width steps with smooth spring-based transitions, floating glass-morphism elements, and micro-interactions on every selection.
 
-- Remove `AGE_BRACKETS` constant entirely
-- Remove `getAgePreset` usage in step 3
-- Replace step 3 UI with a simple number input field for age (max 15, min 1)
-- Update `ageToBracketLabel` to handle ages up to 15
-- Keep the character preview on the side
+### Key Design Changes
 
-### 2. Remove All Description/Explanation Text
+**1. Dialog Shell**
+- Remove the grouped stepper bar at the top — replace with a thin, elegant progress line spanning the full width (no labels, no icons)
+- Add a subtle step counter in the top-right corner: "2 of 8"
+- Softer background: `bg-background/80 backdrop-blur-xl` on the dialog
+- More padding, more breathing room
 
-**File:** `src/components/CreationWizard.tsx`
+**2. Transition Animations**
+- Replace current slide variants (60px x-translate) with smoother spring-based transitions:
+  - Enter: `y: 30, opacity: 0, scale: 0.97` → `y: 0, opacity: 1, scale: 1`
+  - Exit: `y: -20, opacity: 0, scale: 0.98`
+  - Spring config: `type: "spring", stiffness: 300, damping: 30`
+- Add `layout` prop to motion containers for smooth size changes between steps
+- Stagger child elements within each step (title, then content cards with 50ms delay each)
 
-Remove every `<p className="text-muted-foreground text-sm mt-1">...</p>` subtitle line across all steps:
-- Step 1: "Enter the name of the child..."
-- Step 1: "Select existing children..." label
-- Step 2: "This shapes the character's appearance..."
-- Step 3: "This helps us tailor the story..."
-- Step 4: "See how {name} looks in each style."
-- Step 5: photo/description helper text
-- Step 6: story selection description
-- Step 7: language description
-- Step 8: "Review your selections..." description
-- Gender card sub-labels ("Will wear a kippah", "Modest dress")
+**3. Step Headings**
+- Center all headings
+- Larger, bolder display font
+- Icon above the heading in a soft gradient circle instead of inline
+- Subtle fade-up entrance animation per step
 
-Also remove description text from:
-- `src/components/wizard/BookOptionsStep.tsx` — "Select the perfect format..." subtitle
-- `src/components/wizard/ShippingForm.tsx` — "We'll deliver this treasure..." subtitle
+**4. Selection Cards (Gender, Art Style, Language, Torah)**
+- Glassmorphism style: `bg-white/60 backdrop-blur-sm border-white/20`
+- On hover: lift with `translateY(-4px)` and soft shadow bloom
+- On select: accent ring glow animation + scale pulse (1.0 → 1.03 → 1.0)
+- Checkmark appears with a spring pop animation
 
-### 3. Auto-Advance on Selection (No Continue Click)
+**5. Input Fields (Name, Age)**
+- Larger, centered input with bottom-border-only style for a minimal look
+- Soft focus glow ring animation
+- Age input: large centered number with subtle bounce on value change
 
-**File:** `src/components/CreationWizard.tsx`
+**6. Character Preview (Steps 2-5)**
+- Float it as an overlay badge in the top-right corner instead of side-by-side layout
+- Rounded with a subtle glow border
+- Smooth morph when the image changes
 
-When a user taps/clicks to select an option, auto-advance to next step after a brief 300ms delay:
-- **Step 2 (Gender)**: selecting boy/girl → auto-advance to step 3
-- **Step 3 (Age)**: after typing age → user still clicks continue (input field, not selection)
-- **Step 4 (Art Style)**: selecting a style → auto-advance to step 5
-- **Step 6 (Torah Portion)**: selecting a portion → auto-advance to step 7
-- **Step 7 (Language)**: selecting a language → auto-advance to step 8
+**7. Navigation Buttons**
+- Back button: text-only with arrow, no background
+- Continue button: pill-shaped with gradient background and subtle shimmer animation
+- Both fade in from below on step load
 
-Implementation: wrap selection handlers with `setTimeout(() => next(), 300)` after setting the value.
+**8. Multi-child Selector**
+- Horizontal scrollable pills with avatar — more compact, pill-shaped chips
 
-### 4. Mobile View Polish
+**9. Generation Animation (Step 9)**
+- Pulsing concentric rings behind the icon
+- Smoother phase transitions with crossfade
 
-**File:** `src/components/CreationWizard.tsx`
-
-- Dialog: use `max-h-[100dvh]` on mobile, full-screen feel with `sm:max-w-3xl sm:max-h-[92vh]`
-- Step 3 age input: stack properly on mobile
-- Gender cards (step 2): ensure `grid-cols-2` with smaller images on mobile
-- Art style cards (step 4): `grid-cols-3` on mobile too but with smaller padding
-- Torah portion cards: `grid-cols-2` stays, reduce padding on mobile
-- Nav buttons: compact on mobile with smaller text
+**10. Mobile Polish**
+- Full-screen dialog on mobile (no rounded corners, `h-[100dvh]`)
+- Touch-friendly tap targets (min 48px)
+- Bottom-anchored nav buttons
 
 ### Files Changed
 
 | File | Change |
 |------|--------|
-| `src/components/CreationWizard.tsx` | Replace age brackets with input (max 15), remove all description text, add auto-advance on selection, mobile layout fixes |
-| `src/components/wizard/BookOptionsStep.tsx` | Remove subtitle description text |
-| `src/components/wizard/ShippingForm.tsx` | Remove subtitle description text |
+| `src/components/CreationWizard.tsx` | Full UI redesign: new transitions, glassmorphism cards, centered layout, floating character preview, staggered animations, minimal progress bar, pill navigation |
+
+### Technical Notes
+- All changes are CSS/layout/animation only — no logic or data flow changes
+- Uses existing framer-motion, just different variant configs
+- No new dependencies needed
 
