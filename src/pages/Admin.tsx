@@ -283,20 +283,19 @@ export default function Admin() {
                                   </td>
                                   <td className="p-3">
                                     <div className="flex gap-1">
-                                      {(book.status === "generating" || (book.status === "ordered" && !book.pages_data)) && (
+                                      {(book.status === "generating" || book.status === "draft" || (book.status === "ordered" && !book.pages_data)) && (
                                         <Button
                                           variant="ghost"
                                           size="sm"
                                           className="text-[11px] h-7 px-2 text-accent"
-                                          disabled={generatingBookId === book.id}
                                           onClick={() => handleTriggerGeneration(book)}
                                           title="Generate book content"
                                         >
-                                          {generatingBookId === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                                          <Play className="w-3 h-3" />
                                         </Button>
                                       )}
                                       {book.pages_data && (
-                                        <Button variant="ghost" size="sm" className="text-[11px] h-7 px-2" onClick={() => setViewingBook(book)}>
+                                        <Button variant="ghost" size="sm" className="text-[11px] h-7 px-2" onClick={() => setGeneratingBook(book)} title="View & edit book">
                                           <Eye className="w-3 h-3" />
                                         </Button>
                                       )}
