@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookViewerModal } from "@/components/wizard/BookViewerModal";
+import { AdminBookGenerationModal } from "@/components/admin/AdminBookGenerationModal";
 import { Input } from "@/components/ui/input";
 import {
   Package, Truck, Wand2, Users, BookOpen, CalendarHeart,
@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData } from "@/hooks/useAdminData";
-import { supabase } from "@/integrations/supabase/client";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -59,9 +58,8 @@ export default function Admin() {
     updateBookStatus, updateSubscriptionStatus,
   } = useAdminData();
 
-  const [viewingBook, setViewingBook] = useState<any>(null);
+  const [generatingBook, setGeneratingBook] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [generatingBookId, setGeneratingBookId] = useState<string | null>(null);
   const [downloadingZip, setDownloadingZip] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
@@ -115,90 +113,8 @@ export default function Admin() {
     finally { setDownloadingZip(null); }
   };
 
-  const handleTriggerGeneration = async (book: any) => {
-    setGeneratingBookId(book.id);
-    try {
-      // Call the generate-story edge function with book params
-      const storyData = book.story_data || {};
-      const { data: storyResult, error: storyErr } = await supabase.functions.invoke("generate-story", {
-        body: {
-          childName: book.child_name,
-          childrenInfo: storyData.childrenInfo || book.child_name,
-          age: storyData.childDescriptions?.[0]?.age || "6",
-          gender: storyData.childDescriptions?.[0]?.gender || "boy",
-          torahPortion: book.torah_portion,
-          torahPortionLabel: book.torah_portion,
-          artStyle: book.art_style,
-          language: book.language || "english",
-          pageCount: storyData.pageCount || 4,
-        },
-      });
-      if (storyErr) throw storyErr;
-
-      const cover = storyResult.cover || { title: `${book.child_name}'s Torah Adventure`, subtitle: "" };
-      const backCover = storyResult.backCover || { synopsis: "", dedication: "" };
-      const questions = storyResult.backCover?.questions || storyResult.questions || [];
-
-      let pageId = 0;
-      const allPages: any[] = [];
-      allPages.push({ id: pageId++, text: cover.title, image: null, imageLoading: true, type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle });
-      for (const p of storyResult.pages || []) {
-        allPages.push({ id: pageId++, text: p.text, image: null, imageLoading: true, type: "story" });
-      }
-      allPages.push({ id: pageId++, text: backCover.synopsis || "", image: null, imageLoading: true, type: "back-cover", synopsis: backCover.synopsis, dedication: backCover.dedication, questions });
-
-      // Generate images for each page
-      const styleMap: Record<string, string> = {
-        cartoon: "colorful cartoon illustration, soft watercolor textures, children's book style",
-        "3d-pixar": "3D Pixar-style CGI render, warm lighting, soft shadows",
-        realistic: "photorealistic illustration, natural lighting, lifelike detail, warm cinematic tones",
-      };
-      const style = styleMap[book.art_style] || styleMap.cartoon;
-
-      for (let i = 0; i < allPages.length; i++) {
-        const page = allPages[i];
-        const prompt = page.type === "cover"
-          ? `A stunning children's book FRONT COVER illustration. Scene from Torah story "${book.torah_portion}". Style: ${style}. No text.`
-          : page.type === "back-cover"
-          ? `A beautiful children's book BACK COVER illustration. Torah story "${book.torah_portion}". Style: ${style}. No text.`
-          : `A beautiful children's book illustration. Scene: "${page.text}". Torah story: "${book.torah_portion}". Style: ${style}. No text.`;
-
-      const storyData = book.story_data || {};
-      const bookOpts = storyData.bookOptions || {};
-      const productType = bookOpts.productType || "softcover";
-      const hardcoverSize = bookOpts.hardcoverSize || "8x8";
-      const bookFormat = productType === "hardcover"
-        ? `hardcover-${hardcoverSize}`
-        : productType === "board"
-        ? "board-6x6"
-        : "softcover-8x8";
-
-        try {
-          const { data: imgData } = await supabase.functions.invoke("generate-image", {
-            body: { prompt, childName: book.child_name, artStyle: book.art_style, torahPortion: book.torah_portion, bookFormat, pageType: page.type },
-          });
-          allPages[i] = { ...page, image: imgData?.imageUrl || null, imageLoading: false };
-        } catch {
-          allPages[i] = { ...page, image: null, imageLoading: false };
-        }
-      }
-
-      // Save to DB
-      await supabase.from("books").update({
-        pages_data: allPages as any,
-        story_data: storyResult,
-        questions,
-        cover_image_url: allPages[0]?.image || null,
-        status: "ordered",
-        updated_at: new Date().toISOString(),
-      } as any).eq("id", book.id);
-
-      toast.success("Book generated successfully! Review and approve.");
-    } catch (err: any) {
-      toast.error(err?.message || "Generation failed");
-    } finally {
-      setGeneratingBookId(null);
-    }
+  const handleTriggerGeneration = (book: any) => {
+    setGeneratingBook(book);
   };
 
   // Stats
@@ -224,7 +140,7 @@ export default function Admin() {
   const userChildren = selectedUserId ? children.filter((c: any) => c.user_id === selectedUserId) : [];
   const userSubs = selectedUserId ? subscriptions.filter((s: any) => s.user_id === selectedUserId) : [];
 
-  const bookPages = viewingBook?.pages_data as any[] || [];
+  
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -364,20 +280,19 @@ export default function Admin() {
                                   </td>
                                   <td className="p-3">
                                     <div className="flex gap-1">
-                                      {(book.status === "generating" || (book.status === "ordered" && !book.pages_data)) && (
+                                      {(book.status === "generating" || book.status === "draft" || (book.status === "ordered" && !book.pages_data)) && (
                                         <Button
                                           variant="ghost"
                                           size="sm"
                                           className="text-[11px] h-7 px-2 text-accent"
-                                          disabled={generatingBookId === book.id}
                                           onClick={() => handleTriggerGeneration(book)}
                                           title="Generate book content"
                                         >
-                                          {generatingBookId === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                                          <Play className="w-3 h-3" />
                                         </Button>
                                       )}
                                       {book.pages_data && (
-                                        <Button variant="ghost" size="sm" className="text-[11px] h-7 px-2" onClick={() => setViewingBook(book)}>
+                                        <Button variant="ghost" size="sm" className="text-[11px] h-7 px-2" onClick={() => setGeneratingBook(book)} title="View & edit book">
                                           <Eye className="w-3 h-3" />
                                         </Button>
                                       )}
@@ -501,7 +416,7 @@ export default function Admin() {
                                   </span>
                                   {book.pages_data && (
                                     <div className="flex gap-1">
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setViewingBook(book)}>
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setGeneratingBook(book)}>
                                         <Eye className="w-3 h-3" />
                                       </Button>
                                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleDownloadZip(book)} title="Download images (ZIP)">
@@ -690,15 +605,16 @@ export default function Admin() {
       </main>
       <Footer />
 
-      {/* Book Viewer Modal */}
-      {viewingBook && (
-        <BookViewerModal
-          open={!!viewingBook}
-          onClose={() => setViewingBook(null)}
-          childName={viewingBook.child_name || ""}
-          torahPortion={viewingBook.torah_portion || ""}
-          artStyle={viewingBook.art_style || "cartoon"}
-          pages={bookPages}
+      {/* Admin Book Generation & Editing Modal */}
+      {generatingBook && (
+        <AdminBookGenerationModal
+          open={!!generatingBook}
+          onClose={() => setGeneratingBook(null)}
+          book={generatingBook}
+          onBookUpdated={() => {
+            // Refresh book list
+            window.location.reload();
+          }}
         />
       )}
     </div>
