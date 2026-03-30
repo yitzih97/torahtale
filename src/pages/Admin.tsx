@@ -58,7 +58,6 @@ export default function Admin() {
     updateBookStatus, updateSubscriptionStatus,
   } = useAdminData();
 
-  const [viewingBook, setViewingBook] = useState<any>(null);
   const [generatingBook, setGeneratingBook] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [downloadingZip, setDownloadingZip] = useState<string | null>(null);
