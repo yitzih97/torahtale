@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
+import { AdminBookGenerationModal } from "@/components/admin/AdminBookGenerationModal";
 import { Input } from "@/components/ui/input";
 import {
   Package, Truck, Wand2, Users, BookOpen, CalendarHeart,

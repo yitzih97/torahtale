@@ -9,7 +9,7 @@ import { generateBookPdf } from "@/lib/generateBookPdf";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Play, Loader2, CheckCircle2, Download, Save, X,
+  Play, Loader2, CheckCircle2, Save, X,
   BookOpen, Sparkles, FileDown, Package,
 } from "lucide-react";
 
