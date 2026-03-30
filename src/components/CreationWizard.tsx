@@ -1639,6 +1639,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     <SubscriptionUpsellDialog
       open={showUpsellDialog}
       onClose={() => setShowUpsellDialog(false)}
+      onSubscribed={() => {
+        justSubscribedRef.current = true;
+        setShowUpsellDialog(false);
+        startGeneration();
+      }}
       context="limit-reached"
     />
     </>
