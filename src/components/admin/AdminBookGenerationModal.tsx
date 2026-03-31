@@ -13,7 +13,7 @@ import {
   BookOpen, Sparkles, FileDown, Package,
 } from "lucide-react";
 
-type Phase = "idle" | "story" | "images" | "done";
+type Phase = "idle" | "character" | "story" | "images" | "done";
 
 interface Props {
   open: boolean;
@@ -33,8 +33,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const [downloadingZip, setDownloadingZip] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const abortRef = useRef(false);
+  const characterSheetsRef = useRef<Record<string, string>>({});
 
-  // If book already has pages, load them for editing
   useEffect(() => {
     if (open && book?.pages_data && (book.pages_data as any[]).length > 0) {
       setPages(book.pages_data as BookPage[]);
@@ -50,18 +50,70 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const handleGenerate = useCallback(async () => {
     if (!book) return;
     abortRef.current = false;
+    characterSheetsRef.current = {};
+
+    const sd = book.story_data || {};
+    const childDescriptions: any[] = sd.childDescriptions || [];
+
+    // ── Phase 1: Character Sheets ──
+    if (childDescriptions.length > 0) {
+      setPhase("character");
+      setStatusText("Creating character reference sheets...");
+
+      for (let i = 0; i < childDescriptions.length; i++) {
+        if (abortRef.current) return;
+        const child = childDescriptions[i];
+        setStatusText(`Creating character sheet for ${child.name} (${i + 1}/${childDescriptions.length})...`);
+
+        try {
+          // Try to get photo URL from child-photos bucket
+          let photoUrl: string | null = null;
+          if (child.photoUrl) {
+            photoUrl = child.photoUrl;
+          } else if (child.hasPhoto && book.child_id) {
+            // Try to find photo in storage
+            const { data: files } = await supabase.storage.from("child-photos").list(book.user_id);
+            const match = files?.find((f: any) => f.name.includes(book.child_id) || f.name.includes(child.name.toLowerCase()));
+            if (match) {
+              const { data: urlData } = supabase.storage.from("child-photos").getPublicUrl(`${book.user_id}/${match.name}`);
+              photoUrl = urlData?.publicUrl || null;
+            }
+          }
+
+          const { data: sheetData, error: sheetErr } = await supabase.functions.invoke("generate-character-sheet", {
+            body: {
+              childName: child.name,
+              age: child.age || "6",
+              gender: child.gender || "boy",
+              artStyle: book.art_style || "cartoon",
+              description: child.description || "",
+              referenceImage: photoUrl,
+            },
+          });
+
+          if (!sheetErr && sheetData?.imageUrl) {
+            characterSheetsRef.current[child.name] = sheetData.imageUrl;
+          }
+        } catch (err) {
+          console.error(`Failed to generate character sheet for ${child.name}:`, err);
+        }
+      }
+    }
+
+    if (abortRef.current) return;
+
+    // ── Phase 2: Story ──
     setPhase("story");
     setStatusText("Generating story text...");
     setPages([]);
 
     try {
-      const sd = book.story_data || {};
       const { data: storyResult, error: storyErr } = await supabase.functions.invoke("generate-story", {
         body: {
           childName: book.child_name,
           childrenInfo: sd.childrenInfo || book.child_name,
-          age: sd.childDescriptions?.[0]?.age || "6",
-          gender: sd.childDescriptions?.[0]?.gender || "boy",
+          age: childDescriptions[0]?.age || "6",
+          gender: childDescriptions[0]?.gender || "boy",
           torahPortion: book.torah_portion,
           torahPortionLabel: book.torah_portion,
           artStyle: book.art_style,
@@ -79,13 +131,37 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
       let pageId = 0;
       const allPages: BookPage[] = [];
-      allPages.push({ id: pageId++, text: cover.title, image: null, imageLoading: true, type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle });
-      for (const p of storyResult.pages || []) {
+
+      // Cover page
+      allPages.push({
+        id: pageId++, text: cover.title, image: null, imageLoading: true,
+        type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle,
+      });
+
+      // Story pages (all except the last one)
+      const storyPages = storyResult.pages || [];
+      for (const p of storyPages) {
         allPages.push({ id: pageId++, text: p.text, image: null, imageLoading: true, type: "story" });
       }
-      allPages.push({ id: pageId++, text: backCover.synopsis || "", image: null, imageLoading: true, type: "back-cover", synopsis: backCover.synopsis, dedication: backCover.dedication, questions });
+
+      // Questions page (last inner page before back cover)
+      if (questions.length > 0) {
+        const questionsText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
+        allPages.push({
+          id: pageId++, text: questionsText, image: null, imageLoading: true,
+          type: "questions", questions,
+        });
+      }
+
+      // Back cover (synopsis + dedication only, no questions)
+      allPages.push({
+        id: pageId++, text: backCover.synopsis || "", image: null, imageLoading: true,
+        type: "back-cover", synopsis: backCover.synopsis, dedication: backCover.dedication,
+      });
 
       setPages(allPages);
+
+      // ── Phase 3: Images ──
       setPhase("images");
       setTotalImages(allPages.length);
       setCurrentImageIdx(0);
@@ -102,9 +178,12 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       const hardcoverSize = bookOpts.hardcoverSize || "8x8";
       const bookFormat = productType === "hardcover"
         ? `hardcover-${hardcoverSize}`
-        : productType === "board"
-        ? "board-6x6"
-        : "softcover-8x8";
+        : productType === "board" ? "board-6x6" : "softcover-8x8";
+
+      // Get the first child's character sheet (primary character)
+      const primaryChildName = childDescriptions[0]?.name || book.child_name;
+      const primaryCharacterSheet = characterSheetsRef.current[primaryChildName] || null;
+      const primaryChildDesc = childDescriptions[0]?.description || "";
 
       for (let i = 0; i < allPages.length; i++) {
         if (abortRef.current) return;
@@ -112,15 +191,29 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         const pg = allPages[i];
         setStatusText(`Generating image ${i + 1} of ${allPages.length}...`);
 
-        const prompt = pg.type === "cover"
-          ? `A stunning children's book FRONT COVER illustration. Scene from Torah story "${book.torah_portion}". Style: ${style}. No text.`
-          : pg.type === "back-cover"
-          ? `A beautiful children's book BACK COVER illustration. Torah story "${book.torah_portion}". Style: ${style}. No text.`
-          : `A beautiful children's book illustration. Scene: "${pg.text}". Torah story: "${book.torah_portion}". Style: ${style}. No text.`;
+        let prompt: string;
+        if (pg.type === "cover") {
+          prompt = `A stunning children's book FRONT COVER illustration. Scene from Torah story "${book.torah_portion}". Style: ${style}. No text.`;
+        } else if (pg.type === "back-cover") {
+          prompt = `A beautiful children's book BACK COVER illustration. Torah story "${book.torah_portion}". Style: ${style}. No text.`;
+        } else if (pg.type === "questions") {
+          prompt = `A warm, inviting children's book illustration suitable as a background for discussion questions. Torah theme "${book.torah_portion}". Style: ${style}. Soft, gentle scene with open books and warm lighting. No text.`;
+        } else {
+          prompt = `A beautiful children's book illustration. Scene: "${pg.text}". Torah story: "${book.torah_portion}". Style: ${style}. No text.`;
+        }
 
         try {
           const { data: imgData } = await supabase.functions.invoke("generate-image", {
-            body: { prompt, childName: book.child_name, artStyle: book.art_style, torahPortion: book.torah_portion, bookFormat, pageType: pg.type },
+            body: {
+              prompt,
+              childName: book.child_name,
+              artStyle: book.art_style,
+              torahPortion: book.torah_portion,
+              bookFormat,
+              pageType: pg.type === "questions" ? "story" : pg.type,
+              characterSheet: primaryCharacterSheet,
+              childDescription: primaryChildDesc,
+            },
           });
           allPages[i] = { ...allPages[i], image: imgData?.imageUrl || null, imageLoading: false };
         } catch {
@@ -214,7 +307,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     finally { setDownloadingPdf(false); }
   };
 
-  const progressPercent = phase === "story" ? 5
+  const progressPercent = phase === "character" ? 3
+    : phase === "story" ? 8
     : phase === "images" ? Math.round(10 + (currentImageIdx / Math.max(totalImages, 1)) * 85)
     : phase === "done" ? 100 : 0;
 
@@ -245,9 +339,9 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Progress bar (during generation) */}
+          {/* Progress bar */}
           <AnimatePresence>
-            {(phase === "story" || phase === "images") && (
+            {(phase === "character" || phase === "story" || phase === "images") && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -266,20 +360,15 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             )}
           </AnimatePresence>
 
-          {/* Idle state — show generate button */}
+          {/* Idle state */}
           {phase === "idle" && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12 space-y-4"
-            >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12 space-y-4">
               <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
                 <Play className="w-8 h-8 text-accent" />
               </div>
               <h3 className="font-display text-xl font-bold text-primary">Ready to Generate</h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                This will generate the story text and all illustrations. You'll see each page appear in real-time
-                and can edit everything before saving.
+                This will generate character sheets, story text, and all illustrations. You'll see each page appear in real-time.
               </p>
               <Button variant="gold" size="lg" onClick={handleGenerate} className="gap-2 rounded-2xl">
                 <Sparkles className="w-4 h-4" /> Start Generation
@@ -287,13 +376,9 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             </motion.div>
           )}
 
-          {/* Book viewer — shows during image gen and after done */}
+          {/* Book viewer */}
           {pages.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <BookViewer
                 childName={book?.child_name || ""}
                 torahPortion={book?.torah_portion || ""}
@@ -304,58 +389,29 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             </motion.div>
           )}
 
-          {/* Done state — action buttons */}
+          {/* Done state */}
           {phase === "done" && pages.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
               <div className="flex items-center gap-2 p-3 rounded-2xl bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
                 <CheckCircle2 className="w-5 h-5 text-green-600" />
                 <span className="text-sm font-medium text-green-700 dark:text-green-300">{statusText}</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="gap-2 rounded-xl"
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Save
+                <Button variant="outline" onClick={handleSave} disabled={saving} className="gap-2 rounded-xl">
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
                 </Button>
-                <Button
-                  variant="default"
-                  onClick={handleApprove}
-                  disabled={saving}
-                  className="gap-2 rounded-xl bg-green-600 hover:bg-green-700 text-white"
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  Approve
+                <Button variant="default" onClick={handleApprove} disabled={saving} className="gap-2 rounded-xl bg-green-600 hover:bg-green-700 text-white">
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Approve
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleDownloadZip}
-                  disabled={downloadingZip}
-                  className="gap-2 rounded-xl"
-                >
-                  {downloadingZip ? <Loader2 className="w-4 h-4 animate-spin" /> : <Package className="w-4 h-4" />}
-                  ZIP
+                <Button variant="outline" onClick={handleDownloadZip} disabled={downloadingZip} className="gap-2 rounded-xl">
+                  {downloadingZip ? <Loader2 className="w-4 h-4 animate-spin" /> : <Package className="w-4 h-4" />} ZIP
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleDownloadPdf}
-                  disabled={downloadingPdf}
-                  className="gap-2 rounded-xl"
-                >
-                  {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                  PDF
+                <Button variant="outline" onClick={handleDownloadPdf} disabled={downloadingPdf} className="gap-2 rounded-xl">
+                  {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />} PDF
                 </Button>
               </div>
 
-              {/* Re-generate option */}
               <div className="text-center">
                 <Button variant="ghost" size="sm" onClick={handleGenerate} className="text-xs text-muted-foreground gap-1.5">
                   <Sparkles className="w-3 h-3" /> Re-generate entire book

@@ -343,6 +343,34 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       try {
         const portionLabel = getPortionLabel(data.torahPortion);
         const childrenInfo = data.children.map((c) => `${c.name} (${c.age} years old, ${c.gender})`).join(", ");
+
+        // Upload child photos to storage and collect URLs
+        const childDescriptions = await Promise.all(
+          data.children.map(async (c) => {
+            let photoUrl: string | null = null;
+            if (c.photo) {
+              const filePath = `${user.id}/${c.id}-${Date.now()}.jpg`;
+              const { error: uploadErr } = await supabase.storage
+                .from("child-photos")
+                .upload(filePath, c.photo, { upsert: true });
+              if (!uploadErr) {
+                const { data: urlData } = supabase.storage
+                  .from("child-photos")
+                  .getPublicUrl(filePath);
+                photoUrl = urlData?.publicUrl || null;
+              }
+            }
+            return {
+              name: c.name,
+              age: c.age,
+              gender: c.gender,
+              description: c.description,
+              hasPhoto: !!c.photoPreview,
+              photoUrl,
+            };
+          })
+        );
+
         const { data: bookData, error: saveError } = await supabase
           .from("books")
           .insert({
@@ -357,13 +385,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
               portionLabel,
               pageCount: data.pageCount,
               bookOptions: bookOptions,
-              childDescriptions: data.children.map((c) => ({
-                name: c.name,
-                age: c.age,
-                gender: c.gender,
-                description: c.description,
-                hasPhoto: !!c.photoPreview,
-              })),
+              childDescriptions,
             },
           } as any)
           .select()

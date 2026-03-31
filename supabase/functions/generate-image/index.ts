@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber } = await req.json();
+    const { prompt, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription } = await req.json();
 
     /* ── Printify print-area dimensions by format ── */
     const PRINT_SPECS: Record<string, { page: [number, number]; cover: [number, number] }> = {
@@ -95,7 +95,34 @@ serve(async (req) => {
       imagePrompt += ` The output image MUST be exactly ${dims[0]}x${dims[1]} pixels.`;
     }
 
+    // Inject child description into prompt if available
+    if (childDescription && !prompt) {
+      imagePrompt += ` The child character has these features: ${childDescription}.`;
+    }
+
     const parts: any[] = [];
+
+    // Inject character sheet as primary reference for consistency
+    if (characterSheet) {
+      imagePrompt = `CRITICAL: The child character MUST look EXACTLY like the character shown in the attached character reference sheet — same face shape, hair style, hair color, eye color, clothing style, proportions. Maintain PERFECT visual consistency. ${imagePrompt}`;
+
+      if (characterSheet.startsWith("data:")) {
+        const match = characterSheet.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (match) {
+          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+        }
+      } else {
+        try {
+          const imgResp = await fetch(characterSheet);
+          if (imgResp.ok) {
+            const buf = await imgResp.arrayBuffer();
+            const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+            const ct = imgResp.headers.get("content-type") || "image/jpeg";
+            parts.push({ inlineData: { mimeType: ct, data: b64 } });
+          }
+        } catch (e) { console.error("Failed to fetch character sheet:", e); }
+      }
+    }
 
     if (referenceImage) {
       imagePrompt = `Using the provided photo as a reference for the child's appearance (face, features, hair), create: ${imagePrompt}. The child in the illustration should closely resemble the child in the reference photo but rendered in the specified art style.`;
@@ -103,20 +130,10 @@ serve(async (req) => {
       if (referenceImage.startsWith("data:")) {
         const match = referenceImage.match(/^data:(image\/\w+);base64,(.+)$/);
         if (match) {
-          parts.push({
-            inlineData: {
-              mimeType: match[1],
-              data: match[2],
-            },
-          });
+          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
         }
       } else {
-        parts.push({
-          fileData: {
-            fileUri: referenceImage,
-            mimeType: "image/jpeg",
-          },
-        });
+        parts.push({ fileData: { fileUri: referenceImage, mimeType: "image/jpeg" } });
       }
     }
 
