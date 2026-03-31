@@ -42,7 +42,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
   const page = pages[currentPage];
   const pageType = page?.type || "story";
-  const isSpecialPage = pageType !== "story";
+  const _isSpecialPage = pageType !== "story";
 
   const startEdit = (idx: number) => {
     setEditingPage(idx);
