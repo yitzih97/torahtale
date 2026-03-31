@@ -256,18 +256,20 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           {page?.dedication && (
             <p className="font-display text-xs text-muted-foreground text-center">{page.dedication}</p>
           )}
-          {page?.questions && page.questions.length > 0 && (
-            <div className="border-t border-border pt-3 mt-3">
-              <p className="font-display text-sm font-bold text-primary mb-2">📖 Discussion Questions</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {page.questions.map((q) => (
-                  <p key={q.number} className="text-xs text-muted-foreground leading-snug">
-                    <span className="font-bold text-accent">{q.number}.</span> {q.question}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
+        </div>
+      )}
+
+      {/* Questions page section */}
+      {pageType === "questions" && (
+        <div className="bg-card rounded-book border border-border p-4 space-y-3">
+          <p className="font-display text-sm font-bold text-primary mb-2">📖 Discussion Questions</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {(page?.questions || []).map((q) => (
+              <p key={q.number} className="text-xs text-muted-foreground leading-snug">
+                <span className="font-bold text-accent">{q.number}.</span> {q.question}
+              </p>
+            ))}
+          </div>
         </div>
       )}
 
