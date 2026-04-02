@@ -5,24 +5,20 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { AddChildWizard, type AddChildResult } from "@/components/dashboard/AddChildWizard";
 import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
+import { DashboardSettings } from "@/components/dashboard/DashboardSettings";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus,
   Truck, Package, Palette, Eye, Trash2, BookMarked, Pencil,
-  Pause, Play, X, Settings, CreditCard, Bell, LogOut, Shield,
-  Loader2,
+  Pause, Play, X, Settings,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBooks, type BookRecord } from "@/hooks/useBooks";
 import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
