@@ -154,15 +154,18 @@ export default function Dashboard() {
             transition={{ duration: 0.6, delay: 0.1, ease }}
           >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full grid grid-cols-3 mb-8 bg-secondary rounded-2xl h-12">
+              <TabsList className="w-full grid grid-cols-4 mb-8 bg-secondary rounded-2xl h-12">
                 <TabsTrigger value="kids" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm">
-                  <Users className="w-4 h-4" /> My Kids
+                  <Users className="w-4 h-4" /> <span className="hidden sm:inline">My Kids</span>
                 </TabsTrigger>
                 <TabsTrigger value="books" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm">
-                  <BookOpen className="w-4 h-4" /> My Books
+                  <BookOpen className="w-4 h-4" /> <span className="hidden sm:inline">My Books</span>
                 </TabsTrigger>
                 <TabsTrigger value="subs" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm">
-                  <CalendarHeart className="w-4 h-4" /> Subscriptions
+                  <CalendarHeart className="w-4 h-4" /> <span className="hidden sm:inline">Subscriptions</span>
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm">
+                  <Settings className="w-4 h-4" /> <span className="hidden sm:inline">Settings</span>
                 </TabsTrigger>
               </TabsList>
 
