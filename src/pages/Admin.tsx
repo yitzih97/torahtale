@@ -20,6 +20,7 @@ import { generateBookZip } from "@/lib/generateBookZip";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { AdminCMS } from "@/components/admin/AdminCMS";
+import { supabase } from "@/integrations/supabase/client";
 
 const ease = [0.22, 1, 0.36, 1];
 
@@ -313,9 +314,22 @@ export default function Admin() {
                                           variant="ghost"
                                           size="sm"
                                           className="text-[11px] h-7 px-2 text-green-600"
-                                          onClick={() => {
+                                          onClick={async () => {
                                             updateBookStatus.mutate({ id: book.id, status: "approved" });
-                                            toast.success("Book approved!");
+                                            try {
+                                              const { data: pfResult, error: pfErr } = await supabase.functions.invoke("printify-submit", {
+                                                body: { action: "submit-order", bookId: book.id },
+                                              });
+                                              if (pfErr) throw pfErr;
+                                              if (pfResult?.success) {
+                                                toast.success("Approved & sent to Printify!");
+                                              } else {
+                                                toast.warning(`Approved but Printify failed: ${pfResult?.error || "Unknown"}`);
+                                              }
+                                            } catch (e: any) {
+                                              console.error("Printify error:", e);
+                                              toast.warning("Approved but Printify auto-submit failed.");
+                                            }
                                           }}
                                           title="Approve for printing"
                                         >

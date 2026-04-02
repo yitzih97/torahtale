@@ -261,7 +261,23 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         status: "approved",
         updated_at: new Date().toISOString(),
       } as any).eq("id", book.id);
-      toast.success("Book approved for printing!");
+
+      // Auto-submit to Printify
+      try {
+        const { data: printifyResult, error: printifyErr } = await supabase.functions.invoke("printify-submit", {
+          body: { action: "submit-order", bookId: book.id },
+        });
+        if (printifyErr) throw printifyErr;
+        if (printifyResult?.success) {
+          toast.success("Book approved & sent to Printify for printing!");
+        } else {
+          toast.warning(`Approved but Printify submission failed: ${printifyResult?.error || "Unknown error"}`);
+        }
+      } catch (pfErr: any) {
+        console.error("Printify submit error:", pfErr);
+        toast.warning("Approved but Printify auto-submit failed. You can retry from the orders tab.");
+      }
+
       onBookUpdated();
       onClose();
     } catch {
