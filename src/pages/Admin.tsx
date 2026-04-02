@@ -20,6 +20,7 @@ import { generateBookZip } from "@/lib/generateBookZip";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { AdminCMS } from "@/components/admin/AdminCMS";
+import { supabase } from "@/integrations/supabase/client";
 
 const ease = [0.22, 1, 0.36, 1];
 
