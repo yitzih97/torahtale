@@ -1,83 +1,52 @@
 
 
-## Plan: Character Consistency, Cover Dimensions & Questions Layout
+## Plan: Dashboard Account Settings + Printify Auto-Submit on Approve
 
-### Problems to Fix
-1. **Cover/back-cover pages** use regular page dimensions instead of the larger cover print-area sizes
-2. **Discussion questions** are shown below the back-cover image as metadata — they should be rendered as part of the last inner page of the book
-3. **Character appearance** is inconsistent across pages — no reference image or character sheet is passed to `generate-image`
-4. **Child photos/descriptions** stored during wizard are not forwarded to the image generation pipeline
+### What We're Building
 
-### Solution
+1. **User Account Settings tab** in `/dashboard` — a new "Settings" tab with sections for profile info, payment methods, notification preferences, and active sessions/devices
+2. **Auto-submit to Printify on admin approval** — when an admin clicks "Approve" in the admin modal or orders tab, the system automatically calls `printify-submit` to create the product and order on Printify
 
-#### 1. Character Reference Sheet (New Edge Function)
+### Changes
 
-**New file: `supabase/functions/generate-character-sheet/index.ts`**
+#### 1. Dashboard Settings Tab
+**File: `src/pages/Dashboard.tsx`**
+- Add a 4th tab: "Settings" with a gear icon
+- Update `TabsList` grid from `grid-cols-3` to `grid-cols-4`
+- Settings tab sections:
+  - **Profile**: edit name, email (read-only), change password
+  - **Payment Methods**: list saved cards, add/remove (placeholder UI since Stripe isn't wired yet)
+  - **Notifications**: toggle email notifications for book ready, shipping updates, subscription reminders
+  - **Account Actions**: sign out, delete account confirmation
+- Keep consistent design with existing dashboard cards (rounded-2xl, shadow-soft-sm, motion animations)
 
-- Accepts: `childName`, `age`, `gender`, `artStyle`, `description`, `referenceImage` (user's uploaded photo or data URI)
-- Generates a **character model sheet** (front view, side view, expressions) using Gemini image generation
-- Returns the character sheet as a base64 image URL
-- This sheet becomes the `referenceImage` for ALL subsequent page illustrations
-
-#### 2. Update `generate-image` to Accept Character Sheet
-
-**File: `supabase/functions/generate-image/index.ts`**
-
-- Add a new param `characterSheet` (separate from `referenceImage`)
-- When `characterSheet` is provided, inject it as an inline image part with prompt: "The child character MUST look exactly like the character in this reference sheet — same face, hair, clothing, proportions. Maintain perfect consistency."
-- Also accept `childDescription` param for text-based appearance guidance when no photo exists
-- Pass both `pageType` dimensions correctly: cover pages get `specs.cover` dimensions, story pages get `specs.page` dimensions (this already works but needs verification in callers)
-
-#### 3. Update `AdminBookGenerationModal` Generation Flow
-
+#### 2. Auto-Submit to Printify on Approve
 **File: `src/components/admin/AdminBookGenerationModal.tsx`**
+- In `handleApprove()`, after updating book status to "approved", call `supabase.functions.invoke("printify-submit", { body: { action: "submit-order", bookId: book.id } })`
+- Show toast on success ("Sent to Printify for printing!") or error
+- Update book status to "printing" on successful Printify submission
 
-- **Phase 1 (new): "character"** — Before generating images, call `generate-character-sheet` for each child using their photo URL from `child-photos` bucket or their description
-- Store the returned character sheet(s) in state
-- **Phase 2: "story"** — Same as current
-- **Phase 3: "images"** — Pass `characterSheet` and `childDescription` to every `generate-image` call
-- **Cover dimensions**: Pass `pageType: "cover"` and `pageType: "back-cover"` (already done) — the `generate-image` function already uses correct cover vs page dimensions when `bookFormat` is passed
-- **Questions page**: Change page structure so questions are the **last story page** (page 10), not metadata on the back cover. Build a dedicated "questions" page with text content listing the questions
+**File: `src/pages/Admin.tsx`**
+- In the inline "Approve" button click handler (line ~316), also call `printify-submit` after updating status
+- Add loading state for the approve action
 
-#### 4. Update `CreationWizard` to Store Child Photos
-
+#### 3. Fix Build Error
 **File: `src/components/CreationWizard.tsx`**
-
-- In `startGeneration()`, upload each child's photo (if exists) to the `child-photos` bucket
-- Save the photo URLs in `story_data.childDescriptions[].photoUrl`
-- This data is then available to the admin modal for character sheet generation
-
-#### 5. Questions as Inner Page
-
-**Files: `AdminBookGenerationModal.tsx`, `generate-story/index.ts`**
-
-- In `generate-story`, request the AI to include questions as part of page 10's text content (or as a separate structured field)
-- In the page assembly code, create a dedicated "questions" page (type: `"story"` or new type `"questions"`) as the last inner page before the back cover
-- The back cover keeps only the synopsis and dedication
-- The questions page renders its content as formatted text overlaid on an illustration
+- The build error is likely from the `c.photo` upload — `supabase.storage.upload()` expects `File | Blob | ArrayBuffer` but `c.photo` is typed as `File | null`. The `if (c.photo)` check should narrow this, but we'll add explicit typing to be safe
+- Also check for any other TS issues introduced in the last round
 
 ### Files Changed
 
 | File | Change |
 |------|--------|
-| `supabase/functions/generate-character-sheet/index.ts` | **New** — generates a character model sheet from photo/description |
-| `supabase/functions/generate-image/index.ts` | Accept `characterSheet` + `childDescription` params; inject character sheet as reference |
-| `supabase/functions/generate-story/index.ts` | Move questions to be part of the last story page content |
-| `src/components/admin/AdminBookGenerationModal.tsx` | Add character sheet phase; pass character data to image gen; restructure pages so questions = last inner page |
-| `src/components/CreationWizard.tsx` | Upload child photos to storage during generation; save photo URLs in story_data |
-| `src/components/wizard/BookViewer.tsx` | Add rendering support for a "questions" page type |
+| `src/pages/Dashboard.tsx` | Add Settings tab with profile, payment, notifications, account sections |
+| `src/components/admin/AdminBookGenerationModal.tsx` | Call `printify-submit` edge function after approve |
+| `src/pages/Admin.tsx` | Call `printify-submit` on inline approve button |
+| `src/components/CreationWizard.tsx` | Fix build error (type narrowing) |
 
-### Generation Flow (After Changes)
-
-```text
-1. Upload child photos → storage bucket
-2. Generate character sheet(s) from photo/description + art style
-3. Generate story text (questions included as page 10 content)
-4. Assemble pages:
-   - Page 0: Cover (cover dimensions)
-   - Pages 1-8: Story (page dimensions)
-   - Page 9: Questions (page dimensions)
-   - Page 10: Back Cover (cover dimensions, synopsis + dedication only)
-5. Generate images for each page, passing character sheet as reference
-```
+### Technical Notes
+- The `printify-submit` edge function already exists and handles `submit-order` action — it uploads page images, creates a product, and sets status to "printing"
+- The function requires `PRINTIFY_API_KEY` secret (already configured) and `printify-shop-id` in site_settings
+- No new database migrations needed
+- No new dependencies needed
 
