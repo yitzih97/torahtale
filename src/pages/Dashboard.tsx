@@ -438,6 +438,11 @@ export default function Dashboard() {
                   </div>
                 )}
               </TabsContent>
+
+              {/* TAB: Settings */}
+              <TabsContent value="settings">
+                <DashboardSettings user={user} />
+              </TabsContent>
             </Tabs>
           </motion.div>
         </div>
