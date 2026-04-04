@@ -211,9 +211,10 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               artStyle: book.art_style,
               torahPortion: book.torah_portion,
               bookFormat,
-              pageType: pg.type === "questions" ? "story" : pg.type,
+              pageType,
               characterSheet: primaryCharacterSheet,
               childDescription: primaryChildDesc,
+              pageNumber: pg.type === "story" ? i : undefined,
             },
           });
           allPages[i] = { ...allPages[i], image: imgData?.imageUrl || null, imageLoading: false };

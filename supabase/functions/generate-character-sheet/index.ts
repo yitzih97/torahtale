@@ -39,18 +39,24 @@ serve(async (req) => {
       ? `Physical appearance: ${description}.`
       : "cheerful, bright-eyed expression, friendly smile.";
 
-    const prompt = `Create a CHARACTER MODEL SHEET / reference sheet for a ${ageNum}-year-old Jewish ${gender} ${ageDesc} named ${childName || "child"}.
+    const prompt = `Create a detailed CHARACTER MODEL SHEET for a ${ageNum}-year-old frum Yiddishe ${gender} ${ageDesc} named ${childName || "child"}.
 
-VIEWS REQUIRED: Front view, 3/4 view, side profile, and 2 expression variations (happy, surprised). All views on the same sheet in a grid layout.
+LAYOUT: A single image containing a grid with: FRONT VIEW (full body), 3/4 VIEW (full body), SIDE PROFILE (head and shoulders), and 2 FACIAL EXPRESSIONS (happy, surprised). All views arranged neatly on the same white sheet.
 
 CHARACTER DETAILS:
 - ${genderDetails}
 - ${descPart}
-- Style: ${style}
+- Art style: ${style}
 
-IMPORTANT: This is a reference sheet to maintain character consistency across multiple illustrations. Show the SAME character from different angles with IDENTICAL features, proportions, clothing, and colors in each view. Clean white background, no scene/environment. No text labels.
+CRITICAL CONSISTENCY RULES:
+- Every view must show the EXACT SAME character — identical face shape, nose, eyes, eyebrows, mouth, hair color, hair style, skin tone, and body proportions.
+- Clothing must be identical in every view — same colors, same patterns, same fit.
+- ${gender === "boy" ? "The yarmulke, peyos, and tzitzis must be clearly visible and consistent in every view." : "The modest dress must be the same in every view — same color, same sleeves, same length."}
+- This sheet will be used as a reference to generate consistent illustrations across a children's book. The character must be recognizable in every single view.
 
-${referenceImage ? "Use the provided reference photo to match the child's facial features, hair, and proportions as closely as possible while rendering in the specified art style." : ""}`;
+BACKGROUND: Clean solid white background. No environments, no props, no text labels.
+
+${referenceImage ? "REFERENCE PHOTO PROVIDED: You MUST match the child's facial features, face shape, hair color, hair texture, eye color, and skin tone from the attached reference photo as closely as possible, while rendering in the specified art style. The illustrated character should be immediately recognizable as the same child in the photo." : ""}`;
 
     const parts: any[] = [];
 
