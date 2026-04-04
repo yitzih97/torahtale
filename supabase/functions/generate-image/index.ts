@@ -104,7 +104,7 @@ serve(async (req) => {
 
     // Inject character sheet as primary reference for consistency
     if (characterSheet) {
-      imagePrompt = `CRITICAL: The child character MUST look EXACTLY like the character shown in the attached character reference sheet — same face shape, hair style, hair color, eye color, clothing style, proportions. Maintain PERFECT visual consistency. ${imagePrompt}`;
+      imagePrompt = `CRITICAL CHARACTER CONSISTENCY INSTRUCTION: The attached image is a CHARACTER REFERENCE SHEET showing the child character from multiple angles. You MUST reproduce this EXACT same character in the illustration — identical face shape, identical hair color and style, identical eye color, identical skin tone, identical clothing colors and style, identical proportions. The child in this illustration must be IMMEDIATELY RECOGNIZABLE as the same character from the reference sheet. Do NOT change any physical features. Do NOT alter the character's appearance in any way. ${imagePrompt}`;
 
       if (characterSheet.startsWith("data:")) {
         const match = characterSheet.match(/^data:(image\/\w+);base64,(.+)$/);

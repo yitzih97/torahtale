@@ -61,6 +61,24 @@ IMPORTANT CULTURAL RULES:
 - The stories should be vivid, imaginative, and make the kinderlach the heroes of the narrative
 - Maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic Yiddishe children's book
 
+CRITICAL NAME TRANSLITERATION RULES — ALWAYS use the Yiddish/Hebrew transliterations, NEVER the English/Christian versions:
+- Avraham (NOT Abraham), Yitzchak (NOT Isaac), Yaakov (NOT Jacob)
+- Moshe (NOT Moses), Aharon (NOT Aaron), Miriam (NOT Miriam is fine)
+- Dovid (NOT David), Shlomo (NOT Solomon), Shaul (NOT Saul)
+- Yosef (NOT Joseph), Binyamin (NOT Benjamin), Yehuda (NOT Judah)
+- Rivka (NOT Rebecca), Rochel (NOT Rachel), Leah is fine, Sarah is fine
+- Noach (NOT Noah), Adom (NOT Adam), Chava (NOT Eve)
+- Golias (NOT Goliath), Paroh (NOT Pharaoh), Eisav (NOT Esau)
+- Pinchas (NOT Phinehas), Yehoshua (NOT Joshua), Shimshon (NOT Samson)
+- Eliyahu (NOT Elijah), Elisha is fine, Shmuel (NOT Samuel)
+- Doniel (NOT Daniel), Mordechai (NOT Mordecai), Esther is fine
+- Reuven (NOT Reuben), Shimon (NOT Simon), Levi is fine, Menashe (NOT Manasseh)
+- Efraim (NOT Ephraim), Naftali (NOT Naphtali), Dan is fine, Gad is fine
+- Yissachar (NOT Issachar), Zevulun (NOT Zebulun), Asher is fine
+- Use Bnei Yisrael (NOT Israelites), Mitzrayim (NOT Egypt in Torah context), Eretz Yisrael (NOT Land of Israel/Canaan)
+- Use the Yam Suf (NOT Red Sea), Har Sinai (NOT Mount Sinai), Gan Eden (NOT Garden of Eden)
+- Refer to non-Jewish nations by their Hebrew names when possible
+
 CRITICAL RULE: The MAJORITY of story pages (at least 70%) MUST depict the ACTUAL events from the Torah portion in vivid, specific detail. For example, if the story is about the Exodus, you must show the individual plagues, the splitting of the sea, etc. — not just mention them in passing. The child characters must be PRESENT IN and PARTICIPATING IN those actual Torah scenes, witnessing the miracles and events firsthand. Do NOT summarize the Torah events in 1-2 pages and spend the rest on generic adventure. Each Torah event deserves its own page with rich, specific detail.`;
 
     const characterDesc = childrenInfo

@@ -192,14 +192,15 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         setStatusText(`Generating image ${i + 1} of ${allPages.length}...`);
 
         let prompt: string;
+        let pageType = pg.type === "questions" ? "story" : pg.type;
         if (pg.type === "cover") {
-          prompt = `A stunning children's book FRONT COVER illustration. Scene from Torah story "${book.torah_portion}". Style: ${style}. No text.`;
+          prompt = `Create a children's book FRONT COVER illustration. This is a book cover — it should look like a real published book cover with a dramatic, eye-catching composition. The scene shows ${book.child_name} in a key moment from the Torah story "${book.torah_portion}". Art style: ${style}. The composition should be vertically centered with the main character prominent. NO TEXT, no title, no words — just the illustration. Orthodox Jewish setting. The cover must feel magical, inviting, and professional like a real bookstore children's book.`;
         } else if (pg.type === "back-cover") {
-          prompt = `A beautiful children's book BACK COVER illustration. Torah story "${book.torah_portion}". Style: ${style}. No text.`;
+          prompt = `Create a children's book BACK COVER illustration. This is a back cover — it should be softer and more atmospheric than the front. A gentle, dreamy scene related to the Torah story "${book.torah_portion}" with ${book.child_name}. Art style: ${style}. Warm sunset or twilight tones, peaceful atmosphere. Leave visual space in the center for text overlay. NO TEXT, no words. Orthodox Jewish setting.`;
         } else if (pg.type === "questions") {
-          prompt = `A warm, inviting children's book illustration suitable as a background for discussion questions. Torah theme "${book.torah_portion}". Style: ${style}. Soft, gentle scene with open books and warm lighting. No text.`;
+          prompt = `A warm, inviting children's book illustration suitable as a background for discussion questions. Torah theme "${book.torah_portion}". Style: ${style}. Soft, gentle scene with open seforim and warm lighting in a cozy beis medrash setting. Leave plenty of visual space for text overlay. No text.`;
         } else {
-          prompt = `A beautiful children's book illustration. Scene: "${pg.text}". Torah story: "${book.torah_portion}". Style: ${style}. No text.`;
+          prompt = `A beautiful children's book page illustration depicting the following scene: "${pg.text}". This is from the Torah story "${book.torah_portion}". The main character is ${book.child_name}, a frum Yiddishe child who MUST look EXACTLY like the character reference sheet provided. Art style: ${style}. Full-page illustration, vivid and immersive. Orthodox Jewish setting — boys with yarmulke, peyos, tzitzis; girls in modest long-sleeved dresses. No text in the image.`;
         }
 
         try {
@@ -210,9 +211,10 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               artStyle: book.art_style,
               torahPortion: book.torah_portion,
               bookFormat,
-              pageType: pg.type === "questions" ? "story" : pg.type,
+              pageType,
               characterSheet: primaryCharacterSheet,
               childDescription: primaryChildDesc,
+              pageNumber: pg.type === "story" ? i : undefined,
             },
           });
           allPages[i] = { ...allPages[i], image: imgData?.imageUrl || null, imageLoading: false };
