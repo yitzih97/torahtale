@@ -257,6 +257,37 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
+  // Save wizard state before login so we can resume
+  const saveWizardState = useCallback(() => {
+    const serializable = {
+      step,
+      data: {
+        ...data,
+        children: data.children.map(c => ({ ...c, photo: null })), // can't serialize File
+      },
+      shipping,
+      bookOptions,
+      portionFilter,
+    };
+    localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
+  }, [step, data, shipping, bookOptions, portionFilter]);
+
+  // Restore wizard state on mount if user just logged in
+  useEffect(() => {
+    const saved = localStorage.getItem("torahtale_wizard_state");
+    if (saved && user) {
+      try {
+        const parsed = JSON.parse(saved);
+        setStep(parsed.step || 1);
+        setData(parsed.data || initialData);
+        setShipping(parsed.shipping || DEFAULT_SHIPPING);
+        setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
+        if (parsed.portionFilter) setPortionFilter(parsed.portionFilter);
+        localStorage.removeItem("torahtale_wizard_state");
+      } catch { /* ignore */ }
+    }
+  }, []);
+
   // Cleanup auto-advance timer
   useEffect(() => {
     return () => {
