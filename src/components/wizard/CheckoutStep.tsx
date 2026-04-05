@@ -5,7 +5,7 @@ import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
 import { type BookOptions, calculateBookPrice } from "./BookOptionsStep";
 
-type PlanType = "weekly" | "monthly" | "yearly" | "once";
+export type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
 interface Plan {
   id: PlanType;
@@ -55,7 +55,7 @@ interface Props {
   artStyle: string;
   shipping: ShippingData;
   bookOptions: BookOptions;
-  onPlaceOrder: (subscribeWeekly: boolean) => void;
+  onPlaceOrder: (planType: PlanType) => void;
 }
 
 export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, bookOptions, onPlaceOrder }: Props) => {
@@ -74,7 +74,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
   const handlePlaceOrder = async () => {
     setPlacingOrder(true);
     try {
-      await onPlaceOrder(isSubscription);
+      await onPlaceOrder(selectedPlan);
     } catch (err) {
       console.error("Order failed:", err);
     } finally {

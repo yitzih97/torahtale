@@ -257,6 +257,37 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
+  // Save wizard state before login so we can resume
+  const saveWizardState = useCallback(() => {
+    const serializable = {
+      step,
+      data: {
+        ...data,
+        children: data.children.map(c => ({ ...c, photo: null })), // can't serialize File
+      },
+      shipping,
+      bookOptions,
+      portionFilter,
+    };
+    localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
+  }, [step, data, shipping, bookOptions, portionFilter]);
+
+  // Restore wizard state on mount if user just logged in
+  useEffect(() => {
+    const saved = localStorage.getItem("torahtale_wizard_state");
+    if (saved && user) {
+      try {
+        const parsed = JSON.parse(saved);
+        setStep(parsed.step || 1);
+        setData(parsed.data || initialData);
+        setShipping(parsed.shipping || DEFAULT_SHIPPING);
+        setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
+        if (parsed.portionFilter) setPortionFilter(parsed.portionFilter);
+        localStorage.removeItem("torahtale_wizard_state");
+      } catch { /* ignore */ }
+    }
+  }, []);
+
   // Cleanup auto-advance timer
   useEffect(() => {
     return () => {
@@ -312,8 +343,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const handleWizardGoogleLogin = async () => {
     setLoginLoading(true);
+    saveWizardState();
     const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/?start=1`,
     });
     setLoginLoading(false);
     if (error) toast.error(error.message);
@@ -421,6 +453,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     if (step === 8) {
       if (!user) {
         pendingGenerationRef.current = true;
+        saveWizardState();
         setShowLoginPrompt(true);
         toast.info("Please sign in to generate your sefer.");
         return;
@@ -462,35 +495,96 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     setStep(Math.max(prevStep, 1));
   };
 
-  const handlePlaceOrder = async (subscribeWeekly: boolean = false) => {
-    if (savedBookId && user) {
-      try {
-        await supabase.from("books").update({
-          status: "ordered",
-          shipping_data: shipping,
-          order_number: `TT-${Date.now().toString().slice(-6)}`,
-          updated_at: new Date().toISOString(),
-        } as any).eq("id", savedBookId);
+  const handlePlaceOrder = async (planType: string = "once") => {
+    if (!savedBookId || !user) return;
 
-        if (subscribeWeekly) {
-          await supabase.from("subscriptions").insert({
-            user_id: user.id,
-            child_name: childNames,
-            child_id: data.children[0]?.id || null,
-            art_style: data.artStyle,
-            language: data.language,
-            shipping_data: shipping as any,
-            status: "active",
-            frequency: "weekly",
-            price_per_week: 23.99,
-          });
-        }
-      } catch (err) {
-        console.error("Failed to update order:", err);
+    const isSubscription = planType !== "once";
+    const orderNumber = `TT-${Date.now().toString().slice(-6)}`;
+
+    try {
+      // Update book status
+      await supabase.from("books").update({
+        status: "ordered",
+        shipping_data: shipping,
+        order_number: orderNumber,
+        updated_at: new Date().toISOString(),
+      } as any).eq("id", savedBookId);
+
+      // Save subscription record if subscribing
+      if (isSubscription) {
+        const freqMap: Record<string, { frequency: string; price: number }> = {
+          weekly: { frequency: "weekly", price: 23.99 },
+          monthly: { frequency: "monthly", price: 19.99 },
+          yearly: { frequency: "yearly", price: 15.38 },
+        };
+        const plan = freqMap[planType] || freqMap.weekly;
+        await supabase.from("subscriptions").insert({
+          user_id: user.id,
+          child_name: childNames,
+          child_id: data.children[0]?.id || null,
+          art_style: data.artStyle,
+          language: data.language,
+          shipping_data: shipping as any,
+          status: "active",
+          frequency: plan.frequency,
+          price_per_week: plan.price,
+        });
       }
+
+      // Create Shopify cart and redirect to checkout
+      const { createShopifyCart, SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
+
+      let variantId: string;
+      if (isSubscription) {
+        const subMap: Record<string, string> = {
+          weekly: SHOPIFY_VARIANT_IDS.weeklySubscription,
+          monthly: SHOPIFY_VARIANT_IDS.monthlySubscription,
+          yearly: SHOPIFY_VARIANT_IDS.yearlySubscription,
+        };
+        variantId = subMap[planType] || SHOPIFY_VARIANT_IDS.monthlySubscription;
+      } else {
+        // One-time purchase — pick variant based on book options
+        const bookVariantMap: Record<string, string> = {
+          "softcover-8x8": SHOPIFY_VARIANT_IDS.bookSoftcover8x8,
+          "hardcover-8x8": SHOPIFY_VARIANT_IDS.bookHardcover8x8,
+          "hardcover-11x8.5": SHOPIFY_VARIANT_IDS.bookHardcover11x85,
+          "board-6x6": SHOPIFY_VARIANT_IDS.bookBoardBook6x6,
+        };
+        const optKey = bookOptions.productType === "board"
+          ? "board-6x6"
+          : bookOptions.productType === "softcover"
+            ? "softcover-8x8"
+            : `hardcover-${bookOptions.hardcoverSize || "8x8"}`;
+        variantId = bookVariantMap[optKey] || SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
+      }
+
+      // Save wizard state so we can resume after checkout redirect
+      localStorage.setItem("torahtale_pending_order", JSON.stringify({
+        bookId: savedBookId,
+        orderNumber,
+        planType,
+      }));
+
+      const cart = await createShopifyCart({
+        lineId: null,
+        product: {} as any,
+        variantId,
+        variantTitle: isSubscription ? `${planType} subscription` : "Book",
+        price: { amount: "0", currencyCode: "USD" },
+        quantity: 1,
+        selectedOptions: [],
+      });
+
+      if (cart?.checkoutUrl) {
+        window.location.href = cart.checkoutUrl;
+        return;
+      } else {
+        toast.error("Could not create checkout. Please try again.");
+      }
+    } catch (err) {
+      console.error("Failed to place order:", err);
+      toast.error("Order failed. Please try again.");
     }
-    setDir(1);
-    setStep(13);
   };
 
   /* ───── can proceed checks ───── */
