@@ -452,6 +452,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     if (step === 8) {
       if (!user) {
         pendingGenerationRef.current = true;
+        saveWizardState();
         setShowLoginPrompt(true);
         toast.info("Please sign in to generate your sefer.");
         return;
