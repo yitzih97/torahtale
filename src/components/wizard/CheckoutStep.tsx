@@ -5,7 +5,7 @@ import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
 import { type BookOptions, calculateBookPrice } from "./BookOptionsStep";
 
-type PlanType = "weekly" | "monthly" | "yearly" | "once";
+export type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
 interface Plan {
   id: PlanType;
