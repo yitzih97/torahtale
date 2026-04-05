@@ -74,7 +74,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
   const handlePlaceOrder = async () => {
     setPlacingOrder(true);
     try {
-      await onPlaceOrder(isSubscription);
+      await onPlaceOrder(selectedPlan);
     } catch (err) {
       console.error("Order failed:", err);
     } finally {
