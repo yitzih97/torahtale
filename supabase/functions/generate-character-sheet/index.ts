@@ -31,8 +31,12 @@ serve(async (req) => {
     };
     const style = styleMap[artStyle] || styleMap.cartoon;
 
+    const ageNum = parseInt(age, 10);
+    const isToddlerBoy = gender === "boy" && !isNaN(ageNum) && ageNum <= 2;
     const genderDetails = gender === "boy"
-      ? "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
+      ? isToddlerBoy
+        ? "with beginning peyos (sidelocks), NO yarmulke/kippah (before upsherin age 3), tzitzis optional, and modest clothing"
+        : "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
       : "modest dress with long sleeves and long skirt below the knee, no head covering for unmarried girls, tznius appearance";
 
     const descPart = description
@@ -51,7 +55,7 @@ CHARACTER DETAILS:
 CRITICAL CONSISTENCY RULES:
 - Every view must show the EXACT SAME character — identical face shape, nose, eyes, eyebrows, mouth, hair color, hair style, skin tone, and body proportions.
 - Clothing must be identical in every view — same colors, same patterns, same fit.
-- ${gender === "boy" ? "The yarmulke, peyos, and tzitzis must be clearly visible and consistent in every view." : "The modest dress must be the same in every view — same color, same sleeves, same length."}
+- ${gender === "boy" ? (isToddlerBoy ? "The child is under 3, so NO yarmulke/kippah. Show beginning peyos only. Must be consistent in every view." : "The yarmulke, peyos, and tzitzis must be clearly visible and consistent in every view.") : "The modest dress must be the same in every view — same color, same sleeves, same length."}
 - This sheet will be used as a reference to generate consistent illustrations across a children's book. The character must be recognizable in every single view.
 
 BACKGROUND: Clean solid white background. No environments, no props, no text labels.
