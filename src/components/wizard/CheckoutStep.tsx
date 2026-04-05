@@ -55,7 +55,7 @@ interface Props {
   artStyle: string;
   shipping: ShippingData;
   bookOptions: BookOptions;
-  onPlaceOrder: (subscribeWeekly: boolean) => void;
+  onPlaceOrder: (planType: PlanType) => void;
 }
 
 export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, bookOptions, onPlaceOrder }: Props) => {
