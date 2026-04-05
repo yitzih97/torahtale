@@ -343,8 +343,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const handleWizardGoogleLogin = async () => {
     setLoginLoading(true);
+    saveWizardState();
     const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/?start=1`,
     });
     setLoginLoading(false);
     if (error) toast.error(error.message);
