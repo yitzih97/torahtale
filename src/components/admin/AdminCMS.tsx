@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Settings, Image as ImageIcon, Brain, DollarSign,
   Save, Loader2, RefreshCw, Check, AlertTriangle, Globe,
-  Upload, Palette, Printer, TestTube2, BookOpen, Copy,
+  Upload, Palette, Printer, TestTube2, BookOpen, Copy, Search,
 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSiteAssets } from "@/hooks/useSiteAssets";
@@ -465,6 +465,7 @@ export function AdminCMS() {
   const [aiEdits, setAiEdits] = useState<Record<string, string>>({});
   const [pricingEdits, setPricingEdits] = useState<Record<string, string>>({});
   const [integrationEdits, setIntegrationEdits] = useState<Record<string, string>>({});
+  const [seoEdits, setSeoEdits] = useState<Record<string, string>>({});
   const [imagePrompts, setImagePrompts] = useState<Record<string, string>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [regeneratingKey, setRegeneratingKey] = useState<string | null>(null);
@@ -479,18 +480,21 @@ export function AdminCMS() {
       const ai: Record<string, string> = {};
       const pricing: Record<string, string> = {};
       const integrations: Record<string, string> = {};
+      const seo: Record<string, string> = {};
       settings.forEach((s) => {
         if (s.category === "prompts") prompts[s.key] = s.value;
         if (s.category === "website") content[s.key] = s.value;
         if (s.category === "ai") ai[s.key] = s.value;
         if (s.category === "pricing") pricing[s.key] = s.value;
         if (s.category === "integrations") integrations[s.key] = s.value;
+        if (s.category === "seo") seo[s.key] = s.value;
       });
       setPromptEdits(prompts);
       setContentEdits(content);
       setAiEdits(ai);
       setPricingEdits(pricing);
       setIntegrationEdits(integrations);
+      setSeoEdits(seo);
     }
   }, [settingsLoading, settings]);
 
