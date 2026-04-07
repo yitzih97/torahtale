@@ -192,18 +192,14 @@ const staggerChild = {
 };
 
 const ART_STYLES = [
-  { key: "cartoon", label: "Cartoon" },
-  { key: "3d-pixar", label: "3D Pixar" },
-  { key: "realistic", label: "Realistic" },
+  { key: "cartoon", labelKey: "cartoon" as const },
+  { key: "3d-pixar", labelKey: "threeDPixar" as const },
+  { key: "realistic", labelKey: "realistic" as const },
 ];
 
 /* ── animation phases for the 10-second creation sequence ── */
-const GENERATION_PHASES = [
-  { icon: BookOpenCheck, text: "Writing your Torah story...", duration: 3000 },
-  { icon: Paintbrush, text: "Illustrating beautiful scenes...", duration: 3000 },
-  { icon: Sparkles, text: "Adding the finishing touches...", duration: 3000 },
-  { icon: CheckCircle2, text: "Almost ready!", duration: 1000 },
-];
+const GENERATION_PHASE_ICONS = [BookOpenCheck, Paintbrush, Sparkles, CheckCircle2];
+const GENERATION_PHASE_DURATIONS = [3000, 3000, 3000, 1000];
 
 /* ───────────────── component ───────────────── */
 
@@ -215,6 +211,7 @@ interface Props {
 export const CreationWizard = ({ open, onClose }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, dir: langDir } = useLanguage();
   const { children: existingChildren } = useChildren();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
