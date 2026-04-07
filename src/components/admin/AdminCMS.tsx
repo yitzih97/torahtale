@@ -555,7 +555,7 @@ export function AdminCMS() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="prompts" className="w-full">
-        <TabsList className="w-full grid grid-cols-8 mb-4 bg-secondary rounded-xl h-10">
+        <TabsList className="w-full grid grid-cols-9 mb-4 bg-secondary rounded-xl h-10">
           {[
             { val: "prompts", icon: Brain, label: "Prompts" },
             { val: "templates", icon: BookOpen, label: "Templates" },
@@ -565,6 +565,7 @@ export function AdminCMS() {
             { val: "ai", icon: Settings, label: "AI" },
             { val: "pricing", icon: DollarSign, label: "Pricing" },
             { val: "printify", icon: Printer, label: "Printify" },
+            { val: "seo", icon: Search, label: "SEO" },
           ].map((t) => (
             <TabsTrigger key={t.val} value={t.val} className="text-[10px] gap-1 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm">
               <t.icon className="w-3 h-3" /> {t.label}
