@@ -667,7 +667,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-3xl max-h-[100dvh] sm:max-h-[90vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-3xl border-0 sm:border sm:border-border/30 shadow-2xl bg-background backdrop-blur-xl flex flex-col" aria-describedby={undefined}>
-        <DialogTitle className="sr-only">Create Your Book</DialogTitle>
+        <DialogTitle className="sr-only">{t.wizard.createYourBook}</DialogTitle>
 
         {/* ── Minimal progress bar + step counter ── */}
         {step <= 8 && (
@@ -685,7 +685,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 </motion.div>
               </div>
               <span className="text-xs font-medium text-muted-foreground tracking-wide">
-                {step} <span className="text-muted-foreground/50">of</span> 8
+                {step} <span className="text-muted-foreground/50">{t.common.of}</span> 8
               </span>
             </div>
             <div className="h-[3px] bg-muted/50 rounded-full overflow-hidden">
@@ -771,7 +771,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <Type className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    What's your hero's name?
+                    {t.wizard.whatsHeroName}
                   </h2>
                 </motion.div>
 
@@ -842,7 +842,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-px bg-border/50" />
-                      <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">or enter a new name</span>
+                      <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">{t.wizard.orEnterNewName}</span>
                       <div className="flex-1 h-px bg-border/50" />
                     </div>
                   </motion.div>
@@ -850,7 +850,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
                 <motion.div variants={staggerChild}>
                   <Input
-                    placeholder="Enter child's name"
+                    placeholder={t.wizard.enterChildName}
                     value={child.name}
                     onChange={(e) => updateChild(child.id, { name: e.target.value })}
                     className="rounded-2xl h-14 text-lg text-center border-2 border-border/40 bg-card/60 backdrop-blur-sm focus:border-accent/50 focus:ring-accent/20 placeholder:text-muted-foreground/40 font-medium"
@@ -870,7 +870,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             : "bg-muted/50 text-muted-foreground hover:bg-muted/80 border border-transparent"
                         }`}
                       >
-                        {c.name || `Child ${idx + 1}`}
+                        {c.name || `${t.wizard.child} ${idx + 1}`}
                       </button>
                     ))}
                   </motion.div>
@@ -900,15 +900,15 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <Heart className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    Is {child.name || "your hero"} a boy or girl?
+                    {t.wizard.isBoyOrGirl(child.name)}
                   </h2>
                 </motion.div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {[
-                    { key: "boy", label: "Boy", img: presetBoyCartoon },
-                    { key: "girl", label: "Girl", img: presetGirlCartoon },
-                  ].map((g, i) => (
+                    { key: "boy", label: t.wizard.boy, img: presetBoyCartoon },
+                    { key: "girl", label: t.wizard.girl, img: presetGirlCartoon },
+                  ].map((g) => (
                     <motion.button
                       key={g.key}
                       variants={staggerChild}
@@ -964,7 +964,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <Calendar className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    How old is {child.name || "your hero"}?
+                    {t.wizard.howOld(child.name)}
                   </h2>
                 </motion.div>
 
@@ -992,7 +992,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center text-sm font-semibold text-accent"
                   >
-                    {child.age} years old ✨
+                    {t.wizard.yearsOld(child.age)}
                   </motion.p>
                 )}
               </motion.div>
@@ -1020,7 +1020,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <Palette className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    Choose an illustration style
+                    {t.wizard.chooseStyle}
                   </h2>
                 </motion.div>
 
@@ -1085,7 +1085,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <Image className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    Help us draw {child.name || "your hero"}
+                    {t.wizard.helpDraw(child.name)}
                   </h2>
                 </motion.div>
 
@@ -1098,7 +1098,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/15 to-accent/5 flex items-center justify-center">
                         <Camera className="w-6 h-6 text-accent" />
                       </div>
-                      <p className="text-sm font-semibold text-foreground">Upload a Photo</p>
+                      <p className="text-sm font-semibold text-foreground">{t.wizard.uploadPhoto}</p>
                       {child.photoPreview ? (
                         <div className="flex items-center gap-3 w-full justify-center">
                           <img src={child.photoPreview} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
@@ -1106,7 +1106,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             onClick={() => updateChild(child.id, { photo: null, photoPreview: null })}
                             className="text-xs text-destructive hover:underline font-medium"
                           >
-                            Remove
+                            {t.wizard.remove}
                           </button>
                         </div>
                       ) : (
@@ -1128,10 +1128,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
                         <PenLine className="w-6 h-6 text-primary" />
                       </div>
-                      <p className="text-sm font-semibold text-foreground">Describe Instead</p>
+                      <p className="text-sm font-semibold text-foreground">{t.wizard.describeInstead}</p>
                     </div>
                     <Textarea
-                      placeholder="e.g., Brown curly hair, olive skin, big brown eyes..."
+                      placeholder={t.wizard.descPlaceholder}
                       value={child.description}
                       onChange={(e) => updateChild(child.id, { description: e.target.value })}
                       className="rounded-xl min-h-[100px] text-sm border-border/40 bg-background/50"
@@ -1155,7 +1155,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       }}
                       className="w-full border-dashed border-2 border-border/50 rounded-2xl h-11 text-muted-foreground hover:text-foreground hover:border-accent/30"
                     >
-                      <Plus className="w-4 h-4" /> Add Another Child
+                      <Plus className="w-4 h-4" /> {t.wizard.addAnotherChild}
                     </Button>
                   </motion.div>
                 )}
@@ -1183,13 +1183,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   >
                     <BookOpen className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">Choose a Parsha</h2>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseParsha}</h2>
                 </motion.div>
 
                 {/* Category pills */}
                 <motion.div variants={staggerChild} className="flex justify-center flex-wrap gap-2">
                   {(["all", "torah", "neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
-                    const meta = cat === "all" ? { label: "All", emoji: "📚" } : CATEGORY_META[cat];
+                    const meta = cat === "all" ? { label: t.wizard.all, emoji: "📚" } : CATEGORY_META[cat];
                     const isActive = portionFilter === cat;
                     return (
                       <button
@@ -1210,7 +1210,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 {/* Search */}
                 <motion.div variants={staggerChild} className="relative">
                   <Input
-                    placeholder="Search parsha..."
+                    placeholder={t.wizard.searchParsha}
                     value={portionSearch}
                     onChange={(e) => setPortionSearch(e.target.value)}
                     className="rounded-2xl h-11 text-sm pl-10 bg-card/60 border-border/40 focus:border-accent/50 shadow-sm backdrop-blur-sm"
@@ -1233,7 +1233,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                               className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
                             >
                               <span className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
-                                <span className="text-base">📖</span> Sefer {book}
+                                <span className="text-base">📖</span> {t.wizard.sefer} {book}
                               </span>
                               <motion.span
                                 animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -1374,7 +1374,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                         </motion.button>
                       ))}
                       {filteredPortions.length === 0 && (
-                        <p className="col-span-full text-center text-sm text-muted-foreground py-8">No stories found.</p>
+                        <p className="col-span-full text-center text-sm text-muted-foreground py-8">{t.wizard.noStories}</p>
                       )}
                     </div>
                   )}
@@ -1403,14 +1403,14 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   >
                     <Sun className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">Choose a Language</h2>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseLanguage}</h2>
                 </motion.div>
 
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {[
-                    { key: "english", label: "English", emoji: "🇺🇸" },
-                    { key: "hebrew", label: "Hebrew", emoji: "🇮🇱" },
-                    { key: "bilingual", label: "Both", emoji: "🌍" },
+                    { key: "english", label: t.wizard.english, emoji: "🇺🇸" },
+                    { key: "hebrew", label: t.wizard.hebrew, emoji: "🇮🇱" },
+                    { key: "bilingual", label: t.wizard.both, emoji: "🌍" },
                   ].map((l) => (
                     <motion.button
                       key={l.key}
@@ -1464,26 +1464,26 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   >
                     <Sparkles className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">Ready to Create!</h2>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.readyToCreate}</h2>
                 </motion.div>
 
                 {/* Summary cards */}
                 <motion.div variants={staggerChild} className="grid grid-cols-2 gap-2 sm:gap-3">
                   <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">Character</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.character}</p>
                     <p className="text-sm font-semibold text-foreground">{childNames}</p>
                   </div>
                   <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">Story</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.story}</p>
                     <p className="text-sm font-semibold text-foreground">{getPortionLabel(data.torahPortion) || "—"}</p>
                   </div>
                   <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">Art Style</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.artStyle}</p>
                     <p className="text-sm font-semibold text-foreground capitalize">{data.artStyle}</p>
                   </div>
                   <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">Pages</p>
-                    <p className="text-sm font-semibold text-foreground">10 pages</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.pages}</p>
+                    <p className="text-sm font-semibold text-foreground">{t.wizard.pagesCount}</p>
                   </div>
                 </motion.div>
 
@@ -1499,51 +1499,51 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                       <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
                         <LogIn className="w-5 h-5 text-accent" />
                       </div>
-                      <p className="font-display font-semibold text-sm text-foreground">Sign in to generate your sefer</p>
+                      <p className="font-display font-semibold text-sm text-foreground">{t.wizard.signInToGenerate}</p>
                     </div>
 
                     <form onSubmit={loginMode === "login" ? handleWizardLogin : handleWizardSignup} className="space-y-3">
                       {loginMode === "signup" && (
                         <div>
-                          <Label className="text-xs text-muted-foreground">Full Name</Label>
+                          <Label className="text-xs text-muted-foreground">{t.wizard.fullName}</Label>
                           <Input value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} placeholder="Rachel Goldberg" className="rounded-xl h-10 mt-1 border-border/40 bg-card/60" />
                         </div>
                       )}
                       <div>
-                        <Label className="text-xs text-muted-foreground">Email</Label>
+                        <Label className="text-xs text-muted-foreground">{t.wizard.email}</Label>
                         <div className="relative mt-1">
                           <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="you@email.com" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required />
                           <Mail className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
                         </div>
                       </div>
                       <div>
-                        <Label className="text-xs text-muted-foreground">Password</Label>
+                        <Label className="text-xs text-muted-foreground">{t.wizard.password}</Label>
                         <div className="relative mt-1">
                           <Input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="••••••••" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required minLength={6} />
                           <Lock className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
                         </div>
                       </div>
                       <Button type="submit" variant="gold" className="w-full rounded-xl h-10" disabled={loginLoading}>
-                        {loginLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : loginMode === "login" ? "Sign In" : "Create Account"}
+                        {loginLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : loginMode === "login" ? t.wizard.signIn : t.wizard.createAccount}
                       </Button>
                       <p className="text-center text-[11px] text-muted-foreground">
                         {loginMode === "login" ? (
-                          <>Don't have an account?{" "}<button type="button" onClick={() => setLoginMode("signup")} className="text-accent font-medium hover:underline">Sign up</button></>
+                          <>{t.wizard.noAccount}{" "}<button type="button" onClick={() => setLoginMode("signup")} className="text-accent font-medium hover:underline">{t.wizard.signUp}</button></>
                         ) : (
-                          <>Already have an account?{" "}<button type="button" onClick={() => setLoginMode("login")} className="text-accent font-medium hover:underline">Sign in</button></>
+                          <>{t.wizard.haveAccount}{" "}<button type="button" onClick={() => setLoginMode("login")} className="text-accent font-medium hover:underline">{t.wizard.signInLink}</button></>
                         )}
                       </p>
                     </form>
 
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-px bg-border/50" />
-                      <span className="text-[10px] text-muted-foreground/60">or</span>
+                      <span className="text-[10px] text-muted-foreground/60">{t.wizard.or}</span>
                       <div className="flex-1 h-px bg-border/50" />
                     </div>
 
                     <Button type="button" variant="outline" className="w-full rounded-xl h-10 gap-2 border-border/40" onClick={handleWizardGoogleLogin} disabled={loginLoading}>
                       <svg className="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                      Continue with Google
+                      {t.wizard.continueWithGoogle}
                     </Button>
                   </motion.div>
                 )}
@@ -1633,9 +1633,9 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           <Mail className="w-10 h-10 text-accent" />
                         </div>
                         <div>
-                          <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">Your sefer is being created!</h2>
+                          <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
                           <p className="text-muted-foreground text-sm mt-3 max-w-sm mx-auto leading-relaxed">
-                            You'll receive an email within <span className="font-semibold text-accent">24 hours</span> with a preview of {childNames}'s book.
+                            {t.wizard.emailPreviewMsg(childNames)}
                           </p>
                         </div>
 
@@ -1643,7 +1643,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           <div className="flex items-center gap-3 justify-center">
                             <BookOpen className="w-5 h-5 text-accent" />
                             <div className="text-left">
-                              <p className="text-sm font-semibold text-foreground">{childNames}'s Torah Adventure</p>
+                              <p className="text-sm font-semibold text-foreground">{t.wizard.torahAdventure(childNames)}</p>
                               <p className="text-xs text-muted-foreground">{getPortionLabel(data.torahPortion)} · {data.artStyle === "3d-pixar" ? "3D Pixar" : data.artStyle === "realistic" ? "Realistic" : "Cartoon"}</p>
                             </div>
                           </div>
@@ -1659,7 +1659,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                             style={{ transform: `scaleX(${progress})` }}
                           />
                           <span className="relative z-10 flex items-center gap-2 text-sm">
-                            Continue to Choose Your Book <ArrowRight className="w-4 h-4" />
+                            {t.wizard.continueToBook} <ArrowRight className="w-4 h-4" />
                           </span>
                         </button>
                       </motion.div>
@@ -1713,7 +1713,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 onClick={back}
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
-                <ArrowLeft className="w-4 h-4" /> Back
+                <ArrowLeft className="w-4 h-4" /> {t.common.back}
               </button>
             ) : <div />}
 
@@ -1725,7 +1725,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 disabled={!canNext}
                 className="flex items-center gap-2 px-6 sm:px-8 h-11 rounded-full bg-gradient-to-r from-accent to-accent/85 text-accent-foreground font-semibold text-sm shadow-md shadow-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
-                Continue <ArrowRight className="w-4 h-4" />
+                {t.common.continue} <ArrowRight className="w-4 h-4" />
               </motion.button>
             )}
             {step === 8 && (
@@ -1735,7 +1735,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 onClick={next}
                 className="flex items-center gap-2 px-6 sm:px-8 h-11 rounded-full bg-gradient-to-r from-accent to-accent/85 text-accent-foreground font-semibold text-sm shadow-md shadow-accent/20 transition-all"
               >
-                <Sparkles className="w-4 h-4" /> Generate Book
+                <Sparkles className="w-4 h-4" /> {t.wizard.generateBook}
               </motion.button>
             )}
             {(step === 10 || step === 11) && (
@@ -1746,7 +1746,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 disabled={!canNext}
                 className="flex items-center gap-2 px-6 sm:px-8 h-11 rounded-full bg-gradient-to-r from-accent to-accent/85 text-accent-foreground font-semibold text-sm shadow-md shadow-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
-                Continue <ArrowRight className="w-4 h-4" />
+                {t.common.continue} <ArrowRight className="w-4 h-4" />
               </motion.button>
             )}
           </motion.div>
