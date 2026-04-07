@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
@@ -18,6 +19,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (user) navigate("/dashboard", { replace: true });
@@ -31,7 +33,7 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Welcome back!");
+      toast.success(t.auth.welcomeBackToast);
       navigate("/dashboard");
     }
   };
@@ -51,7 +53,7 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Check your email to verify your account!");
+      toast.success(t.auth.checkEmail);
     }
   };
 
@@ -65,7 +67,7 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Password reset link sent to your email!");
+      toast.success(t.auth.resetSent);
       setMode("login");
     }
   };
@@ -86,14 +88,14 @@ export default function Auth() {
             <span className="font-display text-2xl font-bold text-foreground">Torah Tale</span>
           </a>
           <h1 className="font-display text-2xl font-bold text-primary">
-            {mode === "login" ? "Welcome Back" : mode === "signup" ? "Create Account" : "Reset Password"}
+            {mode === "login" ? t.auth.welcomeBack : mode === "signup" ? t.auth.createAccount : t.auth.resetPassword}
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             {mode === "login"
-              ? "Sign in to manage your seforim"
+              ? t.auth.signInSubtitle
               : mode === "signup"
-              ? "Join us to create personalized Torah seforim for your kinderlach"
-              : "Enter your email to receive a reset link"}
+              ? t.auth.signUpSubtitle
+              : t.auth.forgotSubtitle}
           </p>
         </div>
 
@@ -101,32 +103,32 @@ export default function Auth() {
           <form onSubmit={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgotPassword} className="space-y-4">
             {mode === "signup" && (
               <div>
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">{t.auth.fullName}</Label>
                 <div className="relative mt-1.5">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your name" className="pl-10" required />
+                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t.auth.namePlaceholder} className="pl-10" required />
                 </div>
               </div>
             )}
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.auth.email}</Label>
               <div className="relative mt-1.5">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="pl-10" required />
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.auth.emailPlaceholder} className="pl-10" required />
               </div>
             </div>
             {mode !== "forgot" && (
               <div>
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t.auth.password}</Label>
                 <div className="relative mt-1.5">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pl-10" required minLength={6} />
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.auth.passwordPlaceholder} className="pl-10" required minLength={6} />
                 </div>
               </div>
             )}
 
             <Button type="submit" variant="gold" className="w-full" disabled={loading}>
-              {loading ? "Please wait..." : mode === "login" ? "Sign In" : mode === "signup" ? "Create Account" : "Send Reset Link"}
+              {loading ? t.auth.pleaseWait : mode === "login" ? t.auth.signIn : mode === "signup" ? t.auth.signUp : t.auth.sendResetLink}
             </Button>
           </form>
 
@@ -137,7 +139,7 @@ export default function Auth() {
                   <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                  <span className="bg-card px-2 text-muted-foreground">{t.auth.orContinueWith}</span>
                 </div>
               </div>
 
@@ -161,7 +163,7 @@ export default function Auth() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
-                Continue with Google
+                {t.auth.continueWithGoogle}
               </Button>
             </>
           )}
@@ -169,22 +171,22 @@ export default function Auth() {
           <div className="mt-4 text-center text-sm">
             {mode === "login" && (
               <>
-                <button onClick={() => setMode("forgot")} className="text-accent hover:underline">Forgot password?</button>
+                <button onClick={() => setMode("forgot")} className="text-accent hover:underline">{t.auth.forgotPassword}</button>
                 <p className="mt-2 text-muted-foreground">
-                  Don't have an account?{" "}
-                  <button onClick={() => setMode("signup")} className="text-accent font-medium hover:underline">Sign up</button>
+                  {t.auth.noAccount}{" "}
+                  <button onClick={() => setMode("signup")} className="text-accent font-medium hover:underline">{t.auth.signUpLink}</button>
                 </p>
               </>
             )}
             {mode === "signup" && (
               <p className="text-muted-foreground">
-                Already have an account?{" "}
-                <button onClick={() => setMode("login")} className="text-accent font-medium hover:underline">Sign in</button>
+                {t.auth.haveAccount}{" "}
+                <button onClick={() => setMode("login")} className="text-accent font-medium hover:underline">{t.auth.signInLink}</button>
               </p>
             )}
             {mode === "forgot" && (
               <button onClick={() => setMode("login")} className="text-accent hover:underline inline-flex items-center gap-1">
-                <ArrowLeft className="w-3 h-3" /> Back to sign in
+                <ArrowLeft className="w-3 h-3" /> {t.auth.backToSignIn}
               </button>
             )}
           </div>
