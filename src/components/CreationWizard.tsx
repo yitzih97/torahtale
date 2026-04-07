@@ -1041,10 +1041,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                         className={glassCard(data.artStyle === s.key)}
                       >
                         <div className="aspect-square bg-muted/20 relative">
-                          <img src={stylePreview} alt={s.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
+                          <img src={stylePreview} alt={t.wizard[s.labelKey]} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
                         </div>
                         <div className="p-2 sm:p-3">
-                          <span className="text-xs sm:text-sm font-semibold text-foreground block">{s.label}</span>
+                          <span className="text-xs sm:text-sm font-semibold text-foreground block">{t.wizard[s.labelKey]}</span>
                         </div>
                         {data.artStyle === s.key && (
                           <motion.div
