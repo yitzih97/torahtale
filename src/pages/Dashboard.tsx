@@ -42,6 +42,7 @@ const subStatusStyle = (s: string) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const { books, isLoading: booksLoading } = useBooks();
   const { children, isLoading: childrenLoading, addChild, updateChild, deleteChild } = useChildren();
   const { subscriptions, isLoading: subsLoading, cancelSubscription, updateSubscription } = useSubscriptions();
