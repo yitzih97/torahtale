@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useCartSync } from "@/hooks/useCartSync";
+import { useMetaTags } from "@/hooks/useMetaTags";
 import Index from "./pages/Index.tsx";
 import Admin from "./pages/Admin.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
@@ -21,6 +22,7 @@ const queryClient = new QueryClient();
 
 const AppInner = () => {
   useCartSync();
+  useMetaTags();
   return (
     <BrowserRouter>
       <Routes>

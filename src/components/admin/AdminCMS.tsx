@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Settings, Image as ImageIcon, Brain, DollarSign,
   Save, Loader2, RefreshCw, Check, AlertTriangle, Globe,
-  Upload, Palette, Printer, TestTube2, BookOpen, Copy,
+  Upload, Palette, Printer, TestTube2, BookOpen, Copy, Search,
 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSiteAssets } from "@/hooks/useSiteAssets";
@@ -465,6 +465,7 @@ export function AdminCMS() {
   const [aiEdits, setAiEdits] = useState<Record<string, string>>({});
   const [pricingEdits, setPricingEdits] = useState<Record<string, string>>({});
   const [integrationEdits, setIntegrationEdits] = useState<Record<string, string>>({});
+  const [seoEdits, setSeoEdits] = useState<Record<string, string>>({});
   const [imagePrompts, setImagePrompts] = useState<Record<string, string>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [regeneratingKey, setRegeneratingKey] = useState<string | null>(null);
@@ -479,18 +480,21 @@ export function AdminCMS() {
       const ai: Record<string, string> = {};
       const pricing: Record<string, string> = {};
       const integrations: Record<string, string> = {};
+      const seo: Record<string, string> = {};
       settings.forEach((s) => {
         if (s.category === "prompts") prompts[s.key] = s.value;
         if (s.category === "website") content[s.key] = s.value;
         if (s.category === "ai") ai[s.key] = s.value;
         if (s.category === "pricing") pricing[s.key] = s.value;
         if (s.category === "integrations") integrations[s.key] = s.value;
+        if (s.category === "seo") seo[s.key] = s.value;
       });
       setPromptEdits(prompts);
       setContentEdits(content);
       setAiEdits(ai);
       setPricingEdits(pricing);
       setIntegrationEdits(integrations);
+      setSeoEdits(seo);
     }
   }, [settingsLoading, settings]);
 
@@ -551,7 +555,7 @@ export function AdminCMS() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="prompts" className="w-full">
-        <TabsList className="w-full grid grid-cols-8 mb-4 bg-secondary rounded-xl h-10">
+        <TabsList className="w-full grid grid-cols-9 mb-4 bg-secondary rounded-xl h-10">
           {[
             { val: "prompts", icon: Brain, label: "Prompts" },
             { val: "templates", icon: BookOpen, label: "Templates" },
@@ -561,6 +565,7 @@ export function AdminCMS() {
             { val: "ai", icon: Settings, label: "AI" },
             { val: "pricing", icon: DollarSign, label: "Pricing" },
             { val: "printify", icon: Printer, label: "Printify" },
+            { val: "seo", icon: Search, label: "SEO" },
           ].map((t) => (
             <TabsTrigger key={t.val} value={t.val} className="text-[10px] gap-1 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm">
               <t.icon className="w-3 h-3" /> {t.label}
@@ -860,6 +865,83 @@ export function AdminCMS() {
                 {testingPrintify ? <Loader2 className="w-3 h-3 animate-spin" /> : <TestTube2 className="w-3 h-3" />}
                 Test Connection
               </Button>
+            </div>
+          </div>
+        </TabsContent>
+        {/* SEO & META TAGS */}
+        <TabsContent value="seo">
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm space-y-6">
+            <h3 className="font-display text-lg font-semibold text-primary flex items-center gap-2">
+              <Search className="w-5 h-5 text-accent" /> SEO & Meta Tags
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Control how your site appears in search engines and social media. Changes apply instantly.
+            </p>
+
+            {/* General Meta */}
+            <div className="space-y-1 mb-4">
+              <h4 className="text-sm font-semibold text-foreground">General Meta</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <SettingField category="seo" settingKey="title" label="Page Title (<title>)" placeholder="Torah Tale — Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="description" label="Meta Description" placeholder="AI-powered personalized Torah storybooks for frum Yiddishe kinderlach." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="author" label="Author" placeholder="Torah Tale" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="canonical-url" label="Canonical URL" placeholder="https://torahtale.lovable.app" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+              </div>
+            </div>
+
+            {/* Open Graph */}
+            <div className="space-y-1 mb-4">
+              <h4 className="text-sm font-semibold text-foreground">Open Graph (Facebook / LinkedIn)</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <SettingField category="seo" settingKey="og-title" label="og:title" placeholder="Torah Tale — Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="og-description" label="og:description" placeholder="AI-powered personalized Torah storybooks for frum Yiddishe kinderlach." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="og-type" label="og:type" placeholder="website" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="og-image" label="og:image (URL)" placeholder="https://..." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="og-url" label="og:url" placeholder="https://torahtale.lovable.app" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+              </div>
+            </div>
+
+            {/* Twitter Card */}
+            <div className="space-y-1 mb-4">
+              <h4 className="text-sm font-semibold text-foreground">Twitter Card</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <SettingField category="seo" settingKey="twitter-card" label="twitter:card" placeholder="summary_large_image" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="twitter-site" label="twitter:site" placeholder="@TorahTale" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="twitter-title" label="twitter:title" placeholder="Torah Tale — Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="twitter-description" label="twitter:description" placeholder="AI-powered personalized Torah storybooks for frum Yiddishe kinderlach." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="twitter-image" label="twitter:image (URL)" placeholder="https://..." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+              </div>
+            </div>
+
+            {/* Favicon */}
+            <div className="space-y-1 mb-4">
+              <h4 className="text-sm font-semibold text-foreground">Favicon</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Upload a favicon in the <strong>Branding</strong> tab. It will be applied automatically.
+                </p>
+                {(() => {
+                  const faviconAsset = assets.find((a) => a.asset_key === "favicon");
+                  return faviconAsset?.image_url && faviconAsset.status === "ready" ? (
+                    <div className="flex items-center gap-3">
+                      <img src={faviconAsset.image_url} alt="Current favicon" className="w-8 h-8 rounded border border-border" />
+                      <span className="text-xs text-muted-foreground">Current favicon</span>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">No custom favicon uploaded yet.</p>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Robots / Indexing */}
+            <div className="space-y-1">
+              <h4 className="text-sm font-semibold text-foreground">Robots & Verification</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <SettingField category="seo" settingKey="robots" label="Robots Meta Tag" placeholder="index, follow" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="google-verification" label="Google Site Verification Code" placeholder="google-site-verification code" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="bing-verification" label="Bing Site Verification Code" placeholder="msvalidate.01 code" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+              </div>
             </div>
           </div>
         </TabsContent>
