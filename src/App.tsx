@@ -22,6 +22,7 @@ const queryClient = new QueryClient();
 
 const AppInner = () => {
   useCartSync();
+  useMetaTags();
   return (
     <BrowserRouter>
       <Routes>
