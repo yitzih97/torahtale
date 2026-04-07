@@ -16,6 +16,7 @@ import {
   Pause, Play, X, Settings,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useBooks, type BookRecord } from "@/hooks/useBooks";
 import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
