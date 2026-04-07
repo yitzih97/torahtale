@@ -3,6 +3,7 @@ import { BookOpen, LogOut, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSiteAssets } from "@/hooks/useSiteAssets";
 
@@ -14,11 +15,11 @@ export const Navbar = ({ onStart }: NavbarProps) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { lang, setLang, t, dir } = useLanguage();
   const { getSetting } = useSiteSettings("website");
   const { getAssetUrl } = useSiteAssets();
 
   const brandName = getSetting("website", "brand-name", "Torah Tale");
-  const navbarCta = getSetting("website", "navbar-cta", "Create a Sefer");
   const logoUrl = getAssetUrl("logo", "");
 
   useEffect(() => {
@@ -28,10 +29,12 @@ export const Navbar = ({ onStart }: NavbarProps) => {
   }, []);
 
   const navLinks = [
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Gallery", href: "#gallery" },
-    { label: "Reviews", href: "#testimonials" },
+    { label: t.nav.howItWorks, href: "#how-it-works" },
+    { label: t.nav.gallery, href: "#gallery" },
+    { label: t.nav.reviews, href: "#testimonials" },
   ];
+
+  const toggleLang = () => setLang(lang === "en" ? "he" : "en");
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"}`} data-scrolled={scrolled}>
@@ -54,21 +57,34 @@ export const Navbar = ({ onStart }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Language toggle */}
+          <button
+            onClick={toggleLang}
+            className={`px-2.5 py-1 rounded-full text-xs font-bold border transition-colors duration-300 ${
+              scrolled
+                ? "border-border text-muted-foreground hover:text-accent hover:border-accent"
+                : "border-white/20 text-white/80 hover:text-white hover:border-white/40"
+            }`}
+            aria-label="Toggle language"
+          >
+            {lang === "en" ? "עב" : "EN"}
+          </button>
+
           {user ? (
             <>
               <a href="/dashboard" className={`text-sm font-medium transition-colors duration-500 hidden sm:flex items-center gap-1.5 ${scrolled ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>
-                <User className="w-4 h-4" /> Dashboard
+                <User className="w-4 h-4" /> {t.nav.dashboard}
               </a>
-              <button onClick={signOut} className={`p-2 rounded-full transition-colors hidden sm:block ${scrolled ? "text-muted-foreground hover:text-destructive hover:bg-muted" : "text-white/70 hover:text-white hover:bg-white/10"}`} aria-label="Sign out">
+              <button onClick={signOut} className={`p-2 rounded-full transition-colors hidden sm:block ${scrolled ? "text-muted-foreground hover:text-destructive hover:bg-muted" : "text-white/70 hover:text-white hover:bg-white/10"}`} aria-label={t.nav.signOut}>
                 <LogOut className="w-4 h-4" />
               </button>
             </>
           ) : (
-            <a href="/auth" className={`text-sm font-medium transition-colors duration-500 hidden sm:block ${scrolled ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>Login</a>
+            <a href="/auth" className={`text-sm font-medium transition-colors duration-500 hidden sm:block ${scrolled ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>{t.nav.login}</a>
           )}
 
           {onStart && (
-            <Button variant="gold" size="sm" onClick={onStart} className="rounded-full px-5 hidden sm:inline-flex">{navbarCta}</Button>
+            <Button variant="gold" size="sm" onClick={onStart} className="rounded-full px-5 hidden sm:inline-flex">{t.nav.createSefer}</Button>
           )}
 
           {/* Mobile hamburger */}
@@ -96,27 +112,35 @@ export const Navbar = ({ onStart }: NavbarProps) => {
               </a>
             ))}
 
+            {/* Mobile language toggle */}
+            <button
+              onClick={() => { toggleLang(); setMobileOpen(false); }}
+              className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border text-start"
+            >
+              {lang === "en" ? "עברית" : "English"}
+            </button>
+
             {user ? (
               <>
                 <a href="/dashboard" onClick={() => setMobileOpen(false)} className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border flex items-center gap-2">
-                  <User className="w-4 h-4" /> Dashboard
+                  <User className="w-4 h-4" /> {t.nav.dashboard}
                 </a>
                 <button
                   onClick={() => { signOut(); setMobileOpen(false); }}
-                  className="text-base font-medium text-destructive hover:text-destructive/80 transition-colors py-2 text-left flex items-center gap-2"
+                  className="text-base font-medium text-destructive hover:text-destructive/80 transition-colors py-2 text-start flex items-center gap-2"
                 >
-                  <LogOut className="w-4 h-4" /> Sign Out
+                  <LogOut className="w-4 h-4" /> {t.nav.signOut}
                 </button>
               </>
             ) : (
               <a href="/auth" onClick={() => setMobileOpen(false)} className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border">
-                Login
+                {t.nav.login}
               </a>
             )}
 
             {onStart && (
               <Button variant="gold" size="lg" onClick={() => { onStart(); setMobileOpen(false); }} className="rounded-full mt-2 w-full">
-                {navbarCta}
+                {t.nav.createSefer}
               </Button>
             )}
           </div>
