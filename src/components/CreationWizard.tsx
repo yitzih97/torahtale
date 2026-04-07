@@ -210,8 +210,15 @@ interface Props {
 export const CreationWizard = ({ open, onClose }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t, dir: langDir } = useLanguage();
+  const { t } = useLanguage();
   const { children: existingChildren } = useChildren();
+
+  const GENERATION_PHASES = [
+    { icon: BookOpenCheck, text: t.wizard.writingStory, duration: 3000 },
+    { icon: Paintbrush, text: t.wizard.illustrating, duration: 3000 },
+    { icon: Sparkles, text: t.wizard.finishing, duration: 3000 },
+    { icon: CheckCircle2, text: t.wizard.almostReady, duration: 1000 },
+  ];
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [data, setData] = useState<WizardData>(initialData);
