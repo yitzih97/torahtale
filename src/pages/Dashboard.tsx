@@ -16,6 +16,7 @@ import {
   Pause, Play, X, Settings,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useBooks, type BookRecord } from "@/hooks/useBooks";
 import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
@@ -41,6 +42,7 @@ const subStatusStyle = (s: string) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const { books, isLoading: booksLoading } = useBooks();
   const { children, isLoading: childrenLoading, addChild, updateChild, deleteChild } = useChildren();
   const { subscriptions, isLoading: subsLoading, cancelSubscription, updateSubscription } = useSubscriptions();
@@ -73,14 +75,14 @@ export default function Dashboard() {
   const handleAddChild = async (child: AddChildResult) => {
     await addChild.mutateAsync(child);
     setAddChildOpen(false);
-    toast.success("Child profile added!");
+    toast.success(t.dash.childAdded);
   };
 
   const handleEditChild = async (child: AddChildResult) => {
     if (!editingChild) return;
     await updateChild.mutateAsync({ id: editingChild.id, ...child });
     setEditingChild(null);
-    toast.success("Child profile updated!");
+    toast.success(t.dash.childUpdated);
   };
 
   const rawBookPages = viewingBook?.pages_data as any[] || [];
@@ -101,16 +103,16 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.6, ease }}
           >
-            <h1 className="font-display text-3xl font-bold text-primary mb-1">My Dashboard</h1>
-            <p className="text-muted-foreground mb-4">Welcome back! Manage your mishpacha's seforim.</p>
+            <h1 className="font-display text-3xl font-bold text-primary mb-1">{t.dash.title}</h1>
+            <p className="text-muted-foreground mb-4">{t.dash.subtitle}</p>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
               {[
-                { label: "Children", value: children.length, icon: Users },
-                { label: "Books Created", value: books.length, icon: BookMarked },
-                { label: "Draft Books", value: draftBooks.length, icon: BookOpen },
-                { label: "Active Subs", value: activeSubs.length, icon: CalendarHeart },
+                { label: t.dash.children, value: children.length, icon: Users },
+                { label: t.dash.booksCreated, value: books.length, icon: BookMarked },
+                { label: t.dash.draftBooks, value: draftBooks.length, icon: BookOpen },
+                { label: t.dash.activeSubs, value: activeSubs.length, icon: CalendarHeart },
               ].map((stat) => (
                 <div key={stat.label} className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3 shadow-soft-sm">
                   <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
@@ -132,13 +134,13 @@ export default function Dashboard() {
                 className="bg-accent/10 border border-accent/20 rounded-2xl p-4 mb-8 flex items-center justify-between"
               >
                 <div>
-                  <h3 className="font-display font-semibold text-primary">Continue where you left off</h3>
+                  <h3 className="font-display font-semibold text-primary">{t.dash.continueTitle}</h3>
                   <p className="text-sm text-muted-foreground">
-                    You have {draftBooks.length} draft book{draftBooks.length > 1 ? "s" : ""} waiting to be ordered.
+                    {draftBooks.length} {t.dash.continueDesc}
                   </p>
                 </div>
                 <Button variant="gold" size="sm" onClick={() => setActiveTab("books")}>
-                  Review My Books
+                  {t.dash.reviewBooks}
                 </Button>
               </motion.div>
             )}
@@ -152,16 +154,16 @@ export default function Dashboard() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full grid grid-cols-4 mb-8 bg-secondary rounded-2xl h-12">
                 <TabsTrigger value="kids" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm">
-                  <Users className="w-4 h-4" /> <span className="hidden sm:inline">My Kids</span>
+                  <Users className="w-4 h-4" /> <span className="hidden sm:inline">{t.dash.myKids}</span>
                 </TabsTrigger>
                 <TabsTrigger value="books" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm">
-                  <BookOpen className="w-4 h-4" /> <span className="hidden sm:inline">My Books</span>
+                  <BookOpen className="w-4 h-4" /> <span className="hidden sm:inline">{t.dash.myBooks}</span>
                 </TabsTrigger>
                 <TabsTrigger value="subs" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm">
-                  <CalendarHeart className="w-4 h-4" /> <span className="hidden sm:inline">Subscriptions</span>
+                  <CalendarHeart className="w-4 h-4" /> <span className="hidden sm:inline">{t.dash.subscriptions}</span>
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm">
-                  <Settings className="w-4 h-4" /> <span className="hidden sm:inline">Settings</span>
+                  <Settings className="w-4 h-4" /> <span className="hidden sm:inline">{t.dash.settings}</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -197,7 +199,7 @@ export default function Dashboard() {
                             <div className="flex-1">
                               <h3 className="font-display text-lg font-semibold text-primary">{kid.name}</h3>
                               <p className="text-xs text-muted-foreground">
-                                {kid.age ? `${kid.age} years old` : "Age not set"} · {kid.gender || "Not set"}
+                                {kid.age ? `${kid.age} ${t.dash.yearsOld}` : t.dash.ageNotSet} · {kid.gender || t.dash.notSet}
                               </p>
                             </div>
                             <div className="flex gap-1">
@@ -210,7 +212,7 @@ export default function Dashboard() {
                               <button
                                 onClick={() => {
                                   deleteChild.mutate(kid.id);
-                                  toast.success("Child removed");
+                                  toast.success(t.dash.childRemoved);
                                 }}
                                 className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                               >
@@ -221,11 +223,11 @@ export default function Dashboard() {
                           {kid.art_style && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Palette className="w-3.5 h-3.5" />
-                              <span>Preferred: {kid.art_style}</span>
+                              <span>{t.dash.preferred}: {kid.art_style}</span>
                             </div>
                           )}
                           <Button variant="outline" size="sm" className="w-full mt-4 text-xs" onClick={() => navigate("/?start=1")}>
-                            <BookOpen className="w-3.5 h-3.5" /> Create New Book
+                            <BookOpen className="w-3.5 h-3.5" /> {t.dash.createNewBook}
                           </Button>
                         </motion.div>
                       );
@@ -239,7 +241,7 @@ export default function Dashboard() {
                       className="rounded-2xl border-2 border-dashed border-border p-5 flex flex-col items-center justify-center gap-3 text-muted-foreground hover:border-accent hover:text-accent transition-all duration-300 active:scale-[0.98] min-h-[180px]"
                     >
                       <Plus className="w-8 h-8" />
-                      <span className="text-sm font-medium">Add Child</span>
+                      <span className="text-sm font-medium">{t.dash.addChild}</span>
                     </motion.button>
                   </div>
                 )}
@@ -256,10 +258,10 @@ export default function Dashboard() {
                 ) : books.length === 0 ? (
                   <div className="text-center py-16">
                     <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="font-display text-lg font-semibold text-primary mb-2">No books yet</h3>
-                    <p className="text-muted-foreground text-sm mb-6">Create your first personalized Torah sefer!</p>
+                    <h3 className="font-display text-lg font-semibold text-primary mb-2">{t.dash.noBooks}</h3>
+                    <p className="text-muted-foreground text-sm mb-6">{t.dash.noBooksDesc}</p>
                     <Button variant="gold" onClick={() => navigate("/")}>
-                      Create a Sefer
+                      {t.dash.createSefer}
                     </Button>
                   </div>
                 ) : (
@@ -306,7 +308,7 @@ export default function Dashboard() {
                           <div className="flex gap-1.5 flex-shrink-0">
                             {book.pages_data && (
                               <Button variant="ghost" size="sm" className="text-xs" onClick={() => setViewingBook(book)}>
-                                <Eye className="w-3.5 h-3.5" /> View
+                                <Eye className="w-3.5 h-3.5" /> {t.dash.view}
                               </Button>
                             )}
                           </div>
@@ -327,13 +329,13 @@ export default function Dashboard() {
                   <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm">
                     <div className="flex items-center gap-3 mb-2">
                       <CalendarHeart className="w-5 h-5 text-accent" />
-                      <h3 className="font-display text-lg font-semibold text-primary">Parashah Club</h3>
+                      <h3 className="font-display text-lg font-semibold text-primary">{t.dash.parashahClub}</h3>
                     </div>
                     <p className="text-sm text-muted-foreground mb-6">
-                      A new personalized Torah tale, delivered weekly based on the current parashah. Subscribe during checkout when ordering your next book!
+                      {t.dash.parashahDesc}
                     </p>
                     <Button variant="gold" onClick={() => navigate("/?start=1")}>
-                      Create a Book & Subscribe
+                      {t.dash.createAndSubscribe}
                     </Button>
                   </div>
                 ) : (
@@ -352,9 +354,9 @@ export default function Dashboard() {
                               <CalendarHeart className="w-5 h-5 text-accent" />
                             </div>
                             <div>
-                              <h4 className="font-display font-semibold text-primary">Parashah Club</h4>
+                              <h4 className="font-display font-semibold text-primary">{t.dash.parashahClub}</h4>
                               <p className="text-xs text-muted-foreground">
-                                For {sub.child_name || "your kind"} · ${sub.price_per_week}/week
+                                For {sub.child_name || "your kind"} · ${sub.price_per_week}{t.dash.perWeek}
                               </p>
                             </div>
                           </div>
@@ -369,7 +371,7 @@ export default function Dashboard() {
                             <p className="font-medium text-primary capitalize mt-0.5">{sub.art_style === "3d-pixar" ? "3D Pixar" : sub.art_style || "Cartoon"}</p>
                           </div>
                           <div className="bg-muted/30 rounded-xl p-3">
-                            <p className="text-muted-foreground">Next Delivery</p>
+                            <p className="text-muted-foreground">{t.dash.nextDelivery}</p>
                             <p className="font-medium text-primary mt-0.5">
                               {sub.next_delivery_date ? format(new Date(sub.next_delivery_date), "MMM d, yyyy") : "TBD"}
                             </p>
@@ -396,7 +398,7 @@ export default function Dashboard() {
                                   toast.success("Subscription paused");
                                 }}
                               >
-                                <Pause className="w-3.5 h-3.5" /> Pause
+                                <Pause className="w-3.5 h-3.5" /> {t.dash.pause}
                               </Button>
                             ) : sub.status === "paused" ? (
                               <Button
@@ -408,7 +410,7 @@ export default function Dashboard() {
                                   toast.success("Subscription resumed!");
                                 }}
                               >
-                                <Play className="w-3.5 h-3.5" /> Resume
+                                <Play className="w-3.5 h-3.5" /> {t.dash.resume}
                               </Button>
                             ) : null}
                             <Button
@@ -420,7 +422,7 @@ export default function Dashboard() {
                                 toast.success("Subscription canceled");
                               }}
                             >
-                              <X className="w-3.5 h-3.5" /> Cancel
+                              <X className="w-3.5 h-3.5" /> {t.dash.cancel}
                             </Button>
                           </div>
                         )}

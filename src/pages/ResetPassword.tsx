@@ -7,19 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const hash = window.location.hash;
     if (!hash.includes("type=recovery")) {
-      toast.error("Invalid reset link");
+      toast.error(t.auth.invalidResetLink);
       navigate("/auth");
     }
-  }, [navigate]);
+  }, [navigate, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +31,7 @@ export default function ResetPassword() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Password updated successfully!");
+      toast.success(t.auth.passwordUpdated);
       navigate("/dashboard");
     }
   };
@@ -44,19 +46,19 @@ export default function ResetPassword() {
             </div>
             <span className="font-display text-2xl font-bold text-foreground">Torah Tale</span>
           </div>
-          <h1 className="font-display text-2xl font-bold text-primary">Set New Password</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">{t.auth.setNewPassword}</h1>
         </div>
         <div className="bg-card border border-border rounded-2xl p-6 shadow-soft-md">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="password">New Password</Label>
+              <Label htmlFor="password">{t.auth.newPassword}</Label>
               <div className="relative mt-1.5">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pl-10" required minLength={6} />
               </div>
             </div>
             <Button type="submit" variant="gold" className="w-full" disabled={loading}>
-              {loading ? "Updating..." : "Update Password"}
+              {loading ? t.auth.updating : t.auth.updatePassword}
             </Button>
           </form>
         </div>

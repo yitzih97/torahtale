@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useLanguage } from "@/contexts/LanguageContext";
 import heroBoy from "@/assets/hero-boy.png";
 import heroGirl from "@/assets/hero-girl.png";
 
@@ -13,10 +14,11 @@ interface Props {
 
 export const CTASection = ({ onStart }: Props) => {
   const { getSetting } = useSiteSettings("website");
+  const { t, dir } = useLanguage();
 
-  const headline = getSetting("website", "cta-headline", "Every Yiddishe Kind Deserves to Be Part of the Story");
-  const subtext = getSetting("website", "cta-subtext", "Create a one-of-a-kind personalized Torah sefer in under 2 minutes. Powered by AI. Printed with ahavas Yisrael.");
-  const buttonText = getSetting("website", "cta-button", "Begin the Tale");
+  const headline = getSetting("website", "cta-headline", t.cta.headline);
+  const subtext = getSetting("website", "cta-subtext", t.cta.subtext);
+  const buttonText = getSetting("website", "cta-button", t.cta.button);
 
   return (
     <section className="py-24 lg:py-32 bg-card">
@@ -37,7 +39,7 @@ export const CTASection = ({ onStart }: Props) => {
           <p className="text-muted-foreground font-body leading-relaxed mb-8 max-w-md mx-auto relative z-10">{subtext}</p>
           <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow rounded-full relative z-10">
             {buttonText}
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${dir === "rtl" ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
           </Button>
         </motion.div>
       </div>
