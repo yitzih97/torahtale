@@ -868,6 +868,83 @@ export function AdminCMS() {
             </div>
           </div>
         </TabsContent>
+        {/* SEO & META TAGS */}
+        <TabsContent value="seo">
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm space-y-6">
+            <h3 className="font-display text-lg font-semibold text-primary flex items-center gap-2">
+              <Search className="w-5 h-5 text-accent" /> SEO & Meta Tags
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Control how your site appears in search engines and social media. Changes apply instantly.
+            </p>
+
+            {/* General Meta */}
+            <div className="space-y-1 mb-4">
+              <h4 className="text-sm font-semibold text-foreground">General Meta</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <SettingField category="seo" settingKey="title" label="Page Title (<title>)" placeholder="Torah Tale — Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="description" label="Meta Description" placeholder="AI-powered personalized Torah storybooks for frum Yiddishe kinderlach." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="author" label="Author" placeholder="Torah Tale" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="canonical-url" label="Canonical URL" placeholder="https://torahtale.lovable.app" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+              </div>
+            </div>
+
+            {/* Open Graph */}
+            <div className="space-y-1 mb-4">
+              <h4 className="text-sm font-semibold text-foreground">Open Graph (Facebook / LinkedIn)</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <SettingField category="seo" settingKey="og-title" label="og:title" placeholder="Torah Tale — Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="og-description" label="og:description" placeholder="AI-powered personalized Torah storybooks for frum Yiddishe kinderlach." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="og-type" label="og:type" placeholder="website" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="og-image" label="og:image (URL)" placeholder="https://..." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="og-url" label="og:url" placeholder="https://torahtale.lovable.app" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+              </div>
+            </div>
+
+            {/* Twitter Card */}
+            <div className="space-y-1 mb-4">
+              <h4 className="text-sm font-semibold text-foreground">Twitter Card</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <SettingField category="seo" settingKey="twitter-card" label="twitter:card" placeholder="summary_large_image" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="twitter-site" label="twitter:site" placeholder="@TorahTale" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="twitter-title" label="twitter:title" placeholder="Torah Tale — Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="twitter-description" label="twitter:description" placeholder="AI-powered personalized Torah storybooks for frum Yiddishe kinderlach." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="twitter-image" label="twitter:image (URL)" placeholder="https://..." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+              </div>
+            </div>
+
+            {/* Favicon */}
+            <div className="space-y-1 mb-4">
+              <h4 className="text-sm font-semibold text-foreground">Favicon</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Upload a favicon in the <strong>Branding</strong> tab. It will be applied automatically.
+                </p>
+                {(() => {
+                  const faviconAsset = assets.find((a) => a.asset_key === "favicon");
+                  return faviconAsset?.image_url && faviconAsset.status === "ready" ? (
+                    <div className="flex items-center gap-3">
+                      <img src={faviconAsset.image_url} alt="Current favicon" className="w-8 h-8 rounded border border-border" />
+                      <span className="text-xs text-muted-foreground">Current favicon</span>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">No custom favicon uploaded yet.</p>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Robots / Indexing */}
+            <div className="space-y-1">
+              <h4 className="text-sm font-semibold text-foreground">Robots & Verification</h4>
+              <div className="border-l-2 border-accent/20 pl-4 space-y-4">
+                <SettingField category="seo" settingKey="robots" label="Robots Meta Tag" placeholder="index, follow" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="google-verification" label="Google Site Verification Code" placeholder="google-site-verification code" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="bing-verification" label="Bing Site Verification Code" placeholder="msvalidate.01 code" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
