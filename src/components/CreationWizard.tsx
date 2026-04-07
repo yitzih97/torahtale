@@ -196,11 +196,9 @@ const ART_STYLES = [
   { key: "3d-pixar", labelKey: "threeDPixar" as const },
   { key: "realistic", labelKey: "realistic" as const },
 ];
-
-/* ── animation phases for the 10-second creation sequence ── */
-const GENERATION_PHASE_ICONS = [BookOpenCheck, Paintbrush, Sparkles, CheckCircle2];
-const GENERATION_PHASE_DURATIONS = [3000, 3000, 3000, 1000];
-const GENERATION_PHASE_KEYS = ["writingStory", "illustrating", "finishing", "almostReady"] as const;
+/* ── animation phase icons ── */
+const PHASE_ICONS = [BookOpenCheck, Paintbrush, Sparkles, CheckCircle2];
+const PHASE_DURATIONS = [3000, 3000, 3000, 1000];
 
 /* ───────────────── component ───────────────── */
 
