@@ -196,9 +196,7 @@ const ART_STYLES = [
   { key: "3d-pixar", labelKey: "threeDPixar" as const },
   { key: "realistic", labelKey: "realistic" as const },
 ];
-/* ── animation phase icons ── */
-const PHASE_ICONS = [BookOpenCheck, Paintbrush, Sparkles, CheckCircle2];
-const PHASE_DURATIONS = [3000, 3000, 3000, 1000];
+/* ── (generation phase icons are constructed inside the component) ── */
 
 /* ───────────────── component ───────────────── */
 
