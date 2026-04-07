@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Package, Zap } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface ShippingData {
   fullName: string;
@@ -28,44 +29,44 @@ interface Props {
 
 export const ShippingForm = ({ data, onChange }: Props) => {
   const update = (partial: Partial<ShippingData>) => onChange({ ...data, ...partial });
+  const { t } = useLanguage();
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-bold text-primary">Where Should We Ship?</h2>
-        
+        <h2 className="font-display text-2xl font-bold text-primary">{t.shipping.whereShip}</h2>
       </div>
 
       <div className="space-y-4">
         <div>
-          <Label className="text-xs text-muted-foreground">Full Name</Label>
+          <Label className="text-xs text-muted-foreground">{t.shipping.fullName}</Label>
           <Input id="fullName" value={data.fullName} onChange={(e) => update({ fullName: e.target.value })} className="mt-1.5 rounded-xl h-11" />
         </div>
         <div>
-          <Label className="text-xs text-muted-foreground">Street Address</Label>
+          <Label className="text-xs text-muted-foreground">{t.shipping.streetAddress}</Label>
           <Input id="street" value={data.street} onChange={(e) => update({ street: e.target.value })} className="mt-1.5 rounded-xl h-11" />
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <Label className="text-xs text-muted-foreground">City</Label>
+            <Label className="text-xs text-muted-foreground">{t.shipping.city}</Label>
             <Input id="city" value={data.city} onChange={(e) => update({ city: e.target.value })} className="mt-1.5 rounded-xl h-11" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">State</Label>
+            <Label className="text-xs text-muted-foreground">{t.shipping.state}</Label>
             <Input id="state" value={data.state} onChange={(e) => update({ state: e.target.value })} className="mt-1.5 rounded-xl h-11" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Zip Code</Label>
+            <Label className="text-xs text-muted-foreground">{t.shipping.zipCode}</Label>
             <Input id="zip" value={data.zip} onChange={(e) => update({ zip: e.target.value })} className="mt-1.5 rounded-xl h-11" />
           </div>
         </div>
 
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Shipping Speed</Label>
+          <Label className="text-sm font-medium">{t.shipping.shippingSpeed}</Label>
           <div className="grid grid-cols-2 gap-3">
             {([
-              { key: "standard" as const, label: "Standard", sub: "5–7 business days", price: "Free", icon: Package },
-              { key: "express" as const, label: "Express", sub: "2–3 business days", price: "+$9.99", icon: Zap },
+              { key: "standard" as const, label: t.shipping.standard, sub: t.shipping.standardTime, price: t.shipping.free, icon: Package },
+              { key: "express" as const, label: t.shipping.express, sub: t.shipping.expressTime, price: t.shipping.expressCost, icon: Zap },
             ]).map((m) => (
               <button
                 key={m.key}
