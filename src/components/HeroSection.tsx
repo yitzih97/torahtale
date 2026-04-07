@@ -60,11 +60,13 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
-      <Suspense fallback={<div className="absolute inset-0 bg-background" />}>
-        <BookFlipAnimation onPageChange={handlePageChange} />
-      </Suspense>
+      <div className={dir === "rtl" ? "absolute inset-0 w-full h-full [transform:scaleX(-1)]" : "absolute inset-0 w-full h-full"}>
+        <Suspense fallback={<div className="absolute inset-0 bg-background" />}>
+          <BookFlipAnimation onPageChange={handlePageChange} />
+        </Suspense>
+      </div>
 
-      <div className="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-[hsl(220,30%,8%)]/95 via-[hsl(220,30%,8%)]/70 to-[hsl(220,30%,8%)]/40 sm:from-[hsl(220,30%,8%)]/85 sm:via-[hsl(220,30%,8%)]/30 sm:to-transparent" />
+      <div className={`absolute inset-0 bg-gradient-to-b ${dir === "rtl" ? "sm:bg-gradient-to-l" : "sm:bg-gradient-to-r"} from-[hsl(220,30%,8%)]/95 via-[hsl(220,30%,8%)]/70 to-[hsl(220,30%,8%)]/40 sm:from-[hsl(220,30%,8%)]/85 sm:via-[hsl(220,30%,8%)]/30 sm:to-transparent`} />
       <div className="absolute inset-0 bg-gradient-to-t from-[hsl(220,30%,8%)]/60 sm:from-[hsl(220,30%,8%)]/40 via-transparent to-transparent" />
 
       <div className={`relative z-10 w-full py-24 lg:py-0 px-4 ${dir === "rtl" ? "sm:pr-6 lg:pr-12 sm:pl-4" : "sm:pl-6 lg:pl-12 sm:pr-4"}`}>
