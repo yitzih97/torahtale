@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState, useCallback } from "react";
+import { Suspense, lazy, useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,10 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroBoy from "@/assets/hero-boy.png";
 import heroGirl from "@/assets/hero-girl.png";
+import kid1 from "@/assets/avatars/kid1.jpg";
+import kid2 from "@/assets/avatars/kid2.jpg";
+import kid3 from "@/assets/avatars/kid3.jpg";
+import kid4 from "@/assets/avatars/kid4.jpg";
 
 const BookFlipAnimation = lazy(() =>
   import("@/components/3d/BookFlipAnimation").then((m) => ({ default: m.BookFlipAnimation }))
