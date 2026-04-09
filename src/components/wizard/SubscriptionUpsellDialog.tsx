@@ -5,55 +5,26 @@ import { Input } from "@/components/ui/input";
 import { Crown, Zap, CalendarDays, Check, TrendingDown, Loader2, Sparkles, CreditCard, ArrowLeft, ShieldCheck, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 type PlanType = "weekly" | "monthly" | "yearly";
 type DialogStep = "plan" | "payment";
 
-interface Plan {
+interface PlanData {
   id: PlanType;
-  label: string;
-  price: number;
-  perWeek: number;
+  priceUsd: number;
+  perWeekUsd: number;
   savings: string;
   icon: typeof Crown;
-  badge?: string;
-  description: string;
+  badge?: boolean;
   frequency: string;
 }
 
-const PLANS: Plan[] = [
-  {
-    id: "weekly",
-    label: "Weekly",
-    price: 23.99,
-    perWeek: 23.99,
-    savings: "20% off",
-    icon: Zap,
-    description: "A new Torah adventure every Shabbos",
-    frequency: "weekly",
-  },
-  {
-    id: "monthly",
-    label: "Monthly",
-    price: 79.99,
-    perWeek: 19.99,
-    savings: "33% off",
-    icon: Crown,
-    badge: "MOST POPULAR",
-    description: "4 seforim/month — best value for mishpachos",
-    frequency: "monthly",
-  },
-  {
-    id: "yearly",
-    label: "Yearly",
-    price: 799.99,
-    perWeek: 15.38,
-    savings: "49% off",
-    icon: CalendarDays,
-    description: "Full year of seforim — biggest savings",
-    frequency: "yearly",
-  },
+const PLANS: PlanData[] = [
+  { id: "weekly", priceUsd: 23.99, perWeekUsd: 23.99, savings: "20% off", icon: Zap, frequency: "weekly" },
+  { id: "monthly", priceUsd: 79.99, perWeekUsd: 19.99, savings: "33% off", icon: Crown, badge: true, frequency: "monthly" },
+  { id: "yearly", priceUsd: 799.99, perWeekUsd: 15.38, savings: "49% off", icon: CalendarDays, frequency: "yearly" },
 ];
 
 function formatCardNumber(value: string): string {
@@ -79,8 +50,27 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
   const [step, setStep] = useState<DialogStep>("plan");
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { symbol, rate, code } = t.currency;
 
-  // Payment form state
+  const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
+  const periodLabel = (id: string) =>
+    id === "yearly" ? (code === "ILS" ? "שנה" : "yr")
+    : id === "monthly" ? (code === "ILS" ? "חודש" : "mo")
+    : (code === "ILS" ? "שבוע" : "wk");
+
+  const planLabels: Record<string, string> = {
+    weekly: t.checkout.weekly,
+    monthly: t.checkout.monthly,
+    yearly: t.checkout.yearly,
+  };
+
+  const planDescs: Record<string, string> = {
+    weekly: t.checkout.weeklyDesc,
+    monthly: t.checkout.monthlyDesc,
+    yearly: t.checkout.yearlyDesc,
+  };
+
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
@@ -98,7 +88,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
 
   const handleGoToPayment = () => {
     if (!user) {
-      toast.error("Please sign in to subscribe.");
+      toast.error(t.upsell.signInToSubscribe);
       return;
     }
     setStep("payment");
@@ -112,18 +102,18 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
       const { error } = await supabase.from("subscriptions").insert({
         user_id: user.id,
         frequency: activePlan.frequency,
-        price_per_week: activePlan.perWeek,
+        price_per_week: activePlan.perWeekUsd,
         status: "active",
       });
 
       if (error) throw error;
 
-      toast.success(`Subscribed to the ${activePlan.label} plan!`);
+      toast.success(t.upsell.subscribed(planLabels[activePlan.id]));
       onSubscribed?.();
       resetAndClose();
     } catch (err: any) {
       console.error("Subscription error:", err);
-      toast.error("Could not create subscription. Please try again.");
+      toast.error(t.upsell.subError);
     } finally {
       setIsLoading(false);
     }
@@ -144,22 +134,18 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
       <DialogContent className="max-w-lg p-0 overflow-hidden rounded-2xl border-accent/20">
         {step === "plan" ? (
           <>
-            {/* Header */}
             <div className="bg-gradient-to-br from-accent/10 via-primary/5 to-transparent p-6 pb-4">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-5 h-5 text-accent" />
                 <DialogTitle className="font-display text-xl font-bold text-primary">
-                  {context === "limit-reached" ? "Unlock Unlimited Seforim!" : "Join the Parashah Club"}
+                  {context === "limit-reached" ? t.upsell.unlockTitle : t.upsell.joinTitle}
                 </DialogTitle>
               </div>
               <p className="text-sm text-muted-foreground">
-                {context === "limit-reached"
-                  ? "You've used your 2 free book previews this month. Subscribe to create unlimited personalized Torah seforim for your kinderlach!"
-                  : "Subscribe and get a new personalized Torah sefer delivered every Shabbos!"}
+                {context === "limit-reached" ? t.upsell.limitMsg : t.upsell.joinMsg}
               </p>
             </div>
 
-            {/* Plans */}
             <div className="px-6 pb-2 space-y-3">
               {PLANS.map((plan) => {
                 const isActive = selectedPlan === plan.id;
@@ -175,7 +161,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                   >
                     {plan.badge && (
                       <div className="absolute -top-2.5 right-4 bg-accent text-accent-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                        {plan.badge}
+                        {t.bookOptions.mostPopular}
                       </div>
                     )}
                     <div className="flex items-center gap-3">
@@ -186,11 +172,11 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline gap-2">
-                          <span className="font-display font-bold text-primary">{plan.label}</span>
-                          <span className="text-lg font-bold text-accent">${plan.price}</span>
-                          <span className="text-xs text-muted-foreground">/{plan.id === "yearly" ? "yr" : plan.id === "monthly" ? "mo" : "wk"}</span>
+                          <span className="font-display font-bold text-primary">{planLabels[plan.id]}</span>
+                          <span className="text-lg font-bold text-accent">{fmt(plan.priceUsd)}</span>
+                          <span className="text-xs text-muted-foreground">/{periodLabel(plan.id)}</span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{plan.description}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{planDescs[plan.id]}</p>
                       </div>
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-full shrink-0">
                         <TrendingDown className="w-3 h-3" /> {plan.savings}
@@ -201,7 +187,6 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
               })}
             </div>
 
-            {/* CTA */}
             <div className="px-6 pb-6 pt-2 space-y-3">
               <Button
                 variant="gold"
@@ -210,104 +195,69 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                 onClick={handleGoToPayment}
               >
                 <Crown className="w-4 h-4" />
-                Subscribe — ${activePlan.price.toFixed(2)}/{selectedPlan === "yearly" ? "yr" : selectedPlan === "monthly" ? "mo" : "wk"}
+                {t.upsell.subscribe} — {fmt(activePlan.priceUsd)}/{periodLabel(selectedPlan)}
               </Button>
               <p className="text-center text-[10px] text-muted-foreground">
-                🚚 Free shipping · Cancel anytime · Secure checkout
+                {t.upsell.freeShipCancel}
               </p>
             </div>
           </>
         ) : (
           <>
-            {/* Payment Step Header */}
             <div className="bg-gradient-to-br from-accent/10 via-primary/5 to-transparent p-6 pb-4">
               <button
                 onClick={() => setStep("plan")}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors mb-3"
               >
-                <ArrowLeft className="w-3.5 h-3.5" /> Back to plans
+                <ArrowLeft className="w-3.5 h-3.5" /> {t.upsell.backToPlans}
               </button>
               <div className="flex items-center gap-2 mb-1">
                 <CreditCard className="w-5 h-5 text-accent" />
                 <DialogTitle className="font-display text-xl font-bold text-primary">
-                  Payment Details
+                  {t.upsell.paymentDetails}
                 </DialogTitle>
               </div>
               <div className="flex items-center gap-2 mt-2 bg-accent/10 rounded-lg px-3 py-2">
                 <Crown className="w-4 h-4 text-accent" />
-                <span className="text-sm font-medium text-primary">{activePlan.label} Plan</span>
+                <span className="text-sm font-medium text-primary">{planLabels[activePlan.id]} {t.checkout.plan}</span>
                 <span className="ml-auto text-sm font-bold text-accent">
-                  ${activePlan.price.toFixed(2)}/{selectedPlan === "yearly" ? "yr" : selectedPlan === "monthly" ? "mo" : "wk"}
+                  {fmt(activePlan.priceUsd)}/{periodLabel(selectedPlan)}
                 </span>
               </div>
             </div>
 
-            {/* Payment Form */}
             <div className="px-6 pb-2 space-y-4">
               <div>
-                <label className="text-xs font-medium text-primary mb-1.5 block">Name on Card</label>
-                <Input
-                  placeholder="John Doe"
-                  value={cardName}
-                  onChange={(e) => setCardName(e.target.value)}
-                  className="rounded-xl h-11"
-                />
+                <label className="text-xs font-medium text-primary mb-1.5 block">{t.upsell.nameOnCard}</label>
+                <Input placeholder="John Doe" value={cardName} onChange={(e) => setCardName(e.target.value)} className="rounded-xl h-11" />
               </div>
-
               <div>
-                <label className="text-xs font-medium text-primary mb-1.5 block">Card Number</label>
+                <label className="text-xs font-medium text-primary mb-1.5 block">{t.upsell.cardNumber}</label>
                 <div className="relative">
-                  <Input
-                    placeholder="1234 5678 9012 3456"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                    className="rounded-xl h-11 pl-10"
-                    maxLength={19}
-                  />
+                  <Input placeholder="1234 5678 9012 3456" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} className="rounded-xl h-11 pl-10" maxLength={19} />
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 </div>
               </div>
-
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-primary mb-1.5 block">Expiry</label>
-                  <Input
-                    placeholder="MM/YY"
-                    value={expiry}
-                    onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                    className="rounded-xl h-11"
-                    maxLength={5}
-                  />
+                  <label className="text-xs font-medium text-primary mb-1.5 block">{t.upsell.expiry}</label>
+                  <Input placeholder="MM/YY" value={expiry} onChange={(e) => setExpiry(formatExpiry(e.target.value))} className="rounded-xl h-11" maxLength={5} />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-primary mb-1.5 block">CVV</label>
-                  <Input
-                    placeholder="123"
-                    value={cvv}
-                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                    className="rounded-xl h-11"
-                    maxLength={4}
-                    type="password"
-                  />
+                  <label className="text-xs font-medium text-primary mb-1.5 block">{t.upsell.cvv}</label>
+                  <Input placeholder="123" value={cvv} onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} className="rounded-xl h-11" maxLength={4} type="password" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-primary mb-1.5 block">Billing ZIP</label>
-                  <Input
-                    placeholder="10001"
-                    value={billingZip}
-                    onChange={(e) => setBillingZip(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                    className="rounded-xl h-11"
-                    maxLength={10}
-                  />
+                  <label className="text-xs font-medium text-primary mb-1.5 block">{t.upsell.billingZip}</label>
+                  <Input placeholder="10001" value={billingZip} onChange={(e) => setBillingZip(e.target.value.replace(/\D/g, "").slice(0, 10))} className="rounded-xl h-11" maxLength={10} />
                 </div>
               </div>
             </div>
 
-            {/* Secure badge + submit */}
             <div className="px-6 pb-6 pt-2 space-y-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-xl p-3">
                 <ShieldCheck className="w-4 h-4 text-accent shrink-0" />
-                <span>256-bit encryption · Your payment details are safe</span>
+                <span>{t.upsell.encryption}</span>
                 <Lock className="w-3 h-3 text-muted-foreground ml-auto shrink-0" />
               </div>
               <Button
@@ -322,12 +272,12 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    Pay ${activePlan.price.toFixed(2)} & Subscribe
+                    {t.upsell.paySubscribe((activePlan.priceUsd * rate).toFixed(2))}
                   </>
                 )}
               </Button>
               <p className="text-center text-[10px] text-muted-foreground">
-                🚚 Free shipping · Cancel anytime
+                {t.upsell.freeShipCancelShort}
               </p>
             </div>
           </>
