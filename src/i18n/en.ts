@@ -405,5 +405,13 @@ export const en = {
     subscribed: (label: string) => `Subscribed to the ${label} plan!`,
     subError: "Could not create subscription. Please try again.",
   },
+
+  // Currency
+  currency: {
+    symbol: "$",
+    code: "USD",
+    rate: 1,
+    position: "before" as const,
+  },
 };
 

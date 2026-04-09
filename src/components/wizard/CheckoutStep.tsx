@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
 import { type BookOptions, calculateBookPrice } from "./BookOptionsStep";
@@ -9,44 +10,17 @@ export type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
 interface Plan {
   id: PlanType;
-  label: string;
-  price: number;
-  perWeek: number;
+  priceUsd: number;
+  perWeekUsd: number;
   savings: string;
   icon: typeof Crown;
-  badge?: string;
-  description: string;
+  badge?: boolean;
 }
 
 const PLANS: Plan[] = [
-  {
-    id: "weekly",
-    label: "Weekly",
-    price: 23.99,
-    perWeek: 23.99,
-    savings: "20% off",
-    icon: Zap,
-    description: "A new Torah adventure every Shabbos",
-  },
-  {
-    id: "monthly",
-    label: "Monthly",
-    price: 79.99,
-    perWeek: 19.99,
-    savings: "33% off",
-    icon: Crown,
-    badge: "MOST POPULAR",
-    description: "4 seforim/month — best value for mishpachos",
-  },
-  {
-    id: "yearly",
-    label: "Yearly",
-    price: 799.99,
-    perWeek: 15.38,
-    savings: "49% off",
-    icon: CalendarDays,
-    description: "Full year of seforim — biggest savings",
-  },
+  { id: "weekly", priceUsd: 23.99, perWeekUsd: 23.99, savings: "20% off", icon: Zap },
+  { id: "monthly", priceUsd: 79.99, perWeekUsd: 19.99, savings: "33% off", icon: Crown, badge: true },
+  { id: "yearly", priceUsd: 799.99, perWeekUsd: 15.38, savings: "49% off", icon: CalendarDays },
 ];
 
 interface Props {
@@ -61,15 +35,37 @@ interface Props {
 export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, bookOptions, onPlaceOrder }: Props) => {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
   const [placingOrder, setPlacingOrder] = useState(false);
+  const { t } = useLanguage();
+  const { symbol, rate } = t.currency;
+
+  const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
+
   const bookPrice = calculateBookPrice(bookOptions);
-  const shippingCost = shipping.shippingMethod === "express" ? 9.99 : 0;
+  const shippingCostUsd = shipping.shippingMethod === "express" ? 9.99 : 0;
 
   const isSubscription = selectedPlan !== "once";
   const activePlan = PLANS.find((p) => p.id === selectedPlan);
 
-  const total = isSubscription
-    ? (activePlan?.price ?? 0) + shippingCost
-    : bookPrice + shippingCost;
+  const totalUsd = isSubscription
+    ? (activePlan?.priceUsd ?? 0) + shippingCostUsd
+    : bookPrice + shippingCostUsd;
+
+  const periodLabel = (id: string) =>
+    id === "yearly" ? (t.currency.code === "ILS" ? "שנה" : "yr")
+    : id === "monthly" ? (t.currency.code === "ILS" ? "חודש" : "mo")
+    : (t.currency.code === "ILS" ? "שבוע" : "wk");
+
+  const planLabels: Record<string, string> = {
+    weekly: t.checkout.weekly,
+    monthly: t.checkout.monthly,
+    yearly: t.checkout.yearly,
+  };
+
+  const planDescs: Record<string, string> = {
+    weekly: t.checkout.weeklyDesc,
+    monthly: t.checkout.monthlyDesc,
+    yearly: t.checkout.yearlyDesc,
+  };
 
   const handlePlaceOrder = async () => {
     setPlacingOrder(true);
@@ -85,9 +81,9 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-bold text-primary">Choose Your Plan</h2>
+        <h2 className="font-display text-2xl font-bold text-primary">{t.checkout.choosePlan}</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Subscribe and {childName} gets a new personalized Torah sefer every Shabbos!
+          {t.checkout.subscribeMsg(childName)}
         </p>
       </div>
 
@@ -107,7 +103,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
             >
               {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                  {plan.badge}
+                  {t.bookOptions.mostPopular}
                 </div>
               )}
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 transition-colors ${
@@ -115,17 +111,17 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
               }`}>
                 {isActive ? <Check className="w-5 h-5" /> : <plan.icon className="w-5 h-5" />}
               </div>
-              <p className="font-display font-bold text-base text-primary">{plan.label}</p>
+              <p className="font-display font-bold text-base text-primary">{planLabels[plan.id]}</p>
               <div className="mt-1.5">
-                <span className="text-xl font-bold text-accent">${plan.price}</span>
-                <span className="text-xs text-muted-foreground">/{plan.id === "yearly" ? "yr" : plan.id === "monthly" ? "mo" : "wk"}</span>
+                <span className="text-xl font-bold text-accent">{fmt(plan.priceUsd)}</span>
+                <span className="text-xs text-muted-foreground">/{periodLabel(plan.id)}</span>
               </div>
-              <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{plan.description}</p>
+              <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{planDescs[plan.id]}</p>
               <div className="flex items-center gap-1.5 mt-2.5">
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
                   <TrendingDown className="w-3 h-3" /> {plan.savings}
                 </span>
-                <span className="text-[10px] text-muted-foreground">${plan.perWeek.toFixed(2)}/wk</span>
+                <span className="text-[10px] text-muted-foreground">{fmt(plan.perWeekUsd)}/{t.currency.code === "ILS" ? "שבוע" : "wk"}</span>
               </div>
             </button>
           );
@@ -142,55 +138,55 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
               : "text-muted-foreground/60 hover:text-muted-foreground underline underline-offset-2"
           }`}
         >
-          {selectedPlan === "once" ? "✓ One-time purchase selected" : "Skip subscription — purchase this book only"}
+          {selectedPlan === "once" ? t.checkout.oneTimePurchase : t.checkout.skipSubscription}
         </button>
       </div>
 
       {/* Order summary */}
       <div className="bg-muted/30 rounded-2xl p-5 space-y-3 border border-border">
-        <h3 className="font-display text-lg font-semibold text-primary">Order Summary</h3>
+        <h3 className="font-display text-lg font-semibold text-primary">{t.checkout.orderSummary}</h3>
         <div className="space-y-2.5 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Book for {childName}</span>
+            <span className="text-muted-foreground">{t.checkout.bookFor(childName)}</span>
             <span className="font-medium text-primary">
-              {isSubscription ? "Included" : `$${bookPrice.toFixed(2)}`}
+              {isSubscription ? t.checkout.included : fmt(bookPrice)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Story</span>
+            <span className="text-muted-foreground">{t.wizard.story}</span>
             <span className="font-medium text-primary">{getPortionLabel(torahPortion)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Art Style</span>
+            <span className="text-muted-foreground">{t.wizard.artStyle}</span>
             <span className="font-medium text-primary capitalize">{artStyle === "3d-pixar" ? "3D Pixar" : artStyle === "graphic-novel" ? "Graphic Novel" : "Cartoon"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Format</span>
+            <span className="text-muted-foreground">{t.checkout.format}</span>
             <span className="font-medium text-primary">
               {bookOptions.productType === "hardcover"
-                ? `Hardcover ${bookOptions.hardcoverSize === "11x8.5" ? '11″×8.5″' : '8″×8″'}`
+                ? `${t.bookOptions.hardcover} ${bookOptions.hardcoverSize === "11x8.5" ? '11″×8.5″' : '8″×8″'}`
                 : bookOptions.productType === "board"
-                ? 'Board Book 6″×6″'
-                : 'Softcover 8″×8″'}
+                ? `${t.bookOptions.boardBook} 6″×6″`
+                : `${t.bookOptions.softcover} 8″×8″`}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Shipping</span>
-            <span className="font-medium text-primary">{shippingCost === 0 ? "Free" : `$${shippingCost.toFixed(2)}`}</span>
+            <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
+            <span className="font-medium text-primary">{shippingCostUsd === 0 ? t.checkout.freeShipping : fmt(shippingCostUsd)}</span>
           </div>
           {isSubscription && activePlan && (
             <div className="flex justify-between text-accent">
-              <span>{activePlan.label} Plan</span>
-              <span className="font-medium">${activePlan.price}/{activePlan.id === "yearly" ? "yr" : activePlan.id === "monthly" ? "mo" : "wk"}</span>
+              <span>{planLabels[activePlan.id]} {t.checkout.plan}</span>
+              <span className="font-medium">{fmt(activePlan.priceUsd)}/{periodLabel(activePlan.id)}</span>
             </div>
           )}
           <div className="border-t border-border pt-3 mt-3 flex justify-between font-bold text-base">
-            <span>Total Today</span>
-            <span className="text-accent">${total.toFixed(2)}</span>
+            <span>{t.checkout.totalToday}</span>
+            <span className="text-accent">{fmt(totalUsd)}</span>
           </div>
           {isSubscription && (
             <p className="text-[10px] text-muted-foreground">
-              🚚 Free shipping on all subscription deliveries · Cancel anytime
+              {t.checkout.freeShipNote}
             </p>
           )}
         </div>
@@ -199,7 +195,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
       {/* Secure checkout info */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-xl p-3">
         <ShieldCheck className="w-4 h-4 text-accent" />
-        <span>Secure checkout · 256-bit encryption · Your payment details are safe</span>
+        <span>{t.checkout.secureCheckout}</span>
       </div>
 
       <Button
@@ -215,8 +211,8 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
           <>
             <Sparkles className="w-4 h-4" />
             {isSubscription
-              ? `Subscribe & Place Order — $${total.toFixed(2)}`
-              : `Place Order — $${total.toFixed(2)}`}
+              ? t.checkout.subscribeOrder((totalUsd * rate).toFixed(2))
+              : t.checkout.placeOrder((totalUsd * rate).toFixed(2))}
           </>
         )}
       </Button>

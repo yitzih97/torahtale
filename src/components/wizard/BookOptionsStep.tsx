@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BookOpen, Check, Sparkles, Shield, Baby, ChevronRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import softcoverImg from "@/assets/books/softcover-preview.jpg";
 import hardcoverImg from "@/assets/books/hardcover-preview.jpg";
@@ -18,56 +19,31 @@ export const DEFAULT_BOOK_OPTIONS: BookOptions = {
 
 const PRODUCT_INFO = {
   softcover: {
-    label: "Softcover Photo Book",
     price: 7.05,
     dims: '8″ × 8″',
     icon: BookOpen,
     color: "from-blue-500/20 to-blue-600/10",
     image: softcoverImg,
-    features: [
-      "100lb semi-gloss paper",
-      "Lightweight & flexible",
-      "Perfect for everyday reading",
-      "Saddle-stitch binding",
-    ],
-    tagline: "Classic & affordable",
   },
   hardcover: {
-    label: "Hardcover Photo Book",
     price: 9.95,
     dims: '8″ × 8″ or 11″ × 8.5″',
     icon: Shield,
     color: "from-accent/20 to-accent/10",
-    badge: "MOST POPULAR",
     image: hardcoverImg,
-    features: [
-      "Glossy or matte finish",
-      "Premium case-wrap binding",
-      "Sturdy & gift-worthy",
-      "Two size options",
-    ],
-    tagline: "Premium & durable",
   },
   board: {
-    label: "Board Book",
     price: 18.28,
     dims: '6″ × 6″',
     icon: Baby,
     color: "from-pink-500/20 to-pink-600/10",
     image: boardImg,
-    features: [
-      '1/16″ thick chipboard pages',
-      "Rounded safety corners",
-      "Matte lamination",
-      "Perfect for toddlers",
-    ],
-    tagline: "Built for little hands",
   },
 } as const;
 
-const HARDCOVER_SIZES = [
-  { key: "8x8" as const, label: '8″ × 8″', desc: "Square — compact & cozy" },
-  { key: "11x8.5" as const, label: '11″ × 8.5″', desc: "Landscape — bigger illustrations" },
+const HARDCOVER_SIZES_DATA = [
+  { key: "8x8" as const, label: '8″ × 8″' },
+  { key: "11x8.5" as const, label: '11″ × 8.5″' },
 ];
 
 export const BASE_BOOK_PRICE = 7.05;
@@ -85,6 +61,10 @@ interface Props {
 
 export const BookOptionsStep = ({ options, onChange }: Props) => {
   const [subStep, setSubStep] = useState<"type" | "size">("type");
+  const { t } = useLanguage();
+  const { symbol, rate } = t.currency;
+
+  const formatPrice = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
 
   const selectType = (type: BookOptions["productType"]) => {
     if (type === "hardcover") {
@@ -98,11 +78,34 @@ export const BookOptionsStep = ({ options, onChange }: Props) => {
 
   const price = calculateBookPrice(options);
 
+  const productLabels: Record<string, string> = {
+    softcover: t.bookOptions.softcover,
+    hardcover: t.bookOptions.hardcover,
+    board: t.bookOptions.boardBook,
+  };
+
+  const productTaglines: Record<string, string> = {
+    softcover: t.bookOptions.softcoverTagline,
+    hardcover: t.bookOptions.hardcoverTagline,
+    board: t.bookOptions.boardTagline,
+  };
+
+  const productFeatures: Record<string, string[]> = {
+    softcover: t.bookOptions.features.softcover,
+    hardcover: t.bookOptions.features.hardcover,
+    board: t.bookOptions.features.board,
+  };
+
+  const hardcoverSizes = HARDCOVER_SIZES_DATA.map((s, i) => ({
+    ...s,
+    desc: i === 0 ? t.bookOptions.squareCompact : t.bookOptions.landscapeBigger,
+  }));
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-          <Sparkles className="w-6 h-6 text-accent" /> Choose Your Sefer
+          <Sparkles className="w-6 h-6 text-accent" /> {t.bookOptions.chooseSefer}
         </h2>
       </div>
 
@@ -113,14 +116,14 @@ export const BookOptionsStep = ({ options, onChange }: Props) => {
             onClick={() => setSubStep("type")}
             className={`transition-colors ${subStep === "type" ? "text-accent font-semibold" : "hover:text-foreground"}`}
           >
-            Book Type
+            {t.bookOptions.bookType}
           </button>
           <ChevronRight className="w-3 h-3" />
           <button
             onClick={() => setSubStep("size")}
             className={`transition-colors ${subStep === "size" ? "text-accent font-semibold" : "hover:text-foreground"}`}
           >
-            Size
+            {t.bookOptions.size}
           </button>
         </div>
       )}
@@ -131,6 +134,7 @@ export const BookOptionsStep = ({ options, onChange }: Props) => {
             const info = PRODUCT_INFO[key];
             const isActive = options.productType === key;
             const Icon = info.icon;
+            const badge = key === "hardcover" ? t.bookOptions.mostPopular : undefined;
 
             return (
               <button
@@ -142,29 +146,25 @@ export const BookOptionsStep = ({ options, onChange }: Props) => {
                     : "border-border hover:border-accent/30 hover:shadow-sm"
                 }`}
               >
-                {"badge" in info && info.badge && (
+                {badge && (
                   <div className="absolute -top-3 right-4 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full">
-                    {info.badge}
+                    {badge}
                   </div>
                 )}
 
                 <div className="flex items-start gap-4">
-                  {/* Preview image */}
                   <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50">
-                    {"image" in info && (
-                      <img src={info.image} alt={info.label} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
-                    )}
+                    <img src={info.image} alt={productLabels[key]} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-display font-bold text-base text-primary">{info.label}</span>
-                      <span className="text-lg font-bold text-accent">${info.price.toFixed(2)}</span>
+                      <span className="font-display font-bold text-base text-primary">{productLabels[key]}</span>
+                      <span className="text-lg font-bold text-accent">{formatPrice(info.price)}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">{info.tagline} · {info.dims}</p>
+                    <p className="text-xs text-muted-foreground mb-2">{productTaglines[key]} · {info.dims}</p>
                     <div className="grid grid-cols-2 gap-1">
-                      {info.features.map((f, i) => (
+                      {productFeatures[key].map((f, i) => (
                         <p key={i} className="text-[11px] text-muted-foreground flex items-center gap-1.5">
                           <span className="w-1 h-1 rounded-full bg-accent/60 shrink-0" />
                           {f}
@@ -182,9 +182,9 @@ export const BookOptionsStep = ({ options, onChange }: Props) => {
       {/* Hardcover size sub-step */}
       {subStep === "size" && options.productType === "hardcover" && (
         <div className="space-y-3">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Choose Your Hardcover Size</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.bookOptions.chooseHardcoverSize}</p>
           <div className="grid grid-cols-2 gap-4">
-            {HARDCOVER_SIZES.map((s) => {
+            {hardcoverSizes.map((s) => {
               const isActive = options.hardcoverSize === s.key;
               return (
                 <button
@@ -210,15 +210,15 @@ export const BookOptionsStep = ({ options, onChange }: Props) => {
       <div className="rounded-2xl bg-muted/30 border border-border p-5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-primary">Your Selection</p>
+            <p className="text-sm font-semibold text-primary">{t.bookOptions.yourSelection}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {PRODUCT_INFO[options.productType].label}
+              {productLabels[options.productType]}
               {options.productType === "hardcover" && options.hardcoverSize
                 ? ` · ${options.hardcoverSize === "11x8.5" ? '11″×8.5″' : '8″×8″'}`
                 : ` · ${PRODUCT_INFO[options.productType].dims}`}
             </p>
           </div>
-          <span className="text-2xl font-bold text-accent">${price.toFixed(2)}</span>
+          <span className="text-2xl font-bold text-accent">{formatPrice(price)}</span>
         </div>
       </div>
     </div>
