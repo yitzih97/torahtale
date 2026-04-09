@@ -15,7 +15,7 @@ export const en = {
     badge: "AI-Powered Torah Stories for Frum Kinderlach",
     cta: "Begin the Journey",
     priceText: "From $24.99 · Ships in 3 days",
-    socialProof: "2,847+ Chareidi mishpachos",
+    socialProof: "happy mishpachos",
     slides: [
       { headline: ["Hashem Created the World,", "Miriam Walked Through Gan Eden."], description: "Miriam discovers Hashem's beautiful creations alongside Adam and Chava in the very first garden." },
       { headline: ["Noach Built the Teivah,", "Ari Sailed Along."], description: "Ari gathers animals two by two and rides the mabul to a keshet shining with Hashem's promise." },

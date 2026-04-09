@@ -1,11 +1,13 @@
-import { Suspense, lazy, useState, useCallback } from "react";
+import { Suspense, lazy, useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
-import heroBoy from "@/assets/hero-boy.png";
-import heroGirl from "@/assets/hero-girl.png";
+import kid1 from "@/assets/avatars/kid1.jpg";
+import kid2 from "@/assets/avatars/kid2.jpg";
+import kid3 from "@/assets/avatars/kid3.jpg";
+import kid4 from "@/assets/avatars/kid4.jpg";
 
 const BookFlipAnimation = lazy(() =>
   import("@/components/3d/BookFlipAnimation").then((m) => ({ default: m.BookFlipAnimation }))
@@ -13,23 +15,87 @@ const BookFlipAnimation = lazy(() =>
 
 const ease = [0.16, 1, 0.3, 1];
 
-const boyVariants = {
-  initial: { opacity: 0, x: 200, rotate: 3 },
-  animate: {
-    opacity: 1, x: 0, rotate: [3, -2, 3, -2, 0], y: [0, -10, 0, -10, 0, -10, 0],
-    transition: { x: { duration: 1.2, ease: [0.16, 1, 0.3, 1] }, opacity: { duration: 0.4 }, rotate: { duration: 1.2, ease: "easeInOut" }, y: { duration: 1.4, ease: "easeInOut" } },
-  },
-  exit: { opacity: 0, x: -180, rotate: -3, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
-};
+const AVATARS = [kid1, kid2, kid3, kid4];
 
-const girlVariants = {
-  initial: { opacity: 0, x: 220, rotate: -2 },
-  animate: {
-    opacity: 1, x: 10, rotate: [-2, 2, -2, 2, 0], y: [0, -8, 0, -8, 0, -8, 0],
-    transition: { x: { duration: 1.3, ease: [0.16, 1, 0.3, 1], delay: 0.15 }, opacity: { duration: 0.4, delay: 0.15 }, rotate: { duration: 1.3, ease: "easeInOut", delay: 0.15 }, y: { duration: 1.5, ease: "easeInOut", delay: 0.15 } },
-  },
-  exit: { opacity: 0, x: -150, rotate: 2, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
-};
+/* ── Animated counter component ── */
+
+function AnimatedNumber({ value }: { value: number }) {
+  const [displayValue, setDisplayValue] = useState(value);
+  const prevValue = useRef(value);
+
+  useEffect(() => {
+    const start = prevValue.current;
+    const end = value;
+    if (start === end) return;
+    
+    const duration = 800;
+    const startTime = performance.now();
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(start + (end - start) * eased);
+      setDisplayValue(current);
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
+    prevValue.current = end;
+  }, [value]);
+
+  return <>{displayValue.toLocaleString()}+</>;
+}
+
+function SocialProofCounter({ dir, socialProof }: { dir: "ltr" | "rtl"; socialProof: string }) {
+  const [count, setCount] = useState(50);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCount((c) => c + 1);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.8, duration: 0.6 }}
+      className={`mt-6 sm:mt-10 flex items-center gap-2 sm:gap-3 justify-center ${
+        dir === "rtl" ? "sm:justify-start" : "sm:justify-start"
+      }`}
+    >
+      <div className={`flex ${dir === "rtl" ? "-space-x-reverse -space-x-2" : "-space-x-2"}`}>
+        {AVATARS.map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt=""
+            className="w-7 h-7 sm:w-9 sm:h-9 rounded-full border-2 border-white/30 object-cover"
+            loading="lazy"
+            width={36}
+            height={36}
+          />
+        ))}
+      </div>
+      <div className="flex items-center gap-0.5 sm:gap-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-accent text-accent" />
+        ))}
+      </div>
+      <span className="text-xs sm:text-sm text-white/60">
+        <strong className="text-white/80 tabular-nums">
+          <AnimatedNumber value={count} />
+        </strong>{" "}
+        {socialProof}
+      </span>
+    </motion.div>
+  );
+}
+
+/* ── Hero Section ── */
 
 interface HeroSectionProps {
   onStart: () => void;
@@ -121,19 +187,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               <span className="text-white/40 text-xs sm:text-sm font-body">{priceText}</span>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }} className={`mt-6 sm:mt-10 flex items-center gap-2 sm:gap-3 justify-center ${dir === "rtl" ? "sm:justify-end" : "sm:justify-start"}`}>
-              <div className={`flex ${dir === "rtl" ? "-space-x-reverse -space-x-2" : "-space-x-2"}`}>
-                {["S", "D", "M", "R"].map((initial, i) => (
-                  <div key={i} className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white/20 bg-white/10 flex items-center justify-center text-[8px] sm:text-[10px] font-semibold text-gold-light backdrop-blur-sm">
-                    {initial}
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-0.5 sm:gap-1">
-                {[1,2,3,4,5].map(i => <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-accent text-accent" />)}
-              </div>
-              <span className="text-xs sm:text-sm text-white/60" dangerouslySetInnerHTML={{ __html: socialProof.replace(/(\d[\d,]+\+?)/, '<strong class="text-white/80">$1</strong>') }} />
-            </motion.div>
+            <SocialProofCounter dir={dir} socialProof={socialProof} />
           </div>
         </div>
       </div>
