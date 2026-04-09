@@ -356,7 +356,7 @@ export default function Dashboard() {
                             <div>
                               <h4 className="font-display font-semibold text-primary">{t.dash.parashahClub}</h4>
                               <p className="text-xs text-muted-foreground">
-                                For {sub.child_name || "your kind"} · ${sub.price_per_week}{t.dash.perWeek}
+                                For {sub.child_name || "your kind"} · {t.currency.symbol}{(sub.price_per_week * t.currency.rate).toFixed(2)}{t.dash.perWeek}
                               </p>
                             </div>
                           </div>
