@@ -125,19 +125,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               <span className="text-white/40 text-xs sm:text-sm font-body">{priceText}</span>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }} className={`mt-6 sm:mt-10 flex items-center gap-2 sm:gap-3 justify-center ${dir === "rtl" ? "sm:justify-end" : "sm:justify-start"}`}>
-              <div className={`flex ${dir === "rtl" ? "-space-x-reverse -space-x-2" : "-space-x-2"}`}>
-                {["S", "D", "M", "R"].map((initial, i) => (
-                  <div key={i} className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white/20 bg-white/10 flex items-center justify-center text-[8px] sm:text-[10px] font-semibold text-gold-light backdrop-blur-sm">
-                    {initial}
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-0.5 sm:gap-1">
-                {[1,2,3,4,5].map(i => <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-accent text-accent" />)}
-              </div>
-              <span className="text-xs sm:text-sm text-white/60" dangerouslySetInnerHTML={{ __html: socialProof.replace(/(\d[\d,]+\+?)/, '<strong class="text-white/80">$1</strong>') }} />
-            </motion.div>
+            <SocialProofCounter dir={dir} socialProof={socialProof} />
           </div>
         </div>
       </div>
