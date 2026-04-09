@@ -407,5 +407,13 @@ export const he: typeof en = {
     subscribed: (label: string) => `!נרשמתם לתוכנית ${label}`,
     subError: ".לא ניתן ליצור מנוי. אנא נסו שוב",
   },
+
+  // Currency
+  currency: {
+    symbol: "₪",
+    code: "ILS",
+    rate: 3.7,
+    position: "before" as const,
+  },
 };
 
