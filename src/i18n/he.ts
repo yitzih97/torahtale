@@ -16,7 +16,7 @@ export const he: typeof en = {
   hero: {
     badge: "סיפורי תורה מונעי AI לקינדערלעך פרומע",
     cta: "התחל את המסע",
-    priceText: "החל מ-$24.99 · משלוח תוך 3 ימים",
+    priceText: "החל מ-₪89.99 · משלוח תוך 3 ימים",
     socialProof: "2,847+ משפחות חרדיות",
     slides: [
       { headline: ["הקב״ה ברא את העולם,", "מרים טיילה בגן עדן."], description: "מרים מגלה את בריאותיו היפות של הקב״ה לצד אדם וחוה בגן הראשון." },
@@ -345,7 +345,7 @@ export const he: typeof en = {
     standardTime: "5-7 ימי עסקים",
     expressTime: "2-3 ימי עסקים",
     free: "חינם",
-    expressCost: "+$9.99",
+    expressCost: "+₪36.99",
   },
 
   // Checkout
@@ -370,8 +370,8 @@ export const he: typeof en = {
     freeShipping: "חינם",
     freeShipNote: "🚚 משלוח חינם בכל מנוי · ביטול בכל עת",
     secureCheckout: "תשלום מאובטח · הצפנת 256 ביט · פרטי התשלום שלכם בטוחים",
-    subscribeOrder: (total: string) => `הירשמו והזמינו — $${total}`,
-    placeOrder: (total: string) => `בצעו הזמנה — $${total}`,
+     subscribeOrder: (total: string) => `הירשמו והזמינו — ₪${total}`,
+    placeOrder: (total: string) => `בצעו הזמנה — ₪${total}`,
   },
 
   // Success
@@ -401,7 +401,7 @@ export const he: typeof en = {
     cvv: "CVV",
     billingZip: "מיקוד חיוב",
     encryption: "הצפנת 256 ביט · פרטי התשלום שלכם בטוחים",
-    paySubscribe: (price: string) => `שלמו $${price} והירשמו`,
+    paySubscribe: (price: string) => `שלמו ₪${price} והירשמו`,
     freeShipCancelShort: "🚚 משלוח חינם · ביטול בכל עת",
     signInToSubscribe: ".אנא התחברו כדי להירשם",
     subscribed: (label: string) => `!נרשמתם לתוכנית ${label}`,
