@@ -198,7 +198,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
   const [copySource, setCopySource] = useState<string>("");
   const [fillingDefaults, setFillingDefaults] = useState(false);
   const [uploadingRefKey, setUploadingRefKey] = useState<string | null>(null);
-  const refImageInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  
 
   const handleUploadRefImage = async (slotKey: string, file: File) => {
     if (!selectedPortion) return;

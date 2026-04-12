@@ -55,7 +55,22 @@ serve(async (req) => {
             }
           }
         }
-      }
+
+        // Look for page-specific reference image
+        let sceneReferenceImageUrl: string | null = null;
+        if (torahPortion) {
+          let refKey: string | null = null;
+          if (pageType === "cover") refKey = `${torahPortion}:cover:reference-image`;
+          else if (pageType === "back-cover") refKey = `${torahPortion}:back-cover:reference-image`;
+          else if (pageNumber) refKey = `${torahPortion}:page-${pageNumber}:reference-image`;
+
+          if (refKey) {
+            const found = settings.find((s: any) => s.category === "book-templates" && s.key === refKey);
+            if (found?.value?.trim()) {
+              sceneReferenceImageUrl = found.value;
+            }
+          }
+        }
     } catch (e) { console.error("Failed to load site_settings:", e); }
 
     const styleMap: Record<string, string> = {
