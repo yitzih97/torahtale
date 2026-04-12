@@ -197,6 +197,38 @@ function BookTemplatesTab({ onSave, savingKey }: {
   const [loading, setLoading] = useState(false);
   const [copySource, setCopySource] = useState<string>("");
   const [fillingDefaults, setFillingDefaults] = useState(false);
+  const [uploadingRefKey, setUploadingRefKey] = useState<string | null>(null);
+  const refImageInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const handleUploadRefImage = async (slotKey: string, file: File) => {
+    if (!selectedPortion) return;
+    setUploadingRefKey(slotKey);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const filePath = `template-ref/${selectedPortion}/${slotKey}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("site-images")
+        .upload(filePath, file, { contentType: file.type, upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("site-images").getPublicUrl(filePath);
+      const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      const settingKey = `${selectedPortion}:${slotKey}:reference-image`;
+      onSave("book-templates", settingKey, imageUrl);
+      setTemplates((prev) => ({ ...prev, [`${slotKey}:reference-image`]: imageUrl }));
+      toast.success(`Reference image uploaded for ${slotKey}`);
+    } catch (e: any) {
+      toast.error(`Upload failed: ${e.message}`);
+    }
+    setUploadingRefKey(null);
+  };
+
+  const handleDeleteRefImage = (slotKey: string) => {
+    if (!selectedPortion) return;
+    const settingKey = `${selectedPortion}:${slotKey}:reference-image`;
+    onSave("book-templates", settingKey, "");
+    setTemplates((prev) => ({ ...prev, [`${slotKey}:reference-image`]: "" }));
+    toast.success(`Reference image removed for ${slotKey}`);
+  };
 
   // Group portions by category
   const groupedPortions: Record<string, TorahOption[]> = {};
