@@ -522,21 +522,36 @@ function BookTemplatesTab({ onSave, savingKey }: {
                   </Button>
                 </div>
 
-                {/* Reference Image Upload */}
-                <div className="space-y-1">
+                {/* Reference Image — Upload, Generate, or Edit with AI */}
+                <div className="space-y-2">
                   <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     Reference Image (Scene Guide)
                   </label>
                   <p className="text-[10px] text-muted-foreground">
-                    Upload a reference image so every book uses the same scene layout for this page — only the child character will change.
+                    Upload or generate a reference image so every book uses the same scene layout — only the child character will change.
                   </p>
+
+                  {/* Prompt editor for generating reference image */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-muted-foreground">AI Prompt for Reference Image</label>
+                    <Textarea
+                      value={refPrompts[slot.key] ?? getDefaultRefPrompt(slot.key)}
+                      onChange={(e) => setRefPrompts((prev) => ({ ...prev, [slot.key]: e.target.value }))}
+                      rows={3}
+                      className="text-xs font-mono"
+                      placeholder="Describe how this reference image should look..."
+                    />
+                  </div>
+
                   {refImgVal && refImgVal.trim() !== "" ? (
-                    <div className="flex items-start gap-3">
-                      <img src={refImgVal} alt="Reference" className="w-32 h-32 object-cover rounded-lg border border-border" />
-                      <div className="flex flex-col gap-1">
+                    <div className="space-y-2">
+                      <img src={refImgVal} alt="Reference" className="w-full max-w-xs rounded-lg border border-border" />
+                      <div className="flex flex-wrap gap-2">
                         <Button size="sm" variant="outline" className="text-xs gap-1.5"
-                          onClick={() => handleDeleteRefImage(slot.key)}>
-                          <AlertTriangle className="w-3 h-3" /> Remove
+                          disabled={generatingRefKey === slot.key}
+                          onClick={() => handleGenerateRefImage(slot.key)}>
+                          {generatingRefKey === slot.key ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                          {generatingRefKey === slot.key ? "Regenerating..." : "Regenerate with AI"}
                         </Button>
                         <Button size="sm" variant="outline" className="text-xs gap-1.5"
                           disabled={uploadingRefKey === slot.key}
@@ -550,25 +565,37 @@ function BookTemplatesTab({ onSave, savingKey }: {
                             };
                             input.click();
                           }}>
-                          {uploadingRefKey === slot.key ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />} Replace
+                          {uploadingRefKey === slot.key ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />} Replace Upload
+                        </Button>
+                        <Button size="sm" variant="destructive" className="text-xs gap-1.5"
+                          onClick={() => handleDeleteRefImage(slot.key)}>
+                          <AlertTriangle className="w-3 h-3" /> Remove
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <Button size="sm" variant="outline" className="text-xs gap-1.5"
-                      disabled={uploadingRefKey === slot.key}
-                      onClick={() => {
-                        const input = document.createElement("input");
-                        input.type = "file";
-                        input.accept = "image/*";
-                        input.onchange = (e) => {
-                          const f = (e.target as HTMLInputElement).files?.[0];
-                          if (f) handleUploadRefImage(slot.key, f);
-                        };
-                        input.click();
-                      }}>
-                      {uploadingRefKey === slot.key ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />} Upload Reference Image
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" variant="default" className="text-xs gap-1.5"
+                        disabled={generatingRefKey === slot.key}
+                        onClick={() => handleGenerateRefImage(slot.key)}>
+                        {generatingRefKey === slot.key ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        {generatingRefKey === slot.key ? "Generating..." : "Generate with AI"}
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-xs gap-1.5"
+                        disabled={uploadingRefKey === slot.key}
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = "image/*";
+                          input.onchange = (e) => {
+                            const f = (e.target as HTMLInputElement).files?.[0];
+                            if (f) handleUploadRefImage(slot.key, f);
+                          };
+                          input.click();
+                        }}>
+                        {uploadingRefKey === slot.key ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />} Upload Image
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
