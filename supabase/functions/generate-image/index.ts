@@ -55,22 +55,30 @@ serve(async (req) => {
             }
           }
         }
+      }
 
-        // Look for page-specific reference image
-        let sceneReferenceImageUrl: string | null = null;
-        if (torahPortion) {
-          let refKey: string | null = null;
-          if (pageType === "cover") refKey = `${torahPortion}:cover:reference-image`;
-          else if (pageType === "back-cover") refKey = `${torahPortion}:back-cover:reference-image`;
-          else if (pageNumber) refKey = `${torahPortion}:page-${pageNumber}:reference-image`;
+      // Look for page-specific reference image
+      let sceneReferenceImageUrl: string | null = null;
+      if (torahPortion) {
+        let refKey: string | null = null;
+        if (pageType === "cover") refKey = `${torahPortion}:cover:reference-image`;
+        else if (pageType === "back-cover") refKey = `${torahPortion}:back-cover:reference-image`;
+        else if (pageNumber) refKey = `${torahPortion}:page-${pageNumber}:reference-image`;
 
-          if (refKey) {
-            const found = settings.find((s: any) => s.category === "book-templates" && s.key === refKey);
-            if (found?.value?.trim()) {
-              sceneReferenceImageUrl = found.value;
+        if (refKey) {
+          const supabaseUrl2 = Deno.env.get("SUPABASE_URL")!;
+          const supabaseKey2 = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+          const refRes = await fetch(`${supabaseUrl2}/rest/v1/site_settings?category=eq.book-templates&key=eq.${refKey}`, {
+            headers: { apikey: supabaseKey2, Authorization: `Bearer ${supabaseKey2}` },
+          });
+          if (refRes.ok) {
+            const refData = await refRes.json();
+            if (refData?.[0]?.value?.trim()) {
+              sceneReferenceImageUrl = refData[0].value;
             }
           }
         }
+      }
     } catch (e) { console.error("Failed to load site_settings:", e); }
 
     const styleMap: Record<string, string> = {
