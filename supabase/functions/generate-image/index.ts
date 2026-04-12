@@ -30,6 +30,7 @@ serve(async (req) => {
     let customImageTemplate: string | null = null;
     let customImageModel: string | null = null;
     let pageImageTemplate: string | null = null;
+    let sceneReferenceImageUrl: string | null = null;
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -41,12 +42,20 @@ serve(async (req) => {
         customImageTemplate = settings.find((s: any) => s.category === "prompts" && s.key === "image-prompt-template")?.value || null;
         customImageModel = settings.find((s: any) => s.category === "ai" && s.key === "image-model")?.value || null;
 
-        // Look for page-specific image prompt template
+        // Look for page-specific image prompt template and reference image
         if (torahPortion) {
           let templateKey: string | null = null;
-          if (pageType === "cover") templateKey = `${torahPortion}:cover:image-prompt`;
-          else if (pageType === "back-cover") templateKey = `${torahPortion}:back-cover:image-prompt`;
-          else if (pageNumber) templateKey = `${torahPortion}:page-${pageNumber}:image-prompt`;
+          let refKey: string | null = null;
+          if (pageType === "cover") {
+            templateKey = `${torahPortion}:cover:image-prompt`;
+            refKey = `${torahPortion}:cover:reference-image`;
+          } else if (pageType === "back-cover") {
+            templateKey = `${torahPortion}:back-cover:image-prompt`;
+            refKey = `${torahPortion}:back-cover:reference-image`;
+          } else if (pageNumber) {
+            templateKey = `${torahPortion}:page-${pageNumber}:image-prompt`;
+            refKey = `${torahPortion}:page-${pageNumber}:reference-image`;
+          }
 
           if (templateKey) {
             const found = settings.find((s: any) => s.category === "book-templates" && s.key === templateKey);
@@ -54,27 +63,11 @@ serve(async (req) => {
               pageImageTemplate = found.value;
             }
           }
-        }
-      }
 
-      // Look for page-specific reference image
-      let sceneReferenceImageUrl: string | null = null;
-      if (torahPortion) {
-        let refKey: string | null = null;
-        if (pageType === "cover") refKey = `${torahPortion}:cover:reference-image`;
-        else if (pageType === "back-cover") refKey = `${torahPortion}:back-cover:reference-image`;
-        else if (pageNumber) refKey = `${torahPortion}:page-${pageNumber}:reference-image`;
-
-        if (refKey) {
-          const supabaseUrl2 = Deno.env.get("SUPABASE_URL")!;
-          const supabaseKey2 = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-          const refRes = await fetch(`${supabaseUrl2}/rest/v1/site_settings?category=eq.book-templates&key=eq.${refKey}`, {
-            headers: { apikey: supabaseKey2, Authorization: `Bearer ${supabaseKey2}` },
-          });
-          if (refRes.ok) {
-            const refData = await refRes.json();
-            if (refData?.[0]?.value?.trim()) {
-              sceneReferenceImageUrl = refData[0].value;
+          if (refKey) {
+            const found = settings.find((s: any) => s.category === "book-templates" && s.key === refKey);
+            if (found?.value?.trim()) {
+              sceneReferenceImageUrl = found.value;
             }
           }
         }
