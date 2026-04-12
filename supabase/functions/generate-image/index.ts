@@ -30,6 +30,7 @@ serve(async (req) => {
     let customImageTemplate: string | null = null;
     let customImageModel: string | null = null;
     let pageImageTemplate: string | null = null;
+    let sceneReferenceImageUrl: string | null = null;
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -41,17 +42,32 @@ serve(async (req) => {
         customImageTemplate = settings.find((s: any) => s.category === "prompts" && s.key === "image-prompt-template")?.value || null;
         customImageModel = settings.find((s: any) => s.category === "ai" && s.key === "image-model")?.value || null;
 
-        // Look for page-specific image prompt template
+        // Look for page-specific image prompt template and reference image
         if (torahPortion) {
           let templateKey: string | null = null;
-          if (pageType === "cover") templateKey = `${torahPortion}:cover:image-prompt`;
-          else if (pageType === "back-cover") templateKey = `${torahPortion}:back-cover:image-prompt`;
-          else if (pageNumber) templateKey = `${torahPortion}:page-${pageNumber}:image-prompt`;
+          let refKey: string | null = null;
+          if (pageType === "cover") {
+            templateKey = `${torahPortion}:cover:image-prompt`;
+            refKey = `${torahPortion}:cover:reference-image`;
+          } else if (pageType === "back-cover") {
+            templateKey = `${torahPortion}:back-cover:image-prompt`;
+            refKey = `${torahPortion}:back-cover:reference-image`;
+          } else if (pageNumber) {
+            templateKey = `${torahPortion}:page-${pageNumber}:image-prompt`;
+            refKey = `${torahPortion}:page-${pageNumber}:reference-image`;
+          }
 
           if (templateKey) {
             const found = settings.find((s: any) => s.category === "book-templates" && s.key === templateKey);
             if (found?.value?.trim()) {
               pageImageTemplate = found.value;
+            }
+          }
+
+          if (refKey) {
+            const found = settings.find((s: any) => s.category === "book-templates" && s.key === refKey);
+            if (found?.value?.trim()) {
+              sceneReferenceImageUrl = found.value;
             }
           }
         }
@@ -135,6 +151,20 @@ serve(async (req) => {
       } else {
         parts.push({ fileData: { fileUri: referenceImage, mimeType: "image/jpeg" } });
       }
+    }
+
+    // Inject scene reference image for visual consistency across books
+    if (sceneReferenceImageUrl) {
+      imagePrompt += ` SCENE COMPOSITION GUIDE: The attached SCENE REFERENCE IMAGE shows the exact scene layout, background elements, and overall composition you MUST reproduce. Match the same environment, camera angle, lighting, and background details. However, adapt the child character to match the specified name, age, gender, and character sheet. The scene should look nearly identical to the reference — only the child character changes.`;
+      try {
+        const sceneResp = await fetch(sceneReferenceImageUrl);
+        if (sceneResp.ok) {
+          const buf = await sceneResp.arrayBuffer();
+          const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+          const ct = sceneResp.headers.get("content-type") || "image/jpeg";
+          parts.push({ inlineData: { mimeType: ct, data: b64 } });
+        }
+      } catch (e) { console.error("Failed to fetch scene reference image:", e); }
     }
 
     parts.push({ text: imagePrompt });

@@ -197,6 +197,38 @@ function BookTemplatesTab({ onSave, savingKey }: {
   const [loading, setLoading] = useState(false);
   const [copySource, setCopySource] = useState<string>("");
   const [fillingDefaults, setFillingDefaults] = useState(false);
+  const [uploadingRefKey, setUploadingRefKey] = useState<string | null>(null);
+  
+
+  const handleUploadRefImage = async (slotKey: string, file: File) => {
+    if (!selectedPortion) return;
+    setUploadingRefKey(slotKey);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const filePath = `template-ref/${selectedPortion}/${slotKey}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("site-images")
+        .upload(filePath, file, { contentType: file.type, upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("site-images").getPublicUrl(filePath);
+      const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      const settingKey = `${selectedPortion}:${slotKey}:reference-image`;
+      onSave("book-templates", settingKey, imageUrl);
+      setTemplates((prev) => ({ ...prev, [`${slotKey}:reference-image`]: imageUrl }));
+      toast.success(`Reference image uploaded for ${slotKey}`);
+    } catch (e: any) {
+      toast.error(`Upload failed: ${e.message}`);
+    }
+    setUploadingRefKey(null);
+  };
+
+  const handleDeleteRefImage = (slotKey: string) => {
+    if (!selectedPortion) return;
+    const settingKey = `${selectedPortion}:${slotKey}:reference-image`;
+    onSave("book-templates", settingKey, "");
+    setTemplates((prev) => ({ ...prev, [`${slotKey}:reference-image`]: "" }));
+    toast.success(`Reference image removed for ${slotKey}`);
+  };
 
   // Group portions by category
   const groupedPortions: Record<string, TorahOption[]> = {};
@@ -393,6 +425,8 @@ function BookTemplatesTab({ onSave, savingKey }: {
           {PAGE_SLOTS.map((slot) => {
             const textKey = `${slot.key}:text`;
             const imgKey = `${slot.key}:image-prompt`;
+            const refImgKey = `${slot.key}:reference-image`;
+            const refImgVal = templates[refImgKey] || "";
             const textVal = templates[textKey] || "";
             const imgVal = templates[imgKey] || "";
             const savingText = savingKey === `book-templates:${selectedPortion}:${textKey}`;
@@ -444,6 +478,56 @@ function BookTemplatesTab({ onSave, savingKey }: {
                     onClick={() => handleSaveSlot(slot.key, "image-prompt")}>
                     {savingImg ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save Image Prompt
                   </Button>
+                </div>
+
+                {/* Reference Image Upload */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    Reference Image (Scene Guide)
+                  </label>
+                  <p className="text-[10px] text-muted-foreground">
+                    Upload a reference image so every book uses the same scene layout for this page — only the child character will change.
+                  </p>
+                  {refImgVal && refImgVal.trim() !== "" ? (
+                    <div className="flex items-start gap-3">
+                      <img src={refImgVal} alt="Reference" className="w-32 h-32 object-cover rounded-lg border border-border" />
+                      <div className="flex flex-col gap-1">
+                        <Button size="sm" variant="outline" className="text-xs gap-1.5"
+                          onClick={() => handleDeleteRefImage(slot.key)}>
+                          <AlertTriangle className="w-3 h-3" /> Remove
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-xs gap-1.5"
+                          disabled={uploadingRefKey === slot.key}
+                          onClick={() => {
+                            const input = document.createElement("input");
+                            input.type = "file";
+                            input.accept = "image/*";
+                            input.onchange = (e) => {
+                              const f = (e.target as HTMLInputElement).files?.[0];
+                              if (f) handleUploadRefImage(slot.key, f);
+                            };
+                            input.click();
+                          }}>
+                          {uploadingRefKey === slot.key ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />} Replace
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button size="sm" variant="outline" className="text-xs gap-1.5"
+                      disabled={uploadingRefKey === slot.key}
+                      onClick={() => {
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
+                        input.onchange = (e) => {
+                          const f = (e.target as HTMLInputElement).files?.[0];
+                          if (f) handleUploadRefImage(slot.key, f);
+                        };
+                        input.click();
+                      }}>
+                      {uploadingRefKey === slot.key ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />} Upload Reference Image
+                    </Button>
+                  )}
                 </div>
               </div>
             );
