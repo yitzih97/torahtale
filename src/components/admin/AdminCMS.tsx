@@ -198,7 +198,9 @@ function BookTemplatesTab({ onSave, savingKey }: {
   const [copySource, setCopySource] = useState<string>("");
   const [fillingDefaults, setFillingDefaults] = useState(false);
   const [uploadingRefKey, setUploadingRefKey] = useState<string | null>(null);
-  
+  const [generatingRefKey, setGeneratingRefKey] = useState<string | null>(null);
+  const [refPrompts, setRefPrompts] = useState<Record<string, string>>({});
+  const [editingRefPromptKey, setEditingRefPromptKey] = useState<string | null>(null);
 
   const handleUploadRefImage = async (slotKey: string, file: File) => {
     if (!selectedPortion) return;
@@ -228,6 +230,46 @@ function BookTemplatesTab({ onSave, savingKey }: {
     onSave("book-templates", settingKey, "");
     setTemplates((prev) => ({ ...prev, [`${slotKey}:reference-image`]: "" }));
     toast.success(`Reference image removed for ${slotKey}`);
+  };
+
+  const getDefaultRefPrompt = (slotKey: string): string => {
+    const portionObj = TORAH_PORTIONS.find((p) => p.value === selectedPortion);
+    const portionLabel = portionObj?.label || selectedPortion;
+    const defaults = DEFAULT_PAGE_TEMPLATES[slotKey];
+    if (defaults?.["image-prompt"]) {
+      return defaults["image-prompt"]
+        .replace(/\{childName\}/g, "a Jewish child")
+        .replace(/\{age\}/g, "6")
+        .replace(/\{gender\}/g, "child")
+        .replace(/\{artStyle\}/g, "3d-pixar")
+        .replace(/\{torahPortion\}/g, portionLabel)
+        .replace(/\{language\}/g, "English");
+    }
+    return `A beautiful children's book illustration for the Torah story of ${portionLabel}. 3D Pixar style, warm lighting, vibrant colors, safe for children.`;
+  };
+
+  const handleGenerateRefImage = async (slotKey: string) => {
+    if (!selectedPortion) return;
+    setGeneratingRefKey(slotKey);
+    try {
+      const prompt = refPrompts[slotKey] || getDefaultRefPrompt(slotKey);
+      const assetKey = `template-ref-${selectedPortion}-${slotKey}`;
+      const { data, error } = await supabase.functions.invoke("admin-generate-image", {
+        body: { assetKey, prompt },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const imageUrl = data.imageUrl;
+      // Save as reference image in site_settings
+      const settingKey = `${selectedPortion}:${slotKey}:reference-image`;
+      onSave("book-templates", settingKey, imageUrl);
+      setTemplates((prev) => ({ ...prev, [`${slotKey}:reference-image`]: imageUrl }));
+      toast.success(`Reference image generated for ${slotKey}!`);
+    } catch (e: any) {
+      console.error("Ref image generation failed:", e);
+      toast.error(e?.message || "Failed to generate reference image");
+    }
+    setGeneratingRefKey(null);
   };
 
   // Group portions by category
