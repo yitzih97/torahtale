@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Settings, Image as ImageIcon, Brain, DollarSign,
   Save, Loader2, RefreshCw, Check, AlertTriangle, Globe,
-  Upload, Palette, Printer, TestTube2, BookOpen, Copy, Search,
+  Upload, Palette, Printer, TestTube2, BookOpen, Copy, Search, Sparkles,
 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSiteAssets } from "@/hooks/useSiteAssets";
@@ -200,7 +200,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
   const [uploadingRefKey, setUploadingRefKey] = useState<string | null>(null);
   const [generatingRefKey, setGeneratingRefKey] = useState<string | null>(null);
   const [refPrompts, setRefPrompts] = useState<Record<string, string>>({});
-  const [editingRefPromptKey, setEditingRefPromptKey] = useState<string | null>(null);
+  
 
   const handleUploadRefImage = async (slotKey: string, file: File) => {
     if (!selectedPortion) return;
