@@ -425,6 +425,8 @@ function BookTemplatesTab({ onSave, savingKey }: {
           {PAGE_SLOTS.map((slot) => {
             const textKey = `${slot.key}:text`;
             const imgKey = `${slot.key}:image-prompt`;
+            const refImgKey = `${slot.key}:reference-image`;
+            const refImgVal = templates[refImgKey] || "";
             const textVal = templates[textKey] || "";
             const imgVal = templates[imgKey] || "";
             const savingText = savingKey === `book-templates:${selectedPortion}:${textKey}`;
@@ -535,6 +537,10 @@ function BookTemplatesTab({ onSave, savingKey }: {
     </div>
   );
 }
+
+/* ─── Main AdminCMS ─── */
+
+export function AdminCMS() {
   const { settings, isLoading: settingsLoading, getSetting, upsertSetting } = useSiteSettings();
   const { assets, regenerateImage, uploadImage } = useSiteAssets();
 
