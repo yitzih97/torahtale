@@ -153,6 +153,20 @@ serve(async (req) => {
       }
     }
 
+    // Inject scene reference image for visual consistency across books
+    if (sceneReferenceImageUrl) {
+      imagePrompt += ` SCENE COMPOSITION GUIDE: The attached SCENE REFERENCE IMAGE shows the exact scene layout, background elements, and overall composition you MUST reproduce. Match the same environment, camera angle, lighting, and background details. However, adapt the child character to match the specified name, age, gender, and character sheet. The scene should look nearly identical to the reference — only the child character changes.`;
+      try {
+        const sceneResp = await fetch(sceneReferenceImageUrl);
+        if (sceneResp.ok) {
+          const buf = await sceneResp.arrayBuffer();
+          const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+          const ct = sceneResp.headers.get("content-type") || "image/jpeg";
+          parts.push({ inlineData: { mimeType: ct, data: b64 } });
+        }
+      } catch (e) { console.error("Failed to fetch scene reference image:", e); }
+    }
+
     parts.push({ text: imagePrompt });
 
     const imageModels = customImageModel
