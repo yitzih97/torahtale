@@ -75,10 +75,10 @@ serve(async (req) => {
     } catch (e) { console.error("Failed to load site_settings:", e); }
 
     const styleMap: Record<string, string> = {
-      cartoon: "colorful cartoon illustration style, like a classic children's book, soft watercolor textures",
-      "3d-pixar": "3D Pixar-style CGI render, warm lighting, soft shadows, expressive characters",
-      realistic: "photorealistic illustration, natural lighting, lifelike detail, warm cinematic tones",
-      "graphic-novel": "graphic novel illustration, bold ink lines, flat colors, dynamic composition",
+      cartoon: "high-resolution cinematic cartoon illustration, rich hand-painted textures with soft watercolor washes, volumetric golden-hour lighting with warm amber highlights and cool blue shadows, depth-of-field bokeh background, intricate environmental details — foliage, fabric folds, atmospheric particles — studio-quality children's book art with painterly brushstrokes visible",
+      "3d-pixar": "ultra high-resolution 3D Pixar/DreamWorks-quality CGI render, subsurface skin scattering, physically-based materials with fabric weave detail, cinematic volumetric lighting with dramatic rim-light and warm key light, shallow depth of field, film-grain texture, ray-traced reflections and ambient occlusion, expressive stylized characters with lifelike eyes and micro-expressions",
+      realistic: "photorealistic digital painting at 8K resolution, natural cinematic lighting with golden-hour warmth, hyper-detailed textures on skin, hair, and fabrics, atmospheric haze and dust motes, shallow depth of field with creamy bokeh, color-graded in warm amber and teal tones like a feature film still, lifelike proportions with painterly softness",
+      "graphic-novel": "graphic novel illustration with bold confident ink linework, dramatic dynamic composition with cinematic camera angles, rich flat color palette with halftone textures and cross-hatching details, high contrast lighting with deep shadows, premium print-quality detail",
     };
 
     const styleDesc = styleMap[artStyle] || styleMap.cartoon;
@@ -103,7 +103,7 @@ serve(async (req) => {
         .replace("{torahPortion}", torahPortion || "Torah")
         .replace("{styleDesc}", styleDesc);
     } else {
-      imagePrompt = `A beautiful children's book illustration of a frum Yiddishe child named ${childName} in a scene from the Torah story "${torahPortion}". ${styleDesc}. Boys aged 3+ MUST have peyos (sidelocks), yarmulke/kippah, and visible tzitzis. Boys aged 0-2 do NOT wear a yarmulke (before upsherin) but may have beginning peyos. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements visible. Safe for children, warm and magical atmosphere, vibrant colors, no text in the image.`;
+      imagePrompt = `Create a breathtaking, high-resolution children's book illustration of a frum Yiddishe child named ${childName} immersed in a vivid scene from the Torah story "${torahPortion}". ${styleDesc}. IMPORTANT VISUAL QUALITY: Ultra-detailed environment with rich background elements — lush landscapes, dramatic skies, atmospheric lighting with golden sunbeams and volumetric rays, visible texture on every surface (stone, fabric, wood, foliage). Cinematic composition with dynamic camera angle. Every page should feel like a frame from an award-winning animated film. CHARACTER RULES: Boys aged 3+ MUST have peyos (sidelocks), yarmulke/kippah, and visible tzitzis. Boys aged 0-2 do NOT wear a yarmulke (before upsherin) but may have beginning peyos. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements, no crosses or church symbols, no text or words in the image. Safe for children, warm and magical atmosphere with vibrant saturated colors. NO text, NO letters, NO words anywhere in the image.`;
     }
 
     // Append dimension instructions for Printify print-ready output

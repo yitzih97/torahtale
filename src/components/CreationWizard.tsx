@@ -663,50 +663,57 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   /* ───── glassmorphism selection card ───── */
   const glassCard = (isSelected: boolean) =>
-    `relative rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 cursor-pointer
+    `relative rounded-2xl border overflow-hidden text-center transition-all duration-300 cursor-pointer
     ${isSelected
-      ? "border-accent bg-accent/8 shadow-lg shadow-accent/10 scale-[1.02]"
-      : "border-border/40 bg-card/60 backdrop-blur-sm hover:border-accent/40 hover:shadow-md hover:-translate-y-1"
+      ? "border-accent/60 bg-accent/8 shadow-xl shadow-accent/10 scale-[1.02] ring-1 ring-accent/20"
+      : "border-border/30 bg-card/40 backdrop-blur-md hover:border-accent/30 hover:shadow-lg hover:-translate-y-1"
     }`;
 
   return (
     <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[100dvh] sm:max-h-[90vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-3xl border-0 sm:border sm:border-border/30 shadow-2xl bg-background backdrop-blur-xl flex flex-col" aria-describedby={undefined}>
+      <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[92vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-[2rem] border-0 sm:border sm:border-border/20 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.25)] bg-gradient-to-b from-background via-background to-background/95 backdrop-blur-2xl flex flex-col" aria-describedby={undefined}>
         <DialogTitle className="sr-only">{t.wizard.createYourBook}</DialogTitle>
 
-        {/* ── Minimal progress bar + step counter ── */}
+        {/* ── Ultra-minimal progress line ── */}
         {step <= 8 && (
-          <div className="px-6 sm:px-8 pt-5 sm:pt-6 pb-0 flex-shrink-0">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <motion.div
-                  key={step}
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={springTransition}
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center"
-                >
-                  <StepIcon className="w-4 h-4 text-accent" />
-                </motion.div>
-              </div>
-              <span className="text-xs font-medium text-muted-foreground tracking-wide">
-                {step} <span className="text-muted-foreground/50">{t.common.of}</span> 8
-              </span>
-            </div>
-            <div className="h-[3px] bg-muted/50 rounded-full overflow-hidden">
+          <div className="px-6 sm:px-8 pt-4 sm:pt-5 pb-0 flex-shrink-0">
+            <div className="flex items-center justify-between mb-2.5">
               <motion.div
-                className="h-full bg-gradient-to-r from-accent to-accent/70 rounded-full"
+                key={step}
+                initial={{ scale: 0.5, opacity: 0, rotate: -90 }}
+                animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                transition={{ ...springTransition, stiffness: 400 }}
+                className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/15 via-accent/10 to-transparent flex items-center justify-center ring-1 ring-accent/10"
+              >
+                <StepIcon className="w-4 h-4 text-accent" />
+              </motion.div>
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <motion.div
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                      i < step ? "bg-accent w-3" : i === step ? "bg-accent/40 w-2" : "bg-border/40 w-1.5"
+                    }`}
+                    layout
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="h-[2px] bg-border/20 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: "linear-gradient(90deg, hsl(var(--accent)), hsl(var(--accent) / 0.6))" }}
                 initial={false}
                 animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               />
             </div>
           </div>
         )}
 
         {/* ── Scrollable content area ── */}
-        <div className="flex-1 overflow-y-auto px-6 sm:px-8 pt-5 sm:pt-6 pb-4">
+        <div className="flex-1 overflow-y-auto px-6 sm:px-8 pt-4 sm:pt-5 pb-4 scroll-smooth">
           {/* ── Floating character preview badge (steps 2-5) ── */}
           {step >= 2 && step <= 5 && (() => {
             const preview = getPreviewImage();
@@ -1806,45 +1813,48 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex-shrink-0 flex justify-between px-6 sm:px-8 py-4 sm:py-5 border-t border-border/30 bg-background/80 backdrop-blur-sm"
+            className="flex-shrink-0 flex justify-between items-center px-6 sm:px-8 py-3.5 sm:py-4 border-t border-border/15 bg-background/60 backdrop-blur-xl"
           >
             {step > 1 ? (
               <button
                 onClick={back}
-                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium group"
               >
-                <ArrowLeft className="w-4 h-4" /> {t.common.back}
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" /> {t.common.back}
               </button>
             ) : <div />}
 
             {step <= 7 && (
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={next}
                 disabled={!canNext}
-                className="flex items-center gap-2 px-6 sm:px-8 h-11 rounded-full bg-gradient-to-r from-accent to-accent/85 text-accent-foreground font-semibold text-sm shadow-md shadow-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
+                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
                 {t.common.continue} <ArrowRight className="w-4 h-4" />
               </motion.button>
             )}
             {step === 8 && (
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={next}
-                className="flex items-center gap-2 px-6 sm:px-8 h-11 rounded-full bg-gradient-to-r from-accent to-accent/85 text-accent-foreground font-semibold text-sm shadow-md shadow-accent/20 transition-all"
+                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 transition-all text-accent-foreground"
+                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
                 <Sparkles className="w-4 h-4" /> {t.wizard.generateBook}
               </motion.button>
             )}
             {(step === 10 || step === 11) && (
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={next}
                 disabled={!canNext}
-                className="flex items-center gap-2 px-6 sm:px-8 h-11 rounded-full bg-gradient-to-r from-accent to-accent/85 text-accent-foreground font-semibold text-sm shadow-md shadow-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
+                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
                 {t.common.continue} <ArrowRight className="w-4 h-4" />
               </motion.button>
