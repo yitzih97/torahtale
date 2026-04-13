@@ -198,7 +198,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         } else if (pg.type === "back-cover") {
           prompt = `Create a children's book BACK COVER illustration. This is a back cover — it should be softer and more atmospheric than the front. A gentle, dreamy scene related to the Torah story "${book.torah_portion}" with ${book.child_name}. Art style: ${style}. Warm sunset or twilight tones, peaceful atmosphere. Leave visual space in the center for text overlay. NO TEXT, no words. Orthodox Jewish setting.`;
         } else if (pg.type === "questions") {
-          prompt = `A warm, inviting children's book illustration suitable as a background for discussion questions. Torah theme "${book.torah_portion}". Style: ${style}. Soft, gentle scene with open seforim and warm lighting in a cozy beis medrash setting. Leave plenty of visual space for text overlay. No text.`;
+          prompt = `A warm, inviting children's book illustration suitable as a background for discussion questions. Torah theme "${book.torah_portion}". Style: ${style}. Soft, gentle scene with open books and warm lighting in a cozy beis medrash setting. Leave plenty of visual space for text overlay. No text.`;
         } else {
           prompt = `A beautiful children's book page illustration depicting the following scene: "${pg.text}". This is from the Torah story "${book.torah_portion}". The main character is ${book.child_name}, a frum Yiddishe child who MUST look EXACTLY like the character reference sheet provided. Art style: ${style}. Full-page illustration, vivid and immersive. Orthodox Jewish setting — boys with yarmulke, peyos, tzitzis; girls in modest long-sleeved dresses. No text in the image.`;
         }
