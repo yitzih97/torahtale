@@ -29,6 +29,7 @@ export const Navbar = ({ onStart }: NavbarProps) => {
   }, []);
 
   const navLinks = [
+    { label: t.nav.home, href: "/" },
     { label: t.nav.about, href: "/about" },
     { label: t.nav.testimonials, href: "#testimonials" },
     { label: t.nav.contact, href: "/contact" },
