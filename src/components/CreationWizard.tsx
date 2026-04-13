@@ -489,7 +489,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   };
 
   const back = () => {
+    if (step === 6 && portionMode === "manual") {
+      setPortionMode(null);
+      return;
+    }
     setDir(-1);
+    setPortionMode(null);
     let prevStep = step - 1;
     if (allChildrenHaveGenderAge()) {
       if (step === 4) prevStep = 1;
