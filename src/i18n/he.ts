@@ -447,6 +447,26 @@ export const he: typeof en = {
     ],
   },
 
+  // Privacy
+  privacy: {
+    label: "משפטי",
+    title: "מדיניות פרטיות",
+    effectiveDate: "תאריך תחולה: 27 במרץ 2026",
+    crossLink: "← תנאי שימוש",
+    crossLinkPath: "/terms",
+    tocLabel: "בעמוד זה",
+  },
+
+  // Terms
+  terms: {
+    label: "משפטי",
+    title: "תנאי שימוש",
+    effectiveDate: "תאריך תחולה: 27 במרץ 2026",
+    crossLink: "← מדיניות פרטיות",
+    crossLinkPath: "/privacy",
+    tocLabel: "בעמוד זה",
+  },
+
   // Currency
   currency: {
     symbol: "₪",
