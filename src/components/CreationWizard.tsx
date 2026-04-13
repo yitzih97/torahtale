@@ -672,34 +672,41 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   return (
     <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[100dvh] sm:max-h-[90vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-3xl border-0 sm:border sm:border-border/30 shadow-2xl bg-background backdrop-blur-xl flex flex-col" aria-describedby={undefined}>
+      <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[92vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-[2rem] border-0 sm:border sm:border-border/20 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.25)] bg-gradient-to-b from-background via-background to-background/95 backdrop-blur-2xl flex flex-col" aria-describedby={undefined}>
         <DialogTitle className="sr-only">{t.wizard.createYourBook}</DialogTitle>
 
-        {/* ── Minimal progress bar + step counter ── */}
+        {/* ── Ultra-minimal progress line ── */}
         {step <= 8 && (
-          <div className="px-6 sm:px-8 pt-5 sm:pt-6 pb-0 flex-shrink-0">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <motion.div
-                  key={step}
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={springTransition}
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center"
-                >
-                  <StepIcon className="w-4 h-4 text-accent" />
-                </motion.div>
-              </div>
-              <span className="text-xs font-medium text-muted-foreground tracking-wide">
-                {step} <span className="text-muted-foreground/50">{t.common.of}</span> 8
-              </span>
-            </div>
-            <div className="h-[3px] bg-muted/50 rounded-full overflow-hidden">
+          <div className="px-6 sm:px-8 pt-4 sm:pt-5 pb-0 flex-shrink-0">
+            <div className="flex items-center justify-between mb-2.5">
               <motion.div
-                className="h-full bg-gradient-to-r from-accent to-accent/70 rounded-full"
+                key={step}
+                initial={{ scale: 0.5, opacity: 0, rotate: -90 }}
+                animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                transition={{ ...springTransition, stiffness: 400 }}
+                className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/15 via-accent/10 to-transparent flex items-center justify-center ring-1 ring-accent/10"
+              >
+                <StepIcon className="w-4 h-4 text-accent" />
+              </motion.div>
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <motion.div
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                      i < step ? "bg-accent w-3" : i === step ? "bg-accent/40 w-2" : "bg-border/40 w-1.5"
+                    }`}
+                    layout
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="h-[2px] bg-border/20 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: "linear-gradient(90deg, hsl(var(--accent)), hsl(var(--accent) / 0.6))" }}
                 initial={false}
                 animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               />
             </div>
           </div>
