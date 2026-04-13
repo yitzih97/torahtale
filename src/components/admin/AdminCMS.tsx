@@ -151,8 +151,8 @@ const DEFAULT_PAGE_TEMPLATES: Record<string, { text: string; "image-prompt": str
     "image-prompt": `A stunning children's book cover illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, as the hero. The scene depicts the opening moment of the {torahPortion} story. Warm, magical atmosphere with golden light. Include subtle Torah motifs (stars of David, olive branches, scrollwork border). Title area at top. Safe for children. High resolution for print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
   },
   "page-1": {
-    text: `In a cozy Yiddishe home, {childName} discovered something extraordinary — a glowing sefer that would transport them into the story of {torahPortion}...`,
-    "image-prompt": `A warm, inviting children's book illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, sitting in a cozy room filled with seforim. A magical Torah scroll glows with golden light. The child reaches toward it with wonder. Warm home setting with Jewish decor (menorah, mezuzah visible). Print dimensions: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+    text: `In a cozy Yiddishe home, {childName} discovered something extraordinary — a glowing book that would transport them into the story of {torahPortion}...`,
+    "image-prompt": `A warm, inviting children's book illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, sitting in a cozy room filled with books. A magical Torah scroll glows with golden light. The child reaches toward it with wonder. Warm home setting with Jewish decor (menorah, mezuzah visible). Print dimensions: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "page-2": {
     text: `Suddenly, the world around {childName} shimmered and changed. The story of {torahPortion} came alive before their very eyes...`,
@@ -180,7 +180,7 @@ const DEFAULT_PAGE_TEMPLATES: Record<string, { text: string; "image-prompt": str
   },
   "page-8": {
     text: `As the magical journey ended, {childName} returned home, carrying the beautiful lessons of {torahPortion} forever in their heart. The End.`,
-    "image-prompt": `A warm closing scene in {artStyle} style. {childName}, a frum Yiddishe {gender} age {age}, back in their cozy home, hugging a Torah scroll or sefer. The magical glow fades gently. Family members nearby. Shabbos candles or Jewish home elements visible. Sense of completion and warmth. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+    "image-prompt": `A warm closing scene in {artStyle} style. {childName}, a frum Yiddishe {gender} age {age}, back in their cozy home, hugging a Torah scroll or book. The magical glow fades gently. Family members nearby. Shabbos candles or Jewish home elements visible. Sense of completion and warmth. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "back-cover": {
     text: `Synopsis: Join {childName} on an unforgettable adventure through the story of {torahPortion}, where Torah wisdom comes alive!\n\nDedication: With love and brachos`,
@@ -756,7 +756,7 @@ export function AdminCMS() {
               <h4 className="text-sm font-semibold text-foreground">Navbar</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
                 <SettingField category="website" settingKey="brand-name" label="Brand Name" placeholder="Torah Tale" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
-                <SettingField category="website" settingKey="navbar-cta" label="Navbar CTA Button" placeholder="Create a Sefer" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="navbar-cta" label="Navbar CTA Button" placeholder="Create a Book" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
 
@@ -817,7 +817,7 @@ export function AdminCMS() {
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">Footer</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="footer-tagline" label="Tagline" placeholder="AI-powered personalized children's seforim rooted in Torah wisdom." edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="footer-tagline" label="Tagline" placeholder="AI-powered personalized children's books rooted in Torah wisdom." edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
                 <SettingField category="website" settingKey="footer-copyright" label="Copyright" placeholder="Torah Tale. Made with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
@@ -825,7 +825,7 @@ export function AdminCMS() {
             <div className="space-y-1">
               <h4 className="text-sm font-semibold text-foreground">Auth Page</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="auth-subtitle" label="Sign-In Subtitle" placeholder="Sign in to create personalized Torah seforim for your kinderlach" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="auth-subtitle" label="Sign-In Subtitle" placeholder="Sign in to create personalized Torah books for your kinderlach" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
           </div>
