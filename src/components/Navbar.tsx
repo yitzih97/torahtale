@@ -9,9 +9,10 @@ import { useSiteAssets } from "@/hooks/useSiteAssets";
 
 interface NavbarProps {
   onStart?: () => void;
+  transparentHero?: boolean;
 }
 
-export const Navbar = ({ onStart }: NavbarProps) => {
+export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, signOut } = useAuth();
