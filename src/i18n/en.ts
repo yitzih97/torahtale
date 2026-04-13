@@ -4,6 +4,8 @@ export const en = {
     howItWorks: "How It Works",
     gallery: "Gallery",
     reviews: "Reviews",
+    testimonials: "Testimonials",
+    about: "About Us",
     dashboard: "Dashboard",
     login: "Login",
     signOut: "Sign Out",

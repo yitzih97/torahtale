@@ -6,6 +6,8 @@ export const he: typeof en = {
     howItWorks: "איך זה עובד",
     gallery: "גלריה",
     reviews: "ביקורות",
+    testimonials: "המלצות",
+    about: "אודות",
     dashboard: "לוח בקרה",
     login: "התחברות",
     signOut: "התנתק",
