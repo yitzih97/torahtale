@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
-import { BookOpen, Shield, Heart, Sparkles, Users, ArrowRight } from "lucide-react";
+import { BookOpen, Shield, Heart, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -53,18 +53,6 @@ const About = () => {
           </div>
         </section>
 
-        <section className="space-y-4">
-          <h2 className="text-2xl font-display font-bold text-foreground">{t.about.teamTitle}</h2>
-          <div className="p-8 rounded-2xl bg-muted/40 border border-border flex items-center gap-6">
-            <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-              <Users className="w-7 h-7 text-accent" />
-            </div>
-            <div>
-              <p className="text-muted-foreground leading-relaxed">{t.about.teamDesc}</p>
-            </div>
-          </div>
-        </section>
-
         <section className="text-center space-y-6 py-8">
           <h2 className="text-2xl font-display font-bold text-foreground">{t.about.ctaTitle}</h2>
           <p className="text-muted-foreground max-w-lg mx-auto">{t.about.ctaDesc}</p>
@@ -73,9 +61,6 @@ const About = () => {
               <Button variant="gold" size="lg" className="rounded-full px-8">
                 {t.about.ctaButton} <ArrowRight className={`w-4 h-4 ml-2 ${dir === "rtl" ? "rotate-180" : ""}`} />
               </Button>
-            </Link>
-            <Link to="/contact">
-              <Button variant="outline" size="lg" className="rounded-full px-8">{t.about.ctaContact}</Button>
             </Link>
           </div>
         </section>

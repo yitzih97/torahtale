@@ -3,6 +3,7 @@ import type { en } from "./en";
 export const he: typeof en = {
   // Navbar
   nav: {
+    home: "דף הבית",
     howItWorks: "איך זה עובד",
     gallery: "גלריה",
     reviews: "ביקורות",
