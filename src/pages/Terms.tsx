@@ -2,6 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 const SECTIONS = [
   { id: "overview", label: "Overview" },
@@ -26,6 +27,14 @@ const SECTIONS = [
   { id: "contact", label: "Contact" },
 ];
 
+const floatingOrb = (delay: number, x: string, y: string, size: string, color: string) => (
+  <motion.div
+    className={`absolute ${x} ${y} ${size} rounded-full ${color} blur-[100px] pointer-events-none`}
+    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+    transition={{ duration: 8, repeat: Infinity, delay, ease: "easeInOut" }}
+  />
+);
+
 const Terms = () => {
   const [activeSection, setActiveSection] = useState("overview");
 
@@ -45,25 +54,54 @@ const Terms = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
       <Navbar />
 
-      {/* Hero header */}
-      <header className="pt-28 pb-12 border-b border-border bg-muted/30">
-        <div className="container max-w-6xl mx-auto px-6">
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-accent mb-3">Legal</p>
-          <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">Terms of Service</h1>
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+      {/* Ambient orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {floatingOrb(0, "-left-40", "top-1/4", "w-[500px] h-[500px]", "bg-accent/20")}
+        {floatingOrb(3, "-right-40", "top-1/3", "w-[400px] h-[400px]", "bg-primary/15")}
+        {floatingOrb(5, "left-1/3", "bottom-0", "w-[600px] h-[300px]", "bg-accent/10")}
+      </div>
+
+      {/* Hero */}
+      <section className="relative pt-36 pb-8 md:pt-44 md:pb-12">
+        <div className="container max-w-4xl mx-auto px-6 text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="text-accent font-semibold tracking-[0.15em] uppercase text-xs mb-5"
+          >
+            Legal
+          </motion.p>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="text-5xl md:text-7xl lg:text-[5.5rem] font-display font-bold text-foreground tracking-tight leading-[1.05]"
+          >
+            Terms of Service
+            <span className="text-accent">.</span>
+          </motion.h1>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground"
+          >
             <span>Effective Date: March 27, 2026</span>
             <span className="hidden sm:inline">·</span>
             <Link to="/privacy" className="text-accent hover:underline">Privacy Policy →</Link>
-          </div>
+          </motion.div>
         </div>
-      </header>
+      </section>
 
-      <div className="container max-w-6xl mx-auto px-6 py-12 lg:py-16">
+      <div className="container max-w-6xl mx-auto px-6 py-12 lg:py-16 relative z-10">
         <div className="flex gap-12 lg:gap-16">
-          {/* Sidebar TOC — desktop only */}
+          {/* Sidebar TOC */}
           <aside className="hidden lg:block w-56 shrink-0">
             <nav className="sticky top-28 space-y-0.5 max-h-[calc(100vh-8rem)] overflow-y-auto">
               <p className="text-[10px] font-semibold tracking-[0.15em] uppercase text-muted-foreground/60 mb-3">On this page</p>
@@ -84,8 +122,14 @@ const Terms = () => {
           </aside>
 
           {/* Content */}
-          <main className="min-w-0 flex-1 max-w-3xl">
-            <div className="space-y-12 text-[15px] leading-[1.75] text-muted-foreground">
+          <motion.main
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="min-w-0 flex-1 max-w-3xl"
+          >
+            <div className="p-8 md:p-12 rounded-[2rem] bg-card/60 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.1)_inset]">
+              <div className="space-y-12 text-[15px] leading-[1.75] text-muted-foreground">
 
               <section id="overview">
                 <h2 className="text-2xl font-display font-semibold text-foreground mb-4">Overview</h2>
@@ -129,16 +173,16 @@ const Terms = () => {
                 <h2 className="text-2xl font-display font-semibold text-foreground mb-4">Free Tier & Subscriptions</h2>
                 <p>Registered users may generate up to <strong className="text-foreground">2 free book previews per calendar month</strong>. Free previews include full digital book content but do not include physical printing.</p>
                 <p className="mt-3">To create additional books or receive printed copies, users must subscribe to one of our paid plans:</p>
-                <div className="mt-4 rounded-2xl border border-border overflow-hidden">
+                <div className="mt-4 rounded-2xl border border-border/30 overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-muted/50">
+                      <tr className="bg-background/50">
                         <th className="text-left p-4 font-semibold text-foreground">Plan</th>
                         <th className="text-left p-4 font-semibold text-foreground">Price</th>
                         <th className="text-left p-4 font-semibold text-foreground">Includes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-border/30">
                       <tr>
                         <td className="p-4 font-medium text-foreground">Weekly</td>
                         <td className="p-4">$23.99/week</td>
@@ -163,16 +207,16 @@ const Terms = () => {
               <section id="pricing">
                 <h2 className="text-2xl font-display font-semibold text-foreground mb-4">Book Formats & Pricing</h2>
                 <p>Our printed books are available in the following formats:</p>
-                <div className="mt-4 rounded-2xl border border-border overflow-hidden">
+                <div className="mt-4 rounded-2xl border border-border/30 overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-muted/50">
+                      <tr className="bg-background/50">
                         <th className="text-left p-4 font-semibold text-foreground">Format</th>
                         <th className="text-left p-4 font-semibold text-foreground">Size</th>
                         <th className="text-left p-4 font-semibold text-foreground">Price</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-border/30">
                       <tr>
                         <td className="p-4 font-medium text-foreground">Softcover Photo Book</td>
                         <td className="p-4">8″ × 8″</td>
@@ -338,14 +382,18 @@ const Terms = () => {
               <section id="contact">
                 <h2 className="text-2xl font-display font-semibold text-foreground mb-4">Contact</h2>
                 <p>If you have questions about these Terms, please contact us:</p>
-                <div className="mt-4 p-6 rounded-2xl bg-muted/40 border border-border space-y-2">
+                <div className="mt-4 p-6 rounded-2xl bg-background/50 border border-border/30 space-y-2">
                   <p><strong className="text-foreground">Torah Tale, LLC</strong></p>
                   <p>Email: <a href="mailto:help@torahtale.com" className="text-accent hover:underline">help@torahtale.com</a></p>
                 </div>
               </section>
 
+              </div>
             </div>
-          </main>
+
+            {/* Subtle reflection */}
+            <div className="mt-3 mx-8 h-12 rounded-b-3xl bg-gradient-to-b from-card/20 to-transparent blur-sm" />
+          </motion.main>
         </div>
       </div>
 
