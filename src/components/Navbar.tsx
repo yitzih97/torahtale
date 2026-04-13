@@ -30,8 +30,8 @@ export const Navbar = ({ onStart }: NavbarProps) => {
 
   const navLinks = [
     { label: t.nav.howItWorks, href: "#how-it-works" },
-    { label: t.nav.gallery, href: "#gallery" },
-    { label: t.nav.reviews, href: "#testimonials" },
+    { label: t.nav.testimonials, href: "#testimonials" },
+    { label: t.nav.about, href: "/about" },
   ];
 
   const toggleLang = () => setLang(lang === "en" ? "he" : "en");
