@@ -11,7 +11,7 @@ export const en = {
     dashboard: "My Dashboard",
     login: "Login",
     signOut: "Sign Out",
-    createSefer: "Create a Book",
+    createSefer: "Create My Book",
   },
 
   // Hero
