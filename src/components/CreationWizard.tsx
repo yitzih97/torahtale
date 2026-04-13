@@ -713,7 +713,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         )}
 
         {/* ── Scrollable content area ── */}
-        <div className="flex-1 overflow-y-auto px-6 sm:px-8 pt-5 sm:pt-6 pb-4">
+        <div className="flex-1 overflow-y-auto px-6 sm:px-8 pt-4 sm:pt-5 pb-4 scroll-smooth">
           {/* ── Floating character preview badge (steps 2-5) ── */}
           {step >= 2 && step <= 5 && (() => {
             const preview = getPreviewImage();
@@ -1813,45 +1813,48 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex-shrink-0 flex justify-between px-6 sm:px-8 py-4 sm:py-5 border-t border-border/30 bg-background/80 backdrop-blur-sm"
+            className="flex-shrink-0 flex justify-between items-center px-6 sm:px-8 py-3.5 sm:py-4 border-t border-border/15 bg-background/60 backdrop-blur-xl"
           >
             {step > 1 ? (
               <button
                 onClick={back}
-                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium group"
               >
-                <ArrowLeft className="w-4 h-4" /> {t.common.back}
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" /> {t.common.back}
               </button>
             ) : <div />}
 
             {step <= 7 && (
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={next}
                 disabled={!canNext}
-                className="flex items-center gap-2 px-6 sm:px-8 h-11 rounded-full bg-gradient-to-r from-accent to-accent/85 text-accent-foreground font-semibold text-sm shadow-md shadow-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
+                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
                 {t.common.continue} <ArrowRight className="w-4 h-4" />
               </motion.button>
             )}
             {step === 8 && (
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={next}
-                className="flex items-center gap-2 px-6 sm:px-8 h-11 rounded-full bg-gradient-to-r from-accent to-accent/85 text-accent-foreground font-semibold text-sm shadow-md shadow-accent/20 transition-all"
+                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 transition-all text-accent-foreground"
+                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
                 <Sparkles className="w-4 h-4" /> {t.wizard.generateBook}
               </motion.button>
             )}
             {(step === 10 || step === 11) && (
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={next}
                 disabled={!canNext}
-                className="flex items-center gap-2 px-6 sm:px-8 h-11 rounded-full bg-gradient-to-r from-accent to-accent/85 text-accent-foreground font-semibold text-sm shadow-md shadow-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
+                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
                 {t.common.continue} <ArrowRight className="w-4 h-4" />
               </motion.button>
