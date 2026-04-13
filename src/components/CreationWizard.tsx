@@ -226,6 +226,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [portionFilter, setPortionFilter] = useState<TorahOption["category"] | "all">("all");
   const [portionSearch, setPortionSearch] = useState("");
   const [expandedBook, setExpandedBook] = useState<string | null>(null);
+  const [portionMode, setPortionMode] = useState<"choose" | "manual" | null>(null);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -488,7 +489,12 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   };
 
   const back = () => {
+    if (step === 6 && portionMode === "manual") {
+      setPortionMode(null);
+      return;
+    }
     setDir(-1);
+    setPortionMode(null);
     let prevStep = step - 1;
     if (allChildrenHaveGenderAge()) {
       if (step === 4) prevStep = 1;
@@ -1165,7 +1171,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             {/* ── STEP 6: Torah Portion ── */}
             {step === 6 && (
               <motion.div
-                key="s6"
+                key={`s6-${portionMode}`}
                 custom={dir}
                 variants={{ ...stepVariants, ...staggerContainer }}
                 initial="enter"
@@ -1183,259 +1189,296 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   >
                     <BookOpen className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseParsha}</h2>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                    {portionMode === "manual" ? t.wizard.chooseParsha : t.wizard.chooseStorySource}
+                  </h2>
                 </motion.div>
 
-                {/* Category pills */}
-                <motion.div variants={staggerChild} className="flex justify-center flex-wrap gap-2">
-                  {(["all", "torah", "neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
-                    const meta = cat === "all" ? { label: t.wizard.all, emoji: "📚" } : CATEGORY_META[cat];
-                    const isActive = portionFilter === cat;
-                    return (
-                      <button
-                        key={cat}
-                        onClick={() => { setPortionFilter(cat); setExpandedBook(null); }}
-                        className={`text-xs font-medium px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-1.5 ${
-                          isActive
-                            ? "bg-accent text-accent-foreground shadow-md shadow-accent/15"
-                            : "bg-card/60 border border-border/40 text-muted-foreground hover:text-foreground hover:border-accent/40 backdrop-blur-sm"
-                        }`}
-                      >
-                        <span className="text-sm">{meta.emoji}</span> {meta.label}
-                      </button>
-                    );
-                  })}
-                </motion.div>
-
-                {/* Search */}
-                <motion.div variants={staggerChild} className="relative">
-                  <Input
-                    placeholder={t.wizard.searchParsha}
-                    value={portionSearch}
-                    onChange={(e) => setPortionSearch(e.target.value)}
-                    className="rounded-2xl h-11 text-sm pl-10 bg-card/60 border-border/40 focus:border-accent/50 shadow-sm backdrop-blur-sm"
-                  />
-                  <BookOpen className="w-4 h-4 text-muted-foreground/50 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                </motion.div>
-
-                {/* This Week's Parsha card */}
-                <motion.div variants={staggerChild}>
-                  {(() => {
-                    const upcomingValue = getUpcomingParsha();
-                    const upcomingPortion = TORAH_PORTIONS.find(p => p.value === upcomingValue);
-                    if (!upcomingPortion) return null;
-                    const isSelected = data.torahPortion === upcomingValue;
-                    return (
-                      <motion.button
-                        whileHover={{ y: -2, scale: 1.01 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          update({ torahPortion: upcomingValue });
-                          autoAdvance();
-                        }}
-                        className={`w-full relative p-4 sm:p-5 rounded-2xl border-2 text-left transition-all duration-300 mb-4 ${
-                          isSelected
-                            ? "border-accent bg-gradient-to-r from-accent/10 to-accent/5 shadow-lg shadow-accent/15"
-                            : "border-accent/30 bg-gradient-to-r from-accent/5 to-transparent hover:border-accent/50 hover:shadow-md backdrop-blur-sm"
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0">
-                            <span className="text-2xl">{upcomingPortion.emoji || "📜"}</span>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-accent">{t.wizard.thisWeeksParsha}</span>
-                              <Sparkles className="w-3 h-3 text-accent" />
-                            </div>
-                            <p className="font-display text-base sm:text-lg font-bold text-foreground leading-tight truncate">{upcomingPortion.label}</p>
-                            <p className="text-xs sm:text-sm text-muted-foreground font-medium">{upcomingPortion.sub}</p>
-                          </div>
-                          {isSelected && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                              className="w-7 h-7 rounded-full bg-accent flex items-center justify-center flex-shrink-0"
-                            >
-                              <Check className="w-4 h-4 text-accent-foreground" />
-                            </motion.div>
-                          )}
+                {/* ── Mode selection cards ── */}
+                {portionMode !== "manual" && (
+                  <motion.div variants={staggerChild} className="space-y-3 max-w-md mx-auto">
+                    {/* Weekly Parashah */}
+                    <motion.button
+                      whileHover={{ y: -2, scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        const upcomingValue = getUpcomingParsha();
+                        update({ torahPortion: upcomingValue });
+                        setPortionMode("choose");
+                        autoAdvance();
+                      }}
+                      className="w-full relative p-5 rounded-2xl border-2 text-left transition-all duration-300 border-accent/30 bg-gradient-to-r from-accent/5 to-transparent hover:border-accent/50 hover:shadow-md backdrop-blur-sm"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0">
+                          <span className="text-2xl">📜</span>
                         </div>
-                        <p className="text-[10px] text-muted-foreground/70 mt-2">{t.wizard.useAutoParsha}</p>
-                      </motion.button>
-                    );
-                  })()}
-                </motion.div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-display text-base sm:text-lg font-bold text-foreground leading-tight">{t.wizard.weeklyParashah}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{t.wizard.weeklyParashahDesc}</p>
+                          {(() => {
+                            const upcomingValue = getUpcomingParsha();
+                            const upcomingPortion = TORAH_PORTIONS.find(p => p.value === upcomingValue);
+                            return upcomingPortion ? (
+                              <p className="text-[10px] text-accent font-semibold mt-2 flex items-center gap-1">
+                                <Sparkles className="w-3 h-3" /> {t.wizard.thisWeeksParsha}: {upcomingPortion.label}
+                              </p>
+                            ) : null;
+                          })()}
+                        </div>
+                      </div>
+                    </motion.button>
 
-                {/* Divider */}
-                <motion.div variants={staggerChild} className="flex items-center gap-3 mb-3">
-                  <div className="flex-1 h-px bg-border/50" />
-                  <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">{t.wizard.orChooseManually}</span>
-                  <div className="flex-1 h-px bg-border/50" />
-                </motion.div>
+                    {/* Parashah + Holidays */}
+                    <motion.button
+                      whileHover={{ y: -2, scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        const upcomingValue = getUpcomingParsha();
+                        update({ torahPortion: upcomingValue });
+                        setPortionMode("choose");
+                        autoAdvance();
+                      }}
+                      className="w-full relative p-5 rounded-2xl border-2 text-left transition-all duration-300 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent hover:border-primary/50 hover:shadow-md backdrop-blur-sm"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+                          <span className="text-2xl">🕯️</span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-display text-base sm:text-lg font-bold text-foreground leading-tight">{t.wizard.parashahAndHolidays}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{t.wizard.parashahAndHolidaysDesc}</p>
+                        </div>
+                      </div>
+                    </motion.button>
 
-                {/* Story cards */}
-                <motion.div variants={staggerChild} className="max-h-[30vh] sm:max-h-[34vh] overflow-y-auto pr-1 scrollbar-thin space-y-3">
-                  {(portionFilter === "torah" || portionFilter === "all") && !portionSearch.trim() && (
-                    <>
-                      {TORAH_BOOKS.map((book) => {
-                        const bookPortions = filteredPortions.filter((p) => p.category === "torah" && p.book === book);
-                        if (bookPortions.length === 0) return null;
-                        const isExpanded = expandedBook === book;
+                    {/* Choose Manually */}
+                    <motion.button
+                      whileHover={{ y: -2, scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setPortionMode("manual")}
+                      className="w-full relative p-5 rounded-2xl border-2 text-left transition-all duration-300 border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-md backdrop-blur-sm"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-muted/40 to-muted/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-2xl">📚</span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-display text-base sm:text-lg font-bold text-foreground leading-tight">{t.wizard.chooseManually}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{t.wizard.chooseManuallyDesc}</p>
+                        </div>
+                      </div>
+                    </motion.button>
+                  </motion.div>
+                )}
+
+                {/* ── Manual selection browser ── */}
+                {portionMode === "manual" && (
+                  <>
+                    <motion.div variants={staggerChild}>
+                      <button
+                        onClick={() => setPortionMode(null)}
+                        className="text-xs text-accent hover:underline font-medium"
+                      >
+                        {t.wizard.backToOptions}
+                      </button>
+                    </motion.div>
+
+                    {/* Category pills */}
+                    <motion.div variants={staggerChild} className="flex justify-center flex-wrap gap-2">
+                      {(["all", "torah", "neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
+                        const meta = cat === "all" ? { label: t.wizard.all, emoji: "📚" } : CATEGORY_META[cat];
+                        const isActive = portionFilter === cat;
                         return (
-                          <div key={book} className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden">
-                            <button
-                              onClick={() => setExpandedBook(isExpanded ? null : book)}
-                              className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
-                            >
-                              <span className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
-                                <span className="text-base">📖</span> {t.wizard.sefer} {book}
-                              </span>
-                              <motion.span
-                                animate={{ rotate: isExpanded ? 180 : 0 }}
-                                transition={{ duration: 0.2 }}
-                                className="text-xs text-muted-foreground"
-                              >▼</motion.span>
-                            </button>
-                            <AnimatePresence>
-                              {isExpanded && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: "auto", opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.25 }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 pt-0">
-                                    {bookPortions.map((p) => (
-                                      <motion.button
-                                        key={p.value}
-                                        whileHover={{ y: -2, scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => {
-                                          update({ torahPortion: p.value });
-                                          autoAdvance();
-                                        }}
-                                        className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 ${
-                                          data.torahPortion === p.value
-                                            ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
-                                            : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
-                                        }`}
-                                      >
-                                        <span className="text-lg block mb-1.5">{p.emoji || "📜"}</span>
-                                        <span className="font-display text-xs sm:text-sm font-semibold text-foreground block leading-tight">{p.label}</span>
-                                        <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{p.sub}</span>
-                                        {data.torahPortion === p.value && (
-                                          <motion.div
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                                            className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
-                                          >
-                                            <Check className="w-3 h-3 text-accent-foreground" />
-                                          </motion.div>
-                                        )}
-                                      </motion.button>
-                                    ))}
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
+                          <button
+                            key={cat}
+                            onClick={() => { setPortionFilter(cat); setExpandedBook(null); }}
+                            className={`text-xs font-medium px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-1.5 ${
+                              isActive
+                                ? "bg-accent text-accent-foreground shadow-md shadow-accent/15"
+                                : "bg-card/60 border border-border/40 text-muted-foreground hover:text-foreground hover:border-accent/40 backdrop-blur-sm"
+                            }`}
+                          >
+                            <span className="text-sm">{meta.emoji}</span> {meta.label}
+                          </button>
                         );
                       })}
-                      {portionFilter === "all" && (
+                    </motion.div>
+
+                    {/* Search */}
+                    <motion.div variants={staggerChild} className="relative">
+                      <Input
+                        placeholder={t.wizard.searchParsha}
+                        value={portionSearch}
+                        onChange={(e) => setPortionSearch(e.target.value)}
+                        className="rounded-2xl h-11 text-sm pl-10 bg-card/60 border-border/40 focus:border-accent/50 shadow-sm backdrop-blur-sm"
+                      />
+                      <BookOpen className="w-4 h-4 text-muted-foreground/50 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    </motion.div>
+
+                    {/* Story cards */}
+                    <motion.div variants={staggerChild} className="max-h-[30vh] sm:max-h-[34vh] overflow-y-auto pr-1 scrollbar-thin space-y-3">
+                      {(portionFilter === "torah" || portionFilter === "all") && !portionSearch.trim() && (
                         <>
-                          {(["neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
-                            const catPortions = filteredPortions.filter((p) => p.category === cat);
-                            if (catPortions.length === 0) return null;
-                            const meta = CATEGORY_META[cat];
+                          {TORAH_BOOKS.map((book) => {
+                            const bookPortions = filteredPortions.filter((p) => p.category === "torah" && p.book === book);
+                            if (bookPortions.length === 0) return null;
+                            const isExpanded = expandedBook === book;
                             return (
-                              <div key={cat} className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden">
-                                <div className="px-4 py-3">
+                              <div key={book} className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden">
+                                <button
+                                  onClick={() => setExpandedBook(isExpanded ? null : book)}
+                                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
+                                >
                                   <span className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <span className="text-base">{meta.emoji}</span> {meta.label}
+                                    <span className="text-base">📖</span> {t.wizard.sefer} {book}
                                   </span>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 pt-0">
-                                  {catPortions.map((p) => (
-                                    <motion.button
-                                      key={p.value}
-                                      whileHover={{ y: -2, scale: 1.02 }}
-                                      whileTap={{ scale: 0.98 }}
-                                      onClick={() => {
-                                        update({ torahPortion: p.value });
-                                        autoAdvance();
-                                      }}
-                                      className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 ${
-                                        data.torahPortion === p.value
-                                          ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
-                                          : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
-                                      }`}
+                                  <motion.span
+                                    animate={{ rotate: isExpanded ? 180 : 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="text-xs text-muted-foreground"
+                                  >▼</motion.span>
+                                </button>
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: "auto", opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.25 }}
+                                      className="overflow-hidden"
                                     >
-                                      <span className="text-lg block mb-1.5">{p.emoji || "📖"}</span>
-                                      <span className="font-display text-xs sm:text-sm font-semibold text-foreground block leading-tight">{p.label}</span>
-                                      <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{p.sub}</span>
-                                      {data.torahPortion === p.value && (
-                                        <motion.div
-                                          initial={{ scale: 0 }}
-                                          animate={{ scale: 1 }}
-                                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                                          className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
-                                        >
-                                          <Check className="w-3 h-3 text-accent-foreground" />
-                                        </motion.div>
-                                      )}
-                                    </motion.button>
-                                  ))}
-                                </div>
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 pt-0">
+                                        {bookPortions.map((p) => (
+                                          <motion.button
+                                            key={p.value}
+                                            whileHover={{ y: -2, scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => {
+                                              update({ torahPortion: p.value });
+                                              autoAdvance();
+                                            }}
+                                            className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 ${
+                                              data.torahPortion === p.value
+                                                ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
+                                                : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
+                                            }`}
+                                          >
+                                            <span className="text-lg block mb-1.5">{p.emoji || "📜"}</span>
+                                            <span className="font-display text-xs sm:text-sm font-semibold text-foreground block leading-tight">{p.label}</span>
+                                            <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{p.sub}</span>
+                                            {data.torahPortion === p.value && (
+                                              <motion.div
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                                                className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
+                                              >
+                                                <Check className="w-3 h-3 text-accent-foreground" />
+                                              </motion.div>
+                                            )}
+                                          </motion.button>
+                                        ))}
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
                               </div>
                             );
                           })}
+                          {portionFilter === "all" && (
+                            <>
+                              {(["neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
+                                const catPortions = filteredPortions.filter((p) => p.category === cat);
+                                if (catPortions.length === 0) return null;
+                                const meta = CATEGORY_META[cat];
+                                return (
+                                  <div key={cat} className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden">
+                                    <div className="px-4 py-3">
+                                      <span className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+                                        <span className="text-base">{meta.emoji}</span> {meta.label}
+                                      </span>
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 pt-0">
+                                      {catPortions.map((p) => (
+                                        <motion.button
+                                          key={p.value}
+                                          whileHover={{ y: -2, scale: 1.02 }}
+                                          whileTap={{ scale: 0.98 }}
+                                          onClick={() => {
+                                            update({ torahPortion: p.value });
+                                            autoAdvance();
+                                          }}
+                                          className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 ${
+                                            data.torahPortion === p.value
+                                              ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
+                                              : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
+                                          }`}
+                                        >
+                                          <span className="text-lg block mb-1.5">{p.emoji || "📖"}</span>
+                                          <span className="font-display text-xs sm:text-sm font-semibold text-foreground block leading-tight">{p.label}</span>
+                                          <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{p.sub}</span>
+                                          {data.torahPortion === p.value && (
+                                            <motion.div
+                                              initial={{ scale: 0 }}
+                                              animate={{ scale: 1 }}
+                                              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                                              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
+                                            >
+                                              <Check className="w-3 h-3 text-accent-foreground" />
+                                            </motion.div>
+                                          )}
+                                        </motion.button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </>
+                          )}
                         </>
                       )}
-                    </>
-                  )}
 
-                  {((portionFilter !== "torah" && portionFilter !== "all") || portionSearch.trim()) && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {filteredPortions.map((p) => (
-                        <motion.button
-                          key={p.value}
-                          whileHover={{ y: -2, scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => {
-                            update({ torahPortion: p.value });
-                            autoAdvance();
-                          }}
-                          className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 ${
-                            data.torahPortion === p.value
-                              ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
-                              : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
-                          }`}
-                        >
-                          <span className="text-lg block mb-1.5">{p.emoji || "📜"}</span>
-                          <span className="font-display text-xs sm:text-sm font-semibold text-foreground block leading-tight">{p.label}</span>
-                          <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{p.sub}</span>
-                          {data.torahPortion === p.value && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
+                      {((portionFilter !== "torah" && portionFilter !== "all") || portionSearch.trim()) && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {filteredPortions.map((p) => (
+                            <motion.button
+                              key={p.value}
+                              whileHover={{ y: -2, scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => {
+                                update({ torahPortion: p.value });
+                                autoAdvance();
+                              }}
+                              className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 ${
+                                data.torahPortion === p.value
+                                  ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
+                                  : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
+                              }`}
                             >
-                              <Check className="w-3 h-3 text-accent-foreground" />
-                            </motion.div>
+                              <span className="text-lg block mb-1.5">{p.emoji || "📜"}</span>
+                              <span className="font-display text-xs sm:text-sm font-semibold text-foreground block leading-tight">{p.label}</span>
+                              <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{p.sub}</span>
+                              {data.torahPortion === p.value && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                                  className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
+                                >
+                                  <Check className="w-3 h-3 text-accent-foreground" />
+                                </motion.div>
+                              )}
+                            </motion.button>
+                          ))}
+                          {filteredPortions.length === 0 && (
+                            <p className="col-span-full text-center text-sm text-muted-foreground py-8">{t.wizard.noStories}</p>
                           )}
-                        </motion.button>
-                      ))}
-                      {filteredPortions.length === 0 && (
-                        <p className="col-span-full text-center text-sm text-muted-foreground py-8">{t.wizard.noStories}</p>
+                        </div>
                       )}
-                    </div>
-                  )}
-                </motion.div>
+                    </motion.div>
+                  </>
+                )}
               </motion.div>
             )}
 
