@@ -82,7 +82,7 @@ export default function Admin() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar />
+        <Navbar transparentHero={false} />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
             <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
@@ -145,7 +145,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar transparentHero={false} />
       <main className="flex-1 pt-24 pb-16">
         <div className="container max-w-6xl">
           <motion.div
