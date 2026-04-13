@@ -29,6 +29,8 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const solid = scrolled || !transparentHero;
+
   const navLinks = [
     { label: t.nav.home, href: "/" },
     { label: t.nav.about, href: "/about" },
