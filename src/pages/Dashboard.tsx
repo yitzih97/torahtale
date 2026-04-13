@@ -95,7 +95,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar transparentHero={false} />
       <main className="flex-1 pt-24 pb-16">
         <div className="container max-w-5xl">
           <motion.div

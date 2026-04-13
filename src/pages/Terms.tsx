@@ -537,7 +537,7 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
-      <Navbar />
+      <Navbar transparentHero={false} />
 
       {/* Ambient orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
