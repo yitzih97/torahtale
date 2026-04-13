@@ -445,6 +445,26 @@ export const en = {
     ],
   },
 
+  // Privacy
+  privacy: {
+    label: "Legal",
+    title: "Privacy Policy",
+    effectiveDate: "Effective Date: March 27, 2026",
+    crossLink: "Terms of Service →",
+    crossLinkPath: "/terms",
+    tocLabel: "On this page",
+  },
+
+  // Terms
+  terms: {
+    label: "Legal",
+    title: "Terms of Service",
+    effectiveDate: "Effective Date: March 27, 2026",
+    crossLink: "Privacy Policy →",
+    crossLinkPath: "/privacy",
+    tocLabel: "On this page",
+  },
+
   // Currency
   currency: {
     symbol: "$",
