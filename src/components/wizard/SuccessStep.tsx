@@ -61,7 +61,7 @@ export const SuccessStep = ({ childName, onGoToDashboard }: Props) => {
         transition={{ delay: 0.5, duration: 0.5 }}
         className="text-muted-foreground max-w-sm mx-auto leading-relaxed"
       >
-        Your order has been placed! We're creating {childName || "your child"}'s personalized Torah sefer and you'll receive an email preview within 24 hours for you to review and confirm.
+        Your order has been placed! We're creating {childName || "your child"}'s personalized Torah book and you'll receive an email preview within 24 hours for you to review and confirm.
       </motion.p>
 
       <motion.div
@@ -85,7 +85,7 @@ export const SuccessStep = ({ childName, onGoToDashboard }: Props) => {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent font-bold">3.</span>
-            Confirm and we'll print & ship your sefer!
+            Confirm and we'll print & ship your book!
           </li>
         </ul>
       </motion.div>
