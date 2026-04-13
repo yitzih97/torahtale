@@ -36,7 +36,7 @@ export const CTASection = ({ onStart }: Props) => {
               return word + " ";
             })}
           </h2>
-          <p className="text-muted-foreground font-body leading-relaxed mb-8 max-w-md mx-auto relative z-10">{subtext}</p>
+          {subtext && <p className="text-muted-foreground font-body leading-relaxed mb-8 max-w-md mx-auto relative z-10">{subtext}</p>}
           <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow rounded-full relative z-10">
             {buttonText}
             <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${dir === "rtl" ? "rotate-180 group-hover:-translate-x-1" : ""}`} />

@@ -11,13 +11,13 @@ export const en = {
     dashboard: "My Dashboard",
     login: "Login",
     signOut: "Sign Out",
-    createSefer: "Create a Book",
+    createSefer: "Create My Book",
   },
 
   // Hero
   hero: {
     badge: "",
-    cta: "Create a Book",
+    cta: "Create My Book",
     priceText: "",
     socialProof: "",
     slides: [
@@ -38,7 +38,7 @@ export const en = {
   howItWorks: {
     label: "How It Works",
     title: "Three simple steps to a",
-    titleAccent: "personalized Torah book",
+    titleAccent: "personalized Torah story",
     steps: [
       { title: "Tell Us About Your Child", description: "Share their name, age, and a photo. They'll be woven into a timeless Torah story as part of the adventure." },
       { title: "AI Creates the Book", description: "Our AI writes the narrative and illustrates every page — all tznius, age-appropriate, and aligned with Torah values." },
@@ -48,24 +48,24 @@ export const en = {
 
   // Gallery & Reviews
   gallery: {
-    label: "Gallery & Reviews",
+    label: "Testimonials",
     title: "Stories Loved by",
     titleAccent: "Frum Families Everywhere",
-    subtitle: "Each book is AI-generated with stunning illustrations unique to your child. Click any story to see the review.",
+    subtitle: "",
     readReview: "Read Review",
     childStory: "'s story",
   },
 
   // CTA
   cta: {
-    headline: "Every Yiddishe Kind Deserves to Be Part of the Story",
-    subtext: "Create a one-of-a-kind personalized Torah sefer in under 2 minutes. Powered by AI. Printed with ahavas Yisrael.",
-    button: "Create a Book",
+    headline: "Every Jewish Child Deserves to Be Part of the Story",
+    subtext: "",
+    button: "Create My Book",
   },
 
   // Footer
   footer: {
-    tagline: "AI-powered personalized children's books rooted in Torah wisdom. A legacy for doros to come.",
+    tagline: "",
     navigate: "Navigate",
     home: "Home",
     howItWorks: "How It Works",
@@ -139,7 +139,7 @@ export const en = {
     addChild: "Add Child",
     noBooks: "No books yet",
     noBooksDesc: "Create your first personalized Torah book!",
-    createSefer: "Create a Book",
+    createSefer: "Create My Book",
     view: "View",
     parashahClub: "Parashah Club",
     parashahDesc: "A new personalized Torah tale, delivered weekly based on the current parashah. Subscribe during checkout when ordering your next book!",
@@ -209,7 +209,7 @@ export const en = {
     teamDesc: "Torah Tale is built by a small, passionate team of engineers, educators, and parents who believe technology can serve Torah values. We work closely with mechanchim and rabbonim to ensure every book meets the highest standards of accuracy and yiras shamayim.",
     ctaTitle: "Ready to Create Your Child's Story?",
     ctaDesc: "Join thousands of families who are making Torah learning personal, memorable, and magical.",
-    ctaButton: "Create a Book",
+    ctaButton: "Create My Book",
     ctaContact: "Contact Us",
   },
 

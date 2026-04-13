@@ -13,13 +13,13 @@ export const he: typeof en = {
     dashboard: "לוח הבקרה שלי",
     login: "התחברות",
     signOut: "התנתק",
-    createSefer: "צור ספר",
+    createSefer: "צור את הספר שלי",
   },
 
   // Hero
   hero: {
     badge: "",
-    cta: "צור ספר",
+    cta: "צור את הספר שלי",
     priceText: "",
     socialProof: "",
     slides: [
@@ -40,7 +40,7 @@ export const he: typeof en = {
   howItWorks: {
     label: "איך זה עובד",
     title: "שלושה צעדים פשוטים ל",
-    titleAccent: "ספר תורה מותאם אישית",
+    titleAccent: "סיפור תורה מותאם אישית",
     steps: [
       { title: "ספרו לנו על הילד", description: "שתפו את השם, הגיל, ותמונה. הם ישולבו בסיפור תורה נצחי כחלק מההרפתקה." },
       { title: "ה-AI יוצר את הספר", description: "ה-AI שלנו כותב את הסיפור ומצייר כל עמוד — הכל צנוע, מתאים לגיל, ומותאם לערכי תורה." },
@@ -50,10 +50,10 @@ export const he: typeof en = {
 
   // Gallery & Reviews
   gallery: {
-    label: "גלריה וביקורות",
+    label: "המלצות",
     title: "סיפורים שנאהבים ע״י",
     titleAccent: "משפחות חרדיות בכל מקום",
-    subtitle: "כל ספר נוצר ע״י AI עם איורים מרהיבים ייחודיים לילד שלכם. לחצו על כל סיפור לקריאת הביקורת.",
+    subtitle: "",
     readReview: "קרא ביקורת",
     childStory: " הסיפור של",
   },
@@ -61,13 +61,13 @@ export const he: typeof en = {
   // CTA
   cta: {
     headline: "כל ילד יהודי ראוי להיות חלק מהסיפור",
-    subtext: "צרו ספר תורה מותאם אישית תוך פחות מ-2 דקות. מופעל ע״י AI. מודפס באהבת ישראל.",
-    button: "צור ספר",
+    subtext: "",
+    button: "צור את הספר שלי",
   },
 
   // Footer
   footer: {
-    tagline: "ספרי ילדים מותאמים אישית מונעי AI מושרשים בחכמת התורה. מורשת לדורות הבאים.",
+    tagline: "",
     navigate: "ניווט",
     home: "דף הבית",
     howItWorks: "איך זה עובד",
@@ -141,7 +141,7 @@ export const he: typeof en = {
     addChild: "הוסף ילד",
     noBooks: "אין ספרים עדיין",
     noBooksDesc: "!צרו את ספר התורה המותאם הראשון שלכם",
-    createSefer: "צור ספר",
+    createSefer: "צור את הספר שלי",
     view: "צפה",
     parashahClub: "מועדון פרשה",
     parashahDesc: "סיפור תורה מותאם חדש, מגיע מדי שבוע לפי הפרשה. הירשמו בעת ההזמנה!",
@@ -211,7 +211,7 @@ export const he: typeof en = {
     teamDesc: "Torah Tale נבנה על ידי צוות קטן ונלהב של מהנדסים, מחנכים והורים שמאמינים שטכנולוגיה יכולה לשרת ערכי תורה. אנו עובדים בשיתוף פעולה הדוק עם מחנכים ורבנים כדי להבטיח שכל ספר עומד בסטנדרטים הגבוהים ביותר של דיוק ויראת שמיים.",
     ctaTitle: "?מוכנים ליצור את הסיפור של ילדכם",
     ctaDesc: "הצטרפו לאלפי משפחות שהופכות את לימוד התורה לאישי, בלתי נשכח וקסום.",
-    ctaButton: "צור ספר",
+    ctaButton: "צור את הספר שלי",
     ctaContact: "צרו קשר",
   },
 

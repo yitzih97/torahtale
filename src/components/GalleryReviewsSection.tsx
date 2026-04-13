@@ -75,9 +75,11 @@ export const GalleryReviewsSection = () => {
             <br />
             <span className="text-accent">{t.gallery.titleAccent}</span>
           </h2>
-          <p className="text-muted-foreground mt-4 max-w-lg mx-auto leading-relaxed font-body">
-            {t.gallery.subtitle}
-          </p>
+          {t.gallery.subtitle && (
+            <p className="text-muted-foreground mt-4 max-w-lg mx-auto leading-relaxed font-body">
+              {t.gallery.subtitle}
+            </p>
+          )}
         </motion.div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 lg:gap-6">

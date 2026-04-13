@@ -26,7 +26,7 @@ export const Footer = () => {
               )}
               <span className="font-display text-lg font-bold text-foreground">{brandName}</span>
             </div>
-            <p className="text-sm text-muted-foreground font-body leading-relaxed max-w-xs">{t.footer.tagline}</p>
+            {t.footer.tagline && <p className="text-sm text-muted-foreground font-body leading-relaxed max-w-xs">{t.footer.tagline}</p>}
           </div>
 
           <div className="space-y-4">
