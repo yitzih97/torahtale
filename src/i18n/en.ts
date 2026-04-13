@@ -7,13 +7,13 @@ export const en = {
     dashboard: "Dashboard",
     login: "Login",
     signOut: "Sign Out",
-    createSefer: "Create a Sefer",
+    createSefer: "Create a Book",
   },
 
   // Hero
   hero: {
     badge: "AI-Powered Torah Stories for Frum Kinderlach",
-    cta: "Begin the Journey",
+    cta: "Create a Book",
     priceText: "From $24.99 · Ships in 3 days",
     socialProof: "happy mishpachos",
     slides: [
@@ -56,7 +56,7 @@ export const en = {
   cta: {
     headline: "Every Yiddishe Kind Deserves to Be Part of the Story",
     subtext: "Create a one-of-a-kind personalized Torah sefer in under 2 minutes. Powered by AI. Printed with ahavas Yisrael.",
-    button: "Begin the Tale",
+    button: "Create a Book",
   },
 
   // Footer
@@ -205,7 +205,7 @@ export const en = {
     teamDesc: "Torah Tale is built by a small, passionate team of engineers, educators, and parents who believe technology can serve Torah values. We work closely with mechanchim and rabbonim to ensure every book meets the highest standards of accuracy and yiras shamayim.",
     ctaTitle: "Ready to Create Your Child's Story?",
     ctaDesc: "Join thousands of families who are making Torah learning personal, memorable, and magical.",
-    ctaButton: "Create a Sefer",
+    ctaButton: "Create a Book",
     ctaContact: "Contact Us",
   },
 

@@ -15,7 +15,7 @@ export const he: typeof en = {
   // Hero
   hero: {
     badge: "סיפורי תורה מונעי AI לקינדערלעך פרומע",
-    cta: "התחל את המסע",
+    cta: "צור ספר",
     priceText: "החל מ-₪89.99 · משלוח תוך 3 ימים",
     socialProof: "משפחות מרוצות",
     slides: [
@@ -58,7 +58,7 @@ export const he: typeof en = {
   cta: {
     headline: "כל ילד יהודי ראוי להיות חלק מהסיפור",
     subtext: "צרו ספר תורה מותאם אישית תוך פחות מ-2 דקות. מופעל ע״י AI. מודפס באהבת ישראל.",
-    button: "התחילו את הסיפור",
+    button: "צור ספר",
   },
 
   // Footer
