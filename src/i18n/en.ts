@@ -34,11 +34,11 @@ export const en = {
   howItWorks: {
     label: "How It Works",
     title: "Three simple steps to a",
-    titleAccent: "personalized Torah sefer",
+    titleAccent: "personalized Torah book",
     steps: [
       { title: "Tell Us About Your Child", description: "Share their name, age, and a photo. They become the hero of a timeless Torah story." },
-      { title: "AI Creates the Sefer", description: "Our AI writes the narrative and illustrates every page — all tznius, age-appropriate, and aligned with Chareidi hashkafah." },
-      { title: "Delivered to Your Door", description: "A gorgeous hardcover arrives — a personalized sefer your mishpacha will treasure l'doros." },
+      { title: "AI Creates the Book", description: "Our AI writes the narrative and illustrates every page — all tznius, age-appropriate, and aligned with Chareidi hashkafah." },
+      { title: "Delivered to Your Door", description: "A gorgeous hardcover arrives — a personalized book your mishpacha will treasure l'doros." },
     ],
   },
 
@@ -47,7 +47,7 @@ export const en = {
     label: "Gallery & Reviews",
     title: "Stories Loved by",
     titleAccent: "Frum Families Everywhere",
-    subtitle: "Each sefer is AI-generated with stunning illustrations unique to your child. Click any story to see the review.",
+    subtitle: "Each book is AI-generated with stunning illustrations unique to your child. Click any story to see the review.",
     readReview: "Read Review",
     childStory: "'s story",
   },
@@ -80,8 +80,8 @@ export const en = {
     welcomeBack: "Welcome Back",
     createAccount: "Create Account",
     resetPassword: "Reset Password",
-    signInSubtitle: "Sign in to manage your seforim",
-    signUpSubtitle: "Join us to create personalized Torah seforim for your kinderlach",
+    signInSubtitle: "Sign in to manage your books",
+    signUpSubtitle: "Join us to create personalized Torah books for your kinderlach",
     forgotSubtitle: "Enter your email to receive a reset link",
     fullName: "Full Name",
     email: "Email",
@@ -115,7 +115,7 @@ export const en = {
   // Dashboard
   dash: {
     title: "My Dashboard",
-    subtitle: "Welcome back! Manage your mishpacha's seforim.",
+    subtitle: "Welcome back! Manage your mishpacha's books.",
     children: "Children",
     booksCreated: "Books Created",
     draftBooks: "Draft Books",
@@ -134,8 +134,8 @@ export const en = {
     createNewBook: "Create New Book",
     addChild: "Add Child",
     noBooks: "No books yet",
-    noBooksDesc: "Create your first personalized Torah sefer!",
-    createSefer: "Create a Sefer",
+    noBooksDesc: "Create your first personalized Torah book!",
+    createSefer: "Create a Book",
     view: "View",
     parashahClub: "Parashah Club",
     parashahDesc: "A new personalized Torah tale, delivered weekly based on the current parashah. Subscribe during checkout when ordering your next book!",
@@ -190,7 +190,7 @@ export const en = {
     subtitle: "Torah Tale creates AI-powered, personalized storybooks that place your child at the heart of our most treasured Torah narratives.",
     missionTitle: "Our Mission",
     missionP1: "We started Torah Tale with a simple idea: what if every frum child could see themselves walking alongside Avraham Avinu, standing at Har Sinai, or building the Mishkan? Personalized children's books have existed for years, but none were rooted in Torah values with the care and authenticity our community deserves.",
-    missionP2: "By combining advanced AI illustration and storytelling with careful rabbinical guidance, we create one-of-a-kind seforim that make parsha learning an unforgettable experience for kinderlach of all ages.",
+    missionP2: "By combining advanced AI illustration and storytelling with careful rabbinical guidance, we create one-of-a-kind books that make parsha learning an unforgettable experience for kinderlach of all ages.",
     howStartedTitle: "How We Started",
     howStartedP1: "Torah Tale was born at a Shabbos table. A father wanted to explain Parshas Lech Lecha to his young daughter in a way that would stick — not just the story, but the feeling of being part of it. He imagined a beautifully illustrated book where she was the main character, journeying with Avraham and Sarah.",
     howStartedP2: "That conversation turned into a passion project, then a company. Today, Torah Tale serves families across the globe, delivering premium printed storybooks that combine the warmth of a bedtime story with the depth of Torah learning.",
@@ -258,7 +258,7 @@ export const en = {
     chooseParsha: "Choose a Parsha",
     all: "All",
     searchParsha: "Search parsha...",
-    sefer: "Sefer",
+    sefer: "Book",
     noStories: "No stories found.",
     chooseLanguage: "Choose a Language",
     english: "English",
@@ -270,7 +270,7 @@ export const en = {
     artStyle: "Art Style",
     pages: "Pages",
     pagesCount: "10 pages",
-    signInToGenerate: "Sign in to generate your sefer",
+    signInToGenerate: "Sign in to generate your book",
     fullName: "Full Name",
     email: "Email",
     password: "Password",
@@ -283,8 +283,8 @@ export const en = {
     or: "or",
     continueWithGoogle: "Continue with Google",
     generateBook: "Generate Book",
-    pleaseSignIn: "Please sign in to generate your sefer.",
-    signedInStarting: "Signed in! Starting your sefer...",
+    pleaseSignIn: "Please sign in to generate your book.",
+    signedInStarting: "Signed in! Starting your book...",
     signedIn: "Signed in!",
     accountCreated: "Account created!",
 
@@ -295,7 +295,7 @@ export const en = {
     almostReady: "Almost ready!",
 
     // Post-generation
-    seferBeingCreated: "Your sefer is being created!",
+    seferBeingCreated: "Your book is being created!",
     emailPreviewMsg: (names: string) => `You'll receive an email within 24 hours with a preview of ${names}'s book.`,
     torahAdventure: (names: string) => `${names}'s Torah Adventure`,
     continueToBook: "Continue to Choose Your Book",
@@ -308,7 +308,7 @@ export const en = {
 
   // Book Options
   bookOptions: {
-    chooseSefer: "Choose Your Sefer",
+    chooseSefer: "Choose Your Book",
     bookType: "Book Type",
     size: "Size",
     softcover: "Softcover Photo Book",
@@ -349,13 +349,13 @@ export const en = {
   // Checkout
   checkout: {
     choosePlan: "Choose Your Plan",
-    subscribeMsg: (name: string) => `Subscribe and ${name} gets a new personalized Torah sefer every Shabbos!`,
+    subscribeMsg: (name: string) => `Subscribe and ${name} gets a new personalized Torah book every Shabbos!`,
     weekly: "Weekly",
     monthly: "Monthly",
     yearly: "Yearly",
     weeklyDesc: "A new Torah adventure every Shabbos",
-    monthlyDesc: "4 seforim/month — best value for mishpachos",
-    yearlyDesc: "Full year of seforim — biggest savings",
+    monthlyDesc: "4 books/month — best value for mishpachos",
+    yearlyDesc: "Full year of books — biggest savings",
     oneTimePurchase: "✓ One-time purchase selected",
     skipSubscription: "Skip subscription — purchase this book only",
     orderSummary: "Order Summary",
@@ -375,20 +375,20 @@ export const en = {
   // Success
   success: {
     mazelTov: "Mazel Tov! 🎉",
-    orderPlaced: (name: string) => `Your order has been placed! We're creating ${name || "your child"}'s personalized Torah sefer and you'll receive an email preview within 24 hours for you to review and confirm.`,
+    orderPlaced: (name: string) => `Your order has been placed! We're creating ${name || "your child"}'s personalized Torah book and you'll receive an email preview within 24 hours for you to review and confirm.`,
     whatsNext: "What happens next?",
     step1: "We generate your book with AI illustrations",
     step2: "You'll get an email preview within 24 hours",
-    step3: "Confirm and we'll print & ship your sefer!",
+    step3: "Confirm and we'll print & ship your book!",
     goToDashboard: "Go to My Dashboard",
   },
 
   // Upsell
   upsell: {
-    unlockTitle: "Unlock Unlimited Seforim!",
+    unlockTitle: "Unlock Unlimited Books!",
     joinTitle: "Join the Parashah Club",
-    limitMsg: "You've used your 2 free book previews this month. Subscribe to create unlimited personalized Torah seforim for your kinderlach!",
-    joinMsg: "Subscribe and get a new personalized Torah sefer delivered every Shabbos!",
+    limitMsg: "You've used your 2 free book previews this month. Subscribe to create unlimited personalized Torah books for your kinderlach!",
+    joinMsg: "Subscribe and get a new personalized Torah book delivered every Shabbos!",
     subscribe: "Subscribe",
     freeShipCancel: "🚚 Free shipping · Cancel anytime · Secure checkout",
     backToPlans: "Back to plans",
