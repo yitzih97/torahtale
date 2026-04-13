@@ -61,7 +61,7 @@ export const en = {
 
   // Footer
   footer: {
-    tagline: "AI-powered personalized children's seforim rooted in Torah wisdom. A legacy for doros to come.",
+    tagline: "AI-powered personalized children's books rooted in Torah wisdom. A legacy for doros to come.",
     navigate: "Navigate",
     home: "Home",
     howItWorks: "How It Works",

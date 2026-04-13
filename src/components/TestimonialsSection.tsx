@@ -6,7 +6,7 @@ const ease = [0.16, 1, 0.3, 1];
 
 const defaultTestimonials = [
   { name: "Chaya Leah Friedman", location: "Brooklyn, NY", initials: "CF", text: "My daughter's face when she saw herself as the heroine of the Purim story — mamash a kiddush Hashem. The kinderlach ask for it every Leil Shabbos.", rating: 5 },
-  { name: "Avi Rosenberg", location: "Lakewood, NJ", initials: "AR", text: "We've subscribed to the Parashah Club. Every Leil Shabbos, our son reads his new personalized sefer at the Shabbos tish. The whole mishpacha loves it — it's become part of our zemiros.", rating: 5 },
+  { name: "Avi Rosenberg", location: "Lakewood, NJ", initials: "AR", text: "We've subscribed to the Parashah Club. Every Leil Shabbos, our son reads his new personalized book at the Shabbos tish. The whole mishpacha loves it — it's become part of our zemiros.", rating: 5 },
   { name: "Rivky Weinberg", location: "Monsey, NY", initials: "RW", text: "The illustrations are stunning and completely tznius — peyos, tzitzis, everything just right. The AI captured the essence of the parasha perfectly for our kinderlach. Mamash a kiddush Hashem.", rating: 5 },
 ];
 

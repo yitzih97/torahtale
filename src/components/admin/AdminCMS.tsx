@@ -756,7 +756,7 @@ export function AdminCMS() {
               <h4 className="text-sm font-semibold text-foreground">Navbar</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
                 <SettingField category="website" settingKey="brand-name" label="Brand Name" placeholder="Torah Tale" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
-                <SettingField category="website" settingKey="navbar-cta" label="Navbar CTA Button" placeholder="Create a Sefer" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="navbar-cta" label="Navbar CTA Button" placeholder="Create a Book" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
 
@@ -817,7 +817,7 @@ export function AdminCMS() {
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">Footer</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="footer-tagline" label="Tagline" placeholder="AI-powered personalized children's seforim rooted in Torah wisdom." edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="footer-tagline" label="Tagline" placeholder="AI-powered personalized children's books rooted in Torah wisdom." edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
                 <SettingField category="website" settingKey="footer-copyright" label="Copyright" placeholder="Torah Tale. Made with ahavas Yisrael." edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
@@ -825,7 +825,7 @@ export function AdminCMS() {
             <div className="space-y-1">
               <h4 className="text-sm font-semibold text-foreground">Auth Page</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="website" settingKey="auth-subtitle" label="Sign-In Subtitle" placeholder="Sign in to create personalized Torah seforim for your kinderlach" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
+                <SettingField category="website" settingKey="auth-subtitle" label="Sign-In Subtitle" placeholder="Sign in to create personalized Torah books for your kinderlach" edits={contentEdits} setEdits={setContentEdits} {...fieldProps} />
               </div>
             </div>
           </div>
