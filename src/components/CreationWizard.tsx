@@ -226,6 +226,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [portionFilter, setPortionFilter] = useState<TorahOption["category"] | "all">("all");
   const [portionSearch, setPortionSearch] = useState("");
   const [expandedBook, setExpandedBook] = useState<string | null>(null);
+  const [portionMode, setPortionMode] = useState<"choose" | "manual" | null>(null);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
