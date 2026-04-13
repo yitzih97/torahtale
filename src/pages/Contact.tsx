@@ -111,7 +111,7 @@ const Contact = () => {
           {[
             { icon: Mail, text: "help@torahtale.com", href: "mailto:help@torahtale.com" },
             { icon: Clock, text: t.contact.responseDesc },
-            { icon: MessageSquare, text: t.contact.faq },
+            { icon: MessageSquare, text: t.contact.faq, href: "/faq" },
           ].map((item, i) => (
             <motion.div
               key={i}
