@@ -16,10 +16,10 @@ export const en = {
 
   // Hero
   hero: {
-    badge: "AI-Powered Torah Stories for Frum Kinderlach",
+    badge: "",
     cta: "Create a Book",
-    priceText: "From $24.99 · Ships in 3 days",
-    socialProof: "happy mishpachos",
+    priceText: "",
+    socialProof: "",
     slides: [
       { headline: ["Hashem Created the World,", "Miriam Walked Through Gan Eden."], description: "Miriam discovers Hashem's beautiful creations alongside Adam and Chava in the very first garden." },
       { headline: ["Noach Built the Teivah,", "Ari Sailed Along."], description: "Ari gathers animals two by two and rides the mabul to a keshet shining with Hashem's promise." },
@@ -40,9 +40,9 @@ export const en = {
     title: "Three simple steps to a",
     titleAccent: "personalized Torah book",
     steps: [
-      { title: "Tell Us About Your Child", description: "Share their name, age, and a photo. They become the hero of a timeless Torah story." },
-      { title: "AI Creates the Book", description: "Our AI writes the narrative and illustrates every page — all tznius, age-appropriate, and aligned with Chareidi hashkafah." },
-      { title: "Delivered to Your Door", description: "A gorgeous hardcover arrives — a personalized book your mishpacha will treasure l'doros." },
+      { title: "Tell Us About Your Child", description: "Share their name, age, and a photo. They'll be woven into a timeless Torah story as part of the adventure." },
+      { title: "AI Creates the Book", description: "Our AI writes the narrative and illustrates every page — all tznius, age-appropriate, and aligned with Torah values." },
+      { title: "Delivered to Your Door", description: "A gorgeous book arrives — a personalized story your family will treasure." },
     ],
   },
 
