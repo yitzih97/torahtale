@@ -138,12 +138,14 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       <div className={`relative z-10 w-full py-24 lg:py-0 px-4 ${dir === "rtl" ? "sm:pr-6 lg:pr-12 sm:pl-4" : "sm:pl-6 lg:pl-12 sm:pr-4"}`}>
         <div className={`flex items-center justify-center ${dir === "rtl" ? "sm:justify-start" : "sm:justify-start"}`}>
           <div className={`max-w-xl text-center ${dir === "rtl" ? "sm:text-right" : "sm:text-left"}`}>
+            {badgeText && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }} className="mb-5">
               <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-accent/15 text-accent text-[10px] sm:text-xs font-semibold tracking-wider uppercase border border-accent/20">
                 <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 {badgeText}
               </span>
             </motion.div>
+            )}
 
             <div className="min-h-[100px] sm:min-h-[140px] lg:min-h-[180px]">
               <AnimatePresence mode="wait">
@@ -184,10 +186,10 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {ctaText}
                 <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${dir === "rtl" ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
               </Button>
-              <span className="text-white/40 text-xs sm:text-sm font-body">{priceText}</span>
+              {priceText && <span className="text-white/40 text-xs sm:text-sm font-body">{priceText}</span>}
             </motion.div>
 
-            <SocialProofCounter dir={dir} socialProof={socialProof} />
+            {socialProof && <SocialProofCounter dir={dir} socialProof={socialProof} />}
           </div>
         </div>
       </div>
