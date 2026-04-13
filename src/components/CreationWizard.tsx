@@ -18,7 +18,7 @@ import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
-import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, type TorahOption } from "./wizard/TorahPortions";
+import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, getUpcomingParsha, type TorahOption } from "./wizard/TorahPortions";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
@@ -1218,8 +1218,65 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   <BookOpen className="w-4 h-4 text-muted-foreground/50 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </motion.div>
 
+                {/* This Week's Parsha card */}
+                <motion.div variants={staggerChild}>
+                  {(() => {
+                    const upcomingValue = getUpcomingParsha();
+                    const upcomingPortion = TORAH_PORTIONS.find(p => p.value === upcomingValue);
+                    if (!upcomingPortion) return null;
+                    const isSelected = data.torahPortion === upcomingValue;
+                    return (
+                      <motion.button
+                        whileHover={{ y: -2, scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          update({ torahPortion: upcomingValue });
+                          autoAdvance();
+                        }}
+                        className={`w-full relative p-4 sm:p-5 rounded-2xl border-2 text-left transition-all duration-300 mb-4 ${
+                          isSelected
+                            ? "border-accent bg-gradient-to-r from-accent/10 to-accent/5 shadow-lg shadow-accent/15"
+                            : "border-accent/30 bg-gradient-to-r from-accent/5 to-transparent hover:border-accent/50 hover:shadow-md backdrop-blur-sm"
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0">
+                            <span className="text-2xl">{upcomingPortion.emoji || "📜"}</span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-accent">{t.wizard.thisWeeksParsha}</span>
+                              <Sparkles className="w-3 h-3 text-accent" />
+                            </div>
+                            <p className="font-display text-base sm:text-lg font-bold text-foreground leading-tight truncate">{upcomingPortion.label}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground font-medium">{upcomingPortion.sub}</p>
+                          </div>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                              className="w-7 h-7 rounded-full bg-accent flex items-center justify-center flex-shrink-0"
+                            >
+                              <Check className="w-4 h-4 text-accent-foreground" />
+                            </motion.div>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground/70 mt-2">{t.wizard.useAutoParsha}</p>
+                      </motion.button>
+                    );
+                  })()}
+                </motion.div>
+
+                {/* Divider */}
+                <motion.div variants={staggerChild} className="flex items-center gap-3 mb-3">
+                  <div className="flex-1 h-px bg-border/50" />
+                  <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">{t.wizard.orChooseManually}</span>
+                  <div className="flex-1 h-px bg-border/50" />
+                </motion.div>
+
                 {/* Story cards */}
-                <motion.div variants={staggerChild} className="max-h-[38vh] sm:max-h-[42vh] overflow-y-auto pr-1 scrollbar-thin space-y-3">
+                <motion.div variants={staggerChild} className="max-h-[30vh] sm:max-h-[34vh] overflow-y-auto pr-1 scrollbar-thin space-y-3">
                   {(portionFilter === "torah" || portionFilter === "all") && !portionSearch.trim() && (
                     <>
                       {TORAH_BOOKS.map((book) => {
