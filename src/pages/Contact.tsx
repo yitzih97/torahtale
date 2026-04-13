@@ -16,8 +16,8 @@ const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", subject: "general", message: "" });
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
-  const { t, language } = useLanguage();
-  const isRtl = language === "he";
+  const { t, lang, dir } = useLanguage();
+  const isRtl = lang === "he";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
