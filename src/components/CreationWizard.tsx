@@ -663,10 +663,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   /* ───── glassmorphism selection card ───── */
   const glassCard = (isSelected: boolean) =>
-    `relative rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 cursor-pointer
+    `relative rounded-2xl border overflow-hidden text-center transition-all duration-300 cursor-pointer
     ${isSelected
-      ? "border-accent bg-accent/8 shadow-lg shadow-accent/10 scale-[1.02]"
-      : "border-border/40 bg-card/60 backdrop-blur-sm hover:border-accent/40 hover:shadow-md hover:-translate-y-1"
+      ? "border-accent/60 bg-accent/8 shadow-xl shadow-accent/10 scale-[1.02] ring-1 ring-accent/20"
+      : "border-border/30 bg-card/40 backdrop-blur-md hover:border-accent/30 hover:shadow-lg hover:-translate-y-1"
     }`;
 
   return (
