@@ -33,9 +33,8 @@ export const Footer = () => {
             <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">{t.footer.navigate}</h4>
             <nav className="flex flex-col gap-2.5">
               <a href="/" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.home}</a>
-              <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.howItWorks}</a>
-              <a href="/dashboard" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.dashboard}</a>
               <a href="/about" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.aboutUs}</a>
+              <a href="/dashboard" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.nav.dashboard}</a>
             </nav>
           </div>
 
