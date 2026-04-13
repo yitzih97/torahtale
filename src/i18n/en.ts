@@ -410,6 +410,41 @@ export const en = {
     subError: "Could not create subscription. Please try again.",
   },
 
+  // FAQ
+  faq: {
+    label: "Support",
+    title: "Frequently Asked Questions",
+    subtitle: "Everything you need to know about Torah Tale — from ordering to customization.",
+    searchPlaceholder: "Search questions...",
+    allCategories: "All",
+    noResults: "No matching questions found.",
+    categories: [
+      { key: "general", label: "General" },
+      { key: "orders", label: "Orders & Shipping" },
+      { key: "books", label: "Books" },
+      { key: "billing", label: "Billing" },
+      { key: "customization", label: "Customization" },
+      { key: "returns", label: "Returns" },
+    ],
+    items: [
+      { category: "general", question: "What is Torah Tale?", answer: "Torah Tale creates personalized, AI-illustrated Torah story books where your child becomes the hero of the parashah. Each book is uniquely generated with your child's name, appearance, and story details." },
+      { category: "general", question: "What ages are the books for?", answer: "Our books are designed for children ages 2–10. We offer board books for toddlers (ages 2–4) and softcover/hardcover options for older children." },
+      { category: "general", question: "Are the stories accurate to the Torah?", answer: "Yes! Every story is carefully crafted to stay true to the parashah while making it engaging and age-appropriate for children." },
+      { category: "orders", question: "How long does shipping take?", answer: "Standard shipping takes 5–7 business days. Express shipping (2–3 business days) is available for an additional $9.99." },
+      { category: "orders", question: "Do you ship internationally?", answer: "Currently we ship within the United States. International shipping is coming soon — join our mailing list to be notified!" },
+      { category: "orders", question: "Can I track my order?", answer: "Yes! Once your book ships, you'll receive a tracking number via email. You can also check your order status in My Dashboard." },
+      { category: "books", question: "How many pages are in each book?", answer: "Each book contains 12–16 beautifully illustrated pages, depending on the parashah and story length." },
+      { category: "books", question: "What art styles are available?", answer: "We offer several art styles including watercolor, digital illustration, classic storybook, and more. You can choose your preferred style during the creation process." },
+      { category: "books", question: "Can I preview the book before ordering?", answer: "Absolutely! After creating your book, you'll see a full preview of every page before proceeding to checkout." },
+      { category: "billing", question: "What payment methods do you accept?", answer: "We accept all major credit cards (Visa, Mastercard, American Express) and digital wallets." },
+      { category: "billing", question: "How does the subscription work?", answer: "Our subscription plans deliver a new personalized Torah book every week, month, or year. You can cancel anytime from My Dashboard." },
+      { category: "customization", question: "Can I customize my child's appearance?", answer: "Yes! You can upload a photo or describe your child's appearance, and our AI will incorporate their likeness into every illustration." },
+      { category: "customization", question: "Can I choose which parashah to use?", answer: "Yes — you can select any parashah from the weekly Torah portions, or let us automatically use the current week's parashah." },
+      { category: "returns", question: "What is your return policy?", answer: "Since each book is custom-made, we don't accept returns. However, if there's a printing defect or quality issue, we'll gladly reprint and reship your book at no cost." },
+      { category: "returns", question: "What if I'm not happy with the illustrations?", answer: "You can regenerate illustrations before ordering. If you've already placed an order and aren't satisfied, contact us at help@torahtale.com and we'll work with you to make it right." },
+    ],
+  },
+
   // Currency
   currency: {
     symbol: "$",
