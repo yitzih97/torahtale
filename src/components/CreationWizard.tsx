@@ -714,26 +714,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
         {/* ── Scrollable content area ── */}
         <div className="flex-1 overflow-y-auto px-6 sm:px-8 pt-4 sm:pt-5 pb-4 scroll-smooth">
-          {/* ── Floating character preview badge (steps 2-5) ── */}
-          {step >= 2 && step <= 5 && (() => {
-            const preview = getPreviewImage();
-            return preview ? (
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={springTransition}
-                className="absolute top-4 right-4 sm:top-6 sm:right-8 z-20"
-              >
-                <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-accent/30 shadow-lg shadow-accent/10 ring-2 ring-background">
-                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-                </div>
-                {child.name && (
-                  <p className="text-[9px] sm:text-[10px] text-center text-muted-foreground mt-1 font-medium truncate max-w-20">{child.name}</p>
-                )}
-              </motion.div>
-            ) : null;
-          })()}
-
           {/* Multi-child pills (steps 2-8) */}
           {step >= 2 && step <= 8 && data.children.length > 1 && (
             <motion.div variants={staggerChild} initial="enter" animate="center" className="mb-4 flex gap-2 overflow-x-auto pb-1">
