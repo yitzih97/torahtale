@@ -44,6 +44,8 @@ import presetPreteenGirl from "@/assets/presets/preteen-girl-cartoon.jpg";
 import presetDuoCartoon from "@/assets/presets/duo-cartoon.jpg";
 import presetDuo3dPixar from "@/assets/presets/duo-3d-pixar.jpg";
 import presetDuoRealistic from "@/assets/presets/duo-realistic.jpg";
+import storybookPreview from "@/assets/books/style-story-preview.jpg";
+import comicbookPreview from "@/assets/books/style-comic-preview.jpg";
 
 /* ───────────────── types ───────────────── */
 
@@ -73,6 +75,7 @@ interface WizardData {
   children: ChildProfile[];
   torahPortion: string;
   artStyle: string;
+  narrativeStyle: "story" | "comic";
   language: string;
   pageCount: number;
   activeChildIdx: number;
@@ -82,6 +85,7 @@ const initialData: WizardData = {
   children: [createChild()],
   torahPortion: "",
   artStyle: "cartoon",
+  narrativeStyle: "story",
   language: "english",
   pageCount: 10,
   activeChildIdx: 0,
@@ -227,6 +231,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [portionSearch, setPortionSearch] = useState("");
   const [expandedBook, setExpandedBook] = useState<string | null>(null);
   const [portionMode, setPortionMode] = useState<"choose" | "manual" | null>(null);
+  const [styleSubStep, setStyleSubStep] = useState<"art" | "format">("art");
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -482,6 +487,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4;
     }
+    if (step === 4) {
+      // sub-step: art -> format -> next
+      if (styleSubStep === "art") {
+        setStyleSubStep("format");
+        return;
+      }
+    }
     if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
       nextStep = 6;
     }
@@ -491,6 +503,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const back = () => {
     if (step === 6 && portionMode === "manual") {
       setPortionMode(null);
+      return;
+    }
+    if (step === 4 && styleSubStep === "format") {
+      setStyleSubStep("art");
       return;
     }
     setDir(-1);
@@ -1013,46 +1029,104 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <Palette className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    {t.wizard.chooseStyle}
+                    {styleSubStep === "art" ? t.wizard.chooseStyle : t.wizard.chooseFormat}
                   </h2>
+                  <div className="flex items-center justify-center gap-1.5 mt-3">
+                    <span className={`h-1.5 w-6 rounded-full transition-all ${styleSubStep === "art" ? "bg-accent" : "bg-accent/40"}`} />
+                    <span className={`h-1.5 w-6 rounded-full transition-all ${styleSubStep === "format" ? "bg-accent" : "bg-border/40"}`} />
+                  </div>
                 </motion.div>
 
-                <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                  {ART_STYLES.map((s, i) => {
-                    const previewGender = data.children.length >= 2 ? "duo" : (child.gender || "boy");
-                    const stylePreview = getStylePreset(previewGender, s.key);
-                    return (
-                      <motion.button
-                        key={s.key}
-                        variants={staggerChild}
-                        onClick={() => {
-                          update({ artStyle: s.key });
-                          autoAdvance();
-                        }}
-                        whileHover={{ y: -4 }}
-                        whileTap={{ scale: 0.97 }}
-                        className={glassCard(data.artStyle === s.key)}
-                      >
-                        <div className="aspect-square bg-muted/20 relative">
-                          <img src={stylePreview} alt={t.wizard[s.labelKey]} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
-                        </div>
-                        <div className="p-2 sm:p-3">
-                          <span className="text-xs sm:text-sm font-semibold text-foreground block">{t.wizard[s.labelKey]}</span>
-                        </div>
-                        {data.artStyle === s.key && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                            className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
-                          >
-                            <Check className="w-3.5 h-3.5 text-accent-foreground" />
-                          </motion.div>
-                        )}
-                      </motion.button>
-                    );
-                  })}
-                </div>
+                {styleSubStep === "art" && (
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                    {ART_STYLES.map((s) => {
+                      const previewGender = data.children.length >= 2 ? "duo" : (child.gender || "boy");
+                      const stylePreview = getStylePreset(previewGender, s.key);
+                      return (
+                        <motion.button
+                          key={s.key}
+                          variants={staggerChild}
+                          onClick={() => {
+                            update({ artStyle: s.key });
+                            setStyleSubStep("format");
+                          }}
+                          whileHover={{ y: -4 }}
+                          whileTap={{ scale: 0.97 }}
+                          className={glassCard(data.artStyle === s.key)}
+                        >
+                          <div className="aspect-square bg-muted/20 relative">
+                            <img src={stylePreview} alt={t.wizard[s.labelKey]} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
+                          </div>
+                          <div className="p-2 sm:p-3">
+                            <span className="text-xs sm:text-sm font-semibold text-foreground block">{t.wizard[s.labelKey]}</span>
+                          </div>
+                          {data.artStyle === s.key && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
+                            >
+                              <Check className="w-3.5 h-3.5 text-accent-foreground" />
+                            </motion.div>
+                          )}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {styleSubStep === "format" && (() => {
+                  const childAge = parseInt(child.age) || 0;
+                  const recommendComic = childAge >= 7;
+                  const formats = [
+                    { key: "story" as const, label: t.wizard.formatStory, desc: t.wizard.formatStoryDesc, age: "2–8", img: storybookPreview, recommended: !recommendComic },
+                    { key: "comic" as const, label: t.wizard.formatComic, desc: t.wizard.formatComicDesc, age: "7–12", img: comicbookPreview, recommended: recommendComic },
+                  ];
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {formats.map((f) => (
+                        <motion.button
+                          key={f.key}
+                          variants={staggerChild}
+                          onClick={() => {
+                            update({ narrativeStyle: f.key });
+                            autoAdvance();
+                          }}
+                          whileHover={{ y: -4 }}
+                          whileTap={{ scale: 0.97 }}
+                          className={glassCard(data.narrativeStyle === f.key)}
+                        >
+                          {f.recommended && childAge > 0 && (
+                            <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-0.5 rounded-full shadow-md whitespace-nowrap">
+                              ★ {t.wizard.bestForYou}
+                            </div>
+                          )}
+                          <div className="aspect-[4/3] bg-muted/20 relative overflow-hidden">
+                            <img src={f.img} alt={f.label} className="w-full h-full object-cover" loading="lazy" width={512} height={384} />
+                          </div>
+                          <div className="p-3 sm:p-4 text-left">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <span className="text-sm sm:text-base font-display font-bold text-foreground">{f.label}</span>
+                              <span className="text-[10px] font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full whitespace-nowrap">{t.wizard.recommendedForAge(f.age)}</span>
+                            </div>
+                            <p className="text-[11px] sm:text-xs text-muted-foreground leading-snug">{f.desc}</p>
+                          </div>
+                          {data.narrativeStyle === f.key && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
+                            >
+                              <Check className="w-3.5 h-3.5 text-accent-foreground" />
+                            </motion.div>
+                          )}
+                        </motion.button>
+                      ))}
+                    </div>
+                  );
+                })()}
               </motion.div>
             )}
 
