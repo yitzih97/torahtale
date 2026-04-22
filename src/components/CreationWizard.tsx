@@ -487,6 +487,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4;
     }
+    if (step === 4) {
+      // sub-step: art -> format -> next
+      if (styleSubStep === "art") {
+        setStyleSubStep("format");
+        return;
+      }
+    }
     if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
       nextStep = 6;
     }
@@ -496,6 +503,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const back = () => {
     if (step === 6 && portionMode === "manual") {
       setPortionMode(null);
+      return;
+    }
+    if (step === 4 && styleSubStep === "format") {
+      setStyleSubStep("art");
       return;
     }
     setDir(-1);
