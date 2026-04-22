@@ -425,6 +425,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
               portionLabel,
               pageCount: data.pageCount,
               bookOptions: bookOptions,
+              narrativeStyle: data.narrativeStyle,
               childDescriptions,
             },
           } as any)
