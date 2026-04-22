@@ -146,7 +146,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
             const Icon = info.icon;
             const isRecommended = recommendedType === key;
             const badge = isRecommended
-              ? (t.bookOptions.recommendedForAge?.replace("{age}", String(childAge)) || `Recommended for age ${childAge}`)
+              ? t.bookOptions.recommendedForAge(String(childAge))
               : key === "hardcover" ? t.bookOptions.mostPopular : undefined;
 
             return (
