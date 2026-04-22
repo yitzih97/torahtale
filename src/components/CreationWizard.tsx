@@ -44,6 +44,8 @@ import presetPreteenGirl from "@/assets/presets/preteen-girl-cartoon.jpg";
 import presetDuoCartoon from "@/assets/presets/duo-cartoon.jpg";
 import presetDuo3dPixar from "@/assets/presets/duo-3d-pixar.jpg";
 import presetDuoRealistic from "@/assets/presets/duo-realistic.jpg";
+import storybookPreview from "@/assets/books/style-story-preview.jpg";
+import comicbookPreview from "@/assets/books/style-comic-preview.jpg";
 
 /* ───────────────── types ───────────────── */
 
@@ -73,6 +75,7 @@ interface WizardData {
   children: ChildProfile[];
   torahPortion: string;
   artStyle: string;
+  narrativeStyle: "story" | "comic";
   language: string;
   pageCount: number;
   activeChildIdx: number;
@@ -82,6 +85,7 @@ const initialData: WizardData = {
   children: [createChild()],
   torahPortion: "",
   artStyle: "cartoon",
+  narrativeStyle: "story",
   language: "english",
   pageCount: 10,
   activeChildIdx: 0,
