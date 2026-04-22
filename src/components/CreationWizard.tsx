@@ -231,6 +231,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
   const [portionSearch, setPortionSearch] = useState("");
   const [expandedBook, setExpandedBook] = useState<string | null>(null);
   const [portionMode, setPortionMode] = useState<"choose" | "manual" | null>(null);
+  const [styleSubStep, setStyleSubStep] = useState<"art" | "format">("art");
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
