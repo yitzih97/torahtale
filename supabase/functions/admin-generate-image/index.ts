@@ -70,53 +70,81 @@ serve(async (req) => {
       });
     }
 
-    // Generate image with Gemini
-    const imageModels = customSiteImageModel
-      ? [customSiteImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
-      : [
-          "gemini-3.1-flash-image-preview",
-          "gemini-2.5-flash-image-preview",
-          "gemini-2.5-flash-image",
-        ];
-
     let imageData: string | null = null;
     let mimeType = "image/png";
 
-    for (const model of imageModels) {
-      const attempt = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
-          }),
-        }
-      );
+    // ============= OPENAI BRANCH (gpt-image-* / dall-e-*) =============
+    const isOpenAI = customSiteImageModel && /^(gpt-image|dall-e)/i.test(customSiteImageModel);
+    if (isOpenAI) {
+      const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+      if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured");
 
-      if (!attempt.ok) {
-        const body = await attempt.text();
-        console.error(`Model ${model} failed:`, attempt.status, body);
-        if (attempt.status === 429) {
-          await supabase.from("site_assets").update({ status: "error" }).eq("asset_key", assetKey);
+      const oResp = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: customSiteImageModel, prompt, size: "1024x1024", n: 1 }),
+      });
+      if (!oResp.ok) {
+        const t = await oResp.text();
+        console.error(`OpenAI ${customSiteImageModel} error:`, oResp.status, t);
+        await supabase.from("site_assets").update({ status: "error" }).eq("asset_key", assetKey);
+        if (oResp.status === 429) {
           return new Response(JSON.stringify({ error: "Rate limited" }), {
             status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        continue;
+        throw new Error(`OpenAI image error [${oResp.status}]`);
       }
+      const od = await oResp.json();
+      imageData = od.data?.[0]?.b64_json || null;
+      mimeType = "image/png";
+      console.log(`admin-generate-image using OpenAI model: ${customSiteImageModel}`);
+    } else {
+      // Gemini branch (existing fallback list)
+      const imageModels = customSiteImageModel
+        ? [customSiteImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
+        : [
+            "gemini-3.1-flash-image-preview",
+            "gemini-2.5-flash-image-preview",
+            "gemini-2.5-flash-image",
+          ];
 
-      const data = await attempt.json();
-      const parts = data.candidates?.[0]?.content?.parts || [];
-      for (const part of parts) {
-        if (part.inlineData) {
-          imageData = part.inlineData.data;
-          mimeType = part.inlineData.mimeType || "image/png";
-          break;
+      for (const model of imageModels) {
+        const attempt = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+            }),
+          }
+        );
+
+        if (!attempt.ok) {
+          const body = await attempt.text();
+          console.error(`Model ${model} failed:`, attempt.status, body);
+          if (attempt.status === 429) {
+            await supabase.from("site_assets").update({ status: "error" }).eq("asset_key", assetKey);
+            return new Response(JSON.stringify({ error: "Rate limited" }), {
+              status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          continue;
         }
+
+        const data = await attempt.json();
+        const parts = data.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          if (part.inlineData) {
+            imageData = part.inlineData.data;
+            mimeType = part.inlineData.mimeType || "image/png";
+            break;
+          }
+        }
+        if (imageData) break;
       }
-      if (imageData) break;
     }
 
     if (!imageData) {
