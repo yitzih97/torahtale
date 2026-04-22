@@ -169,6 +169,63 @@ serve(async (req) => {
 
     parts.push({ text: imagePrompt });
 
+    // ============= OPENAI BRANCH (gpt-image-* / dall-e-*) =============
+    const isOpenAI = customImageModel && /^(gpt-image|dall-e)/i.test(customImageModel);
+    if (isOpenAI) {
+      const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+      if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured");
+
+      const imageBlobs: { blob: Blob; name: string }[] = [];
+      for (const p of parts) {
+        if (p.inlineData) {
+          const bin = Uint8Array.from(atob(p.inlineData.data), (c) => c.charCodeAt(0));
+          const ext = (p.inlineData.mimeType || "image/png").split("/")[1] || "png";
+          imageBlobs.push({ blob: new Blob([bin], { type: p.inlineData.mimeType }), name: `ref-${imageBlobs.length}.${ext}` });
+        }
+      }
+
+      const size = isCover ? "1536x1024" : "1024x1024";
+      let openaiResp: Response;
+      if (imageBlobs.length > 0) {
+        const fd = new FormData();
+        fd.append("model", customImageModel);
+        fd.append("prompt", imagePrompt);
+        fd.append("size", size);
+        fd.append("n", "1");
+        for (const ib of imageBlobs) fd.append("image[]", ib.blob, ib.name);
+        openaiResp = await fetch("https://api.openai.com/v1/images/edits", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+          body: fd,
+        });
+      } else {
+        openaiResp = await fetch("https://api.openai.com/v1/images/generations", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: customImageModel, prompt: imagePrompt, size, n: 1 }),
+        });
+      }
+
+      if (!openaiResp.ok) {
+        const errTxt = await openaiResp.text();
+        console.error(`OpenAI ${customImageModel} error:`, openaiResp.status, errTxt);
+        if (openaiResp.status === 429) {
+          return new Response(JSON.stringify({ error: "OpenAI rate limit — please try again." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw new Error(`OpenAI image error [${openaiResp.status}]: ${errTxt.slice(0, 300)}`);
+      }
+      const oData = await openaiResp.json();
+      const b64 = oData.data?.[0]?.b64_json;
+      if (!b64) throw new Error("No image returned from OpenAI");
+      console.log(`OpenAI image generation using model: ${customImageModel}`);
+      return new Response(JSON.stringify({ imageUrl: `data:image/png;base64,${b64}` }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // ============= END OPENAI BRANCH =============
+
     const imageModels = customImageModel
       ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
       : [
@@ -192,9 +249,7 @@ serve(async (req) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [{ role: "user", parts }],
-            generationConfig: {
-              responseModalities: ["TEXT", "IMAGE"],
-            },
+            generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
           }),
         }
       );

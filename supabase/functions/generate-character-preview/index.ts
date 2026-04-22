@@ -102,6 +102,61 @@ serve(async (req) => {
 
     parts.push({ text: prompt });
 
+    // ============= OPENAI BRANCH =============
+    const isOpenAI = customImageModel && /^(gpt-image|dall-e)/i.test(customImageModel);
+    if (isOpenAI) {
+      const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+      if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured");
+
+      const imageBlobs: { blob: Blob; name: string }[] = [];
+      for (const p of parts) {
+        if (p.inlineData) {
+          const bin = Uint8Array.from(atob(p.inlineData.data), (c) => c.charCodeAt(0));
+          const ext = (p.inlineData.mimeType || "image/png").split("/")[1] || "png";
+          imageBlobs.push({ blob: new Blob([bin], { type: p.inlineData.mimeType }), name: `ref-${imageBlobs.length}.${ext}` });
+        }
+      }
+
+      let oResp: Response;
+      if (imageBlobs.length > 0) {
+        const fd = new FormData();
+        fd.append("model", customImageModel);
+        fd.append("prompt", prompt);
+        fd.append("size", "1024x1024");
+        fd.append("n", "1");
+        for (const ib of imageBlobs) fd.append("image[]", ib.blob, ib.name);
+        oResp = await fetch("https://api.openai.com/v1/images/edits", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+          body: fd,
+        });
+      } else {
+        oResp = await fetch("https://api.openai.com/v1/images/generations", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: customImageModel, prompt, size: "1024x1024", n: 1 }),
+        });
+      }
+      if (!oResp.ok) {
+        const t = await oResp.text();
+        console.error(`OpenAI ${customImageModel} error:`, oResp.status, t);
+        if (oResp.status === 429) {
+          return new Response(JSON.stringify({ error: "OpenAI rate limit — please try again." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw new Error(`OpenAI image error [${oResp.status}]`);
+      }
+      const od = await oResp.json();
+      const b64 = od.data?.[0]?.b64_json;
+      if (!b64) throw new Error("No image returned from OpenAI");
+      console.log(`Character preview using OpenAI model: ${customImageModel}`);
+      return new Response(JSON.stringify({ imageUrl: `data:image/png;base64,${b64}` }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // ============= END OPENAI BRANCH =============
+
     const imageModels = customImageModel
       ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
       : [
