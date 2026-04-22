@@ -50,7 +50,11 @@ const AI_MODELS = [
 ];
 
 const IMAGE_MODELS = [
-  { value: "gemini-3.1-flash-image-preview", label: "Gemini 3.1 Flash Image" },
+  { value: "gpt-image-2", label: "GPT Image 2 (OpenAI — newest, recommended)" },
+  { value: "gpt-image-2-2026-04-21", label: "GPT Image 2 (snapshot 2026-04-21)" },
+  { value: "gpt-image-1.5", label: "GPT Image 1.5 (OpenAI)" },
+  { value: "gpt-image-1", label: "GPT Image 1 (OpenAI)" },
+  { value: "gemini-3.1-flash-image-preview", label: "Gemini 3.1 Flash Image (Nano Banana 2)" },
   { value: "gemini-2.5-flash-image-preview", label: "Gemini 2.5 Flash Image" },
   { value: "gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image (stable)" },
 ];
