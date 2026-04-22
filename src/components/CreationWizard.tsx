@@ -1834,7 +1834,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             {/* ── STEP 10: Book Options ── */}
             {step === 10 && (
               <motion.div key="s10" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <BookOptionsStep options={bookOptions} onChange={setBookOptions} />
+                <BookOptionsStep options={bookOptions} onChange={setBookOptions} childAge={parseInt(child?.age || "0") || 0} />
               </motion.div>
             )}
 
