@@ -57,12 +57,22 @@ export function calculateBookPrice(options: BookOptions): number {
 interface Props {
   options: BookOptions;
   onChange: (options: BookOptions) => void;
+  childAge?: number;
 }
 
-export const BookOptionsStep = ({ options, onChange }: Props) => {
+/* age-based recommendation: board ≤3, softcover 4–6, hardcover 7+ */
+const getRecommendedType = (age: number): BookOptions["productType"] | null => {
+  if (!age || age < 1) return null;
+  if (age <= 3) return "board";
+  if (age <= 6) return "softcover";
+  return "hardcover";
+};
+
+export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
   const [subStep, setSubStep] = useState<"type" | "size">("type");
   const { t } = useLanguage();
   const { symbol, rate } = t.currency;
+  const recommendedType = getRecommendedType(childAge);
 
   const formatPrice = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
 
