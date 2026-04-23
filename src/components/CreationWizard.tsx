@@ -251,6 +251,21 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const pendingGenerationRef = useRef(false);
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Refs for stacked-step scrolling
+  const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const setStepRef = useCallback((n: number) => (el: HTMLDivElement | null) => {
+    stepRefs.current[n] = el;
+  }, []);
+  const scrollToStep = useCallback((n: number) => {
+    const el = stepRefs.current[n];
+    if (el) {
+      // Slight delay so layout settles after state updates
+      requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, []);
+
   const child = data.children[data.activeChildIdx] || data.children[0];
 
   const update = useCallback((partial: Partial<WizardData>) => {
