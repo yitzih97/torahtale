@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 import { SparkleEffect } from "./SparkleEffect";
 import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/ShippingForm";
 import { CheckoutStep } from "./wizard/CheckoutStep";
@@ -205,11 +205,13 @@ const ART_STYLES = [
 /* ───────────────── component ───────────────── */
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
+  /** Optional — when omitted, the wizard renders as a full page (no close affordance). */
+  open?: boolean;
+  onClose?: () => void;
 }
 
-export const CreationWizard = ({ open, onClose }: Props) => {
+export const CreationWizard = ({ open = true, onClose }: Props) => {
+  if (!open) return null;
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, lang } = useLanguage();
