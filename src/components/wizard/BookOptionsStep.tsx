@@ -244,7 +244,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
                 : ` · ${PRODUCT_INFO[options.productType].dims}`}
             </p>
           </div>
-          <span className="text-2xl font-bold text-accent">{formatPrice(price)}</span>
+          <span className="text-2xl font-bold text-accent">{formatPrice(price, priceIls)}</span>
         </div>
       </div>
     </div>
