@@ -1098,7 +1098,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                           className={glassCard(data.narrativeStyle === f.key)}
                         >
                           {f.recommended && childAge > 0 && (
-                            <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-0.5 rounded-full shadow-md whitespace-nowrap">
+                            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-0.5 rounded-full shadow-md whitespace-nowrap">
                               ★ {t.wizard.bestForYou}
                             </div>
                           )}
