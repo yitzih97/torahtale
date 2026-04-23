@@ -935,6 +935,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.div>
                 )}
               </motion.div>
+              </section>
             )}
 
             {/* ── STEP 2: Gender ── */}
