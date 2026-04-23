@@ -51,6 +51,8 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
   const bookPrice = calculateBookPrice(bookOptions);
   const shippingCostUsd = shipping.shippingMethod === "express" ? 9.99 : 0;
 
+  const PLANS = buildPlansForBook(bookPrice);
+
   const isSubscription = selectedPlan !== "once";
   const activePlan = PLANS.find((p) => p.id === selectedPlan);
 
