@@ -752,45 +752,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 sm:py-12 pb-32">
           <h1 className="sr-only">{t.wizard.createYourBook}</h1>
 
-        {/* ── Ultra-minimal progress line ── */}
-        {step <= 8 && (
-          <div className="px-6 sm:px-8 pt-4 sm:pt-5 pb-0 flex-shrink-0">
-            <div className="flex items-center justify-between mb-2.5">
-              <motion.div
-                key={step}
-                initial={{ scale: 0.5, opacity: 0, rotate: -90 }}
-                animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                transition={{ ...springTransition, stiffness: 400 }}
-                className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/15 via-accent/10 to-transparent flex items-center justify-center ring-1 ring-accent/10"
-              >
-                <StepIcon className="w-4 h-4 text-accent" />
-              </motion.div>
-              <div className="flex items-center gap-1.5">
-                {Array.from({ length: 8 }, (_, i) => (
-                  <motion.div
-                    key={i}
-                    className={`h-1.5 rounded-full transition-all duration-500 ${
-                      i < step ? "bg-accent w-3" : i === step ? "bg-accent/40 w-2" : "bg-border/40 w-1.5"
-                    }`}
-                    layout
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="h-[2px] bg-border/20 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full rounded-full"
-                style={{ background: "linear-gradient(90deg, hsl(var(--accent)), hsl(var(--accent) / 0.6))" }}
-                initial={false}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ── Scrollable content area ── */}
-        <div className="flex-1 overflow-y-auto px-6 sm:px-8 pt-4 sm:pt-5 pb-4 scroll-smooth">
+        <div>
           {/* Multi-child pills (steps 2-8) */}
           {step >= 2 && step <= 8 && data.children.length > 1 && (
             <motion.div variants={staggerChild} initial="enter" animate="center" className="mb-4 flex gap-2 overflow-x-auto pb-1">
