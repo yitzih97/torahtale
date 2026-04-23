@@ -38,7 +38,9 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
     { label: t.nav.contact, href: "/contact" },
   ];
 
-  const toggleLang = () => setLang(lang === "en" ? "he" : "en");
+  const cycleLang = () => setLang(lang === "en" ? "he" : lang === "he" ? "yi" : "en");
+  const langLabelShort = lang === "en" ? "עב" : lang === "he" ? "יי" : "EN";
+  const langLabelLong = lang === "en" ? "עברית" : lang === "he" ? "יידיש" : "English";
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"}`} data-scrolled={scrolled}>
@@ -63,7 +65,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
         <div className="flex items-center gap-3">
           {/* Language toggle */}
           <button
-            onClick={toggleLang}
+            onClick={cycleLang}
             className={`px-2.5 py-1 rounded-full text-xs font-bold border transition-colors duration-300 ${
               solid
                 ? "border-border text-muted-foreground hover:text-accent hover:border-accent"
@@ -71,7 +73,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
             }`}
             aria-label="Toggle language"
           >
-            {lang === "en" ? "עב" : "EN"}
+            {langLabelShort}
           </button>
 
           {user ? (
@@ -118,10 +120,10 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
 
             {/* Mobile language toggle */}
             <button
-              onClick={() => { toggleLang(); setMobileOpen(false); }}
+              onClick={() => { cycleLang(); setMobileOpen(false); }}
               className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border text-start"
             >
-              {lang === "en" ? "עברית" : "English"}
+              {langLabelLong}
             </button>
 
             {user ? (
