@@ -265,7 +265,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
-  // Save wizard state before login so we can resume
+  // Save wizard state continuously so user can resume after refresh/close/login
   const saveWizardState = useCallback(() => {
     const serializable = {
       step,
@@ -277,24 +277,35 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       bookOptions,
       portionFilter,
     };
-    localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
+    try {
+      localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
+    } catch { /* ignore quota */ }
   }, [step, data, shipping, bookOptions, portionFilter]);
 
-  // Restore wizard state on mount if user just logged in
+  // Restore wizard state on mount (whether logged in or not)
   useEffect(() => {
     const saved = localStorage.getItem("torahtale_wizard_state");
-    if (saved && user) {
+    if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setStep(parsed.step || 1);
+        // Don't restore terminal/transient steps (success or generation animation)
+        const restoredStep = parsed.step && parsed.step < 13 ? parsed.step : 1;
+        setStep(restoredStep);
         setData(parsed.data || initialData);
         setShipping(parsed.shipping || DEFAULT_SHIPPING);
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
         if (parsed.portionFilter) setPortionFilter(parsed.portionFilter);
-        localStorage.removeItem("torahtale_wizard_state");
       } catch { /* ignore */ }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Persist on every meaningful change
+  useEffect(() => {
+    if (step > 1 || data.children.some(c => c.name || c.age || c.gender)) {
+      saveWizardState();
+    }
+  }, [saveWizardState, step, data]);
 
   // Cleanup auto-advance timer
   useEffect(() => {
@@ -1862,7 +1873,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             {/* ── STEP 13: Success ── */}
             {step === 13 && (
               <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <SuccessStep childName={childNames} onGoToDashboard={() => { onClose(); navigate("/dashboard"); }} />
+                <SuccessStep childName={childNames} onGoToDashboard={() => { localStorage.removeItem("torahtale_wizard_state"); onClose(); navigate("/dashboard"); }} />
               </motion.div>
             )}
 
