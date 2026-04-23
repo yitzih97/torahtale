@@ -211,7 +211,6 @@ interface Props {
 }
 
 export const CreationWizard = ({ open = true, onClose }: Props) => {
-  if (!open) return null;
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, lang } = useLanguage();
