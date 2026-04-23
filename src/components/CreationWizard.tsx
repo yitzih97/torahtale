@@ -803,7 +803,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
 
             {/* ── STEP 1: Name ── */}
-            {step === 1 && (
+            {step >= 1 && (
+              <section
+                ref={setStepRef(1)}
+                onClick={step !== 1 ? () => setStep(1) : undefined}
+                className={`relative ${step !== 1 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 1 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s1"
                 custom={dir}
