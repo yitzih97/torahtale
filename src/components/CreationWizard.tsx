@@ -981,7 +981,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <Calendar className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    {t.wizard.howOld(child.name)}
+                    {t.wizard.howOld(child.name, child.gender)}
                   </h2>
                 </motion.div>
 
@@ -990,7 +990,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     type="number"
                     min={1}
                     max={15}
-                    placeholder="Age"
+                    placeholder={t.wizard.agePlaceholder}
                     value={child.age}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -1009,7 +1009,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center text-sm font-semibold text-accent"
                   >
-                    {t.wizard.yearsOld(child.age)}
+                    {t.wizard.yearsOld(child.age, child.gender)}
                   </motion.p>
                 )}
               </motion.div>
