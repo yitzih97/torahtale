@@ -80,10 +80,13 @@ const getRecommendedType = (age: number): BookOptions["productType"] | null => {
 export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
   const [subStep, setSubStep] = useState<"type" | "size">("type");
   const { t } = useLanguage();
-  const { symbol, rate } = t.currency;
+  const { symbol, rate, code } = t.currency;
   const recommendedType = getRecommendedType(childAge);
 
-  const formatPrice = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
+  const formatPrice = (usd: number, ils?: number) => {
+    if (code === "ILS" && typeof ils === "number") return `${symbol}${ils.toFixed(2)}`;
+    return `${symbol}${(usd * rate).toFixed(2)}`;
+  };
 
   const selectType = (type: BookOptions["productType"]) => {
     if (type === "hardcover") {
