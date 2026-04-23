@@ -849,7 +849,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                   animate={{ scale: 1 }}
                                   transition={{ type: "spring", stiffness: 500, damping: 20 }}
                                 >
-                                  <Check className="w-4 h-4 text-accent ml-auto flex-shrink-0" />
+                                  <Check className="w-4 h-4 text-accent ms-auto flex-shrink-0" />
                                 </motion.div>
                               )}
                             </div>
