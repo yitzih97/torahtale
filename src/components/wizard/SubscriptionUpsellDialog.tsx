@@ -83,7 +83,10 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
     [bookPriceUsd]
   );
 
-  const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
+  // When a bookPriceUsd is provided we treat it as already-in-display-currency
+  // (caller decides USD vs ILS). Otherwise fall back to converted USD pricing.
+  const fmt = (amount: number) =>
+    bookPriceUsd ? `${symbol}${amount.toFixed(2)}` : `${symbol}${(amount * rate).toFixed(2)}`;
   const periodLabel = (id: string) =>
     id === "yearly" ? (code === "ILS" ? "שנה" : "yr")
     : id === "monthly" ? (code === "ILS" ? "חודש" : "mo")
@@ -314,7 +317,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    {t.upsell.paySubscribe((activePlan.priceUsd * rate).toFixed(2))}
+                    {t.upsell.paySubscribe((bookPriceUsd ? activePlan.priceUsd : activePlan.priceUsd * rate).toFixed(2))}
                   </>
                 )}
               </Button>

@@ -20,6 +20,7 @@ export const DEFAULT_BOOK_OPTIONS: BookOptions = {
 const PRODUCT_INFO = {
   softcover: {
     price: 7.05,
+    priceIls: 25,
     dims: '8″ × 8″',
     icon: BookOpen,
     color: "from-blue-500/20 to-blue-600/10",
@@ -27,6 +28,7 @@ const PRODUCT_INFO = {
   },
   hardcover: {
     price: 9.95,
+    priceIls: 50,
     dims: '8″ × 8″ or 11″ × 8.5″',
     icon: Shield,
     color: "from-accent/20 to-accent/10",
@@ -34,6 +36,7 @@ const PRODUCT_INFO = {
   },
   board: {
     price: 18.28,
+    priceIls: 70,
     dims: '6″ × 6″',
     icon: Baby,
     color: "from-pink-500/20 to-pink-600/10",
@@ -50,6 +53,12 @@ export const BASE_BOOK_PRICE = 7.05;
 
 export function calculateBookPrice(options: BookOptions): number {
   return PRODUCT_INFO[options.productType].price;
+}
+
+/** Currency-aware price (returns ILS amount for "ILS", USD for everything else) */
+export function calculateBookPriceForCurrency(options: BookOptions, currencyCode: string): number {
+  const info = PRODUCT_INFO[options.productType];
+  return currencyCode === "ILS" ? info.priceIls : info.price;
 }
 
 /* ── component ── */
@@ -71,10 +80,13 @@ const getRecommendedType = (age: number): BookOptions["productType"] | null => {
 export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
   const [subStep, setSubStep] = useState<"type" | "size">("type");
   const { t } = useLanguage();
-  const { symbol, rate } = t.currency;
+  const { symbol, rate, code } = t.currency;
   const recommendedType = getRecommendedType(childAge);
 
-  const formatPrice = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
+  const formatPrice = (usd: number, ils?: number) => {
+    if (code === "ILS" && typeof ils === "number") return `${symbol}${ils.toFixed(2)}`;
+    return `${symbol}${(usd * rate).toFixed(2)}`;
+  };
 
   const selectType = (type: BookOptions["productType"]) => {
     if (type === "hardcover") {
@@ -87,6 +99,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
   };
 
   const price = calculateBookPrice(options);
+  const priceIls = PRODUCT_INFO[options.productType].priceIls;
 
   const productLabels: Record<string, string> = {
     softcover: t.bookOptions.softcover,
@@ -173,7 +186,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-display font-bold text-base text-primary">{productLabels[key]}</span>
-                      <span className="text-lg font-bold text-accent">{formatPrice(info.price)}</span>
+                      <span className="text-lg font-bold text-accent">{formatPrice(info.price, info.priceIls)}</span>
                     </div>
                     <p className="text-xs text-muted-foreground mb-2">{productTaglines[key]} · {info.dims}</p>
                     <div className="grid grid-cols-2 gap-1">
@@ -231,7 +244,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
                 : ` · ${PRODUCT_INFO[options.productType].dims}`}
             </p>
           </div>
-          <span className="text-2xl font-bold text-accent">{formatPrice(price)}</span>
+          <span className="text-2xl font-bold text-accent">{formatPrice(price, priceIls)}</span>
         </div>
       </div>
     </div>

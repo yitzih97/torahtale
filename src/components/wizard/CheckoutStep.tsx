@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
-import { type BookOptions, calculateBookPrice } from "./BookOptionsStep";
+import { type BookOptions, calculateBookPrice, calculateBookPriceForCurrency } from "./BookOptionsStep";
 
 export type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
@@ -44,21 +44,27 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
   const [placingOrder, setPlacingOrder] = useState(false);
   const { t } = useLanguage();
-  const { symbol, rate } = t.currency;
+  const { symbol, rate, code } = t.currency;
 
-  const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
+  const isIls = code === "ILS";
 
-  const bookPrice = calculateBookPrice(bookOptions);
-  const shippingCostUsd = shipping.shippingMethod === "express" ? 9.99 : 0;
+  // Format an amount that is ALREADY in the display currency (no rate conversion)
+  const fmt = (amount: number) => `${symbol}${amount.toFixed(2)}`;
+
+  // Book price in the display currency (ILS uses fixed 25/50/70, otherwise USD)
+  const bookPrice = calculateBookPriceForCurrency(bookOptions, code);
+  const shippingCost = isIls
+    ? (shipping.shippingMethod === "express" ? 35 : 0)
+    : (shipping.shippingMethod === "express" ? 9.99 : 0);
 
   const PLANS = buildPlansForBook(bookPrice);
 
   const isSubscription = selectedPlan !== "once";
   const activePlan = PLANS.find((p) => p.id === selectedPlan);
 
-  const totalUsd = isSubscription
-    ? (activePlan?.priceUsd ?? 0) + shippingCostUsd
-    : bookPrice + shippingCostUsd;
+  const total = isSubscription
+    ? (activePlan?.priceUsd ?? 0) + shippingCost
+    : bookPrice + shippingCost;
 
   const periodLabel = (id: string) =>
     id === "yearly" ? (t.currency.code === "ILS" ? "שנה" : "yr")
@@ -182,7 +188,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
-            <span className="font-medium text-primary">{shippingCostUsd === 0 ? t.checkout.freeShipping : fmt(shippingCostUsd)}</span>
+            <span className="font-medium text-primary">{shippingCost === 0 ? t.checkout.freeShipping : fmt(shippingCost)}</span>
           </div>
           {isSubscription && activePlan && (
             <div className="flex justify-between text-accent">
@@ -192,7 +198,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
           )}
           <div className="border-t border-border pt-3 mt-3 flex justify-between font-bold text-base">
             <span>{t.checkout.totalToday}</span>
-            <span className="text-accent">{fmt(totalUsd)}</span>
+            <span className="text-accent">{fmt(total)}</span>
           </div>
           {isSubscription && (
             <p className="text-[10px] text-muted-foreground">
@@ -221,8 +227,8 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
           <>
             <Sparkles className="w-4 h-4" />
             {isSubscription
-              ? t.checkout.subscribeOrder((totalUsd * rate).toFixed(2))
-              : t.checkout.placeOrder((totalUsd * rate).toFixed(2))}
+              ? t.checkout.subscribeOrder(total.toFixed(2))
+              : t.checkout.placeOrder(total.toFixed(2))}
           </>
         )}
       </Button>
