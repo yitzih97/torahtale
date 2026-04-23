@@ -1756,6 +1756,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </motion.div>
             )}
 
+            <AnimatePresence mode="wait" custom={dir}>
             {/* ── STEP 9: Generation Animation + Confirmation ── */}
             {step === 9 && (
               <motion.div
