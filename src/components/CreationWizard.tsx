@@ -1660,6 +1660,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   ))}
                 </div>
               </motion.div>
+              </section>
             )}
 
             {/* ── STEP 8: Review & Generate ── */}
