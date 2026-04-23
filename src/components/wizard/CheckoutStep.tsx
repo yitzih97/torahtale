@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
-import { type BookOptions, calculateBookPrice } from "./BookOptionsStep";
+import { type BookOptions, calculateBookPrice, calculateBookPriceForCurrency } from "./BookOptionsStep";
 
 export type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
