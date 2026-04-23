@@ -99,6 +99,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
   };
 
   const price = calculateBookPrice(options);
+  const priceIls = PRODUCT_INFO[options.productType].priceIls;
 
   const productLabels: Record<string, string> = {
     softcover: t.bookOptions.softcover,
