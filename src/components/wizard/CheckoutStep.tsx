@@ -227,8 +227,8 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
           <>
             <Sparkles className="w-4 h-4" />
             {isSubscription
-              ? t.checkout.subscribeOrder((totalUsd * rate).toFixed(2))
-              : t.checkout.placeOrder((totalUsd * rate).toFixed(2))}
+              ? t.checkout.subscribeOrder(total.toFixed(2))
+              : t.checkout.placeOrder(total.toFixed(2))}
           </>
         )}
       </Button>
