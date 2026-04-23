@@ -1939,9 +1939,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       context="limit-reached"
       bookPriceUsd={(() => {
         const pt = bookOptions.productType;
-        if (pt === "softcover") return 9;
-        if (pt === "hardcover") return 17;
-        if (pt === "board") return 24;
+        const isIls = t.currency.code === "ILS";
+        if (pt === "softcover") return isIls ? 25 : 9;
+        if (pt === "hardcover") return isIls ? 50 : 17;
+        if (pt === "board") return isIls ? 70 : 24;
         return undefined;
       })()}
       bookLabel={
