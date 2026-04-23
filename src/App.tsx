@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useCartSync } from "@/hooks/useCartSync";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import Index from "./pages/Index.tsx";
+import Create from "./pages/Create.tsx";
 import Admin from "./pages/Admin.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Auth from "./pages/Auth.tsx";
@@ -28,6 +29,7 @@ const AppInner = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/create" element={<Create />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/auth" element={<Auth />} />
