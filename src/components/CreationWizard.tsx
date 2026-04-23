@@ -939,7 +939,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
             {/* ── STEP 2: Gender ── */}
-            {step === 2 && (
+            {step >= 2 && (
+              <section
+                ref={setStepRef(2)}
+                onClick={step !== 2 ? () => setStep(2) : undefined}
+                className={`relative ${step !== 2 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 2 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s2"
                 custom={dir}
