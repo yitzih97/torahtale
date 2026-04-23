@@ -121,5 +121,11 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function ({ addVariant }: { addVariant: (name: string, def: string) => void }) {
+      addVariant("rtl", '&:where([dir="rtl"], [dir="rtl"] *)');
+      addVariant("ltr", '&:where([dir="ltr"], [dir="ltr"] *)');
+    },
+  ],
 } satisfies Config;
