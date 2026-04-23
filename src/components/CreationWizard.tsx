@@ -338,6 +338,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     };
   }, []);
 
+  // Auto-scroll to the active step section whenever it changes
+  useEffect(() => {
+    scrollToStep(step);
+  }, [step, scrollToStep]);
+
   const autoAdvance = useCallback(() => {
     if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
     autoAdvanceTimerRef.current = setTimeout(() => {
