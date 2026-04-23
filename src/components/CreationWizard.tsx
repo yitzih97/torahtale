@@ -1878,7 +1878,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 13: Success ── */}
             {step === 13 && (
               <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <SuccessStep childName={childNames} onGoToDashboard={() => { localStorage.removeItem("torahtale_wizard_state"); onClose(); navigate("/dashboard"); }} />
+                <SuccessStep childName={childNames} onGoToDashboard={() => { localStorage.removeItem("torahtale_wizard_state"); onClose?.(); navigate("/dashboard"); }} />
               </motion.div>
             )}
 
