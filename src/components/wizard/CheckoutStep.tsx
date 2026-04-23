@@ -44,21 +44,27 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
   const [placingOrder, setPlacingOrder] = useState(false);
   const { t } = useLanguage();
-  const { symbol, rate } = t.currency;
+  const { symbol, rate, code } = t.currency;
 
-  const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
+  const isIls = code === "ILS";
 
-  const bookPrice = calculateBookPrice(bookOptions);
-  const shippingCostUsd = shipping.shippingMethod === "express" ? 9.99 : 0;
+  // Format an amount that is ALREADY in the display currency (no rate conversion)
+  const fmt = (amount: number) => `${symbol}${amount.toFixed(2)}`;
+
+  // Book price in the display currency (ILS uses fixed 25/50/70, otherwise USD)
+  const bookPrice = calculateBookPriceForCurrency(bookOptions, code);
+  const shippingCost = isIls
+    ? (shipping.shippingMethod === "express" ? 35 : 0)
+    : (shipping.shippingMethod === "express" ? 9.99 : 0);
 
   const PLANS = buildPlansForBook(bookPrice);
 
   const isSubscription = selectedPlan !== "once";
   const activePlan = PLANS.find((p) => p.id === selectedPlan);
 
-  const totalUsd = isSubscription
-    ? (activePlan?.priceUsd ?? 0) + shippingCostUsd
-    : bookPrice + shippingCostUsd;
+  const total = isSubscription
+    ? (activePlan?.priceUsd ?? 0) + shippingCost
+    : bookPrice + shippingCost;
 
   const periodLabel = (id: string) =>
     id === "yearly" ? (t.currency.code === "ILS" ? "שנה" : "yr")
