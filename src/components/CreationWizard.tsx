@@ -212,7 +212,7 @@ interface Props {
 export const CreationWizard = ({ open, onClose }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { children: existingChildren } = useChildren();
 
   const GENERATION_PHASES = [
