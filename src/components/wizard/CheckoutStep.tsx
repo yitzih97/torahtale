@@ -17,11 +17,19 @@ interface Plan {
   badge?: boolean;
 }
 
-const PLANS: Plan[] = [
-  { id: "weekly", priceUsd: 23.99, perWeekUsd: 23.99, savings: "20% off", icon: Zap },
-  { id: "monthly", priceUsd: 79.99, perWeekUsd: 19.99, savings: "33% off", icon: Crown, badge: true },
-  { id: "yearly", priceUsd: 799.99, perWeekUsd: 15.38, savings: "49% off", icon: CalendarDays },
-];
+/* Round to a friendly .99 price */
+const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
+
+function buildPlansForBook(bookPriceUsd: number): Plan[] {
+  const weekly = friendly(bookPriceUsd * 1 * (1 - 0.20));
+  const monthly = friendly(bookPriceUsd * 4 * (1 - 0.33));
+  const yearly = friendly(bookPriceUsd * 52 * (1 - 0.49));
+  return [
+    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "20% off", icon: Zap },
+    { id: "monthly", priceUsd: monthly, perWeekUsd: monthly / 4, savings: "33% off", icon: Crown, badge: true },
+    { id: "yearly", priceUsd: yearly, perWeekUsd: yearly / 52, savings: "49% off", icon: CalendarDays },
+  ];
+}
 
 interface Props {
   childName: string;
@@ -42,6 +50,8 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
 
   const bookPrice = calculateBookPrice(bookOptions);
   const shippingCostUsd = shipping.shippingMethod === "express" ? 9.99 : 0;
+
+  const PLANS = buildPlansForBook(bookPrice);
 
   const isSubscription = selectedPlan !== "once";
   const activePlan = PLANS.find((p) => p.id === selectedPlan);
