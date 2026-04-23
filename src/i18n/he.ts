@@ -248,9 +248,17 @@ export const he: typeof en = {
     isBoyOrGirl: (name: string) => `${name || "הגיבור"} בן או בת?`,
     boy: "בן",
     girl: "בת",
-    howOld: (name: string) => `?בן/בת כמה ${name || "הגיבור"}`,
+    howOld: (name: string, gender?: string) => {
+      const word = gender === "girl" ? "בת" : gender === "boy" ? "בן" : "בן/בת";
+      return `?${word} כמה ${name || "הגיבור"}`;
+    },
     age: "גיל",
-    yearsOld: (age: string) => `✨ בן/בת ${age}`,
+    agePlaceholder: "גיל",
+    yearsOld: (age: string, gender?: string) => {
+      const word = gender === "girl" ? "בת" : gender === "boy" ? "בן" : "בן/בת";
+      return `✨ ${word} ${age}`;
+    },
+    yearsSuffix: "שנים",
     chooseStyle: "בחרו סגנון איור",
     cartoon: "קריקטורה",
     threeDPixar: "3D פיקסאר",
