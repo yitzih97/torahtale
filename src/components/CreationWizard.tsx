@@ -697,9 +697,60 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   return (
     <>
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[92vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-[2rem] border-0 sm:border sm:border-border/20 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.25)] bg-gradient-to-b from-background via-background to-background/95 backdrop-blur-2xl flex flex-col" aria-describedby={undefined}>
-        <DialogTitle className="sr-only">{t.wizard.createYourBook}</DialogTitle>
+    <div className="min-h-screen w-full bg-gradient-to-b from-background via-background to-muted/20 flex flex-col">
+      {/* ── Sticky Apple-style top bar ── */}
+      <div className="sticky top-0 z-30 bg-background/70 backdrop-blur-2xl border-b border-border/30">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <motion.div
+              key={`hdr-${step}`}
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ ...springTransition, stiffness: 400 }}
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/20 via-accent/10 to-transparent flex items-center justify-center ring-1 ring-accent/15 flex-shrink-0"
+            >
+              <StepIcon className="w-4 h-4 text-accent" />
+            </motion.div>
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">
+                {t.wizard.createYourBook}
+              </p>
+              <p className="font-display text-sm font-semibold text-foreground truncate">
+                {step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
+              </p>
+            </div>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Progress strip */}
+        {step <= 8 && (
+          <div className="max-w-3xl mx-auto px-5 sm:px-8 pb-3">
+            <div className="h-[2px] bg-border/30 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: "linear-gradient(90deg, hsl(var(--accent)), hsl(var(--accent) / 0.6))" }}
+                initial={false}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Main content area — Apple/Tesla generous spacing ── */}
+      <div className="flex-1 w-full">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 sm:py-12 pb-32">
+          <h1 className="sr-only">{t.wizard.createYourBook}</h1>
 
         {/* ── Ultra-minimal progress line ── */}
         {step <= 8 && (
