@@ -1586,10 +1586,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseLanguage}</h2>
                 </motion.div>
 
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                   {[
                     { key: "english", label: t.wizard.english, emoji: "🇺🇸" },
                     { key: "hebrew", label: t.wizard.hebrew, emoji: "🇮🇱" },
+                    { key: "yiddish", label: t.wizard.yiddish, emoji: "✡️" },
                     { key: "bilingual", label: t.wizard.both, emoji: "🌍" },
                   ].map((l) => (
                     <motion.button
