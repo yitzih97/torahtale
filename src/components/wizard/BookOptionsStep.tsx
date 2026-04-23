@@ -186,7 +186,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-display font-bold text-base text-primary">{productLabels[key]}</span>
-                      <span className="text-lg font-bold text-accent">{formatPrice(info.price)}</span>
+                      <span className="text-lg font-bold text-accent">{formatPrice(info.price, info.priceIls)}</span>
                     </div>
                     <p className="text-xs text-muted-foreground mb-2">{productTaglines[key]} · {info.dims}</p>
                     <div className="grid grid-cols-2 gap-1">
