@@ -1932,9 +1932,23 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       onSubscribed={() => {
         justSubscribedRef.current = true;
         setShowUpsellDialog(false);
-        startGeneration();
+        // Subscribed — continue past the book-options step into shipping/checkout.
+        setDir(1);
+        setStep(11);
       }}
       context="limit-reached"
+      bookPriceUsd={(() => {
+        const pt = bookOptions.productType;
+        if (pt === "softcover") return 9;
+        if (pt === "hardcover") return 17;
+        if (pt === "board") return 24;
+        return undefined;
+      })()}
+      bookLabel={
+        bookOptions.productType === "softcover" ? t.bookOptions.softcover :
+        bookOptions.productType === "hardcover" ? t.bookOptions.hardcover :
+        bookOptions.productType === "board" ? t.bookOptions.boardBook : undefined
+      }
     />
     </>
   );
