@@ -1882,7 +1882,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 onClick={back}
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium group"
               >
-                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" /> {t.common.back}
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0" /> {t.common.back}
               </button>
             ) : <div />}
 
