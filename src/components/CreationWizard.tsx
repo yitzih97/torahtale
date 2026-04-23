@@ -837,10 +837,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                   {ec.name.slice(0, 2).toUpperCase()}
                                 </div>
                               )}
-                              <div className="min-w-0 text-left">
+                              <div className="min-w-0 text-start">
                                 <p className="font-display font-semibold text-sm text-foreground truncate">{ec.name}</p>
                                 <p className="text-[10px] text-muted-foreground">
-                                  {ec.age ? `${ec.age}yo` : ""}{ec.gender ? ` · ${ec.gender}` : ""}
+                                  {ec.age ? `${ec.age}${t.wizard.yearsSuffix}` : ""}{ec.gender ? ` · ${ec.gender === "boy" ? t.wizard.boy : ec.gender === "girl" ? t.wizard.girl : ec.gender}` : ""}
                                 </p>
                               </div>
                               {isSelected && (
@@ -849,7 +849,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                   animate={{ scale: 1 }}
                                   transition={{ type: "spring", stiffness: 500, damping: 20 }}
                                 >
-                                  <Check className="w-4 h-4 text-accent ml-auto flex-shrink-0" />
+                                  <Check className="w-4 h-4 text-accent ms-auto flex-shrink-0" />
                                 </motion.div>
                               )}
                             </div>
@@ -981,7 +981,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     <Calendar className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    {t.wizard.howOld(child.name)}
+                    {t.wizard.howOld(child.name, child.gender)}
                   </h2>
                 </motion.div>
 
@@ -990,7 +990,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     type="number"
                     min={1}
                     max={15}
-                    placeholder="Age"
+                    placeholder={t.wizard.agePlaceholder}
                     value={child.age}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -1009,7 +1009,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center text-sm font-semibold text-accent"
                   >
-                    {t.wizard.yearsOld(child.age)}
+                    {t.wizard.yearsOld(child.age, child.gender)}
                   </motion.p>
                 )}
               </motion.div>
@@ -1882,7 +1882,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 onClick={back}
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium group"
               >
-                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" /> {t.common.back}
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0" /> {t.common.back}
               </button>
             ) : <div />}
 
@@ -1895,7 +1895,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
                 style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
-                {t.common.continue} <ArrowRight className="w-4 h-4" />
+                {t.common.continue} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </motion.button>
             )}
             {step === 8 && (
@@ -1918,7 +1918,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
                 style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
-                {t.common.continue} <ArrowRight className="w-4 h-4" />
+                {t.common.continue} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </motion.button>
             )}
           </motion.div>
