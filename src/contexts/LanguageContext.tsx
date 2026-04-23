@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { en } from "@/i18n/en";
 import { he } from "@/i18n/he";
+import { yi } from "@/i18n/yi";
 
-export type Lang = "en" | "he";
+export type Lang = "en" | "he" | "yi";
 type Translations = typeof en;
 
 interface LanguageContextType {
@@ -19,12 +20,13 @@ const LanguageContext = createContext<LanguageContextType>({
   dir: "ltr",
 });
 
-const translations: Record<Lang, Translations> = { en, he };
+const translations: Record<Lang, Translations> = { en, he, yi };
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [lang, setLangState] = useState<Lang>(() => {
     const saved = localStorage.getItem("torahtale_lang");
-    return (saved === "he" ? "he" : "en") as Lang;
+    if (saved === "he" || saved === "yi" || saved === "en") return saved as Lang;
+    return "en";
   });
 
   const setLang = (l: Lang) => {
@@ -32,7 +34,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("torahtale_lang", l);
   };
 
-  const dir = lang === "he" ? "rtl" : "ltr";
+  const dir = lang === "he" || lang === "yi" ? "rtl" : "ltr";
 
   useEffect(() => {
     document.documentElement.dir = dir;

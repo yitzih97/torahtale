@@ -295,6 +295,7 @@ export const he: typeof en = {
     chooseLanguage: "בחרו שפה",
     english: "אנגלית",
     hebrew: "עברית",
+    yiddish: "יידיש",
     both: "שתיהן",
     readyToCreate: "!מוכנים ליצירה",
     character: "דמות",
