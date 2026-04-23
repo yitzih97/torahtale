@@ -317,7 +317,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    {t.upsell.paySubscribe((activePlan.priceUsd * rate).toFixed(2))}
+                    {t.upsell.paySubscribe((bookPriceUsd ? activePlan.priceUsd : activePlan.priceUsd * rate).toFixed(2))}
                   </>
                 )}
               </Button>
