@@ -1663,7 +1663,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
             {/* ── STEP 8: Review & Generate ── */}
-            {step === 8 && (
+            {step >= 8 && (
+              <section
+                ref={setStepRef(8)}
+                onClick={step !== 8 ? () => setStep(8) : undefined}
+                className={`relative ${step !== 8 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 8 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s8"
                 custom={dir}
