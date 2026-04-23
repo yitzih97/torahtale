@@ -153,18 +153,38 @@ export interface CartItem {
 }
 
 export async function createShopifyCart(item: CartItem): Promise<{ cartId: string; checkoutUrl: string; lineId: string } | null> {
-  const data = await storefrontApiRequest(CART_CREATE_MUTATION, {
-    input: { lines: [{ quantity: item.quantity, merchandiseId: item.variantId }] },
-  });
-  if (data?.data?.cartCreate?.userErrors?.length > 0) {
-    console.error('Cart creation failed:', data.data.cartCreate.userErrors);
+  // Route through our edge function to avoid browser CORS / network blocks
+  // and to keep the request reliable from any origin.
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data, error } = await supabase.functions.invoke("shopify-create-checkout", {
+      body: {
+        lines: [{ merchandiseId: item.variantId, quantity: item.quantity }],
+      },
+    });
+
+    if (error) {
+      console.error("shopify-create-checkout invoke error:", error);
+      toast.error("Could not start checkout. Please try again.");
+      return null;
+    }
+
+    if (!data?.checkoutUrl) {
+      console.error("shopify-create-checkout returned no checkoutUrl:", data);
+      toast.error(data?.error || "Could not start checkout. Please try again.");
+      return null;
+    }
+
+    return {
+      cartId: data.cartId,
+      checkoutUrl: data.checkoutUrl,
+      lineId: data.lineId ?? "",
+    };
+  } catch (err) {
+    console.error("createShopifyCart failed:", err);
+    toast.error("Could not start checkout. Please try again.");
     return null;
   }
-  const cart = data?.data?.cartCreate?.cart;
-  if (!cart?.checkoutUrl) return null;
-  const lineId = cart.lines.edges[0]?.node?.id;
-  if (!lineId) return null;
-  return { cartId: cart.id, checkoutUrl: formatCheckoutUrl(cart.checkoutUrl), lineId };
 }
 
 export async function addLineToShopifyCart(cartId: string, item: CartItem): Promise<{ success: boolean; lineId?: string; cartNotFound?: boolean }> {
