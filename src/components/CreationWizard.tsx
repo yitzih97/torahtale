@@ -514,7 +514,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
     setPortionMode(null);
     let prevStep = step - 1;
     if (allChildrenHaveGenderAge()) {
-      if (step === 4) prevStep = 1;
       if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
     }
     setStep(Math.max(prevStep, 1));
