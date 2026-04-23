@@ -1885,14 +1885,18 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
           </AnimatePresence>
         </div>
 
-        {/* ── Nav buttons — pinned to bottom ── */}
-        {step !== 9 && step !== 12 && step !== 13 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex-shrink-0 flex justify-between items-center px-6 sm:px-8 py-3.5 sm:py-4 border-t border-border/15 bg-background/60 backdrop-blur-xl"
-          >
+        </div>
+      </div>
+
+      {/* ── Sticky bottom action bar (Apple/Tesla style) ── */}
+      {step !== 9 && step !== 12 && step !== 13 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, ...springTransition }}
+          className="fixed bottom-0 inset-x-0 z-30 border-t border-border/30 bg-background/85 backdrop-blur-2xl"
+        >
+          <div className="max-w-3xl mx-auto px-5 sm:px-8 py-3.5 sm:py-4 flex justify-between items-center gap-4">
             {step > 1 ? (
               <button
                 onClick={back}
@@ -1937,10 +1941,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 {t.common.continue} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </motion.button>
             )}
-          </motion.div>
-        )}
-      </DialogContent>
-    </Dialog>
+          </div>
+        </motion.div>
+      )}
+    </div>
 
     <SubscriptionUpsellDialog
       open={showUpsellDialog}
