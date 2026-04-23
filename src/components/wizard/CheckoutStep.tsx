@@ -198,7 +198,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
           )}
           <div className="border-t border-border pt-3 mt-3 flex justify-between font-bold text-base">
             <span>{t.checkout.totalToday}</span>
-            <span className="text-accent">{fmt(totalUsd)}</span>
+            <span className="text-accent">{fmt(total)}</span>
           </div>
           {isSubscription && (
             <p className="text-[10px] text-muted-foreground">
