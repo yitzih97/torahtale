@@ -467,6 +467,15 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         toast.info("Please sign in to generate your sefer.");
         return;
       }
+      // Free-preview limit is now checked AFTER book-type selection (step 10),
+      // so the upsell pricing can reflect the chosen book.
+      await startGeneration();
+      return;
+    }
+
+    // After picking the book type, gate the flow on the monthly free-preview limit.
+    // This way the upsell prices can be computed from the selected book's cost.
+    if (step === 10 && user && !justSubscribedRef.current) {
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
@@ -475,14 +484,13 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .gte("created_at", startOfMonth.toISOString());
-      if (!countErr && (count ?? 0) >= 2 && !justSubscribedRef.current) {
+      if (!countErr && (count ?? 0) >= 2) {
         setShowUpsellDialog(true);
         return;
       }
-      justSubscribedRef.current = false;
-      await startGeneration();
-      return;
     }
+    if (step === 10) justSubscribedRef.current = false;
+
     setDir(1);
     let nextStep = step + 1;
     if (step === 1 && allChildrenHaveGenderAge()) {
