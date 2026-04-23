@@ -188,7 +188,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
-            <span className="font-medium text-primary">{shippingCostUsd === 0 ? t.checkout.freeShipping : fmt(shippingCostUsd)}</span>
+            <span className="font-medium text-primary">{shippingCost === 0 ? t.checkout.freeShipping : fmt(shippingCost)}</span>
           </div>
           {isSubscription && activePlan && (
             <div className="flex justify-between text-accent">
