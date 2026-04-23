@@ -837,10 +837,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                                   {ec.name.slice(0, 2).toUpperCase()}
                                 </div>
                               )}
-                              <div className="min-w-0 text-left">
+                              <div className="min-w-0 text-start">
                                 <p className="font-display font-semibold text-sm text-foreground truncate">{ec.name}</p>
                                 <p className="text-[10px] text-muted-foreground">
-                                  {ec.age ? `${ec.age}yo` : ""}{ec.gender ? ` · ${ec.gender}` : ""}
+                                  {ec.age ? `${ec.age}${t.wizard.yearsSuffix}` : ""}{ec.gender ? ` · ${ec.gender === "boy" ? t.wizard.boy : ec.gender === "girl" ? t.wizard.girl : ec.gender}` : ""}
                                 </p>
                               </div>
                               {isSelected && (
