@@ -18,7 +18,7 @@ const floatingOrb = (delay: number, x: string, y: string, size: string, color: s
 
 const About = () => {
   const { t, dir, lang } = useLanguage();
-  const isRtl = lang === "he";
+  const isRtl = (lang === "he" || lang === "yi");
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>

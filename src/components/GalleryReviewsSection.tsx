@@ -99,7 +99,7 @@ export const GalleryReviewsSection = () => {
                 className="relative rounded-2xl overflow-hidden border border-border/50 hover:border-accent/40 transition-all duration-500 shadow-md hover:shadow-xl"
               >
                 <div className="aspect-[3/4] relative">
-                  <img src={story.coverImage} alt={lang === "he" ? story.titleHe : story.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <img src={story.coverImage} alt={(lang === "he" || lang === "yi") ? story.titleHe : story.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
 
                   {story.childPhoto && (
@@ -109,7 +109,7 @@ export const GalleryReviewsSection = () => {
                   )}
 
                   <div className="absolute bottom-0 inset-x-0 p-3 pt-8">
-                    <h3 className="font-display text-xs lg:text-sm font-semibold text-white leading-tight drop-shadow-md">{lang === "he" ? story.titleHe : story.title}</h3>
+                    <h3 className="font-display text-xs lg:text-sm font-semibold text-white leading-tight drop-shadow-md">{(lang === "he" || lang === "yi") ? story.titleHe : story.title}</h3>
                     <p className="text-[10px] text-white/70 mt-0.5">{story.portion}</p>
                   </div>
 
@@ -129,10 +129,10 @@ export const GalleryReviewsSection = () => {
                     ))}
                   </div>
                   <span className="text-[10px] text-muted-foreground font-body">·</span>
-                  <span className="text-[10px] text-accent font-medium">{lang === "he" ? t.gallery.childStory + story.child : story.child + t.gallery.childStory}</span>
+                  <span className="text-[10px] text-accent font-medium">{(lang === "he" || lang === "yi") ? t.gallery.childStory + story.child : story.child + t.gallery.childStory}</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 font-body">
-                  "{lang === "he" ? story.reviewHe : story.review}"
+                  "{(lang === "he" || lang === "yi") ? story.reviewHe : story.review}"
                 </p>
                 <p className="text-[10px] text-foreground/60 mt-1 font-medium">
                   — {story.reviewer}, {story.location}
