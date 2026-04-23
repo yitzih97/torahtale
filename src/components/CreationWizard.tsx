@@ -799,6 +799,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             </motion.div>
           )}
 
+          <div className="space-y-10 sm:space-y-14">
           <AnimatePresence mode="wait" custom={dir}>
 
             {/* ── STEP 1: Name ── */}
