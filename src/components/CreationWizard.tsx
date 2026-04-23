@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 import { SparkleEffect } from "./SparkleEffect";
 import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/ShippingForm";
 import { CheckoutStep } from "./wizard/CheckoutStep";
@@ -205,11 +205,12 @@ const ART_STYLES = [
 /* ───────────────── component ───────────────── */
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
+  /** Optional — when omitted, the wizard renders as a full page (no close affordance). */
+  open?: boolean;
+  onClose?: () => void;
 }
 
-export const CreationWizard = ({ open, onClose }: Props) => {
+export const CreationWizard = ({ open = true, onClose }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, lang } = useLanguage();
@@ -492,24 +493,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       return;
     }
 
-    // After picking the book type, gate the flow on the monthly free-preview limit.
-    // This way the upsell prices can be computed from the selected book's cost.
-    if (step === 10 && user && !justSubscribedRef.current) {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-      const { count, error: countErr } = await supabase
-        .from("books")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .gte("created_at", startOfMonth.toISOString());
-      if (!countErr && (count ?? 0) >= 2) {
-        setShowUpsellDialog(true);
-        return;
-      }
-    }
-    if (step === 10) justSubscribedRef.current = false;
-
     setDir(1);
     let nextStep = step + 1;
     if (step === 1 && allChildrenHaveGenderAge()) {
@@ -714,36 +697,44 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   return (
     <>
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[92vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-[2rem] border-0 sm:border sm:border-border/20 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.25)] bg-gradient-to-b from-background via-background to-background/95 backdrop-blur-2xl flex flex-col" aria-describedby={undefined}>
-        <DialogTitle className="sr-only">{t.wizard.createYourBook}</DialogTitle>
-
-        {/* ── Ultra-minimal progress line ── */}
-        {step <= 8 && (
-          <div className="px-6 sm:px-8 pt-4 sm:pt-5 pb-0 flex-shrink-0">
-            <div className="flex items-center justify-between mb-2.5">
-              <motion.div
-                key={step}
-                initial={{ scale: 0.5, opacity: 0, rotate: -90 }}
-                animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                transition={{ ...springTransition, stiffness: 400 }}
-                className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/15 via-accent/10 to-transparent flex items-center justify-center ring-1 ring-accent/10"
-              >
-                <StepIcon className="w-4 h-4 text-accent" />
-              </motion.div>
-              <div className="flex items-center gap-1.5">
-                {Array.from({ length: 8 }, (_, i) => (
-                  <motion.div
-                    key={i}
-                    className={`h-1.5 rounded-full transition-all duration-500 ${
-                      i < step ? "bg-accent w-3" : i === step ? "bg-accent/40 w-2" : "bg-border/40 w-1.5"
-                    }`}
-                    layout
-                  />
-                ))}
-              </div>
+    <div className="min-h-screen w-full bg-gradient-to-b from-background via-background to-muted/20 flex flex-col">
+      {/* ── Sticky Apple-style top bar ── */}
+      <div className="sticky top-0 z-30 bg-background/70 backdrop-blur-2xl border-b border-border/30">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <motion.div
+              key={`hdr-${step}`}
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ ...springTransition, stiffness: 400 }}
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/20 via-accent/10 to-transparent flex items-center justify-center ring-1 ring-accent/15 flex-shrink-0"
+            >
+              <StepIcon className="w-4 h-4 text-accent" />
+            </motion.div>
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">
+                {t.wizard.createYourBook}
+              </p>
+              <p className="font-display text-sm font-semibold text-foreground truncate">
+                {step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
+              </p>
             </div>
-            <div className="h-[2px] bg-border/20 rounded-full overflow-hidden">
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Progress strip */}
+        {step <= 8 && (
+          <div className="max-w-3xl mx-auto px-5 sm:px-8 pb-3">
+            <div className="h-[2px] bg-border/30 rounded-full overflow-hidden">
               <motion.div
                 className="h-full rounded-full"
                 style={{ background: "linear-gradient(90deg, hsl(var(--accent)), hsl(var(--accent) / 0.6))" }}
@@ -754,9 +745,14 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             </div>
           </div>
         )}
+      </div>
 
-        {/* ── Scrollable content area ── */}
-        <div className="flex-1 overflow-y-auto px-6 sm:px-8 pt-4 sm:pt-5 pb-4 scroll-smooth">
+      {/* ── Main content area — Apple/Tesla generous spacing ── */}
+      <div className="flex-1 w-full">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 sm:py-12 pb-32">
+          <h1 className="sr-only">{t.wizard.createYourBook}</h1>
+
+        <div>
           {/* Multi-child pills (steps 2-8) */}
           {step >= 2 && step <= 8 && data.children.length > 1 && (
             <motion.div variants={staggerChild} initial="enter" animate="center" className="mb-4 flex gap-2 overflow-x-auto pb-1">
@@ -1882,21 +1878,25 @@ export const CreationWizard = ({ open, onClose }: Props) => {
             {/* ── STEP 13: Success ── */}
             {step === 13 && (
               <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <SuccessStep childName={childNames} onGoToDashboard={() => { localStorage.removeItem("torahtale_wizard_state"); onClose(); navigate("/dashboard"); }} />
+                <SuccessStep childName={childNames} onGoToDashboard={() => { localStorage.removeItem("torahtale_wizard_state"); onClose?.(); navigate("/dashboard"); }} />
               </motion.div>
             )}
 
           </AnimatePresence>
         </div>
 
-        {/* ── Nav buttons — pinned to bottom ── */}
-        {step !== 9 && step !== 12 && step !== 13 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex-shrink-0 flex justify-between items-center px-6 sm:px-8 py-3.5 sm:py-4 border-t border-border/15 bg-background/60 backdrop-blur-xl"
-          >
+        </div>
+      </div>
+
+      {/* ── Sticky bottom action bar (Apple/Tesla style) ── */}
+      {step !== 9 && step !== 12 && step !== 13 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, ...springTransition }}
+          className="fixed bottom-0 inset-x-0 z-30 border-t border-border/30 bg-background/85 backdrop-blur-2xl"
+        >
+          <div className="max-w-3xl mx-auto px-5 sm:px-8 py-3.5 sm:py-4 flex justify-between items-center gap-4">
             {step > 1 ? (
               <button
                 onClick={back}
@@ -1941,10 +1941,10 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                 {t.common.continue} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </motion.button>
             )}
-          </motion.div>
-        )}
-      </DialogContent>
-    </Dialog>
+          </div>
+        </motion.div>
+      )}
+    </div>
 
     <SubscriptionUpsellDialog
       open={showUpsellDialog}

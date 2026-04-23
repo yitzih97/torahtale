@@ -1,38 +1,33 @@
-import { useState, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
-import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { HowItWorks } from "@/components/HowItWorks";
 import { GalleryReviewsSection } from "@/components/GalleryReviewsSection";
 import { CTASection } from "@/components/CTASection";
 import { Footer } from "@/components/Footer";
-import { CreationWizard } from "@/components/CreationWizard";
-
 
 const Index = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("start") === "1") {
-      setWizardOpen(true);
       setSearchParams({}, { replace: true });
+      navigate("/create");
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, navigate]);
+
+  const goToCreate = () => navigate("/create");
 
   return (
     <div className="min-h-screen">
-      <Navbar onStart={() => setWizardOpen(true)} />
-      <HeroSection onStart={() => setWizardOpen(true)} />
+      <Navbar onStart={goToCreate} />
+      <HeroSection onStart={goToCreate} />
       <HowItWorks />
       <GalleryReviewsSection />
-      <CTASection onStart={() => setWizardOpen(true)} />
+      <CTASection onStart={goToCreate} />
       <Footer />
-      
-      <AnimatePresence>
-        {wizardOpen && <CreationWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />}
-      </AnimatePresence>
     </div>
   );
 };
