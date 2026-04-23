@@ -1767,6 +1767,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.div>
                 )}
               </motion.div>
+              </section>
             )}
 
             <AnimatePresence mode="wait" custom={dir}>
