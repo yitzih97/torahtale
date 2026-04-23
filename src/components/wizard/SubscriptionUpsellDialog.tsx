@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,16 +16,37 @@ interface PlanData {
   priceUsd: number;
   perWeekUsd: number;
   savings: string;
+  savingsPct: number;
+  booksPerPeriod: number;
   icon: typeof Crown;
   badge?: boolean;
   frequency: string;
 }
 
-const PLANS: PlanData[] = [
-  { id: "weekly", priceUsd: 23.99, perWeekUsd: 23.99, savings: "20% off", icon: Zap, frequency: "weekly" },
-  { id: "monthly", priceUsd: 79.99, perWeekUsd: 19.99, savings: "33% off", icon: Crown, badge: true, frequency: "monthly" },
-  { id: "yearly", priceUsd: 799.99, perWeekUsd: 15.38, savings: "49% off", icon: CalendarDays, frequency: "yearly" },
+/* Default fallback pricing (used when no bookPriceUsd is provided) */
+const DEFAULT_PLANS: PlanData[] = [
+  { id: "weekly", priceUsd: 23.99, perWeekUsd: 23.99, savings: "20% off", savingsPct: 0.20, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
+  { id: "monthly", priceUsd: 79.99, perWeekUsd: 19.99, savings: "33% off", savingsPct: 0.33, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
+  { id: "yearly", priceUsd: 799.99, perWeekUsd: 15.38, savings: "49% off", savingsPct: 0.49, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
 ];
+
+/* Round to a friendly .99 price */
+const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
+
+function buildPlansForBook(bookPriceUsd: number): PlanData[] {
+  // Weekly: 1 book × (1 - 20%)
+  // Monthly: 4 books × (1 - 33%)
+  // Yearly: 52 books × (1 - 49%)
+  const weekly = friendly(bookPriceUsd * 1 * (1 - 0.20));
+  const monthly = friendly(bookPriceUsd * 4 * (1 - 0.33));
+  const yearly = friendly(bookPriceUsd * 52 * (1 - 0.49));
+
+  return [
+    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "20% off", savingsPct: 0.20, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
+    { id: "monthly", priceUsd: monthly, perWeekUsd: monthly / 4, savings: "33% off", savingsPct: 0.33, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
+    { id: "yearly", priceUsd: yearly, perWeekUsd: yearly / 52, savings: "49% off", savingsPct: 0.49, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+  ];
+}
 
 function formatCardNumber(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 16);
@@ -43,15 +64,24 @@ interface Props {
   onClose: () => void;
   onSubscribed?: () => void;
   context?: "limit-reached" | "wizard-step";
+  /** Per-book USD price (customer-facing) — used to compute plan prices */
+  bookPriceUsd?: number;
+  /** Optional book label (e.g. "Hardcover Book") shown for context */
+  bookLabel?: string;
 }
 
-export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context = "limit-reached" }: Props) => {
+export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context = "limit-reached", bookPriceUsd, bookLabel }: Props) => {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
   const [step, setStep] = useState<DialogStep>("plan");
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { t } = useLanguage();
   const { symbol, rate, code } = t.currency;
+
+  const PLANS = useMemo(
+    () => (bookPriceUsd && bookPriceUsd > 0 ? buildPlansForBook(bookPriceUsd) : DEFAULT_PLANS),
+    [bookPriceUsd]
+  );
 
   const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
   const periodLabel = (id: string) =>
@@ -144,6 +174,14 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
               <p className="text-sm text-muted-foreground">
                 {context === "limit-reached" ? t.upsell.limitMsg : t.upsell.joinMsg}
               </p>
+              {bookPriceUsd && bookLabel && (
+                <div className="mt-3 inline-flex items-center gap-2 bg-accent/10 rounded-full px-3 py-1.5">
+                  <BookBadgeIcon />
+                  <span className="text-xs font-semibold text-primary">{bookLabel}</span>
+                  <span className="text-xs text-muted-foreground">·</span>
+                  <span className="text-xs font-bold text-accent">{fmt(bookPriceUsd)}/book</span>
+                </div>
+              )}
             </div>
 
             <div className="px-6 pb-2 space-y-3">
@@ -171,12 +209,16 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                         {isActive ? <Check className="w-5 h-5" /> : <plan.icon className="w-5 h-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline gap-2">
+                        <div className="flex items-baseline gap-2 flex-wrap">
                           <span className="font-display font-bold text-primary">{planLabels[plan.id]}</span>
                           <span className="text-lg font-bold text-accent">{fmt(plan.priceUsd)}</span>
                           <span className="text-xs text-muted-foreground">/{periodLabel(plan.id)}</span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{planDescs[plan.id]}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {bookPriceUsd
+                            ? `${plan.booksPerPeriod} book${plan.booksPerPeriod > 1 ? "s" : ""} · ${fmt(plan.perWeekUsd)}/wk avg`
+                            : planDescs[plan.id]}
+                        </p>
                       </div>
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-full shrink-0">
                         <TrendingDown className="w-3 h-3" /> {plan.savings}
@@ -286,3 +328,9 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
     </Dialog>
   );
 };
+
+const BookBadgeIcon = () => (
+  <svg className="w-3.5 h-3.5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+  </svg>
+);
