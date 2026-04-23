@@ -492,24 +492,6 @@ export const CreationWizard = ({ open, onClose }: Props) => {
       return;
     }
 
-    // After picking the book type, gate the flow on the monthly free-preview limit.
-    // This way the upsell prices can be computed from the selected book's cost.
-    if (step === 10 && user && !justSubscribedRef.current) {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-      const { count, error: countErr } = await supabase
-        .from("books")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .gte("created_at", startOfMonth.toISOString());
-      if (!countErr && (count ?? 0) >= 2) {
-        setShowUpsellDialog(true);
-        return;
-      }
-    }
-    if (step === 10) justSubscribedRef.current = false;
-
     setDir(1);
     let nextStep = step + 1;
     if (step === 1 && allChildrenHaveGenderAge()) {
