@@ -1904,6 +1904,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
           </AnimatePresence>
+          </div>
+
         </div>
 
         </div>
