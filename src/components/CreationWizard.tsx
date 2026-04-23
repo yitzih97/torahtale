@@ -251,6 +251,21 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const pendingGenerationRef = useRef(false);
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Refs for stacked-step scrolling
+  const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const setStepRef = useCallback((n: number) => (el: HTMLDivElement | null) => {
+    stepRefs.current[n] = el;
+  }, []);
+  const scrollToStep = useCallback((n: number) => {
+    const el = stepRefs.current[n];
+    if (el) {
+      // Slight delay so layout settles after state updates
+      requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, []);
+
   const child = data.children[data.activeChildIdx] || data.children[0];
 
   const update = useCallback((partial: Partial<WizardData>) => {
@@ -322,6 +337,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
     };
   }, []);
+
+  // Auto-scroll to the active step section whenever it changes
+  useEffect(() => {
+    scrollToStep(step);
+  }, [step, scrollToStep]);
 
   const autoAdvance = useCallback(() => {
     if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
@@ -779,10 +799,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             </motion.div>
           )}
 
-          <AnimatePresence mode="wait" custom={dir}>
+          <div className="space-y-10 sm:space-y-14">
+
 
             {/* ── STEP 1: Name ── */}
-            {step === 1 && (
+            {step >= 1 && (
+              <section
+                ref={setStepRef(1)}
+                onClick={step !== 1 ? () => setStep(1) : undefined}
+                className={`relative ${step !== 1 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 1 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s1"
                 custom={dir}
@@ -908,10 +935,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.div>
                 )}
               </motion.div>
+              </section>
             )}
 
             {/* ── STEP 2: Gender ── */}
-            {step === 2 && (
+            {step >= 2 && (
+              <section
+                ref={setStepRef(2)}
+                onClick={step !== 2 ? () => setStep(2) : undefined}
+                className={`relative ${step !== 2 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 2 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s2"
                 custom={dir}
@@ -972,10 +1006,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   ))}
                 </div>
               </motion.div>
+              </section>
             )}
 
             {/* ── STEP 3: Age ── */}
-            {step === 3 && (
+            {step >= 3 && (
+              <section
+                ref={setStepRef(3)}
+                onClick={step !== 3 ? () => setStep(3) : undefined}
+                className={`relative ${step !== 3 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 3 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s3"
                 custom={dir}
@@ -1028,10 +1069,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.p>
                 )}
               </motion.div>
+              </section>
             )}
 
             {/* ── STEP 4: Art Style ── */}
-            {step === 4 && (
+            {step >= 4 && (
+              <section
+                ref={setStepRef(4)}
+                onClick={step !== 4 ? () => setStep(4) : undefined}
+                className={`relative ${step !== 4 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 4 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s4"
                 custom={dir}
@@ -1151,10 +1199,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   );
                 })()}
               </motion.div>
+              </section>
             )}
 
             {/* ── STEP 5: Photo / Description ── */}
-            {step === 5 && (
+            {step >= 5 && (
+              <section
+                ref={setStepRef(5)}
+                onClick={step !== 5 ? () => setStep(5) : undefined}
+                className={`relative ${step !== 5 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 5 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s5"
                 custom={dir}
@@ -1250,10 +1305,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.div>
                 )}
               </motion.div>
+              </section>
             )}
 
             {/* ── STEP 6: Torah Portion ── */}
-            {step === 6 && (
+            {step >= 6 && (
+              <section
+                ref={setStepRef(6)}
+                onClick={step !== 6 ? () => setStep(6) : undefined}
+                className={`relative ${step !== 6 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 6 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key={`s6-${portionMode}`}
                 custom={dir}
@@ -1564,10 +1626,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </>
                 )}
               </motion.div>
+              </section>
             )}
 
             {/* ── STEP 7: Language ── */}
-            {step === 7 && (
+            {step >= 7 && (
+              <section
+                ref={setStepRef(7)}
+                onClick={step !== 7 ? () => setStep(7) : undefined}
+                className={`relative ${step !== 7 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 7 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s7"
                 custom={dir}
@@ -1626,10 +1695,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   ))}
                 </div>
               </motion.div>
+              </section>
             )}
 
             {/* ── STEP 8: Review & Generate ── */}
-            {step === 8 && (
+            {step >= 8 && (
+              <section
+                ref={setStepRef(8)}
+                onClick={step !== 8 ? () => setStep(8) : undefined}
+                className={`relative ${step !== 8 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+              >
+              {step !== 8 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
                 key="s8"
                 custom={dir}
@@ -1733,8 +1809,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.div>
                 )}
               </motion.div>
+              </section>
             )}
 
+            <AnimatePresence mode="wait" custom={dir}>
             {/* ── STEP 9: Generation Animation + Confirmation ── */}
             {step === 9 && (
               <motion.div
@@ -1883,6 +1961,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
           </AnimatePresence>
+          </div>
+
         </div>
 
         </div>
