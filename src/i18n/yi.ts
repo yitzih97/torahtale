@@ -1,6 +1,6 @@
 import type { en } from "./en";
 
-export const he: typeof en = {
+export const yi: typeof en = {
   // Navbar
   nav: {
     home: "דף הבית",
@@ -293,10 +293,10 @@ export const he: typeof en = {
     sefer: "ספר",
     noStories: ".לא נמצאו סיפורים",
     chooseLanguage: "בחרו שפה",
-    english: "אנגלית",
-    hebrew: "עברית",
+    english: "ענגליש",
+    hebrew: "העברעאיש",
     yiddish: "יידיש",
-    both: "שתיהן",
+    both: "ביידע",
     readyToCreate: "!מוכנים ליצירה",
     character: "דמות",
     story: "סיפור",

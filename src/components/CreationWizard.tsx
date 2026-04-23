@@ -212,7 +212,7 @@ interface Props {
 export const CreationWizard = ({ open, onClose }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { children: existingChildren } = useChildren();
 
   const GENERATION_PHASES = [
@@ -284,6 +284,7 @@ export const CreationWizard = ({ open, onClose }: Props) => {
 
   // Restore wizard state on mount (whether logged in or not)
   useEffect(() => {
+    const defaultLanguage = lang === "he" ? "hebrew" : lang === "yi" ? "yiddish" : "english";
     const saved = localStorage.getItem("torahtale_wizard_state");
     if (saved) {
       try {
@@ -291,11 +292,18 @@ export const CreationWizard = ({ open, onClose }: Props) => {
         // Don't restore terminal/transient steps (success or generation animation)
         const restoredStep = parsed.step && parsed.step < 13 ? parsed.step : 1;
         setStep(restoredStep);
-        setData(parsed.data || initialData);
+        const restoredData = parsed.data || initialData;
+        // Default book language to UI language if not yet customized
+        if (!restoredData.language || restoredData.language === "english") {
+          restoredData.language = defaultLanguage;
+        }
+        setData(restoredData);
         setShipping(parsed.shipping || DEFAULT_SHIPPING);
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
         if (parsed.portionFilter) setPortionFilter(parsed.portionFilter);
       } catch { /* ignore */ }
+    } else {
+      setData((prev) => ({ ...prev, language: defaultLanguage }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1586,10 +1594,11 @@ export const CreationWizard = ({ open, onClose }: Props) => {
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseLanguage}</h2>
                 </motion.div>
 
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                   {[
                     { key: "english", label: t.wizard.english, emoji: "🇺🇸" },
                     { key: "hebrew", label: t.wizard.hebrew, emoji: "🇮🇱" },
+                    { key: "yiddish", label: t.wizard.yiddish, emoji: "✡️" },
                     { key: "bilingual", label: t.wizard.both, emoji: "🌍" },
                   ].map((l) => (
                     <motion.button

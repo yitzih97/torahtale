@@ -478,8 +478,8 @@ const HeContent = () => (
 
 const Privacy = () => {
   const { t, lang } = useLanguage();
-  const isRtl = lang === "he";
-  const SECTIONS = lang === "he" ? SECTIONS_HE : SECTIONS_EN;
+  const isRtl = (lang === "he" || lang === "yi");
+  const SECTIONS = (lang === "he" || lang === "yi") ? SECTIONS_HE : SECTIONS_EN;
   const [activeSection, setActiveSection] = useState(SECTIONS[0].id);
 
   useEffect(() => {
@@ -574,7 +574,7 @@ const Privacy = () => {
           >
             <div className="p-8 md:p-12 rounded-[2rem] bg-card/60 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.1)_inset]">
               <div className="space-y-12 text-[15px] leading-[1.75] text-muted-foreground">
-                {lang === "he" ? <HeContent /> : <EnContent />}
+                {(lang === "he" || lang === "yi") ? <HeContent /> : <EnContent />}
               </div>
             </div>
 

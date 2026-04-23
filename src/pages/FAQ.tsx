@@ -25,7 +25,7 @@ const categoryIcons: Record<string, React.ElementType> = {
 
 const FAQ = () => {
   const { t, lang } = useLanguage();
-  const isRtl = lang === "he";
+  const isRtl = (lang === "he" || lang === "yi");
   const [openIndex, setOpenIndex] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");

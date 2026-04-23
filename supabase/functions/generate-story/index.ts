@@ -128,7 +128,7 @@ Requirements:
 - Use Chareidi terminology: Tatty, Mommy, Rebbe, Morah, davening, bentching, Shabbos, Hashem, sefer/seforim, beis medrash, cheder, Bais Yaakov
 - NO references to TV, movies, video games, or secular entertainment
 - Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting like a Yiddishe bubbe telling a maaseh
-- ${language === "bilingual" ? "Write each page in both English and Hebrew" : language === "hebrew" ? "Write in Hebrew" : "Write in English"}
+- ${language === "bilingual" ? "Write each page in both English and Hebrew" : language === "hebrew" ? "Write in Hebrew (modern Hebrew with full nikud where helpful)" : language === "yiddish" ? "Write in Yiddish (Eastern/Litvish Yiddish in Hebrew script — the traditional Chareidi mama-loshen used in chassidish/yeshivish homes)" : "Write in English"}
 ${templateGuidance}
 
 You MUST respond with ONLY a valid JSON object with this exact structure:

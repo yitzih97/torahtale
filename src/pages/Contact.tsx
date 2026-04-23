@@ -26,7 +26,7 @@ const Contact = () => {
   const [sent, setSent] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const { t, lang, dir } = useLanguage();
-  const isRtl = lang === "he";
+  const isRtl = (lang === "he" || lang === "yi");
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {

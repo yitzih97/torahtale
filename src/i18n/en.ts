@@ -287,6 +287,7 @@ export const en = {
     chooseLanguage: "Choose a Language",
     english: "English",
     hebrew: "Hebrew",
+    yiddish: "Yiddish",
     both: "Both",
     readyToCreate: "Ready to Create!",
     character: "Character",
