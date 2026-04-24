@@ -194,7 +194,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                   <button
                     key={plan.id}
                     onClick={() => setSelectedPlan(plan.id)}
-                    className={`relative w-full rounded-xl border-2 p-3.5 text-left transition-all duration-200 active:scale-[0.98] ${
+                    className={`relative w-full rounded-xl border-2 p-3.5 text-start transition-all duration-200 active:scale-[0.98] ${
                       isActive
                         ? "border-accent bg-accent/5 shadow-md shadow-accent/10 ring-1 ring-accent/20"
                         : "border-border hover:border-accent/30"
@@ -279,7 +279,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
               <div>
                 <label className="text-xs font-medium text-primary mb-1.5 block">{t.upsell.cardNumber}</label>
                 <div className="relative">
-                  <Input placeholder="1234 5678 9012 3456" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} className="rounded-xl h-11 pl-10" maxLength={19} />
+                  <Input placeholder="1234 5678 9012 3456" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} className="rounded-xl h-11 ps-10" maxLength={19} />
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 </div>
               </div>
