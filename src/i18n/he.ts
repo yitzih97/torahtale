@@ -408,6 +408,9 @@ export const he: typeof en = {
     secureCheckout: "תשלום מאובטח · הצפנת 256 ביט · פרטי התשלום שלכם בטוחים",
      subscribeOrder: (total: string) => `הירשמו והזמינו — ₪${total}`,
     placeOrder: (total: string) => `בצעו הזמנה — ₪${total}`,
+    redirectingToShopify: "מעבירים אתכם לעמוד התשלום של Shopify…",
+    checkoutFallback: "פותחים את עגלת Shopify (מצב גיבוי)…",
+    openCheckout: "פתחו את התשלום",
   },
 
   // Success
