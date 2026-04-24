@@ -175,8 +175,14 @@ export async function createShopifyCart(item: CartItem): Promise<{ cartId: strin
       return null;
     }
 
+    if (data.fallback) {
+      // Shopify Storefront API is unavailable (e.g. store billing plan inactive).
+      // We still got a direct cart URL so the user can complete checkout on Shopify.
+      console.warn("Shopify API unavailable, using direct cart fallback:", data.error);
+    }
+
     return {
-      cartId: data.cartId,
+      cartId: data.cartId ?? "",
       checkoutUrl: data.checkoutUrl,
       lineId: data.lineId ?? "",
     };
