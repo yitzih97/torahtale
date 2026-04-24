@@ -325,7 +325,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         const parsed = JSON.parse(saved);
         // Don't restore terminal/transient steps (success or generation animation)
-        const restoredStep = parsed.step && parsed.step < 13 ? parsed.step : 1;
+        const restoredStep = parsed.step && parsed.step < 14 ? parsed.step : 1;
         setStep(restoredStep);
         const restoredData = parsed.data || initialData;
         // Default book language to UI language if not yet customized
