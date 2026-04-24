@@ -594,6 +594,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       }
     };
 
+    // Advance to the success screen immediately so the user sees confirmation
+    // even if the Shopify tab opens in the background.
+    const goToSuccess = () => {
+      setDir(1);
+      setStep(13);
+      // Clear persisted wizard so re-entering /create starts fresh
+      try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
+    };
+
     let variantId: string;
     if (isSubscription) {
       const subMap: Record<string, string> = {
