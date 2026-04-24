@@ -5,7 +5,7 @@ import {
   ArrowLeft, ArrowRight, Loader2, Sparkles, Plus,
   Users, BookOpen, Palette, Package, Check,
   Camera, Sun, User, Type, Calendar, Heart, Image, PenLine,
-  Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2
+  Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
