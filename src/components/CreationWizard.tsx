@@ -582,6 +582,22 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setStep(Math.max(prevStep, 1));
   };
 
+  const resetWizard = useCallback(() => {
+    try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
+    const defaultLanguage = lang === "he" ? "hebrew" : lang === "yi" ? "yiddish" : "english";
+    setData({ ...initialData, children: [createChild()], language: defaultLanguage });
+    setShipping(DEFAULT_SHIPPING);
+    setBookOptions(DEFAULT_BOOK_OPTIONS);
+    setPortionFilter("all");
+    setPortionSearch("");
+    setPortionMode(null);
+    setStyleSubStep("art");
+    setSavedBookId(null);
+    setDir(-1);
+    setStep(1);
+    toast.success(t.wizard.createYourBook ? `${t.wizard.createYourBook} · ${"1/8"}` : "Wizard reset");
+  }, [lang, t]);
+
   const handlePlaceOrder = async (planType: string = "once") => {
     const isSubscription = planType !== "once";
     const orderNumber = `TT-${Date.now().toString().slice(-6)}`;
