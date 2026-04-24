@@ -758,6 +758,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       case 8: return true;
       case 10: return true;
       case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
+      case 12: return true;
       default: return false;
     }
   })();
