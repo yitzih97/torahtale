@@ -408,6 +408,9 @@ export const yi: typeof en = {
     secureCheckout: "תשלום מאובטח · הצפנת 256 ביט · פרטי התשלום שלכם בטוחים",
      subscribeOrder: (total: string) => `הירשמו והזמינו — ₪${total}`,
     placeOrder: (total: string) => `בצעו הזמנה — ₪${total}`,
+    redirectingToShopify: "מיר פירן אייך צו Shopify טשעקאַוט…",
+    checkoutFallback: "עפֿענען Shopify וואָגן (רעזערוו)…",
+    openCheckout: "עפֿן טשעקאַוט",
   },
 
   // Success

@@ -400,6 +400,9 @@ export const en = {
     secureCheckout: "Secure checkout · 256-bit encryption · Your payment details are safe",
     subscribeOrder: (total: string) => `Subscribe & Place Order — $${total}`,
     placeOrder: (total: string) => `Place Order — $${total}`,
+    redirectingToShopify: "Redirecting to Shopify checkout…",
+    checkoutFallback: "Opening Shopify cart (fallback)…",
+    openCheckout: "Open checkout",
   },
 
   // Success
