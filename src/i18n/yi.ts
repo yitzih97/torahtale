@@ -241,6 +241,9 @@ export const yi: typeof en = {
   // Wizard
   wizard: {
     createYourBook: "צרו את הספר שלכם",
+    startOver: "הויבט נאכאמאל אן",
+    resetWizard: "צוריקשטעל אסיסטענט",
+    resetConfirm: "זיכער צוריקשטעלן דעם אסיסטענט און הויבן פון אנהויב? דיין פראגרעס וועט זיין אויסגעמעקט.",
     whatsHeroName: "?מה שם הגיבור שלכם",
     orEnterNewName: "או הזינו שם חדש",
     enterChildName: "הזינו שם הילד",
