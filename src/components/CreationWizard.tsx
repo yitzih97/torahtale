@@ -251,20 +251,35 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const pendingGenerationRef = useRef(false);
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Refs for stacked-step scrolling
+  // Refs for stacked-step scrolling — each section uses a stable DOM id
+  // (e.g. "wizard-step-3") so scroll restoration can anchor to a section
+  // rather than a pixel offset, surviving layout changes.
   const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const stepIdFor = useCallback((n: number) => `wizard-step-${n}`, []);
   const setStepRef = useCallback((n: number) => (el: HTMLDivElement | null) => {
     stepRefs.current[n] = el;
   }, []);
-  const scrollToStep = useCallback((n: number) => {
-    const el = stepRefs.current[n];
+  const scrollToStep = useCallback((n: number, behavior: ScrollBehavior = "smooth") => {
+    const el = stepRefs.current[n] || (typeof document !== "undefined" ? document.getElementById(`wizard-step-${n}`) as HTMLDivElement | null : null);
     if (el) {
-      // Slight delay so layout settles after state updates
       requestAnimationFrame(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.scrollIntoView({ behavior, block: "center" });
       });
     }
   }, []);
+
+  // Build the className for a wizard step's outer <section>.
+  // Active step: fills the viewport so it sits centered and in focus alone.
+  // Inactive/reached step: compact strip that the user can click to edit
+  // and is reachable by scrolling up/down.
+  const sectionClass = useCallback((n: number) => {
+    const isActive = step === n;
+    const base = "relative transition-all duration-500 scroll-mt-24";
+    if (isActive) {
+      return `${base} min-h-[calc(100vh-11rem)] flex items-center justify-center py-10 sm:py-14`;
+    }
+    return `${base} opacity-50 hover:opacity-80 cursor-pointer py-4 my-2 max-h-40 overflow-hidden`;
+  }, [step]);
 
   const child = data.children[data.activeChildIdx] || data.children[0];
 
@@ -286,7 +301,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const skipNextStepScrollRef = useRef(false);
   const didRestoreRef = useRef(false);
 
-  // Save wizard state continuously so user can resume after refresh/close/login
+  // Save wizard state continuously so user can resume after refresh/close/login.
+  // We store the active section anchor (step number) rather than a raw scrollY
+  // pixel offset, because anchors stay valid across layout changes.
   const saveWizardState = useCallback(() => {
     const serializable = {
       step,
@@ -297,7 +314,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       shipping,
       bookOptions,
       portionFilter,
-      scrollY: typeof window !== "undefined" ? window.scrollY : 0,
+      activeSectionId: `wizard-step-${step}`,
     };
     try {
       localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
@@ -324,17 +341,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
         if (parsed.portionFilter) setPortionFilter(parsed.portionFilter);
 
-        // Restore scroll position once the stacked sections have rendered.
-        // Only applies to the build phase (steps 1–8); generation phase is single-view.
-        const savedScroll = typeof parsed.scrollY === "number" ? parsed.scrollY : 0;
-        if (restoredStep <= 8 && savedScroll > 0) {
+        // Restore to the active section anchor. Stagger the attempts to win
+        // against late layout (images, fonts, motion).
+        if (restoredStep <= 8) {
           skipNextStepScrollRef.current = true;
-          // Try a few times to win against late layout (images, fonts).
           const attempts = [80, 220, 500, 900];
           attempts.forEach((delay) => {
-            setTimeout(() => {
-              window.scrollTo({ top: savedScroll, behavior: "auto" });
-            }, delay);
+            setTimeout(() => scrollToStep(restoredStep, "auto"), delay);
           });
         }
       } catch { /* ignore */ }
@@ -351,33 +364,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       saveWizardState();
     }
   }, [saveWizardState, step, data]);
-
-  // Persist scroll position (throttled via rAF) so refresh restores location.
-  useEffect(() => {
-    let ticking = false;
-    let lastSaved = 0;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-        const now = Date.now();
-        // Throttle to ~5x/sec to avoid hammering localStorage
-        if (now - lastSaved < 200) return;
-        lastSaved = now;
-        if (!didRestoreRef.current) return;
-        try {
-          const raw = localStorage.getItem("torahtale_wizard_state");
-          if (!raw) return;
-          const parsed = JSON.parse(raw);
-          parsed.scrollY = window.scrollY;
-          localStorage.setItem("torahtale_wizard_state", JSON.stringify(parsed));
-        } catch { /* ignore */ }
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   // Cleanup auto-advance timer
   useEffect(() => {
@@ -851,15 +837,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             </motion.div>
           )}
 
-          <div className="space-y-10 sm:space-y-14">
+          <div className="space-y-0">
 
 
             {/* ── STEP 1: Name ── */}
             {step >= 1 && (
               <section
+                id={stepIdFor(1)}
                 ref={setStepRef(1)}
                 onClick={step !== 1 ? () => setStep(1) : undefined}
-                className={`relative ${step !== 1 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(1)}
               >
               {step !== 1 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -993,9 +980,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 2: Gender ── */}
             {step >= 2 && (
               <section
+                id={stepIdFor(2)}
                 ref={setStepRef(2)}
                 onClick={step !== 2 ? () => setStep(2) : undefined}
-                className={`relative ${step !== 2 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(2)}
               >
               {step !== 2 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1064,9 +1052,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 3: Age ── */}
             {step >= 3 && (
               <section
+                id={stepIdFor(3)}
                 ref={setStepRef(3)}
                 onClick={step !== 3 ? () => setStep(3) : undefined}
-                className={`relative ${step !== 3 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(3)}
               >
               {step !== 3 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1127,9 +1116,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 4: Art Style ── */}
             {step >= 4 && (
               <section
+                id={stepIdFor(4)}
                 ref={setStepRef(4)}
                 onClick={step !== 4 ? () => setStep(4) : undefined}
-                className={`relative ${step !== 4 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(4)}
               >
               {step !== 4 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1257,9 +1247,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 5: Photo / Description ── */}
             {step >= 5 && (
               <section
+                id={stepIdFor(5)}
                 ref={setStepRef(5)}
                 onClick={step !== 5 ? () => setStep(5) : undefined}
-                className={`relative ${step !== 5 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(5)}
               >
               {step !== 5 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1363,9 +1354,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 6: Torah Portion ── */}
             {step >= 6 && (
               <section
+                id={stepIdFor(6)}
                 ref={setStepRef(6)}
                 onClick={step !== 6 ? () => setStep(6) : undefined}
-                className={`relative ${step !== 6 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(6)}
               >
               {step !== 6 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1684,9 +1676,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 7: Language ── */}
             {step >= 7 && (
               <section
+                id={stepIdFor(7)}
                 ref={setStepRef(7)}
                 onClick={step !== 7 ? () => setStep(7) : undefined}
-                className={`relative ${step !== 7 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(7)}
               >
               {step !== 7 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1753,9 +1746,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 8: Review & Generate ── */}
             {step >= 8 && (
               <section
+                id={stepIdFor(8)}
                 ref={setStepRef(8)}
                 onClick={step !== 8 ? () => setStep(8) : undefined}
-                className={`relative ${step !== 8 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(8)}
               >
               {step !== 8 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
