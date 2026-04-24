@@ -824,7 +824,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             </motion.div>
           )}
 
-          <div className="space-y-10 sm:space-y-14">
+          <div className="space-y-0">
 
 
             {/* ── STEP 1: Name ── */}
