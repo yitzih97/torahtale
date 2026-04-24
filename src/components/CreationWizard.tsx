@@ -268,6 +268,19 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     }
   }, []);
 
+  // Build the className for a wizard step's outer <section>.
+  // Active step: fills the viewport so it sits centered and in focus alone.
+  // Inactive/reached step: compact strip that the user can click to edit
+  // and is reachable by scrolling up/down.
+  const sectionClass = useCallback((n: number) => {
+    const isActive = step === n;
+    const base = "relative transition-all duration-500 scroll-mt-24";
+    if (isActive) {
+      return `${base} min-h-[calc(100vh-11rem)] flex items-center justify-center py-10 sm:py-14`;
+    }
+    return `${base} opacity-50 hover:opacity-80 cursor-pointer py-4 my-2 max-h-40 overflow-hidden`;
+  }, [step]);
+
   const child = data.children[data.activeChildIdx] || data.children[0];
 
   const update = useCallback((partial: Partial<WizardData>) => {
