@@ -842,15 +842,31 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </p>
             </div>
           </div>
-          {onClose && (
+          <div className="flex items-center gap-1 flex-shrink-0">
             <button
-              onClick={onClose}
-              aria-label="Close"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors flex-shrink-0"
+              onClick={() => {
+                if (step === 1 && !data.children.some(c => c.name || c.age || c.gender)) return;
+                if (window.confirm(t.wizard.resetConfirm || "Reset the wizard and start over from the beginning?")) {
+                  resetWizard();
+                }
+              }}
+              aria-label={t.wizard.resetWizard || "Reset wizard"}
+              title={t.wizard.resetWizard || "Reset wizard"}
+              className="h-9 px-2.5 rounded-full inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
             >
-              <X className="w-4 h-4" />
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t.wizard.startOver || "Start over"}</span>
             </button>
-          )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Progress strip */}
