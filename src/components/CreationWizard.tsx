@@ -843,9 +843,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 1: Name ── */}
             {step >= 1 && (
               <section
+                id={stepIdFor(1)}
                 ref={setStepRef(1)}
                 onClick={step !== 1 ? () => setStep(1) : undefined}
-                className={`relative ${step !== 1 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(1)}
               >
               {step !== 1 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -979,9 +980,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 2: Gender ── */}
             {step >= 2 && (
               <section
+                id={stepIdFor(2)}
                 ref={setStepRef(2)}
                 onClick={step !== 2 ? () => setStep(2) : undefined}
-                className={`relative ${step !== 2 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(2)}
               >
               {step !== 2 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1050,9 +1052,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 3: Age ── */}
             {step >= 3 && (
               <section
+                id={stepIdFor(3)}
                 ref={setStepRef(3)}
                 onClick={step !== 3 ? () => setStep(3) : undefined}
-                className={`relative ${step !== 3 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(3)}
               >
               {step !== 3 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1113,9 +1116,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 4: Art Style ── */}
             {step >= 4 && (
               <section
+                id={stepIdFor(4)}
                 ref={setStepRef(4)}
                 onClick={step !== 4 ? () => setStep(4) : undefined}
-                className={`relative ${step !== 4 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(4)}
               >
               {step !== 4 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1243,9 +1247,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 5: Photo / Description ── */}
             {step >= 5 && (
               <section
+                id={stepIdFor(5)}
                 ref={setStepRef(5)}
                 onClick={step !== 5 ? () => setStep(5) : undefined}
-                className={`relative ${step !== 5 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(5)}
               >
               {step !== 5 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1349,9 +1354,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 6: Torah Portion ── */}
             {step >= 6 && (
               <section
+                id={stepIdFor(6)}
                 ref={setStepRef(6)}
                 onClick={step !== 6 ? () => setStep(6) : undefined}
-                className={`relative ${step !== 6 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(6)}
               >
               {step !== 6 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1670,9 +1676,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 7: Language ── */}
             {step >= 7 && (
               <section
+                id={stepIdFor(7)}
                 ref={setStepRef(7)}
                 onClick={step !== 7 ? () => setStep(7) : undefined}
-                className={`relative ${step !== 7 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(7)}
               >
               {step !== 7 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
@@ -1739,9 +1746,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 8: Review & Generate ── */}
             {step >= 8 && (
               <section
+                id={stepIdFor(8)}
                 ref={setStepRef(8)}
                 onClick={step !== 8 ? () => setStep(8) : undefined}
-                className={`relative ${step !== 8 ? "opacity-50 hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
+                className={sectionClass(8)}
               >
               {step !== 8 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
