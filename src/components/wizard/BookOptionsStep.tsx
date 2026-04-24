@@ -166,7 +166,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
               <button
                 key={key}
                 onClick={() => selectType(key)}
-                className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-300 active:scale-[0.98] ${
+                className={`relative rounded-2xl border-2 p-5 text-start transition-all duration-300 active:scale-[0.98] ${
                   isActive
                     ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
                     : "border-border hover:border-accent/30 hover:shadow-sm"

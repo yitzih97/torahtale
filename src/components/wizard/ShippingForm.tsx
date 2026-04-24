@@ -71,7 +71,7 @@ export const ShippingForm = ({ data, onChange }: Props) => {
               <button
                 key={m.key}
                 onClick={() => update({ shippingMethod: m.key })}
-                className={`p-5 rounded-2xl border-2 text-left transition-all duration-300 active:scale-[0.98] ${
+                className={`p-5 rounded-2xl border-2 text-start transition-all duration-300 active:scale-[0.98] ${
                   data.shippingMethod === m.key
                     ? "border-accent bg-accent/5 shadow-sm"
                     : "border-border hover:border-accent/30"

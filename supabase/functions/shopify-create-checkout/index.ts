@@ -83,9 +83,19 @@ serve(async (req) => {
     const text = await shopifyRes.text();
     if (!shopifyRes.ok) {
       console.error("Shopify HTTP error:", shopifyRes.status, text);
+      // Build a direct-to-store fallback checkout URL so the user is never
+      // stuck on "Place Order" when Shopify API access is unavailable
+      // (e.g. 402 = store billing plan inactive, 403 = token scope issue).
+      const fallbackUrl = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/cart/${cleanLines
+        .map((l: any) => `${l.merchandiseId.split("/").pop()}:${l.quantity}`)
+        .join(",")}?channel=online_store`;
       return new Response(
-        JSON.stringify({ error: `Shopify error [${shopifyRes.status}]` }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: `Shopify error [${shopifyRes.status}]`,
+          checkoutUrl: fallbackUrl,
+          fallback: true,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

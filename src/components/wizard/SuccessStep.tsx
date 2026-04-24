@@ -74,7 +74,7 @@ export const SuccessStep = ({ childName, onGoToDashboard }: Props) => {
           <Mail className="w-5 h-5 text-accent" />
         </div>
         <p className="font-semibold text-primary">What happens next?</p>
-        <ul className="text-muted-foreground text-xs space-y-1.5 text-left">
+        <ul className="text-muted-foreground text-xs space-y-1.5 text-start">
           <li className="flex items-start gap-2">
             <span className="text-accent font-bold">1.</span>
             We generate your book with AI illustrations

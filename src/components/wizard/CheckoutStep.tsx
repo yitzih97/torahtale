@@ -111,7 +111,7 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
             <button
               key={plan.id}
               onClick={() => setSelectedPlan(plan.id)}
-              className={`relative rounded-2xl border-2 p-4 text-left transition-all duration-200 active:scale-[0.98] ${
+              className={`relative rounded-2xl border-2 p-4 text-start transition-all duration-200 active:scale-[0.98] ${
                 isActive
                   ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
                   : "border-border hover:border-accent/30 hover:shadow-sm"
