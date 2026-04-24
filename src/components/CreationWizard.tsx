@@ -251,17 +251,19 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const pendingGenerationRef = useRef(false);
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Refs for stacked-step scrolling
+  // Refs for stacked-step scrolling — each section uses a stable DOM id
+  // (e.g. "wizard-step-3") so scroll restoration can anchor to a section
+  // rather than a pixel offset, surviving layout changes.
   const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const stepIdFor = useCallback((n: number) => `wizard-step-${n}`, []);
   const setStepRef = useCallback((n: number) => (el: HTMLDivElement | null) => {
     stepRefs.current[n] = el;
   }, []);
-  const scrollToStep = useCallback((n: number) => {
-    const el = stepRefs.current[n];
+  const scrollToStep = useCallback((n: number, behavior: ScrollBehavior = "smooth") => {
+    const el = stepRefs.current[n] || (typeof document !== "undefined" ? document.getElementById(`wizard-step-${n}`) as HTMLDivElement | null : null);
     if (el) {
-      // Slight delay so layout settles after state updates
       requestAnimationFrame(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.scrollIntoView({ behavior, block: "center" });
       });
     }
   }, []);
