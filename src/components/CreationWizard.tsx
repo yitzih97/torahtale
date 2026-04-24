@@ -1032,7 +1032,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
+                          className="absolute top-2 end-2 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
                         >
                           <Check className="w-4 h-4 text-accent-foreground" />
                         </motion.div>
@@ -1173,7 +1173,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
                               transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
+                              className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
                             >
                               <Check className="w-3.5 h-3.5 text-accent-foreground" />
                             </motion.div>
@@ -1225,7 +1225,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
                               transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
+                              className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
                             >
                               <Check className="w-3.5 h-3.5 text-accent-foreground" />
                             </motion.div>
@@ -1557,7 +1557,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                                                 initial={{ scale: 0 }}
                                                 animate={{ scale: 1 }}
                                                 transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                                                className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
+                                                className="absolute top-2 end-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
                                               >
                                                 <Check className="w-3 h-3 text-accent-foreground" />
                                               </motion.div>
@@ -1608,7 +1608,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                                               initial={{ scale: 0 }}
                                               animate={{ scale: 1 }}
                                               transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                                              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
+                                              className="absolute top-2 end-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
                                             >
                                               <Check className="w-3 h-3 text-accent-foreground" />
                                             </motion.div>
@@ -1649,7 +1649,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
                                   transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                                  className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
+                                  className="absolute top-2 end-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
                                 >
                                   <Check className="w-3 h-3 text-accent-foreground" />
                                 </motion.div>
@@ -1726,7 +1726,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
+                          className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
                         >
                           <Check className="w-3.5 h-3.5 text-accent-foreground" />
                         </motion.div>
