@@ -615,7 +615,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     // even if the Shopify tab opens in the background.
     const goToSuccess = () => {
       setDir(1);
-      setStep(13);
+      setStep(14);
       // Clear persisted wizard so re-entering /create starts fresh
       try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
     };
