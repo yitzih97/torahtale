@@ -17,7 +17,7 @@ The creation wizard lives at `/create` as a full-page configurator inspired by A
 Steps 9 (generation animation), 10 (book options), 11 (shipping), 12 (checkout), 13 (success) remain **single-view** wrapped in `AnimatePresence mode="wait"`. They are sequential post-generation stages, not customization steps, so stacking them would be confusing.
 
 ## Persistence
-Wizard state (step, data, shipping, bookOptions) is persisted to `localStorage` under `torahtale_wizard_state` on every change. Auto-restored on every mount (skipping terminal step 13). Cleared only on successful order completion in `SuccessStep`.
+Wizard state (step, data, shipping, bookOptions, **scrollY**) is persisted to `localStorage` under `torahtale_wizard_state` on every change and on scroll (rAF-throttled, ~5x/sec). Auto-restored on every mount (skipping terminal step 13). For build phase (steps 1–8), the saved `scrollY` is restored via repeated `window.scrollTo` attempts (80/220/500/900ms) to win against late layout, and the step-change auto-scroll effect is skipped on that initial restore. Cleared only on successful order completion in `SuccessStep`.
 
 ## Other rules
 - The 2-free-book monthly limit and `SubscriptionUpsellDialog` interruption have been removed from the pre-generation flow.

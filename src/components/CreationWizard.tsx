@@ -281,6 +281,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
 
+  // Tracks whether we just restored from localStorage so the step-change
+  // auto-scroll effect doesn't override the restored scroll position on mount.
+  const skipNextStepScrollRef = useRef(false);
+  const didRestoreRef = useRef(false);
+
   // Save wizard state continuously so user can resume after refresh/close/login
   const saveWizardState = useCallback(() => {
     const serializable = {
@@ -292,6 +297,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       shipping,
       bookOptions,
       portionFilter,
+      scrollY: typeof window !== "undefined" ? window.scrollY : 0,
     };
     try {
       localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
@@ -317,10 +323,25 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         setShipping(parsed.shipping || DEFAULT_SHIPPING);
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
         if (parsed.portionFilter) setPortionFilter(parsed.portionFilter);
+
+        // Restore scroll position once the stacked sections have rendered.
+        // Only applies to the build phase (steps 1–8); generation phase is single-view.
+        const savedScroll = typeof parsed.scrollY === "number" ? parsed.scrollY : 0;
+        if (restoredStep <= 8 && savedScroll > 0) {
+          skipNextStepScrollRef.current = true;
+          // Try a few times to win against late layout (images, fonts).
+          const attempts = [80, 220, 500, 900];
+          attempts.forEach((delay) => {
+            setTimeout(() => {
+              window.scrollTo({ top: savedScroll, behavior: "auto" });
+            }, delay);
+          });
+        }
       } catch { /* ignore */ }
     } else {
       setData((prev) => ({ ...prev, language: defaultLanguage }));
     }
+    didRestoreRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -331,6 +352,33 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     }
   }, [saveWizardState, step, data]);
 
+  // Persist scroll position (throttled via rAF) so refresh restores location.
+  useEffect(() => {
+    let ticking = false;
+    let lastSaved = 0;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const now = Date.now();
+        // Throttle to ~5x/sec to avoid hammering localStorage
+        if (now - lastSaved < 200) return;
+        lastSaved = now;
+        if (!didRestoreRef.current) return;
+        try {
+          const raw = localStorage.getItem("torahtale_wizard_state");
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          parsed.scrollY = window.scrollY;
+          localStorage.setItem("torahtale_wizard_state", JSON.stringify(parsed));
+        } catch { /* ignore */ }
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   // Cleanup auto-advance timer
   useEffect(() => {
     return () => {
@@ -340,6 +388,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   // Auto-scroll to the active step section whenever it changes
   useEffect(() => {
+    if (skipNextStepScrollRef.current) {
+      skipNextStepScrollRef.current = false;
+      return;
+    }
     scrollToStep(step);
   }, [step, scrollToStep]);
 
