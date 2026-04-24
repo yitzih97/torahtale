@@ -662,15 +662,55 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         selectedOptions: [],
       });
 
-      if (cart?.checkoutUrl) {
-        window.location.href = cart.checkoutUrl;
-        return;
-      } else {
-        toast.error("Could not create checkout. Please try again.");
-      }
+      // Build a last-resort direct Shopify cart URL (variant:qty shortcut)
+      // so the user is ALWAYS taken to Shopify, even if the Storefront API
+      // call fails or the edge function is unreachable.
+      const variantNumericId = variantId.split("/").pop();
+      const fallbackCheckoutUrl = `https://fek120-t9.myshopify.com/cart/${variantNumericId}:1?channel=online_store`;
+      const finalUrl = cart?.checkoutUrl || fallbackCheckoutUrl;
+
+      // Show a visible toast with the URL + an action button, then redirect.
+      toast.success(
+        cart?.checkoutUrl
+          ? `${t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…"}`
+          : `${t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…"}`,
+        {
+          description: finalUrl,
+          duration: 8000,
+          action: {
+            label: t.checkout.openCheckout || "Open checkout",
+            onClick: () => window.open(finalUrl, "_blank"),
+          },
+        }
+      );
+
+      // Small delay so the user can actually see the toast before the redirect
+      setTimeout(() => {
+        window.location.href = finalUrl;
+      }, 900);
     } catch (err) {
       console.error("Failed to place order:", err);
-      toast.error("Order failed. Please try again.");
+      // Even on error, fall back to a direct Shopify cart URL so the user
+      // always lands on Shopify.
+      try {
+        const { SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
+        const fallbackVariant = isSubscription
+          ? SHOPIFY_VARIANT_IDS.monthlySubscription
+          : SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
+        const fallbackNumeric = fallbackVariant.split("/").pop();
+        const fallbackUrl = `https://fek120-t9.myshopify.com/cart/${fallbackNumeric}:1?channel=online_store`;
+        toast.error(t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…", {
+          description: fallbackUrl,
+          duration: 10000,
+          action: {
+            label: t.checkout.openCheckout || "Open checkout",
+            onClick: () => window.open(fallbackUrl, "_blank"),
+          },
+        });
+        setTimeout(() => { window.location.href = fallbackUrl; }, 900);
+      } catch {
+        toast.error("Order failed. Please try again.");
+      }
     }
   };
 
