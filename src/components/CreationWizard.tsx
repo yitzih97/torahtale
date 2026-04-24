@@ -2173,11 +2173,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
                 style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
-                {step === 12
-                  ? (selectedPlan === "once"
-                      ? t.checkout.continueToOrder || t.common.continue
-                      : t.checkout.continueToOrder || t.common.continue)
-                  : t.common.continue}
+                {t.common.continue}
                 <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </motion.button>
             )}
