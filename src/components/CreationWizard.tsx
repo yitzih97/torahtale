@@ -149,7 +149,7 @@ const ageToBracketLabel = (age: string): string => {
 
 /* ───────────────── constants ───────────────── */
 
-const TOTAL_STEPS = 13;
+const TOTAL_STEPS = 14;
 
 /* New spring-based transition variants */
 const stepVariants = {
