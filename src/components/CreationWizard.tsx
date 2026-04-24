@@ -693,11 +693,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
       toast.success(
         cart?.checkoutUrl
-          ? `${t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…"}`
-          : `${t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…"}`,
+          ? (t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…")
+          : (t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…"),
         {
           description: finalUrl,
-          duration: 8000,
+          duration: 12000,
           action: {
             label: t.checkout.openCheckout || "Open checkout",
             onClick: () => openCheckout(finalUrl),
@@ -707,12 +707,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
       setTimeout(() => {
         openCheckout(finalUrl);
-      }, 350);
+        goToSuccess();
+      }, 400);
     } catch (err) {
       console.error("Failed to place order:", err);
-      toast.error(t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…", {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      toast.error(errMsg || (t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…"), {
         description: fallbackCheckoutUrl,
-        duration: 10000,
+        duration: 14000,
         action: {
           label: t.checkout.openCheckout || "Open checkout",
           onClick: () => openCheckout(fallbackCheckoutUrl),
@@ -720,7 +722,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       });
       setTimeout(() => {
         openCheckout(fallbackCheckoutUrl);
-      }, 350);
+        goToSuccess();
+      }, 400);
     }
   };
 
