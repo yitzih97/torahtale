@@ -241,6 +241,9 @@ export const he: typeof en = {
   // Wizard
   wizard: {
     createYourBook: "צרו את הספר שלכם",
+    startOver: "התחל מחדש",
+    resetWizard: "אפס אשף",
+    resetConfirm: "לאפס את האשף ולהתחיל מחדש מההתחלה? ההתקדמות בספר הזה תימחק.",
     whatsHeroName: "?מה שם הגיבור שלכם",
     orEnterNewName: "או הזינו שם חדש",
     enterChildName: "הזינו שם הילד",
