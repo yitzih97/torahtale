@@ -2074,16 +2074,43 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </motion.div>
             )}
 
-            {/* ── STEP 12: Checkout ── */}
+            {/* ── STEP 12: Choose Plan ── */}
             {step === 12 && (
               <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <CheckoutStep childName={childNames} torahPortion={data.torahPortion} artStyle={data.artStyle} shipping={shipping} bookOptions={bookOptions} onPlaceOrder={handlePlaceOrder} />
+                <CheckoutStep
+                  mode="plan"
+                  childName={childNames}
+                  torahPortion={data.torahPortion}
+                  artStyle={data.artStyle}
+                  shipping={shipping}
+                  bookOptions={bookOptions}
+                  selectedPlan={selectedPlan}
+                  onSelectPlan={setSelectedPlan}
+                  onPlaceOrder={handlePlaceOrder}
+                />
               </motion.div>
             )}
 
-            {/* ── STEP 13: Success ── */}
+            {/* ── STEP 13: Order Summary ── */}
             {step === 13 && (
               <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
+                <CheckoutStep
+                  mode="summary"
+                  childName={childNames}
+                  torahPortion={data.torahPortion}
+                  artStyle={data.artStyle}
+                  shipping={shipping}
+                  bookOptions={bookOptions}
+                  selectedPlan={selectedPlan}
+                  onSelectPlan={setSelectedPlan}
+                  onPlaceOrder={handlePlaceOrder}
+                />
+              </motion.div>
+            )}
+
+            {/* ── STEP 14: Success ── */}
+            {step === 14 && (
+              <motion.div key="s14" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
                 <SuccessStep childName={childNames} onGoToDashboard={() => { localStorage.removeItem("torahtale_wizard_state"); onClose?.(); navigate("/dashboard"); }} />
               </motion.div>
             )}
