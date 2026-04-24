@@ -836,7 +836,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
 
             {/* ── STEP 1: Name ── */}
-            {step >= 1 && (
+            {step === 1 && (
               <section
                 id={stepIdFor(1)}
                 ref={setStepRef(1)}
@@ -973,7 +973,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
             {/* ── STEP 2: Gender ── */}
-            {step >= 2 && (
+            {step === 2 && (
               <section
                 id={stepIdFor(2)}
                 ref={setStepRef(2)}
@@ -1045,7 +1045,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
             {/* ── STEP 3: Age ── */}
-            {step >= 3 && (
+            {step === 3 && (
               <section
                 id={stepIdFor(3)}
                 ref={setStepRef(3)}
@@ -1109,7 +1109,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
             {/* ── STEP 4: Art Style ── */}
-            {step >= 4 && (
+            {step === 4 && (
               <section
                 id={stepIdFor(4)}
                 ref={setStepRef(4)}
@@ -1240,7 +1240,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
             {/* ── STEP 5: Photo / Description ── */}
-            {step >= 5 && (
+            {step === 5 && (
               <section
                 id={stepIdFor(5)}
                 ref={setStepRef(5)}
@@ -1347,7 +1347,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
             {/* ── STEP 6: Torah Portion ── */}
-            {step >= 6 && (
+            {step === 6 && (
               <section
                 id={stepIdFor(6)}
                 ref={setStepRef(6)}
@@ -1669,7 +1669,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
             {/* ── STEP 7: Language ── */}
-            {step >= 7 && (
+            {step === 7 && (
               <section
                 id={stepIdFor(7)}
                 ref={setStepRef(7)}
@@ -1739,7 +1739,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             )}
 
             {/* ── STEP 8: Review & Generate ── */}
-            {step >= 8 && (
+            {step === 8 && (
               <section
                 id={stepIdFor(8)}
                 ref={setStepRef(8)}
