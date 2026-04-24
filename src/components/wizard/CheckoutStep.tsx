@@ -21,13 +21,13 @@ interface Plan {
 const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
 
 function buildPlansForBook(bookPriceUsd: number): Plan[] {
-  const weekly = friendly(bookPriceUsd * 1 * (1 - 0.20));
-  const monthly = friendly(bookPriceUsd * 4 * (1 - 0.33));
-  const yearly = friendly(bookPriceUsd * 52 * (1 - 0.49));
+  const weekly = friendly(bookPriceUsd * 1 * (1 - 0.10));
+  const monthly = friendly(bookPriceUsd * 4 * (1 - 0.20));
+  const yearly = friendly(bookPriceUsd * 52 * (1 - 0.30));
   return [
-    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "20% off", icon: Zap },
-    { id: "monthly", priceUsd: monthly, perWeekUsd: monthly / 4, savings: "33% off", icon: Crown, badge: true },
-    { id: "yearly", priceUsd: yearly, perWeekUsd: yearly / 52, savings: "49% off", icon: CalendarDays },
+    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "10% off", icon: Zap },
+    { id: "monthly", priceUsd: monthly, perWeekUsd: monthly / 4, savings: "20% off", icon: Crown, badge: true },
+    { id: "yearly", priceUsd: yearly, perWeekUsd: yearly / 52, savings: "30% off", icon: CalendarDays },
   ];
 }
 
