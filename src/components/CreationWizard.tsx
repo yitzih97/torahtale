@@ -5,7 +5,7 @@ import {
   ArrowLeft, ArrowRight, Loader2, Sparkles, Plus,
   Users, BookOpen, Palette, Package, Check,
   Camera, Sun, User, Type, Calendar, Heart, Image, PenLine,
-  Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2
+  Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -582,6 +582,22 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setStep(Math.max(prevStep, 1));
   };
 
+  const resetWizard = useCallback(() => {
+    try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
+    const defaultLanguage = lang === "he" ? "hebrew" : lang === "yi" ? "yiddish" : "english";
+    setData({ ...initialData, children: [createChild()], language: defaultLanguage });
+    setShipping(DEFAULT_SHIPPING);
+    setBookOptions(DEFAULT_BOOK_OPTIONS);
+    setPortionFilter("all");
+    setPortionSearch("");
+    setPortionMode(null);
+    setStyleSubStep("art");
+    setSavedBookId(null);
+    setDir(-1);
+    setStep(1);
+    toast.success(t.wizard.createYourBook ? `${t.wizard.createYourBook} · ${"1/8"}` : "Wizard reset");
+  }, [lang, t]);
+
   const handlePlaceOrder = async (planType: string = "once") => {
     const isSubscription = planType !== "once";
     const orderNumber = `TT-${Date.now().toString().slice(-6)}`;
@@ -592,6 +608,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       if (!popup) {
         window.location.assign(url);
       }
+    };
+
+    // Advance to the success screen immediately so the user sees confirmation
+    // even if the Shopify tab opens in the background.
+    const goToSuccess = () => {
+      setDir(1);
+      setStep(13);
+      // Clear persisted wizard so re-entering /create starts fresh
+      try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
     };
 
     let variantId: string;
@@ -684,11 +709,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
       toast.success(
         cart?.checkoutUrl
-          ? `${t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…"}`
-          : `${t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…"}`,
+          ? (t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…")
+          : (t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…"),
         {
           description: finalUrl,
-          duration: 8000,
+          duration: 12000,
           action: {
             label: t.checkout.openCheckout || "Open checkout",
             onClick: () => openCheckout(finalUrl),
@@ -698,12 +723,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
       setTimeout(() => {
         openCheckout(finalUrl);
-      }, 350);
+        goToSuccess();
+      }, 400);
     } catch (err) {
       console.error("Failed to place order:", err);
-      toast.error(t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…", {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      toast.error(errMsg || (t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…"), {
         description: fallbackCheckoutUrl,
-        duration: 10000,
+        duration: 14000,
         action: {
           label: t.checkout.openCheckout || "Open checkout",
           onClick: () => openCheckout(fallbackCheckoutUrl),
@@ -711,7 +738,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       });
       setTimeout(() => {
         openCheckout(fallbackCheckoutUrl);
-      }, 350);
+        goToSuccess();
+      }, 400);
     }
   };
 
@@ -814,15 +842,31 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </p>
             </div>
           </div>
-          {onClose && (
+          <div className="flex items-center gap-1 flex-shrink-0">
             <button
-              onClick={onClose}
-              aria-label="Close"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors flex-shrink-0"
+              onClick={() => {
+                if (step === 1 && !data.children.some(c => c.name || c.age || c.gender)) return;
+                if (window.confirm(t.wizard.resetConfirm || "Reset the wizard and start over from the beginning?")) {
+                  resetWizard();
+                }
+              }}
+              aria-label={t.wizard.resetWizard || "Reset wizard"}
+              title={t.wizard.resetWizard || "Reset wizard"}
+              className="h-9 px-2.5 rounded-full inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
             >
-              <X className="w-4 h-4" />
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t.wizard.startOver || "Start over"}</span>
             </button>
-          )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Progress strip */}
