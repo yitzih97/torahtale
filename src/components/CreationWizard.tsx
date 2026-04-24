@@ -1213,7 +1213,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                           <div className="aspect-[4/3] bg-muted/20 relative overflow-hidden">
                             <img src={f.img} alt={f.label} className="w-full h-full object-cover" loading="lazy" width={512} height={384} />
                           </div>
-                          <div className="p-3 sm:p-4 text-left">
+                          <div className="p-3 sm:p-4 text-start">
                             <div className="flex items-center justify-between gap-2 mb-1">
                               <span className="text-sm sm:text-base font-display font-bold text-foreground">{f.label}</span>
                               <span className="text-[10px] font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full whitespace-nowrap">{t.wizard.recommendedForAge(f.age)}</span>
@@ -1392,7 +1392,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         setPortionMode("choose");
                         autoAdvance();
                       }}
-                      className="w-full relative p-5 rounded-2xl border-2 text-left transition-all duration-300 border-accent/30 bg-gradient-to-r from-accent/5 to-transparent hover:border-accent/50 hover:shadow-md backdrop-blur-sm"
+                      className="w-full relative p-5 rounded-2xl border-2 text-start transition-all duration-300 border-accent/30 bg-gradient-to-r from-accent/5 to-transparent hover:border-accent/50 hover:shadow-md backdrop-blur-sm"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0">
@@ -1424,7 +1424,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         setPortionMode("choose");
                         autoAdvance();
                       }}
-                      className="w-full relative p-5 rounded-2xl border-2 text-left transition-all duration-300 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent hover:border-primary/50 hover:shadow-md backdrop-blur-sm"
+                      className="w-full relative p-5 rounded-2xl border-2 text-start transition-all duration-300 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent hover:border-primary/50 hover:shadow-md backdrop-blur-sm"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
@@ -1442,7 +1442,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       whileHover={{ y: -2, scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setPortionMode("manual")}
-                      className="w-full relative p-5 rounded-2xl border-2 text-left transition-all duration-300 border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-md backdrop-blur-sm"
+                      className="w-full relative p-5 rounded-2xl border-2 text-start transition-all duration-300 border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-md backdrop-blur-sm"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-muted/40 to-muted/10 flex items-center justify-center flex-shrink-0">
@@ -1496,13 +1496,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         placeholder={t.wizard.searchParsha}
                         value={portionSearch}
                         onChange={(e) => setPortionSearch(e.target.value)}
-                        className="rounded-2xl h-11 text-sm pl-10 bg-card/60 border-border/40 focus:border-accent/50 shadow-sm backdrop-blur-sm"
+                        className="rounded-2xl h-11 text-sm ps-10 bg-card/60 border-border/40 focus:border-accent/50 shadow-sm backdrop-blur-sm"
                       />
-                      <BookOpen className="w-4 h-4 text-muted-foreground/50 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <BookOpen className="w-4 h-4 text-muted-foreground/50 absolute start-3.5 top-1/2 -translate-y-1/2" />
                     </motion.div>
 
                     {/* Story cards */}
-                    <motion.div variants={staggerChild} className="max-h-[30vh] sm:max-h-[34vh] overflow-y-auto pr-1 scrollbar-thin space-y-3">
+                    <motion.div variants={staggerChild} className="max-h-[30vh] sm:max-h-[34vh] overflow-y-auto pe-1 scrollbar-thin space-y-3">
                       {(portionFilter === "torah" || portionFilter === "all") && !portionSearch.trim() && (
                         <>
                           {TORAH_BOOKS.map((book) => {
@@ -1543,7 +1543,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                                               update({ torahPortion: p.value });
                                               autoAdvance();
                                             }}
-                                            className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 ${
+                                            className={`relative p-3 rounded-xl border-2 text-start transition-all duration-200 ${
                                               data.torahPortion === p.value
                                                 ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
                                                 : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
@@ -1594,7 +1594,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                                             update({ torahPortion: p.value });
                                             autoAdvance();
                                           }}
-                                          className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 ${
+                                          className={`relative p-3 rounded-xl border-2 text-start transition-all duration-200 ${
                                             data.torahPortion === p.value
                                               ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
                                               : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
@@ -1635,7 +1635,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                                 update({ torahPortion: p.value });
                                 autoAdvance();
                               }}
-                              className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 ${
+                              className={`relative p-3 rounded-xl border-2 text-start transition-all duration-200 ${
                                 data.torahPortion === p.value
                                   ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
                                   : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
@@ -1946,7 +1946,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-4 sm:p-5 max-w-sm mx-auto space-y-2">
                           <div className="flex items-center gap-3 justify-center">
                             <BookOpen className="w-5 h-5 text-accent" />
-                            <div className="text-left">
+                            <div className="text-start">
                               <p className="text-sm font-semibold text-foreground">{t.wizard.torahAdventure(childNames)}</p>
                               <p className="text-xs text-muted-foreground">{getPortionLabel(data.torahPortion)} · {data.artStyle === "3d-pixar" ? "3D Pixar" : data.artStyle === "realistic" ? "Realistic" : "Cartoon"}</p>
                             </div>
