@@ -149,7 +149,7 @@ const ageToBracketLabel = (age: string): string => {
 
 /* ───────────────── constants ───────────────── */
 
-const TOTAL_STEPS = 13;
+const TOTAL_STEPS = 14;
 
 /* New spring-based transition variants */
 const stepVariants = {
@@ -234,6 +234,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [portionMode, setPortionMode] = useState<"choose" | "manual" | null>(null);
   const [styleSubStep, setStyleSubStep] = useState<"art" | "format">("art");
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<"weekly" | "monthly" | "yearly" | "once">("monthly");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -324,7 +325,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         const parsed = JSON.parse(saved);
         // Don't restore terminal/transient steps (success or generation animation)
-        const restoredStep = parsed.step && parsed.step < 13 ? parsed.step : 1;
+        const restoredStep = parsed.step && parsed.step < 14 ? parsed.step : 1;
         setStep(restoredStep);
         const restoredData = parsed.data || initialData;
         // Default book language to UI language if not yet customized
@@ -614,7 +615,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     // even if the Shopify tab opens in the background.
     const goToSuccess = () => {
       setDir(1);
-      setStep(13);
+      setStep(14);
       // Clear persisted wizard so re-entering /create starts fresh
       try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
     };
@@ -757,6 +758,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       case 8: return true;
       case 10: return true;
       case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
+      case 12: return true;
       default: return false;
     }
   })();
@@ -2072,16 +2074,43 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </motion.div>
             )}
 
-            {/* ── STEP 12: Checkout ── */}
+            {/* ── STEP 12: Choose Plan ── */}
             {step === 12 && (
               <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <CheckoutStep childName={childNames} torahPortion={data.torahPortion} artStyle={data.artStyle} shipping={shipping} bookOptions={bookOptions} onPlaceOrder={handlePlaceOrder} />
+                <CheckoutStep
+                  mode="plan"
+                  childName={childNames}
+                  torahPortion={data.torahPortion}
+                  artStyle={data.artStyle}
+                  shipping={shipping}
+                  bookOptions={bookOptions}
+                  selectedPlan={selectedPlan}
+                  onSelectPlan={setSelectedPlan}
+                  onPlaceOrder={handlePlaceOrder}
+                />
               </motion.div>
             )}
 
-            {/* ── STEP 13: Success ── */}
+            {/* ── STEP 13: Order Summary ── */}
             {step === 13 && (
               <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
+                <CheckoutStep
+                  mode="summary"
+                  childName={childNames}
+                  torahPortion={data.torahPortion}
+                  artStyle={data.artStyle}
+                  shipping={shipping}
+                  bookOptions={bookOptions}
+                  selectedPlan={selectedPlan}
+                  onSelectPlan={setSelectedPlan}
+                  onPlaceOrder={handlePlaceOrder}
+                />
+              </motion.div>
+            )}
+
+            {/* ── STEP 14: Success ── */}
+            {step === 14 && (
+              <motion.div key="s14" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
                 <SuccessStep childName={childNames} onGoToDashboard={() => { localStorage.removeItem("torahtale_wizard_state"); onClose?.(); navigate("/dashboard"); }} />
               </motion.div>
             )}
@@ -2095,7 +2124,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       </div>
 
       {/* ── Sticky bottom action bar (Apple/Tesla style) ── */}
-      {step !== 9 && step !== 12 && step !== 13 && (
+      {step !== 9 && step !== 13 && step !== 14 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -2135,7 +2164,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 <Sparkles className="w-4 h-4" /> {t.wizard.generateBook}
               </motion.button>
             )}
-            {(step === 10 || step === 11) && (
+            {(step === 10 || step === 11 || step === 12) && (
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
@@ -2144,7 +2173,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
                 style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
-                {t.common.continue} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                {t.common.continue}
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </motion.button>
             )}
           </div>

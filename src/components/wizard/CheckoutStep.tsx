@@ -21,13 +21,13 @@ interface Plan {
 const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
 
 function buildPlansForBook(bookPriceUsd: number): Plan[] {
-  const weekly = friendly(bookPriceUsd * 1 * (1 - 0.20));
-  const monthly = friendly(bookPriceUsd * 4 * (1 - 0.33));
-  const yearly = friendly(bookPriceUsd * 52 * (1 - 0.49));
+  const weekly = friendly(bookPriceUsd * 1 * (1 - 0.10));
+  const monthly = friendly(bookPriceUsd * 4 * (1 - 0.20));
+  const yearly = friendly(bookPriceUsd * 52 * (1 - 0.30));
   return [
-    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "20% off", icon: Zap },
-    { id: "monthly", priceUsd: monthly, perWeekUsd: monthly / 4, savings: "33% off", icon: Crown, badge: true },
-    { id: "yearly", priceUsd: yearly, perWeekUsd: yearly / 52, savings: "49% off", icon: CalendarDays },
+    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "10% off", icon: Zap },
+    { id: "monthly", priceUsd: monthly, perWeekUsd: monthly / 4, savings: "20% off", icon: Crown, badge: true },
+    { id: "yearly", priceUsd: yearly, perWeekUsd: yearly / 52, savings: "30% off", icon: CalendarDays },
   ];
 }
 
@@ -38,20 +38,36 @@ interface Props {
   shipping: ShippingData;
   bookOptions: BookOptions;
   onPlaceOrder: (planType: PlanType) => void;
+  /** "plan" = choose plan only; "summary" = order summary + place-order button */
+  mode?: "plan" | "summary";
+  selectedPlan?: PlanType;
+  onSelectPlan?: (plan: PlanType) => void;
 }
 
-export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, bookOptions, onPlaceOrder }: Props) => {
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
+export const CheckoutStep = ({
+  childName,
+  torahPortion,
+  artStyle,
+  shipping,
+  bookOptions,
+  onPlaceOrder,
+  mode = "summary",
+  selectedPlan: selectedPlanProp,
+  onSelectPlan,
+}: Props) => {
+  const [selectedPlanLocal, setSelectedPlanLocal] = useState<PlanType>("monthly");
+  const selectedPlan = selectedPlanProp ?? selectedPlanLocal;
+  const setSelectedPlan = (p: PlanType) => {
+    if (onSelectPlan) onSelectPlan(p);
+    else setSelectedPlanLocal(p);
+  };
   const [placingOrder, setPlacingOrder] = useState(false);
   const { t } = useLanguage();
   const { symbol, rate, code } = t.currency;
 
   const isIls = code === "ILS";
-
-  // Format an amount that is ALREADY in the display currency (no rate conversion)
   const fmt = (amount: number) => `${symbol}${amount.toFixed(2)}`;
 
-  // Book price in the display currency (ILS uses fixed 25/50/70, otherwise USD)
   const bookPrice = calculateBookPriceForCurrency(bookOptions, code);
   const shippingCost = isIls
     ? (shipping.shippingMethod === "express" ? 35 : 0)
@@ -94,71 +110,85 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
     }
   };
 
+  /* ── Plan selection screen (step 12) ── */
+  if (mode === "plan") {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-primary">{t.checkout.choosePlan}</h2>
+          <p className="text-muted-foreground text-sm mt-1">
+            {t.checkout.subscribeMsg(childName)}
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-3">
+          {PLANS.map((plan) => {
+            const isActive = selectedPlan === plan.id;
+            return (
+              <button
+                key={plan.id}
+                onClick={() => setSelectedPlan(plan.id)}
+                className={`relative rounded-2xl border-2 p-4 text-start transition-all duration-200 active:scale-[0.98] ${
+                  isActive
+                    ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
+                    : "border-border hover:border-accent/30 hover:shadow-sm"
+                }`}
+              >
+                {plan.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                    {t.bookOptions.mostPopular}
+                  </div>
+                )}
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 transition-colors ${
+                  isActive ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"
+                }`}>
+                  {isActive ? <Check className="w-5 h-5" /> : <plan.icon className="w-5 h-5" />}
+                </div>
+                <p className="font-display font-bold text-base text-primary">{planLabels[plan.id]}</p>
+                <div className="mt-1.5">
+                  <span className="text-xl font-bold text-accent">{fmt(plan.priceUsd)}</span>
+                  <span className="text-xs text-muted-foreground">/{periodLabel(plan.id)}</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{planDescs[plan.id]}</p>
+                <div className="flex items-center gap-1.5 mt-2.5">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
+                    <TrendingDown className="w-3 h-3" /> {plan.savings}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{fmt(plan.perWeekUsd)}/{t.currency.code === "ILS" ? "שבוע" : "wk"}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="text-center">
+          <button
+            onClick={() => setSelectedPlan(selectedPlan === "once" ? "monthly" : "once")}
+            className={`text-xs transition-colors ${
+              selectedPlan === "once"
+                ? "text-accent font-medium"
+                : "text-muted-foreground/60 hover:text-muted-foreground underline underline-offset-2"
+            }`}
+          >
+            {selectedPlan === "once" ? t.checkout.oneTimePurchase : t.checkout.skipSubscription}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Order summary screen (step 13) ── */
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-bold text-primary">{t.checkout.choosePlan}</h2>
+        <h2 className="font-display text-2xl font-bold text-primary">{t.checkout.orderSummary}</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          {t.checkout.subscribeMsg(childName)}
+          {isSubscription
+            ? `${planLabels[selectedPlan]} ${t.checkout.plan}`
+            : t.checkout.oneTimePurchase}
         </p>
       </div>
 
-      {/* Plan cards */}
-      <div className="grid sm:grid-cols-3 gap-3">
-        {PLANS.map((plan) => {
-          const isActive = selectedPlan === plan.id;
-          return (
-            <button
-              key={plan.id}
-              onClick={() => setSelectedPlan(plan.id)}
-              className={`relative rounded-2xl border-2 p-4 text-start transition-all duration-200 active:scale-[0.98] ${
-                isActive
-                  ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
-                  : "border-border hover:border-accent/30 hover:shadow-sm"
-              }`}
-            >
-              {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                  {t.bookOptions.mostPopular}
-                </div>
-              )}
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 transition-colors ${
-                isActive ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"
-              }`}>
-                {isActive ? <Check className="w-5 h-5" /> : <plan.icon className="w-5 h-5" />}
-              </div>
-              <p className="font-display font-bold text-base text-primary">{planLabels[plan.id]}</p>
-              <div className="mt-1.5">
-                <span className="text-xl font-bold text-accent">{fmt(plan.priceUsd)}</span>
-                <span className="text-xs text-muted-foreground">/{periodLabel(plan.id)}</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{planDescs[plan.id]}</p>
-              <div className="flex items-center gap-1.5 mt-2.5">
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
-                  <TrendingDown className="w-3 h-3" /> {plan.savings}
-                </span>
-                <span className="text-[10px] text-muted-foreground">{fmt(plan.perWeekUsd)}/{t.currency.code === "ILS" ? "שבוע" : "wk"}</span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Skip subscription link */}
-      <div className="text-center">
-        <button
-          onClick={() => setSelectedPlan(selectedPlan === "once" ? "monthly" : "once")}
-          className={`text-xs transition-colors ${
-            selectedPlan === "once"
-              ? "text-accent font-medium"
-              : "text-muted-foreground/60 hover:text-muted-foreground underline underline-offset-2"
-          }`}
-        >
-          {selectedPlan === "once" ? t.checkout.oneTimePurchase : t.checkout.skipSubscription}
-        </button>
-      </div>
-
-      {/* Order summary */}
       <div className="bg-muted/30 rounded-2xl p-5 space-y-3 border border-border">
         <h3 className="font-display text-lg font-semibold text-primary">{t.checkout.orderSummary}</h3>
         <div className="space-y-2.5 text-sm">
@@ -208,7 +238,6 @@ export const CheckoutStep = ({ childName, torahPortion, artStyle, shipping, book
         </div>
       </div>
 
-      {/* Secure checkout info */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-xl p-3">
         <ShieldCheck className="w-4 h-4 text-accent" />
         <span>{t.checkout.secureCheckout}</span>
