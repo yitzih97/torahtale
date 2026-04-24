@@ -583,69 +583,87 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   };
 
   const handlePlaceOrder = async (planType: string = "once") => {
-    if (!savedBookId || !user) return;
-
     const isSubscription = planType !== "once";
     const orderNumber = `TT-${Date.now().toString().slice(-6)}`;
+    const { createShopifyCart, SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
+
+    const openCheckout = (url: string) => {
+      const popup = window.open(url, "_blank", "noopener,noreferrer");
+      if (!popup) {
+        window.location.assign(url);
+      }
+    };
+
+    let variantId: string;
+    if (isSubscription) {
+      const subMap: Record<string, string> = {
+        weekly: SHOPIFY_VARIANT_IDS.weeklySubscription,
+        monthly: SHOPIFY_VARIANT_IDS.monthlySubscription,
+        yearly: SHOPIFY_VARIANT_IDS.yearlySubscription,
+      };
+      variantId = subMap[planType] || SHOPIFY_VARIANT_IDS.monthlySubscription;
+    } else {
+      const bookVariantMap: Record<string, string> = {
+        "softcover-8x8": SHOPIFY_VARIANT_IDS.bookSoftcover8x8,
+        "hardcover-8x8": SHOPIFY_VARIANT_IDS.bookHardcover8x8,
+        "hardcover-11x8.5": SHOPIFY_VARIANT_IDS.bookHardcover11x85,
+        "board-6x6": SHOPIFY_VARIANT_IDS.bookBoardBook6x6,
+      };
+      const optKey = bookOptions.productType === "board"
+        ? "board-6x6"
+        : bookOptions.productType === "softcover"
+          ? "softcover-8x8"
+          : `hardcover-${bookOptions.hardcoverSize || "8x8"}`;
+      variantId = bookVariantMap[optKey] || SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
+    }
+
+    const variantNumericId = variantId.split("/").pop();
+    const fallbackCheckoutUrl = `https://fek120-t9.myshopify.com/cart/${variantNumericId}:1?channel=online_store`;
 
     try {
-      // Update book status
-      await supabase.from("books").update({
-        status: "ordered",
-        shipping_data: shipping,
-        order_number: orderNumber,
-        updated_at: new Date().toISOString(),
-      } as any).eq("id", savedBookId);
-
-      // Save subscription record if subscribing
-      if (isSubscription) {
-        const freqMap: Record<string, { frequency: string; price: number }> = {
-          weekly: { frequency: "weekly", price: 23.99 },
-          monthly: { frequency: "monthly", price: 19.99 },
-          yearly: { frequency: "yearly", price: 15.38 },
-        };
-        const plan = freqMap[planType] || freqMap.weekly;
-        await supabase.from("subscriptions").insert({
-          user_id: user.id,
-          child_name: childNames,
-          child_id: data.children[0]?.id || null,
-          art_style: data.artStyle,
-          language: data.language,
-          shipping_data: shipping as any,
-          status: "active",
-          frequency: plan.frequency,
-          price_per_week: plan.price,
+      if (!savedBookId) {
+        toast.message("Book record not ready yet.", {
+          description: "Opening checkout anyway.",
         });
       }
 
-      // Create Shopify cart and redirect to checkout
-      const { createShopifyCart, SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
+      if (user && savedBookId) {
+        const { error: bookUpdateError } = await supabase.from("books").update({
+          status: "ordered",
+          shipping_data: shipping,
+          order_number: orderNumber,
+          updated_at: new Date().toISOString(),
+        } as any).eq("id", savedBookId);
 
-      let variantId: string;
-      if (isSubscription) {
-        const subMap: Record<string, string> = {
-          weekly: SHOPIFY_VARIANT_IDS.weeklySubscription,
-          monthly: SHOPIFY_VARIANT_IDS.monthlySubscription,
-          yearly: SHOPIFY_VARIANT_IDS.yearlySubscription,
-        };
-        variantId = subMap[planType] || SHOPIFY_VARIANT_IDS.monthlySubscription;
-      } else {
-        // One-time purchase — pick variant based on book options
-        const bookVariantMap: Record<string, string> = {
-          "softcover-8x8": SHOPIFY_VARIANT_IDS.bookSoftcover8x8,
-          "hardcover-8x8": SHOPIFY_VARIANT_IDS.bookHardcover8x8,
-          "hardcover-11x8.5": SHOPIFY_VARIANT_IDS.bookHardcover11x85,
-          "board-6x6": SHOPIFY_VARIANT_IDS.bookBoardBook6x6,
-        };
-        const optKey = bookOptions.productType === "board"
-          ? "board-6x6"
-          : bookOptions.productType === "softcover"
-            ? "softcover-8x8"
-            : `hardcover-${bookOptions.hardcoverSize || "8x8"}`;
-        variantId = bookVariantMap[optKey] || SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
+        if (bookUpdateError) {
+          console.error("Failed updating book before checkout:", bookUpdateError);
+        }
+
+        if (isSubscription) {
+          const freqMap: Record<string, { frequency: string; price: number }> = {
+            weekly: { frequency: "weekly", price: 23.99 },
+            monthly: { frequency: "monthly", price: 19.99 },
+            yearly: { frequency: "yearly", price: 15.38 },
+          };
+          const plan = freqMap[planType] || freqMap.weekly;
+          const { error: subscriptionError } = await supabase.from("subscriptions").insert({
+            user_id: user.id,
+            child_name: childNames,
+            child_id: data.children[0]?.id || null,
+            art_style: data.artStyle,
+            language: data.language,
+            shipping_data: shipping as any,
+            status: "active",
+            frequency: plan.frequency,
+            price_per_week: plan.price,
+          });
+
+          if (subscriptionError) {
+            console.error("Failed saving subscription before checkout:", subscriptionError);
+          }
+        }
       }
 
-      // Save wizard state so we can resume after checkout redirect
       localStorage.setItem("torahtale_pending_order", JSON.stringify({
         bookId: savedBookId,
         orderNumber,
@@ -662,14 +680,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         selectedOptions: [],
       });
 
-      // Build a last-resort direct Shopify cart URL (variant:qty shortcut)
-      // so the user is ALWAYS taken to Shopify, even if the Storefront API
-      // call fails or the edge function is unreachable.
-      const variantNumericId = variantId.split("/").pop();
-      const fallbackCheckoutUrl = `https://fek120-t9.myshopify.com/cart/${variantNumericId}:1?channel=online_store`;
       const finalUrl = cart?.checkoutUrl || fallbackCheckoutUrl;
 
-      // Show a visible toast with the URL + an action button, then redirect.
       toast.success(
         cart?.checkoutUrl
           ? `${t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…"}`
@@ -679,38 +691,27 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
           duration: 8000,
           action: {
             label: t.checkout.openCheckout || "Open checkout",
-            onClick: () => window.open(finalUrl, "_blank"),
+            onClick: () => openCheckout(finalUrl),
           },
         }
       );
 
-      // Small delay so the user can actually see the toast before the redirect
       setTimeout(() => {
-        window.location.href = finalUrl;
-      }, 900);
+        openCheckout(finalUrl);
+      }, 350);
     } catch (err) {
       console.error("Failed to place order:", err);
-      // Even on error, fall back to a direct Shopify cart URL so the user
-      // always lands on Shopify.
-      try {
-        const { SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
-        const fallbackVariant = isSubscription
-          ? SHOPIFY_VARIANT_IDS.monthlySubscription
-          : SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
-        const fallbackNumeric = fallbackVariant.split("/").pop();
-        const fallbackUrl = `https://fek120-t9.myshopify.com/cart/${fallbackNumeric}:1?channel=online_store`;
-        toast.error(t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…", {
-          description: fallbackUrl,
-          duration: 10000,
-          action: {
-            label: t.checkout.openCheckout || "Open checkout",
-            onClick: () => window.open(fallbackUrl, "_blank"),
-          },
-        });
-        setTimeout(() => { window.location.href = fallbackUrl; }, 900);
-      } catch {
-        toast.error("Order failed. Please try again.");
-      }
+      toast.error(t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…", {
+        description: fallbackCheckoutUrl,
+        duration: 10000,
+        action: {
+          label: t.checkout.openCheckout || "Open checkout",
+          onClick: () => openCheckout(fallbackCheckoutUrl),
+        },
+      });
+      setTimeout(() => {
+        openCheckout(fallbackCheckoutUrl);
+      }, 350);
     }
   };
 
