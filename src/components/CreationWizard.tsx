@@ -932,16 +932,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
           <div className="space-y-0">
 
-  // Pre-fill shipping name from authenticated user when entering shipping step.
-  useEffect(() => {
-    if (step !== 11 || !user) return;
-    const meta = (user.user_metadata || {}) as { full_name?: string; name?: string };
-    const profileName = meta.full_name || meta.name;
-    if (profileName && (!shipping.fullName || shipping.fullName === DEFAULT_SHIPPING.fullName)) {
-      setShipping((prev) => ({ ...prev, fullName: profileName }));
-    }
-  }, [step, user]); // eslint-disable-line react-hooks/exhaustive-deps
-
 
             {/* ── STEP 1: Name ── */}
             {step === 1 && (
