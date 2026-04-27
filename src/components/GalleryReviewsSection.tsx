@@ -55,7 +55,7 @@ export const GalleryReviewsSection = () => {
   } : null;
 
   return (
-    <section id="gallery" className="py-24 lg:py-32 bg-card relative overflow-hidden">
+    <section id="testimonials" className="py-24 lg:py-32 bg-card relative overflow-hidden scroll-mt-20">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
