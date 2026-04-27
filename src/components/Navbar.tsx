@@ -71,7 +71,14 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
 
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className={`text-sm font-medium transition-colors duration-500 ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>{link.label}</a>
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={link.section ? handleSectionLink(link.section) : undefined}
+              className={`text-sm font-medium transition-colors duration-500 ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}
+            >
+              {link.label}
+            </a>
           ))}
         </div>
 
@@ -124,7 +131,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
               <a
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileOpen(false)}
+                onClick={link.section ? handleSectionLink(link.section) : () => setMobileOpen(false)}
                 className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border"
               >
                 {link.label}
