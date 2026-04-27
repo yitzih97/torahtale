@@ -161,16 +161,16 @@ export const CheckoutStep = ({
           })}
         </div>
 
-        <div className="text-center">
+        <div className="text-center pt-2">
           <button
             onClick={() => setSelectedPlan(selectedPlan === "once" ? "monthly" : "once")}
-            className={`text-xs transition-colors ${
+            className={`inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-full transition-colors ${
               selectedPlan === "once"
-                ? "text-accent font-medium"
-                : "text-muted-foreground/60 hover:text-muted-foreground underline underline-offset-2"
+                ? "text-accent bg-accent/10"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
-            {selectedPlan === "once" ? t.checkout.oneTimePurchase : t.checkout.skipSubscription}
+            {selectedPlan === "once" ? `✓ ${t.checkout.oneTimePurchase}` : `${t.checkout.skipSubscription} →`}
           </button>
         </div>
       </div>
