@@ -1,35 +1,94 @@
+## Goal
+Make the full journey (signup → generate → customize → checkout → confirmation) frictionless and reliable, and guarantee the "Place Order" / "Subscribe & Place Order" button always lands the user on a working Shopify checkout — on desktop and mobile.
 
+---
 
-## Plan: Add Image References to Book Templates
+## Root causes found
 
-### What We're Building
-Adding the ability to upload a **reference image** for each page slot (Cover, Pages 1-8, Back Cover) in the Templates tab. These reference images will be sent to the AI image generator alongside the text prompt, ensuring all books for the same story produce visually consistent illustrations — regardless of the child's name, age, or gender.
+1. **Checkout opens unreliably (often appears "broken")**
+   - In `handlePlaceOrder` (CreationWizard.tsx ~line 725) `window.open(finalUrl, "_blank")` runs **inside a `setTimeout(..., 400)` after multiple `await`s**. Browsers (especially Safari/iOS) block this because it's no longer tied to the user's click gesture. Result: nothing visibly happens → user thinks the button is broken.
+   - The Shopify Storefront API currently returns `402 Payment Required` (store billing inactive). The edge function correctly falls back to a `/cart/{variant}:1` URL, but we still treat that as a degraded path. The fallback URL is actually a perfectly valid Shopify cart/checkout entry point — we should embrace it.
 
-### How It Works
+2. **Friction in the flow**
+   - Step 9 has a *second* "Continue to book" confirmation screen with a 5s auto-advance after the generation animation already played → extra screen that adds ~5s.
+   - Step 12 (choose plan) + Step 13 (order summary) are now two separate screens just to click Continue between them — fine logically, but the summary should be the same screen the order is placed from with no extra tap.
+   - Plan selection auto-defaults to "monthly" but there is no clear "Continue without subscribing" affordance — users miss the small grey "Skip" link.
 
-**Admin Side (Templates Tab)**
-- Each page slot (Cover, Page 1-8, Back Cover) gets an **"Upload Reference Image"** button below the Image Prompt field
-- Uploaded images are stored in the `site-images` bucket with keys like `template-ref/{portion}/{page-slot}.png`
-- The reference image URL is saved to `site_settings` with category `book-templates` and key `{portion}:{slot}:reference-image`
-- A thumbnail preview of the current reference image is shown when one exists, with a delete button
+3. **Mobile**
+   - The sticky bottom action bar (h ~64px) overlaps the last visible field on small screens because content padding is `pb-32` only on the outer container — inner step sections (`min-h-[calc(100vh-11rem)]`) sometimes push primary CTA under the bar.
+   - Subscribe/Plan cards use `grid sm:grid-cols-3 gap-3` — on phones they stack, but the Skip link is far below the fold.
 
-**Generation Side (Edge Function)**
-- `generate-image/index.ts` already loads all `book-templates` settings — it will now also look for `{portion}:{slot}:reference-image`
-- When a reference image URL is found, it gets fetched and injected into the Gemini API call as an inline image part, with a prompt instruction like: "Use the attached reference image as a SCENE and COMPOSITION guide. Reproduce the same scene layout, background elements, and overall composition, but adapt the child character to match the specified name, age, gender, and character sheet."
-- This sits alongside the existing `characterSheet` (child appearance) and `referenceImage` (child photo) logic — it's a separate "scene reference" concept
+---
 
-### Changes
+## What I'll change
 
-| File | Change |
-|------|--------|
-| `src/components/admin/AdminCMS.tsx` | Add upload/preview/delete for reference images in each page slot of `BookTemplatesTab`. Store URL in `site_settings` as `{portion}:{slot}:reference-image` |
-| `supabase/functions/generate-image/index.ts` | Load `reference-image` template setting for the current portion+page, fetch it, and inject as a scene reference image part into the Gemini API call |
-| `supabase/functions/generate-story/index.ts` | No changes needed — story text generation is unaffected |
+### 1. Make checkout bulletproof (highest priority)
 
-### Technical Details
+**`src/components/CreationWizard.tsx` → `handlePlaceOrder`**
 
-- Reuses the existing `site-images` public bucket for storage
-- Reuses the existing `onSave` pattern in AdminCMS for persisting the URL to `site_settings`
-- The reference image is injected as a **third** image context (after character sheet and child photo), with distinct instructions telling the AI to match the scene composition but adapt the character
-- Template variables `{childName}`, `{age}`, `{gender}` etc. continue to work in the text prompt, ensuring per-child customization while the reference image locks down the visual style and scene layout
+- **Open the checkout window synchronously on the click**, then navigate it once the URL is ready:
+  ```ts
+  // inside the click handler, BEFORE any await:
+  const popup = window.open("about:blank", "_blank", "noopener,noreferrer");
+  // ...do async work, get finalUrl...
+  if (popup && !popup.closed) popup.location.href = finalUrl;
+  else window.location.assign(finalUrl); // fallback for blocked popups (mobile Safari)
+  ```
+- Remove the artificial `setTimeout(..., 400)` before navigation.
+- Treat the edge-function `fallback: true` response as a **first-class success** (it is a real Shopify cart URL). Drop the `(fallback)` wording from the toast — just show "Redirecting to Shopify…" with the URL and an "Open checkout" action button.
+- If `window.open` is blocked AND the in-place navigation fails, surface a red error toast with the exact URL + a copyable link so the user can always reach checkout manually.
+- Keep the success-screen advancement (`setStep(14)`), but trigger it immediately after the navigation kicks off (no extra delay).
 
+**`supabase/functions/shopify-create-checkout/index.ts`**
+- Already builds a working `https://fek120-t9.myshopify.com/cart/{id}:{qty}?channel=online_store` URL on 402/403. Keep, but also append `&attributes[order_source]=torahtale_app` so we can attribute orders later.
+- Log the upstream Shopify error body when status >= 400 so we can debug the 402 from edge logs.
+
+### 2. Reduce friction end-to-end
+
+- **Collapse Step 9's post-animation "Continue to book" screen.** When the generation animation finishes, auto-advance straight to Step 10 (Book Options) after a brief 1.5s "Your sefer is ready ✓" beat (no extra button click). The email-confirmation copy moves into the success screen instead.
+- **Auto-advance the plan step once chosen.** On Step 12, tapping a plan card animates a 600ms "selected" state and advances to Step 13 automatically. The "Skip subscription" link becomes a clearly labeled secondary button: "Continue without subscribing →".
+- **Combine plan + summary visually** (still two steps internally for mobile clarity) but the summary step shows a small "Plan: Monthly · change" link in the header instead of forcing back-navigation.
+- Pre-fill shipping name/email from the authenticated user profile when available (Step 11) so users don't retype.
+
+### 3. Mobile polish
+
+- Add `pb-[120px]` (instead of `pb-32`) to the inner step content wrapper so the sticky CTA never covers the primary input/button on small viewports.
+- Increase tap targets in plan-selection cards to min-height 92px on `<sm`.
+- Ensure all primary CTAs render `min-h-12` on mobile (currently mixed `h-11`/`h-12`).
+- Hide the "Start over" text on viewports < 380px (icon stays).
+
+### 4. Order confirmation + return path
+
+- After `setStep(14)` (SuccessStep), already clears `torahtale_wizard_state`. Confirm SuccessStep CTA goes to `/dashboard` (it does). Add a small "View your order" external link to the Shopify order URL stored in `localStorage.torahtale_pending_order`.
+
+---
+
+## Files to edit
+
+- `src/components/CreationWizard.tsx` — synchronous popup, drop 400ms delay, collapse step-9 confirmation, auto-advance plan step, mobile padding.
+- `src/components/wizard/CheckoutStep.tsx` — auto-advance on plan select (via new `onSelectAndContinue` callback), prominent "Continue without subscribing" button, "change plan" link in summary header.
+- `src/components/wizard/SuccessStep.tsx` — add "View your Shopify order" link if pending_order URL is stored.
+- `src/lib/shopify.ts` — return `checkoutUrl` even when `fallback: true` without warning toast noise.
+- `supabase/functions/shopify-create-checkout/index.ts` — append source attribute, log upstream error body.
+
+No DB migrations, no new secrets needed for the fixes above.
+
+---
+
+## What I need from you (Shopify side) — optional, not blocking
+
+These would make the experience even better, but the fixes above will work without them. Let me know which (if any) you want to tackle:
+
+1. **Reactivate the Shopify Storefront API access / billing.** The edge function currently gets HTTP `402` from Shopify, which is why we fall back to `/cart/{variant}:qty`. Fixing this will let us create proper Cart objects, attach line-item properties (child name, parsha, art style), and attribute orders to specific users.
+2. **Confirm the 7 variant IDs** in `src/lib/shopify.ts` (`SHOPIFY_VARIANT_IDS`) are still live and not archived — a wrong/archived variant is the other common cause of a "broken" checkout link.
+3. **Webhook for `orders/paid`** so the app can flip the matching `books` row from `ordered` → `paid` and trigger Printify. (We already have a `printify-submit` function and a `printify-webhook`; tying them to Shopify order paid events would close the loop.)
+
+If you want me to do any of those, just say the word and I'll wire it up.
+
+---
+
+## Out of scope (not changing)
+
+- Visual/copy changes to existing wizard steps 1–8 (already polished).
+- New languages.
+- Gallery / dashboard layout.

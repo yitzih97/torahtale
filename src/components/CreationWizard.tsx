@@ -604,19 +604,28 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     const orderNumber = `TT-${Date.now().toString().slice(-6)}`;
     const { createShopifyCart, SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
 
-    const openCheckout = (url: string) => {
-      const popup = window.open(url, "_blank", "noopener,noreferrer");
-      if (!popup) {
-        window.location.assign(url);
-      }
+    // CRITICAL: open the popup synchronously while we still have the user-gesture
+    // context. We point it at about:blank now and redirect it once we have the
+    // real checkout URL. Without this, Safari/iOS and most popup blockers will
+    // silently swallow the window and the button looks "broken".
+    const popup = window.open("about:blank", "_blank", "noopener,noreferrer");
+
+    const sendToCheckout = (url: string) => {
+      try {
+        if (popup && !popup.closed) {
+          popup.location.href = url;
+          return true;
+        }
+      } catch { /* cross-origin write fails are caught below */ }
+      // No popup or write blocked — navigate the current tab instead.
+      window.location.assign(url);
+      return false;
     };
 
-    // Advance to the success screen immediately so the user sees confirmation
-    // even if the Shopify tab opens in the background.
+    // Advance to the success screen so the user sees confirmation immediately.
     const goToSuccess = () => {
       setDir(1);
       setStep(14);
-      // Clear persisted wizard so re-entering /create starts fresh
       try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
     };
 
@@ -647,23 +656,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     const fallbackCheckoutUrl = `https://fek120-t9.myshopify.com/cart/${variantNumericId}:1?channel=online_store`;
 
     try {
-      if (!savedBookId) {
-        toast.message("Book record not ready yet.", {
-          description: "Opening checkout anyway.",
-        });
-      }
-
       if (user && savedBookId) {
-        const { error: bookUpdateError } = await supabase.from("books").update({
+        // Best-effort metadata writes — don't block checkout on these.
+        supabase.from("books").update({
           status: "ordered",
           shipping_data: shipping,
           order_number: orderNumber,
           updated_at: new Date().toISOString(),
-        } as any).eq("id", savedBookId);
-
-        if (bookUpdateError) {
-          console.error("Failed updating book before checkout:", bookUpdateError);
-        }
+        } as any).eq("id", savedBookId).then(({ error }) => {
+          if (error) console.error("Failed updating book before checkout:", error);
+        });
 
         if (isSubscription) {
           const freqMap: Record<string, { frequency: string; price: number }> = {
@@ -672,7 +674,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             yearly: { frequency: "yearly", price: 15.38 },
           };
           const plan = freqMap[planType] || freqMap.weekly;
-          const { error: subscriptionError } = await supabase.from("subscriptions").insert({
+          supabase.from("subscriptions").insert({
             user_id: user.id,
             child_name: childNames,
             child_id: data.children[0]?.id || null,
@@ -682,65 +684,74 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             status: "active",
             frequency: plan.frequency,
             price_per_week: plan.price,
+          }).then(({ error }) => {
+            if (error) console.error("Failed saving subscription before checkout:", error);
           });
-
-          if (subscriptionError) {
-            console.error("Failed saving subscription before checkout:", subscriptionError);
-          }
         }
       }
 
-      localStorage.setItem("torahtale_pending_order", JSON.stringify({
-        bookId: savedBookId,
-        orderNumber,
-        planType,
-      }));
+      try {
+        localStorage.setItem("torahtale_pending_order", JSON.stringify({
+          bookId: savedBookId,
+          orderNumber,
+          planType,
+          checkoutUrl: fallbackCheckoutUrl,
+          createdAt: Date.now(),
+        }));
+      } catch { /* ignore quota */ }
 
-      const cart = await createShopifyCart({
-        lineId: null,
-        product: {} as any,
-        variantId,
-        variantTitle: isSubscription ? `${planType} subscription` : "Book",
-        price: { amount: "0", currencyCode: "USD" },
-        quantity: 1,
-        selectedOptions: [],
+      // Try to create a proper Shopify cart; fall through to the direct
+      // /cart/{variant}:1 URL on any failure so the user always lands on Shopify.
+      let finalUrl = fallbackCheckoutUrl;
+      try {
+        const cart = await createShopifyCart({
+          lineId: null,
+          product: {} as any,
+          variantId,
+          variantTitle: isSubscription ? `${planType} subscription` : "Book",
+          price: { amount: "0", currencyCode: "USD" },
+          quantity: 1,
+          selectedOptions: [],
+        });
+        if (cart?.checkoutUrl) finalUrl = cart.checkoutUrl;
+      } catch (cartErr) {
+        console.error("createShopifyCart threw, using fallback URL:", cartErr);
+      }
+
+      // Update the stored URL with whichever is final.
+      try {
+        const stored = JSON.parse(localStorage.getItem("torahtale_pending_order") || "{}");
+        localStorage.setItem("torahtale_pending_order", JSON.stringify({ ...stored, checkoutUrl: finalUrl }));
+      } catch { /* ignore */ }
+
+      const opened = sendToCheckout(finalUrl);
+
+      toast.success(t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…", {
+        description: finalUrl,
+        duration: 10000,
+        action: {
+          label: t.checkout.openCheckout || "Open checkout",
+          onClick: () => window.open(finalUrl, "_blank", "noopener,noreferrer"),
+        },
       });
 
-      const finalUrl = cart?.checkoutUrl || fallbackCheckoutUrl;
-
-      toast.success(
-        cart?.checkoutUrl
-          ? (t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…")
-          : (t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…"),
-        {
-          description: finalUrl,
-          duration: 12000,
-          action: {
-            label: t.checkout.openCheckout || "Open checkout",
-            onClick: () => openCheckout(finalUrl),
-          },
-        }
-      );
-
-      setTimeout(() => {
-        openCheckout(finalUrl);
-        goToSuccess();
-      }, 400);
+      // Show success page right away. If the popup was blocked we already
+      // navigated the current tab via sendToCheckout, so this only runs in
+      // the popup case.
+      if (opened) goToSuccess();
     } catch (err) {
       console.error("Failed to place order:", err);
       const errMsg = err instanceof Error ? err.message : String(err);
-      toast.error(errMsg || (t.checkout.checkoutFallback || "Opening Shopify cart (fallback)…"), {
+      toast.error(errMsg || "Checkout error", {
         description: fallbackCheckoutUrl,
         duration: 14000,
         action: {
           label: t.checkout.openCheckout || "Open checkout",
-          onClick: () => openCheckout(fallbackCheckoutUrl),
+          onClick: () => window.open(fallbackCheckoutUrl, "_blank", "noopener,noreferrer"),
         },
       });
-      setTimeout(() => {
-        openCheckout(fallbackCheckoutUrl);
-        goToSuccess();
-      }, 400);
+      const opened = sendToCheckout(fallbackCheckoutUrl);
+      if (opened) goToSuccess();
     }
   };
 
@@ -889,7 +900,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
       {/* ── Main content area — Apple/Tesla generous spacing ── */}
       <div className="flex-1 w-full">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 sm:py-12 pb-32">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 sm:py-12 pb-[140px] sm:pb-32">
           <h1 className="sr-only">{t.wizard.createYourBook}</h1>
 
         <div>
@@ -2012,47 +2023,26 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 )}
 
                 {animDone && (
-                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(10); }} delayMs={5000}>
+                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(10); }} delayMs={1500}>
                     {(progress) => (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="text-center space-y-6"
+                        transition={{ duration: 0.4, ease: "easeOut" }}
+                        className="text-center space-y-5"
                       >
-                        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto">
-                          <Mail className="w-10 h-10 text-accent" />
-                        </div>
-                        <div>
-                          <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
-                          <p className="text-muted-foreground text-sm mt-3 max-w-sm mx-auto leading-relaxed">
-                            {t.wizard.emailPreviewMsg(childNames)}
-                          </p>
-                        </div>
-
-                        <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-4 sm:p-5 max-w-sm mx-auto space-y-2">
-                          <div className="flex items-center gap-3 justify-center">
-                            <BookOpen className="w-5 h-5 text-accent" />
-                            <div className="text-start">
-                              <p className="text-sm font-semibold text-foreground">{t.wizard.torahAdventure(childNames)}</p>
-                              <p className="text-xs text-muted-foreground">{getPortionLabel(data.torahPortion)} · {data.artStyle === "3d-pixar" ? "3D Pixar" : data.artStyle === "realistic" ? "Realistic" : "Cartoon"}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => { setDir(1); setStep(10); }}
-                          className="relative inline-flex items-center justify-center gap-2 rounded-full h-12 sm:h-13 px-8 sm:px-10 font-semibold text-accent-foreground overflow-hidden cursor-pointer border-0 shadow-lg shadow-accent/20"
-                          style={{ background: 'hsl(var(--accent))' }}
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 220, damping: 15 }}
+                          className="w-20 h-20 rounded-3xl bg-gradient-to-br from-accent/25 to-accent/5 flex items-center justify-center mx-auto"
                         >
-                          <span
-                            className="absolute inset-0 bg-black/15 origin-left transition-none"
-                            style={{ transform: `scaleX(${progress})` }}
-                          />
-                          <span className="relative z-10 flex items-center gap-2 text-sm">
-                            {t.wizard.continueToBook} <ArrowRight className="w-4 h-4" />
-                          </span>
-                        </button>
+                          <CheckCircle2 className="w-10 h-10 text-accent" />
+                        </motion.div>
+                        <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
+                        <div className="max-w-xs mx-auto h-1 bg-muted/30 rounded-full overflow-hidden">
+                          <div className="h-full bg-accent" style={{ width: `${progress * 100}%` }} />
+                        </div>
                       </motion.div>
                     )}
                   </AutoAdvanceStep>

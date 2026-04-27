@@ -83,12 +83,12 @@ serve(async (req) => {
     const text = await shopifyRes.text();
     if (!shopifyRes.ok) {
       console.error("Shopify HTTP error:", shopifyRes.status, text);
-      // Build a direct-to-store fallback checkout URL so the user is never
-      // stuck on "Place Order" when Shopify API access is unavailable
-      // (e.g. 402 = store billing plan inactive, 403 = token scope issue).
+      // Build a direct-to-store cart URL — this is a real, working Shopify
+      // checkout entry point and will succeed even when the Storefront API
+      // is unavailable (e.g. 402 = store billing plan inactive).
       const fallbackUrl = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/cart/${cleanLines
         .map((l: any) => `${l.merchandiseId.split("/").pop()}:${l.quantity}`)
-        .join(",")}?channel=online_store`;
+        .join(",")}?channel=online_store&attributes[order_source]=torahtale_app`;
       return new Response(
         JSON.stringify({
           error: `Shopify error [${shopifyRes.status}]`,
