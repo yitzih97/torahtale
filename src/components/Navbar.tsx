@@ -20,6 +20,18 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   const { lang, setLang, t, dir } = useLanguage();
   const { getSetting } = useSiteSettings("website");
   const { getAssetUrl } = useSiteAssets();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleSectionLink = (sectionId: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMobileOpen(false);
+    if (location.pathname === "/") {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      navigate(`/#${sectionId}`);
+    }
+  };
 
   const brandName = getSetting("website", "brand-name", "Torah Tale");
   const logoUrl = getAssetUrl("logo", "");
@@ -35,7 +47,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   const navLinks = [
     { label: t.nav.home, href: "/" },
     { label: t.nav.about, href: "/about" },
-    { label: t.nav.testimonials, href: "#testimonials" },
+    { label: t.nav.testimonials, href: "/#testimonials", section: "testimonials" },
     { label: t.nav.contact, href: "/contact" },
   ];
 
