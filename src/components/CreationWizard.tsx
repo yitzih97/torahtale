@@ -2047,6 +2047,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     )}
                   </AutoAdvanceStep>
                 )}
+              </motion.div>
+            )}
 
             {/* ── STEP 10: Book Options ── */}
             {step === 10 && (
