@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { BookOpen, LogOut, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -19,6 +20,18 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   const { lang, setLang, t, dir } = useLanguage();
   const { getSetting } = useSiteSettings("website");
   const { getAssetUrl } = useSiteAssets();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleSectionLink = (sectionId: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMobileOpen(false);
+    if (location.pathname === "/") {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      navigate(`/#${sectionId}`);
+    }
+  };
 
   const brandName = getSetting("website", "brand-name", "Torah Tale");
   const logoUrl = getAssetUrl("logo", "");
@@ -34,7 +47,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   const navLinks = [
     { label: t.nav.home, href: "/" },
     { label: t.nav.about, href: "/about" },
-    { label: t.nav.testimonials, href: "#testimonials" },
+    { label: t.nav.testimonials, href: "/#testimonials", section: "testimonials" },
     { label: t.nav.contact, href: "/contact" },
   ];
 
@@ -58,7 +71,14 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
 
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className={`text-sm font-medium transition-colors duration-500 ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>{link.label}</a>
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={link.section ? handleSectionLink(link.section) : undefined}
+              className={`text-sm font-medium transition-colors duration-500 ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}
+            >
+              {link.label}
+            </a>
           ))}
         </div>
 
@@ -111,7 +131,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
               <a
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileOpen(false)}
+                onClick={link.section ? handleSectionLink(link.section) : () => setMobileOpen(false)}
                 className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border"
               >
                 {link.label}
