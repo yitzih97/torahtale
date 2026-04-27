@@ -900,7 +900,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
       {/* ── Main content area — Apple/Tesla generous spacing ── */}
       <div className="flex-1 w-full">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 sm:py-12 pb-32">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 sm:py-12 pb-[140px] sm:pb-32">
           <h1 className="sr-only">{t.wizard.createYourBook}</h1>
 
         <div>
