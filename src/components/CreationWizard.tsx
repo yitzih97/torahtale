@@ -2023,53 +2023,30 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 )}
 
                 {animDone && (
-                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(10); }} delayMs={5000}>
+                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(10); }} delayMs={1500}>
                     {(progress) => (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="text-center space-y-6"
+                        transition={{ duration: 0.4, ease: "easeOut" }}
+                        className="text-center space-y-5"
                       >
-                        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto">
-                          <Mail className="w-10 h-10 text-accent" />
-                        </div>
-                        <div>
-                          <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
-                          <p className="text-muted-foreground text-sm mt-3 max-w-sm mx-auto leading-relaxed">
-                            {t.wizard.emailPreviewMsg(childNames)}
-                          </p>
-                        </div>
-
-                        <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-4 sm:p-5 max-w-sm mx-auto space-y-2">
-                          <div className="flex items-center gap-3 justify-center">
-                            <BookOpen className="w-5 h-5 text-accent" />
-                            <div className="text-start">
-                              <p className="text-sm font-semibold text-foreground">{t.wizard.torahAdventure(childNames)}</p>
-                              <p className="text-xs text-muted-foreground">{getPortionLabel(data.torahPortion)} · {data.artStyle === "3d-pixar" ? "3D Pixar" : data.artStyle === "realistic" ? "Realistic" : "Cartoon"}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => { setDir(1); setStep(10); }}
-                          className="relative inline-flex items-center justify-center gap-2 rounded-full h-12 sm:h-13 px-8 sm:px-10 font-semibold text-accent-foreground overflow-hidden cursor-pointer border-0 shadow-lg shadow-accent/20"
-                          style={{ background: 'hsl(var(--accent))' }}
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 220, damping: 15 }}
+                          className="w-20 h-20 rounded-3xl bg-gradient-to-br from-accent/25 to-accent/5 flex items-center justify-center mx-auto"
                         >
-                          <span
-                            className="absolute inset-0 bg-black/15 origin-left transition-none"
-                            style={{ transform: `scaleX(${progress})` }}
-                          />
-                          <span className="relative z-10 flex items-center gap-2 text-sm">
-                            {t.wizard.continueToBook} <ArrowRight className="w-4 h-4" />
-                          </span>
-                        </button>
+                          <CheckCircle2 className="w-10 h-10 text-accent" />
+                        </motion.div>
+                        <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
+                        <div className="max-w-xs mx-auto h-1 bg-muted/30 rounded-full overflow-hidden">
+                          <div className="h-full bg-accent" style={{ width: `${progress * 100}%` }} />
+                        </div>
                       </motion.div>
                     )}
                   </AutoAdvanceStep>
                 )}
-              </motion.div>
-            )}
 
             {/* ── STEP 10: Book Options ── */}
             {step === 10 && (
