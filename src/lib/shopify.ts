@@ -175,10 +175,9 @@ export async function createShopifyCart(item: CartItem): Promise<{ cartId: strin
       return null;
     }
 
+    // Both API-created and fallback cart URLs are valid Shopify checkout entry points.
     if (data.fallback) {
-      // Shopify Storefront API is unavailable (e.g. store billing plan inactive).
-      // We still got a direct cart URL so the user can complete checkout on Shopify.
-      console.warn("Shopify API unavailable, using direct cart fallback:", data.error);
+      console.info("Shopify direct-cart URL in use:", data.error);
     }
 
     return {
@@ -188,7 +187,6 @@ export async function createShopifyCart(item: CartItem): Promise<{ cartId: strin
     };
   } catch (err) {
     console.error("createShopifyCart failed:", err);
-    toast.error("Could not start checkout. Please try again.");
     return null;
   }
 }
