@@ -165,13 +165,11 @@ export async function createShopifyCart(item: CartItem): Promise<{ cartId: strin
 
     if (error) {
       console.error("shopify-create-checkout invoke error:", error);
-      toast.error("Could not start checkout. Please try again.");
       return null;
     }
 
     if (!data?.checkoutUrl) {
       console.error("shopify-create-checkout returned no checkoutUrl:", data);
-      toast.error(data?.error || "Could not start checkout. Please try again.");
       return null;
     }
 
