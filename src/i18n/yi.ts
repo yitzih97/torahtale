@@ -244,7 +244,7 @@ export const yi: typeof en = {
     startOver: "הויבט נאכאמאל אן",
     resetWizard: "צוריקשטעל אסיסטענט",
     resetConfirm: "זיכער צוריקשטעלן דעם אסיסטענט און הויבן פון אנהויב? דיין פראגרעס וועט זיין אויסגעמעקט.",
-    whatsHeroName: "?מה שם הגיבור שלכם",
+    whatsHeroName: "?וואָס איז דעם קינד'ס נאָמען",
     orEnterNewName: "או הזינו שם חדש",
     enterChildName: "הזינו שם הילד",
     child: "ילד",

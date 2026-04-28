@@ -242,7 +242,7 @@ export const en = {
     startOver: "Start over",
     resetWizard: "Reset wizard",
     resetConfirm: "Reset the wizard and start over from the beginning? Your progress on this book will be cleared.",
-    whatsHeroName: "What's your hero's name?",
+    whatsHeroName: "What's your child's name?",
     orEnterNewName: "or enter a new name",
     enterChildName: "Enter child's name",
     child: "Child",
