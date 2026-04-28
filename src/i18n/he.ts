@@ -244,7 +244,7 @@ export const he: typeof en = {
     startOver: "התחל מחדש",
     resetWizard: "אפס אשף",
     resetConfirm: "לאפס את האשף ולהתחיל מחדש מההתחלה? ההתקדמות בספר הזה תימחק.",
-    whatsHeroName: "?מה שם הגיבור שלכם",
+    whatsHeroName: "?מה שם הילד שלכם",
     orEnterNewName: "או הזינו שם חדש",
     enterChildName: "הזינו שם הילד",
     child: "ילד",
