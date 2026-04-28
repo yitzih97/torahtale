@@ -631,7 +631,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     // Advance to the success screen so the user sees confirmation immediately.
     const goToSuccess = () => {
       setDir(1);
-      setStep(16);
+      setStep(14);
       try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
     };
 
