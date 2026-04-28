@@ -2229,7 +2229,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
             {/* ── STEP 12: Choose Plan ── */}
             {step === 12 && (
-              <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
+              <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-4">
+                <div className="max-w-md mx-auto rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm p-4 flex items-center justify-center gap-4 text-xs sm:text-sm">
+                  <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepBooksPerMonth}</span>
+                  <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepCancelAnytime}</span>
+                </div>
                 <CheckoutStep
                   mode="plan"
                   childName={childNames}
