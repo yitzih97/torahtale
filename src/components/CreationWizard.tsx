@@ -330,16 +330,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         const parsed = JSON.parse(saved);
         // Don't restore terminal/transient steps (success or generation animation)
-        const restoredStep = parsed.step && parsed.step < 14 ? parsed.step : 1;
+        const restoredStep = parsed.step && parsed.step < 16 ? parsed.step : 1;
         setStep(restoredStep);
         const restoredData = parsed.data || initialData;
-        // Default book language to UI language if not yet customized
         if (!restoredData.language || restoredData.language === "english") {
           restoredData.language = defaultLanguage;
         }
         setData(restoredData);
         setShipping(parsed.shipping || DEFAULT_SHIPPING);
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
+        if (typeof parsed.quantity === "number" && parsed.quantity >= 1) setQuantity(parsed.quantity);
         if (parsed.portionFilter) setPortionFilter(parsed.portionFilter);
 
         // Restore to the active section anchor. Stagger the attempts to win
