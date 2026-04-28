@@ -953,6 +953,144 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
           <div className="space-y-0">
 
+            {/* ── STEP 0: Plan-Type Choice ── */}
+            {step === 0 && (
+              <section
+                id={stepIdFor(0)}
+                ref={setStepRef(0)}
+                className={sectionClass(0)}
+              >
+                <motion.div
+                  key="s0"
+                  custom={dir}
+                  variants={{ ...stepVariants, ...staggerContainer }}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={springTransition}
+                  className="space-y-7 max-w-3xl mx-auto w-full"
+                >
+                  <motion.div variants={staggerChild} className="text-center">
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ ...springTransition, delay: 0.1 }}
+                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4"
+                    >
+                      <Sparkles className="w-7 h-7 text-accent" />
+                    </motion.div>
+                    <h2 className="font-display text-2xl sm:text-4xl font-bold text-foreground">
+                      {t.wizard.planChoiceTitle}
+                    </h2>
+                  </motion.div>
+
+                  <div className="grid md:grid-cols-2 gap-4 sm:gap-5">
+                    {/* Card 1 — Subscription (default) */}
+                    <motion.button
+                      variants={staggerChild}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setPlanType("subscription");
+                        setSelectedPlan("monthly");
+                        setDir(1);
+                        setStep(1);
+                      }}
+                      className={`relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md overflow-hidden ${
+                        planType === "subscription"
+                          ? "border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-transparent shadow-2xl shadow-accent/15 ring-1 ring-accent/30"
+                          : "border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
+                      }`}
+                    >
+                      {planType === "subscription" && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                          className="absolute top-4 end-4 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
+                        >
+                          <Check className="w-4 h-4 text-accent-foreground" />
+                        </motion.div>
+                      )}
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center mb-4">
+                        <BookOpen className="w-6 h-6 text-accent" />
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                        {t.wizard.planChoiceSubscriptionTitle}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1.5">
+                        {t.wizard.planChoiceSubscriptionSubtitle}
+                      </p>
+                      <ul className="space-y-2 mt-5">
+                        {t.wizard.planChoiceSubscriptionBullets.map((b, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
+                            <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+                            <span>{b}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 text-accent-foreground"
+                        style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
+                      >
+                        {t.wizard.planChoiceSubscriptionCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                      </div>
+                      <p className="text-[11px] text-accent/80 font-medium mt-3 flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3" /> {t.wizard.planChoiceSubscriptionMicro}
+                      </p>
+                    </motion.button>
+
+                    {/* Card 2 — Single book (secondary) */}
+                    <motion.button
+                      variants={staggerChild}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setPlanType("single");
+                        setSelectedPlan("once");
+                        setDir(1);
+                        setStep(1);
+                      }}
+                      className={`relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md ${
+                        planType === "single"
+                          ? "border-accent bg-accent/5 shadow-xl ring-1 ring-accent/20"
+                          : "border-border/40 bg-card/40 hover:border-accent/30 hover:shadow-md"
+                      }`}
+                    >
+                      {planType === "single" && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                          className="absolute top-4 end-4 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
+                        >
+                          <Check className="w-4 h-4 text-accent-foreground" />
+                        </motion.div>
+                      )}
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/20 flex items-center justify-center mb-4">
+                        <BookOpenCheck className="w-6 h-6 text-foreground/70" />
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                        {t.wizard.planChoiceSingleTitle}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1.5">
+                        {t.wizard.planChoiceSingleSubtitle}
+                      </p>
+                      <ul className="space-y-2 mt-5">
+                        {t.wizard.planChoiceSingleBullets.map((b, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
+                            <Check className="w-4 h-4 text-foreground/50 flex-shrink-0 mt-0.5" />
+                            <span>{b}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm border-2 border-border text-foreground hover:border-accent/50 transition-colors">
+                        {t.wizard.planChoiceSingleCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                      </div>
+                    </motion.button>
+                  </div>
+                </motion.div>
+              </section>
+            )}
 
             {/* ── STEP 1: Name ── */}
             {step === 1 && (
