@@ -631,7 +631,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     // Advance to the success screen so the user sees confirmation immediately.
     const goToSuccess = () => {
       setDir(1);
-      setStep(16);
+      setStep(14);
       try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
     };
 
@@ -667,7 +667,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         supabase.from("books").update({
           status: "ordered",
           shipping_data: shipping,
-          order_number: orderNumber,
+          order_number: orderNum,
           updated_at: new Date().toISOString(),
         } as any).eq("id", savedBookId).then(({ error }) => {
           if (error) console.error("Failed updating book before checkout:", error);
@@ -680,10 +680,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             yearly: { frequency: "yearly", price: 15.38 },
           };
           const plan = freqMap[planType] || freqMap.weekly;
+          // child_id intentionally null — `data.children[0].id` is a client-side
+          // UUID, not a row in the `children` table, so passing it would
+          // violate the FK constraint.
           supabase.from("subscriptions").insert({
             user_id: user.id,
             child_name: childNames,
-            child_id: data.children[0]?.id || null,
+            child_id: null,
             art_style: data.artStyle,
             language: data.language,
             shipping_data: shipping as any,
@@ -699,7 +702,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         localStorage.setItem("torahtale_pending_order", JSON.stringify({
           bookId: savedBookId,
-          orderNumber,
+          orderNumber: orderNum,
           planType,
           checkoutUrl: fallbackCheckoutUrl,
           createdAt: Date.now(),
@@ -2107,7 +2110,21 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 14: Success ── */}
             {step === 14 && (
               <motion.div key="s14" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <SuccessStep childName={childNames} onGoToDashboard={() => { localStorage.removeItem("torahtale_wizard_state"); onClose?.(); navigate("/dashboard"); }} />
+                <SuccessStep
+                  childName={childNames}
+                  orderNumber={orderNumber}
+                  onGoToDashboard={() => {
+                    localStorage.removeItem("torahtale_wizard_state");
+                    localStorage.removeItem("torahtale_pending_order");
+                    onClose?.();
+                    navigate("/dashboard");
+                  }}
+                  onCreateAnother={() => {
+                    localStorage.removeItem("torahtale_wizard_state");
+                    localStorage.removeItem("torahtale_pending_order");
+                    resetWizard();
+                  }}
+                />
               </motion.div>
             )}
 
