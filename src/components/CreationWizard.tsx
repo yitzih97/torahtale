@@ -18,6 +18,8 @@ import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
+import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
+import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, getUpcomingParsha, type TorahOption } from "./wizard/TorahPortions";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -149,7 +151,7 @@ const ageToBracketLabel = (age: string): string => {
 
 /* ───────────────── constants ───────────────── */
 
-const TOTAL_STEPS = 14;
+const TOTAL_STEPS = 16;
 
 /* New spring-based transition variants */
 const stepVariants = {
@@ -234,6 +236,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [portionMode, setPortionMode] = useState<"choose" | "manual" | null>(null);
   const [styleSubStep, setStyleSubStep] = useState<"art" | "format">("art");
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
+  const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState<number>(1);
   const [selectedPlan, setSelectedPlan] = useState<"weekly" | "monthly" | "yearly" | "once">("monthly");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -310,12 +314,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       shipping,
       bookOptions,
       portionFilter,
+      quantity,
       activeSectionId: `wizard-step-${step}`,
     };
     try {
       localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
     } catch { /* ignore quota */ }
-  }, [step, data, shipping, bookOptions, portionFilter]);
+  }, [step, data, shipping, bookOptions, portionFilter, quantity]);
 
   // Restore wizard state on mount (whether logged in or not)
   useEffect(() => {
@@ -325,16 +330,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         const parsed = JSON.parse(saved);
         // Don't restore terminal/transient steps (success or generation animation)
-        const restoredStep = parsed.step && parsed.step < 14 ? parsed.step : 1;
+        const restoredStep = parsed.step && parsed.step < 16 ? parsed.step : 1;
         setStep(restoredStep);
         const restoredData = parsed.data || initialData;
-        // Default book language to UI language if not yet customized
         if (!restoredData.language || restoredData.language === "english") {
           restoredData.language = defaultLanguage;
         }
         setData(restoredData);
         setShipping(parsed.shipping || DEFAULT_SHIPPING);
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
+        if (typeof parsed.quantity === "number" && parsed.quantity >= 1) setQuantity(parsed.quantity);
         if (parsed.portionFilter) setPortionFilter(parsed.portionFilter);
 
         // Restore to the active section anchor. Stagger the attempts to win
@@ -601,7 +606,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   const handlePlaceOrder = async (planType: string = "once") => {
     const isSubscription = planType !== "once";
-    const orderNumber = `TT-${Date.now().toString().slice(-6)}`;
+    const orderNum = `TT-${Date.now().toString().slice(-6)}`;
+    setOrderNumber(orderNum);
     const { createShopifyCart, SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
 
     // CRITICAL: open the popup synchronously while we still have the user-gesture
@@ -625,7 +631,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     // Advance to the success screen so the user sees confirmation immediately.
     const goToSuccess = () => {
       setDir(1);
-      setStep(14);
+      setStep(16);
       try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
     };
 

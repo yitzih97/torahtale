@@ -42,6 +42,9 @@ interface Props {
   mode?: "plan" | "summary";
   selectedPlan?: PlanType;
   onSelectPlan?: (plan: PlanType) => void;
+  quantity?: number;
+  /** 0, 0.10 or 0.15 */
+  volumeDiscount?: number;
 }
 
 export const CheckoutStep = ({
@@ -54,6 +57,8 @@ export const CheckoutStep = ({
   mode = "summary",
   selectedPlan: selectedPlanProp,
   onSelectPlan,
+  quantity = 1,
+  volumeDiscount = 0,
 }: Props) => {
   const [selectedPlanLocal, setSelectedPlanLocal] = useState<PlanType>("monthly");
   const selectedPlan = selectedPlanProp ?? selectedPlanLocal;
@@ -68,7 +73,10 @@ export const CheckoutStep = ({
   const isIls = code === "ILS";
   const fmt = (amount: number) => `${symbol}${amount.toFixed(2)}`;
 
-  const bookPrice = calculateBookPriceForCurrency(bookOptions, code);
+  const unitBookPrice = calculateBookPriceForCurrency(bookOptions, code);
+  const bookPrice = unitBookPrice * quantity;
+  const discountAmount = bookPrice * volumeDiscount;
+  const bookPriceAfterDiscount = bookPrice - discountAmount;
   const shippingCost = isIls
     ? (shipping.shippingMethod === "express" ? 35 : 0)
     : (shipping.shippingMethod === "express" ? 9.99 : 0);
@@ -80,7 +88,7 @@ export const CheckoutStep = ({
 
   const total = isSubscription
     ? (activePlan?.priceUsd ?? 0) + shippingCost
-    : bookPrice + shippingCost;
+    : bookPriceAfterDiscount + shippingCost;
 
   const periodLabel = (id: string) =>
     id === "yearly" ? (t.currency.code === "ILS" ? "שנה" : "yr")
@@ -110,13 +118,15 @@ export const CheckoutStep = ({
     }
   };
 
-  /* ── Plan selection screen (step 12) ── */
+  /* ── Plan selection screen (Membership) ── */
   if (mode === "plan") {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="font-display text-2xl font-bold text-primary">{t.checkout.choosePlan}</h2>
-          <p className="text-muted-foreground text-sm mt-1">
+        <div className="text-center">
+          <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary">
+            {t.checkout.choosePlan}
+          </h2>
+          <p className="text-muted-foreground text-sm mt-1.5 max-w-md mx-auto">
             {t.checkout.subscribeMsg(childName)}
           </p>
         </div>
@@ -193,11 +203,19 @@ export const CheckoutStep = ({
         <h3 className="font-display text-lg font-semibold text-primary">{t.checkout.orderSummary}</h3>
         <div className="space-y-2.5 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">{t.checkout.bookFor(childName)}</span>
+            <span className="text-muted-foreground">
+              {t.checkout.bookFor(childName)}{quantity > 1 ? ` × ${quantity}` : ""}
+            </span>
             <span className="font-medium text-primary">
               {isSubscription ? t.checkout.included : fmt(bookPrice)}
             </span>
           </div>
+          {!isSubscription && volumeDiscount > 0 && (
+            <div className="flex justify-between text-accent">
+              <span>− {Math.round(volumeDiscount * 100)}% volume discount</span>
+              <span className="font-medium">−{fmt(discountAmount)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t.wizard.story}</span>
             <span className="font-medium text-primary">{getPortionLabel(torahPortion)}</span>
