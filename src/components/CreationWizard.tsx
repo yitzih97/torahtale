@@ -366,7 +366,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   // Persist on every meaningful change
   useEffect(() => {
-    if (step > 1 || data.children.some(c => c.name || c.age || c.gender)) {
+    if (step > 0 || data.children.some(c => c.name || c.age || c.gender)) {
       saveWizardState();
     }
   }, [saveWizardState, step, data]);
