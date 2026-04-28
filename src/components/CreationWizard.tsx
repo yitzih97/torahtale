@@ -314,6 +314,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       shipping,
       bookOptions,
       portionFilter,
+      quantity,
       activeSectionId: `wizard-step-${step}`,
     };
     try {
