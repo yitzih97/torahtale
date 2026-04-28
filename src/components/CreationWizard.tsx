@@ -224,7 +224,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     { icon: Sparkles, text: t.wizard.finishing, duration: 3000 },
     { icon: CheckCircle2, text: t.wizard.almostReady, duration: 1000 },
   ];
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
+  const [planType, setPlanType] = useState<"subscription" | "single">("subscription");
   const [dir, setDir] = useState(1);
   const [data, setData] = useState<WizardData>(initialData);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
@@ -307,6 +308,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const saveWizardState = useCallback(() => {
     const serializable = {
       step,
+      planType,
       data: {
         ...data,
         children: data.children.map(c => ({ ...c, photo: null })), // can't serialize File
@@ -320,7 +322,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     try {
       localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
     } catch { /* ignore quota */ }
-  }, [step, data, shipping, bookOptions, portionFilter, quantity]);
+  }, [step, planType, data, shipping, bookOptions, portionFilter, quantity]);
 
   // Restore wizard state on mount (whether logged in or not)
   useEffect(() => {
@@ -330,8 +332,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         const parsed = JSON.parse(saved);
         // Don't restore terminal/transient steps (success or generation animation)
-        const restoredStep = parsed.step && parsed.step < 16 ? parsed.step : 1;
+        const restoredStep = typeof parsed.step === "number" && parsed.step < 16 ? parsed.step : 0;
         setStep(restoredStep);
+        if (parsed.planType === "single" || parsed.planType === "subscription") {
+          setPlanType(parsed.planType);
+        }
         const restoredData = parsed.data || initialData;
         if (!restoredData.language || restoredData.language === "english") {
           restoredData.language = defaultLanguage;
@@ -361,7 +366,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   // Persist on every meaningful change
   useEffect(() => {
-    if (step > 1 || data.children.some(c => c.name || c.age || c.gender)) {
+    if (step > 0 || data.children.some(c => c.name || c.age || c.gender)) {
       saveWizardState();
     }
   }, [saveWizardState, step, data]);
@@ -567,6 +572,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
       nextStep = 6;
     }
+    // Skip plan-chooser (step 12) for single-book buyers — they go straight to summary.
+    if (step === 11 && planType === "single") {
+      setSelectedPlan("once");
+      nextStep = 13;
+    }
     setStep(Math.min(nextStep, TOTAL_STEPS));
   };
 
@@ -585,7 +595,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (allChildrenHaveGenderAge()) {
       if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
     }
-    setStep(Math.max(prevStep, 1));
+    if (step === 13 && planType === "single") prevStep = 11;
+    setStep(Math.max(prevStep, 0));
   };
 
   const resetWizard = useCallback(() => {
@@ -600,7 +611,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setStyleSubStep("art");
     setSavedBookId(null);
     setDir(-1);
-    setStep(1);
+    setPlanType("subscription");
+    setStep(0);
     toast.success(t.wizard.createYourBook ? `${t.wizard.createYourBook} · ${"1/8"}` : "Wizard reset");
   }, [lang, t]);
 
@@ -794,7 +806,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   /* ───── progress calculation ───── */
   const progressPercent = (() => {
-    const mainSteps = [1, 2, 3, 4, 5, 6, 7, 8];
+    const mainSteps = [0, 1, 2, 3, 4, 5, 6, 7, 8];
     const idx = mainSteps.indexOf(step);
     if (idx >= 0) return ((idx + 1) / mainSteps.length) * 100;
     if (step === 9) return 100;
@@ -860,14 +872,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 {t.wizard.createYourBook}
               </p>
               <p className="font-display text-sm font-semibold text-foreground truncate">
-                {step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
+                {step === 0 ? t.wizard.planChoiceTitle : step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             <button
               onClick={() => {
-                if (step === 1 && !data.children.some(c => c.name || c.age || c.gender)) return;
+                if (step === 0 && !data.children.some(c => c.name || c.age || c.gender)) return;
                 if (window.confirm(t.wizard.resetConfirm || "Reset the wizard and start over from the beginning?")) {
                   resetWizard();
                 }
@@ -941,6 +953,144 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
           <div className="space-y-0">
 
+            {/* ── STEP 0: Plan-Type Choice ── */}
+            {step === 0 && (
+              <section
+                id={stepIdFor(0)}
+                ref={setStepRef(0)}
+                className={sectionClass(0)}
+              >
+                <motion.div
+                  key="s0"
+                  custom={dir}
+                  variants={{ ...stepVariants, ...staggerContainer }}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={springTransition}
+                  className="space-y-7 max-w-3xl mx-auto w-full"
+                >
+                  <motion.div variants={staggerChild} className="text-center">
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ ...springTransition, delay: 0.1 }}
+                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4"
+                    >
+                      <Sparkles className="w-7 h-7 text-accent" />
+                    </motion.div>
+                    <h2 className="font-display text-2xl sm:text-4xl font-bold text-foreground">
+                      {t.wizard.planChoiceTitle}
+                    </h2>
+                  </motion.div>
+
+                  <div className="grid md:grid-cols-2 gap-4 sm:gap-5">
+                    {/* Card 1 — Subscription (default) */}
+                    <motion.button
+                      variants={staggerChild}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setPlanType("subscription");
+                        setSelectedPlan("monthly");
+                        setDir(1);
+                        setStep(1);
+                      }}
+                      className={`relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md overflow-hidden ${
+                        planType === "subscription"
+                          ? "border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-transparent shadow-2xl shadow-accent/15 ring-1 ring-accent/30"
+                          : "border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
+                      }`}
+                    >
+                      {planType === "subscription" && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                          className="absolute top-4 end-4 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
+                        >
+                          <Check className="w-4 h-4 text-accent-foreground" />
+                        </motion.div>
+                      )}
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center mb-4">
+                        <BookOpen className="w-6 h-6 text-accent" />
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                        {t.wizard.planChoiceSubscriptionTitle}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1.5">
+                        {t.wizard.planChoiceSubscriptionSubtitle}
+                      </p>
+                      <ul className="space-y-2 mt-5">
+                        {t.wizard.planChoiceSubscriptionBullets.map((b, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
+                            <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+                            <span>{b}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 text-accent-foreground"
+                        style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
+                      >
+                        {t.wizard.planChoiceSubscriptionCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                      </div>
+                      <p className="text-[11px] text-accent/80 font-medium mt-3 flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3" /> {t.wizard.planChoiceSubscriptionMicro}
+                      </p>
+                    </motion.button>
+
+                    {/* Card 2 — Single book (secondary) */}
+                    <motion.button
+                      variants={staggerChild}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setPlanType("single");
+                        setSelectedPlan("once");
+                        setDir(1);
+                        setStep(1);
+                      }}
+                      className={`relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md ${
+                        planType === "single"
+                          ? "border-accent bg-accent/5 shadow-xl ring-1 ring-accent/20"
+                          : "border-border/40 bg-card/40 hover:border-accent/30 hover:shadow-md"
+                      }`}
+                    >
+                      {planType === "single" && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                          className="absolute top-4 end-4 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
+                        >
+                          <Check className="w-4 h-4 text-accent-foreground" />
+                        </motion.div>
+                      )}
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/20 flex items-center justify-center mb-4">
+                        <BookOpenCheck className="w-6 h-6 text-foreground/70" />
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                        {t.wizard.planChoiceSingleTitle}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1.5">
+                        {t.wizard.planChoiceSingleSubtitle}
+                      </p>
+                      <ul className="space-y-2 mt-5">
+                        {t.wizard.planChoiceSingleBullets.map((b, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
+                            <Check className="w-4 h-4 text-foreground/50 flex-shrink-0 mt-0.5" />
+                            <span>{b}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm border-2 border-border text-foreground hover:border-accent/50 transition-colors">
+                        {t.wizard.planChoiceSingleCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                      </div>
+                    </motion.button>
+                  </div>
+                </motion.div>
+              </section>
+            )}
 
             {/* ── STEP 1: Name ── */}
             {step === 1 && (
@@ -1482,7 +1632,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     <BookOpen className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    {portionMode === "manual" ? t.wizard.chooseParsha : t.wizard.chooseStorySource}
+                    {portionMode === "manual"
+                      ? t.wizard.chooseParsha
+                      : (planType === "subscription" ? t.wizard.storyStartTitleSubscription : t.wizard.storyStartTitleSingle)}
                   </h2>
                 </motion.div>
 
@@ -1891,8 +2043,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     <p className="text-sm font-semibold text-foreground capitalize">{data.artStyle}</p>
                   </div>
                   <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.pages}</p>
-                    <p className="text-sm font-semibold text-foreground">{t.wizard.pagesCount}</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.plan}</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {planType === "subscription" ? t.wizard.planSubscription : t.wizard.planSingle}
+                    </p>
                   </div>
                 </motion.div>
 
@@ -2075,7 +2229,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
             {/* ── STEP 12: Choose Plan ── */}
             {step === 12 && (
-              <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
+              <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-4">
+                <div className="max-w-md mx-auto rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm p-4 flex items-center justify-center gap-4 text-xs sm:text-sm">
+                  <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepBooksPerMonth}</span>
+                  <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepCancelAnytime}</span>
+                </div>
                 <CheckoutStep
                   mode="plan"
                   childName={childNames}
@@ -2092,7 +2250,20 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
             {/* ── STEP 13: Order Summary ── */}
             {step === 13 && (
-              <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
+              <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-4">
+                <div className="max-w-md mx-auto rounded-2xl border border-border/40 bg-muted/30 backdrop-blur-sm p-3.5 flex items-center justify-center gap-4 text-xs sm:text-sm">
+                  {planType === "subscription" ? (
+                    <>
+                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepBooksPerMonth}</span>
+                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepCancelAnytime}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.singlePrepOneTime}</span>
+                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.singlePrepDelivery}</span>
+                    </>
+                  )}
+                </div>
                 <CheckoutStep
                   mode="summary"
                   childName={childNames}
@@ -2137,7 +2308,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       </div>
 
       {/* ── Sticky bottom action bar (Apple/Tesla style) ── */}
-      {step !== 9 && step !== 13 && step !== 14 && (
+      {step !== 0 && step !== 9 && step !== 13 && step !== 14 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
