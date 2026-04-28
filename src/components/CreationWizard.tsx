@@ -1905,8 +1905,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     <p className="text-sm font-semibold text-foreground capitalize">{data.artStyle}</p>
                   </div>
                   <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.pages}</p>
-                    <p className="text-sm font-semibold text-foreground">{t.wizard.pagesCount}</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.plan}</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {planType === "subscription" ? t.wizard.planSubscription : t.wizard.planSingle}
+                    </p>
                   </div>
                 </motion.div>
 
