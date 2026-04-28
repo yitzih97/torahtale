@@ -595,6 +595,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (allChildrenHaveGenderAge()) {
       if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
     }
+    if (step === 13 && planType === "single") prevStep = 11;
     setStep(Math.max(prevStep, 0));
   };
 
