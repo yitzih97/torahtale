@@ -2250,7 +2250,20 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
             {/* ── STEP 13: Order Summary ── */}
             {step === 13 && (
-              <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
+              <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-4">
+                <div className="max-w-md mx-auto rounded-2xl border border-border/40 bg-muted/30 backdrop-blur-sm p-3.5 flex items-center justify-center gap-4 text-xs sm:text-sm">
+                  {planType === "subscription" ? (
+                    <>
+                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepBooksPerMonth}</span>
+                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepCancelAnytime}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.singlePrepOneTime}</span>
+                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.singlePrepDelivery}</span>
+                    </>
+                  )}
+                </div>
                 <CheckoutStep
                   mode="summary"
                   childName={childNames}
