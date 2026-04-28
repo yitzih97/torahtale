@@ -702,7 +702,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         localStorage.setItem("torahtale_pending_order", JSON.stringify({
           bookId: savedBookId,
-          orderNumber,
+          orderNumber: orderNum,
           planType,
           checkoutUrl: fallbackCheckoutUrl,
           createdAt: Date.now(),
