@@ -18,6 +18,8 @@ import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
+import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
+import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, getUpcomingParsha, type TorahOption } from "./wizard/TorahPortions";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -149,7 +151,7 @@ const ageToBracketLabel = (age: string): string => {
 
 /* ───────────────── constants ───────────────── */
 
-const TOTAL_STEPS = 14;
+const TOTAL_STEPS = 16;
 
 /* New spring-based transition variants */
 const stepVariants = {
