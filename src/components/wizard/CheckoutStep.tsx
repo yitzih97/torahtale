@@ -42,6 +42,9 @@ interface Props {
   mode?: "plan" | "summary";
   selectedPlan?: PlanType;
   onSelectPlan?: (plan: PlanType) => void;
+  quantity?: number;
+  /** 0, 0.10 or 0.15 */
+  volumeDiscount?: number;
 }
 
 export const CheckoutStep = ({
