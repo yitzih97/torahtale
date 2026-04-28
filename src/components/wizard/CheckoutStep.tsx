@@ -88,7 +88,7 @@ export const CheckoutStep = ({
 
   const total = isSubscription
     ? (activePlan?.priceUsd ?? 0) + shippingCost
-    : bookPrice + shippingCost;
+    : bookPriceAfterDiscount + shippingCost;
 
   const periodLabel = (id: string) =>
     id === "yearly" ? (t.currency.code === "ILS" ? "שנה" : "yr")
