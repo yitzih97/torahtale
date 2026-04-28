@@ -667,7 +667,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         supabase.from("books").update({
           status: "ordered",
           shipping_data: shipping,
-          order_number: orderNumber,
+          order_number: orderNum,
           updated_at: new Date().toISOString(),
         } as any).eq("id", savedBookId).then(({ error }) => {
           if (error) console.error("Failed updating book before checkout:", error);
@@ -680,10 +680,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             yearly: { frequency: "yearly", price: 15.38 },
           };
           const plan = freqMap[planType] || freqMap.weekly;
+          // child_id intentionally null — `data.children[0].id` is a client-side
+          // UUID, not a row in the `children` table, so passing it would
+          // violate the FK constraint.
           supabase.from("subscriptions").insert({
             user_id: user.id,
             child_name: childNames,
-            child_id: data.children[0]?.id || null,
+            child_id: null,
             art_style: data.artStyle,
             language: data.language,
             shipping_data: shipping as any,
