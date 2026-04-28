@@ -1494,7 +1494,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     <BookOpen className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    {portionMode === "manual" ? t.wizard.chooseParsha : t.wizard.chooseStorySource}
+                    {portionMode === "manual"
+                      ? t.wizard.chooseParsha
+                      : (planType === "subscription" ? t.wizard.storyStartTitleSubscription : t.wizard.storyStartTitleSingle)}
                   </h2>
                 </motion.div>
 
