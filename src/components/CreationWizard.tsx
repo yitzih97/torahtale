@@ -224,7 +224,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     { icon: Sparkles, text: t.wizard.finishing, duration: 3000 },
     { icon: CheckCircle2, text: t.wizard.almostReady, duration: 1000 },
   ];
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
+  const [planType, setPlanType] = useState<"subscription" | "single">("subscription");
   const [dir, setDir] = useState(1);
   const [data, setData] = useState<WizardData>(initialData);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
