@@ -57,6 +57,8 @@ export const CheckoutStep = ({
   mode = "summary",
   selectedPlan: selectedPlanProp,
   onSelectPlan,
+  quantity = 1,
+  volumeDiscount = 0,
 }: Props) => {
   const [selectedPlanLocal, setSelectedPlanLocal] = useState<PlanType>("monthly");
   const selectedPlan = selectedPlanProp ?? selectedPlanLocal;
@@ -71,7 +73,10 @@ export const CheckoutStep = ({
   const isIls = code === "ILS";
   const fmt = (amount: number) => `${symbol}${amount.toFixed(2)}`;
 
-  const bookPrice = calculateBookPriceForCurrency(bookOptions, code);
+  const unitBookPrice = calculateBookPriceForCurrency(bookOptions, code);
+  const bookPrice = unitBookPrice * quantity;
+  const discountAmount = bookPrice * volumeDiscount;
+  const bookPriceAfterDiscount = bookPrice - discountAmount;
   const shippingCost = isIls
     ? (shipping.shippingMethod === "express" ? 35 : 0)
     : (shipping.shippingMethod === "express" ? 9.99 : 0);
