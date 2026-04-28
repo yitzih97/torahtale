@@ -806,7 +806,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   /* ───── progress calculation ───── */
   const progressPercent = (() => {
-    const mainSteps = [1, 2, 3, 4, 5, 6, 7, 8];
+    const mainSteps = [0, 1, 2, 3, 4, 5, 6, 7, 8];
     const idx = mainSteps.indexOf(step);
     if (idx >= 0) return ((idx + 1) / mainSteps.length) * 100;
     if (step === 9) return 100;
