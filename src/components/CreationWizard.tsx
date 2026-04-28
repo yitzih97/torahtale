@@ -606,7 +606,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   const handlePlaceOrder = async (planType: string = "once") => {
     const isSubscription = planType !== "once";
-    const orderNumber = `TT-${Date.now().toString().slice(-6)}`;
+    const orderNum = `TT-${Date.now().toString().slice(-6)}`;
+    setOrderNumber(orderNum);
     const { createShopifyCart, SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
 
     // CRITICAL: open the popup synchronously while we still have the user-gesture
