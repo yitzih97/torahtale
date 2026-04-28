@@ -572,6 +572,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
       nextStep = 6;
     }
+    // Skip plan-chooser (step 12) for single-book buyers — they go straight to summary.
+    if (step === 11 && planType === "single") {
+      setSelectedPlan("once");
+      nextStep = 13;
+    }
     setStep(Math.min(nextStep, TOTAL_STEPS));
   };
 
