@@ -118,13 +118,15 @@ export const CheckoutStep = ({
     }
   };
 
-  /* ── Plan selection screen (step 12) ── */
+  /* ── Plan selection screen (Membership) ── */
   if (mode === "plan") {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="font-display text-2xl font-bold text-primary">{t.checkout.choosePlan}</h2>
-          <p className="text-muted-foreground text-sm mt-1">
+        <div className="text-center">
+          <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary">
+            {t.checkout.choosePlan}
+          </h2>
+          <p className="text-muted-foreground text-sm mt-1.5 max-w-md mx-auto">
             {t.checkout.subscribeMsg(childName)}
           </p>
         </div>
