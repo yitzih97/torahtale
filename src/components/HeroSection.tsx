@@ -9,9 +9,32 @@ import kid2 from "@/assets/avatars/kid2.jpg";
 import kid3 from "@/assets/avatars/kid3.jpg";
 import kid4 from "@/assets/avatars/kid4.jpg";
 
-const BookFlipAnimation = lazy(() =>
-  import("@/components/3d/BookFlipAnimation").then((m) => ({ default: m.BookFlipAnimation }))
-);
+// Lazy import with one-shot retry + auto page reload on persistent failure.
+// Vite's dev server can invalidate a previously-fetched dynamic-import URL
+// after re-bundling deps, which throws "Failed to fetch dynamically imported
+// module" and leaves a blank screen. Retrying once recovers in most cases;
+// a hard reload recovers in the rest.
+const BookFlipAnimation = lazy(async () => {
+  const load = () => import("@/components/3d/BookFlipAnimation");
+  try {
+    const m = await load();
+    return { default: m.BookFlipAnimation };
+  } catch (err) {
+    try {
+      const m = await load();
+      return { default: m.BookFlipAnimation };
+    } catch {
+      if (typeof window !== "undefined") {
+        const reloadedKey = "__hero_chunk_reloaded__";
+        if (!sessionStorage.getItem(reloadedKey)) {
+          sessionStorage.setItem(reloadedKey, "1");
+          window.location.reload();
+        }
+      }
+      throw err;
+    }
+  }
+});
 
 const ease = [0.16, 1, 0.3, 1];
 
