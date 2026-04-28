@@ -872,7 +872,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 {t.wizard.createYourBook}
               </p>
               <p className="font-display text-sm font-semibold text-foreground truncate">
-                {step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
+                {step === 0 ? t.wizard.planChoiceTitle : step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
               </p>
             </div>
           </div>
