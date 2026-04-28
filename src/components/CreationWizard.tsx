@@ -2110,7 +2110,21 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 14: Success ── */}
             {step === 14 && (
               <motion.div key="s14" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <SuccessStep childName={childNames} onGoToDashboard={() => { localStorage.removeItem("torahtale_wizard_state"); onClose?.(); navigate("/dashboard"); }} />
+                <SuccessStep
+                  childName={childNames}
+                  orderNumber={orderNumber}
+                  onGoToDashboard={() => {
+                    localStorage.removeItem("torahtale_wizard_state");
+                    localStorage.removeItem("torahtale_pending_order");
+                    onClose?.();
+                    navigate("/dashboard");
+                  }}
+                  onCreateAnother={() => {
+                    localStorage.removeItem("torahtale_wizard_state");
+                    localStorage.removeItem("torahtale_pending_order");
+                    resetWizard();
+                  }}
+                />
               </motion.div>
             )}
 
