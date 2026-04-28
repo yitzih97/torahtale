@@ -879,7 +879,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
           <div className="flex items-center gap-1 flex-shrink-0">
             <button
               onClick={() => {
-                if (step === 1 && !data.children.some(c => c.name || c.age || c.gender)) return;
+                if (step === 0 && !data.children.some(c => c.name || c.age || c.gender)) return;
                 if (window.confirm(t.wizard.resetConfirm || "Reset the wizard and start over from the beginning?")) {
                   resetWizard();
                 }
