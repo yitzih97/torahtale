@@ -332,8 +332,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         const parsed = JSON.parse(saved);
         // Don't restore terminal/transient steps (success or generation animation)
-        const restoredStep = parsed.step && parsed.step < 16 ? parsed.step : 1;
+        const restoredStep = typeof parsed.step === "number" && parsed.step < 16 ? parsed.step : 0;
         setStep(restoredStep);
+        if (parsed.planType === "single" || parsed.planType === "subscription") {
+          setPlanType(parsed.planType);
+        }
         const restoredData = parsed.data || initialData;
         if (!restoredData.language || restoredData.language === "english") {
           restoredData.language = defaultLanguage;
