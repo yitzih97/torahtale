@@ -201,11 +201,19 @@ export const CheckoutStep = ({
         <h3 className="font-display text-lg font-semibold text-primary">{t.checkout.orderSummary}</h3>
         <div className="space-y-2.5 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">{t.checkout.bookFor(childName)}</span>
+            <span className="text-muted-foreground">
+              {t.checkout.bookFor(childName)}{quantity > 1 ? ` × ${quantity}` : ""}
+            </span>
             <span className="font-medium text-primary">
               {isSubscription ? t.checkout.included : fmt(bookPrice)}
             </span>
           </div>
+          {!isSubscription && volumeDiscount > 0 && (
+            <div className="flex justify-between text-accent">
+              <span>− {Math.round(volumeDiscount * 100)}% volume discount</span>
+              <span className="font-medium">−{fmt(discountAmount)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t.wizard.story}</span>
             <span className="font-medium text-primary">{getPortionLabel(torahPortion)}</span>
