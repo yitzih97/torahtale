@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Check, Crown, Sparkles, BookOpen, Star } from "lucide-react";
+import { Check, Crown, Sparkles, BookOpen } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 const Pricing = () => {
   const navigate = useNavigate();
@@ -55,27 +47,6 @@ const Pricing = () => {
     "One personalized story",
     "Choose any Parsha or story",
     "Same premium print quality",
-  ];
-
-  const testimonials = [
-    {
-      quote:
-        "My son lights up every time a new book arrives. Watching him see himself inside the parsha is priceless.",
-      author: "Rivka G.",
-      location: "Lakewood, NJ",
-    },
-    {
-      quote:
-        "It's the highlight of our Shabbos table — a new personalized story every week. Worth every penny.",
-      author: "Moshe K.",
-      location: "Brooklyn, NY",
-    },
-    {
-      quote:
-        "The print quality is stunning and the stories are tznius and aligned with our values. Finally something built for us.",
-      author: "Chaya L.",
-      location: "Beit Shemesh",
-    },
   ];
 
   const faqs = [
@@ -235,93 +206,6 @@ const Pricing = () => {
           </div>
         </section>
 
-        {/* COMPARISON TABLE */}
-        <section className="container max-w-5xl pb-16 lg:pb-24">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-center text-foreground mb-10">
-            Compare Plans
-          </h2>
-          <div className="rounded-2xl border border-border bg-card overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-semibold">Feature</TableHead>
-                  <TableHead className="font-semibold">Single Book</TableHead>
-                  <TableHead className="font-semibold text-accent">
-                    Subscription
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">Number of books</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell className="text-accent font-semibold">
-                    4 / month
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Price per book</TableCell>
-                  <TableCell>$29–$39</TableCell>
-                  <TableCell className="text-accent font-semibold">
-                    From $9
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">
-                    Access to future stories
-                  </TableCell>
-                  <TableCell>—</TableCell>
-                  <TableCell className="text-accent font-semibold">
-                    Included
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Best for</TableCell>
-                  <TableCell>Gifting</TableCell>
-                  <TableCell className="text-accent font-semibold">
-                    Long-term learning
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-        </section>
-
-        {/* SOCIAL PROOF */}
-        <section className="bg-muted/30 py-16 lg:py-24">
-          <div className="container max-w-6xl">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-center text-foreground mb-12">
-              Loved by Frum Families
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {testimonials.map((t) => (
-                <div
-                  key={t.author}
-                  className="rounded-2xl bg-card border border-border p-6 shadow-sm"
-                >
-                  <div className="flex gap-1 mb-3">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className="w-4 h-4 fill-accent text-accent"
-                      />
-                    ))}
-                  </div>
-                  <p className="text-foreground/90 leading-relaxed mb-4">
-                    "{t.quote}"
-                  </p>
-                  <div className="text-sm">
-                    <div className="font-semibold text-foreground">
-                      {t.author}
-                    </div>
-                    <div className="text-muted-foreground">{t.location}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* COLLECTION VISUAL */}
         <section className="py-16 lg:py-24 overflow-hidden">
           <div className="container max-w-5xl text-center mb-10">
@@ -374,35 +258,6 @@ const Pricing = () => {
           </Accordion>
         </section>
 
-        {/* FINAL CTA */}
-        <section className="container max-w-4xl pb-20 text-center">
-          <div className="rounded-3xl bg-gradient-to-br from-primary to-primary/90 p-10 lg:p-16 shadow-xl">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
-              Start your child's Torah library today
-            </h2>
-            <p className="text-primary-foreground/80 mt-4 mb-8 max-w-xl mx-auto">
-              Join hundreds of families building a growing personalized Torah
-              collection.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                variant="gold"
-                size="xl"
-                onClick={() => goCreate("subscription")}
-              >
-                Start Subscription
-              </Button>
-              <Button
-                variant="outline"
-                size="xl"
-                onClick={() => goCreate("single")}
-                className="bg-transparent text-primary-foreground border-primary-foreground/30 hover:bg-primary-foreground hover:text-primary"
-              >
-                Create One Book
-              </Button>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />
