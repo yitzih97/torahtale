@@ -53,14 +53,6 @@ const About = () => {
             <span className="text-accent">.</span>
           </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed font-light"
-          >
-            {t.about.subtitle}
-          </motion.p>
         </div>
       </section>
 

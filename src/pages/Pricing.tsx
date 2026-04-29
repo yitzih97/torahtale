@@ -10,6 +10,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import cover1 from "@/assets/gallery/s1-cover.jpg";
+import cover2 from "@/assets/gallery/s2-cover.jpg";
+import cover3 from "@/assets/gallery/s3-cover.jpg";
+import cover4 from "@/assets/gallery/s4-cover.jpg";
+import cover5 from "@/assets/gallery/s5-cover.jpg";
+import cover6 from "@/assets/gallery/s6-cover.jpg";
+import cover7 from "@/assets/gallery/s7-cover.jpg";
+import cover8 from "@/assets/gallery/s8-cover.jpg";
 
 const Pricing = () => {
   const navigate = useNavigate();
@@ -75,20 +83,10 @@ const Pricing = () => {
       <main className="pt-24 lg:pt-28">
         {/* HERO */}
         <section className="container max-w-5xl text-center py-16 lg:py-24">
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-4 py-1.5 mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-accent" />
-            <span className="text-xs font-semibold tracking-wide text-accent uppercase">
-              Pricing
-            </span>
-          </div>
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
             Create Personalized Torah Books{" "}
             <span className="text-accent">Your Kids Will Love</span>
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Choose a single story or build a growing Torah library delivered to
-            your home.
-          </p>
         </section>
 
         {/* PRICING CARDS */}
@@ -218,21 +216,17 @@ const Pricing = () => {
           </div>
           <div className="relative">
             <div className="flex gap-5 overflow-x-auto px-6 pb-6 snap-x scrollbar-hide">
-              {[
-                "from-amber-100 to-amber-200",
-                "from-blue-100 to-blue-200",
-                "from-rose-100 to-rose-200",
-                "from-emerald-100 to-emerald-200",
-                "from-violet-100 to-violet-200",
-                "from-orange-100 to-orange-200",
-                "from-sky-100 to-sky-200",
-                "from-pink-100 to-pink-200",
-              ].map((grad, i) => (
+              {[cover1, cover2, cover3, cover4, cover5, cover6, cover7, cover8].map((src, i) => (
                 <div
                   key={i}
-                  className={`shrink-0 snap-center w-44 h-60 rounded-lg bg-gradient-to-br ${grad} shadow-lg flex items-center justify-center border border-white/40`}
+                  className="shrink-0 snap-center w-44 h-60 rounded-lg overflow-hidden shadow-lg border border-border bg-card"
                 >
-                  <BookOpen className="w-10 h-10 text-foreground/40" />
+                  <img
+                    src={src}
+                    alt={`Personalized Torah book cover ${i + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
               ))}
             </div>
