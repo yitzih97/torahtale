@@ -10,6 +10,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import cover1 from "@/assets/gallery/s1-cover.jpg";
+import cover2 from "@/assets/gallery/s2-cover.jpg";
+import cover3 from "@/assets/gallery/s3-cover.jpg";
+import cover4 from "@/assets/gallery/s4-cover.jpg";
+import cover5 from "@/assets/gallery/s5-cover.jpg";
+import cover6 from "@/assets/gallery/s6-cover.jpg";
+import cover7 from "@/assets/gallery/s7-cover.jpg";
+import cover8 from "@/assets/gallery/s8-cover.jpg";
 
 const Pricing = () => {
   const navigate = useNavigate();
