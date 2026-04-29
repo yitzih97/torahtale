@@ -247,14 +247,14 @@ const PARSHA_CALENDAR: Record<string, string> = {
   "2026-10-10": "nitzavim",
 };
 
-/** Returns next week's Shabbat parashah value (always the upcoming, not current) */
+/** Returns the parashah read two weeks from now (skips current and next week to allow production lead time) */
 export const getUpcomingParsha = (): string => {
   const now = new Date();
-  // Always jump to NEXT Saturday (7 days if today is Saturday)
+  // Jump to the Saturday two weeks out (skip this week's and next week's Shabbat)
   const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
-  const nextSat = new Date(now);
-  nextSat.setDate(now.getDate() + daysUntilSat);
-  const key = nextSat.toISOString().slice(0, 10);
+  const targetSat = new Date(now);
+  targetSat.setDate(now.getDate() + daysUntilSat + 14);
+  const key = targetSat.toISOString().slice(0, 10);
   
   if (PARSHA_CALENDAR[key]) return PARSHA_CALENDAR[key];
   
