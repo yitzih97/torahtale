@@ -216,21 +216,17 @@ const Pricing = () => {
           </div>
           <div className="relative">
             <div className="flex gap-5 overflow-x-auto px-6 pb-6 snap-x scrollbar-hide">
-              {[
-                "from-amber-100 to-amber-200",
-                "from-blue-100 to-blue-200",
-                "from-rose-100 to-rose-200",
-                "from-emerald-100 to-emerald-200",
-                "from-violet-100 to-violet-200",
-                "from-orange-100 to-orange-200",
-                "from-sky-100 to-sky-200",
-                "from-pink-100 to-pink-200",
-              ].map((grad, i) => (
+              {[cover1, cover2, cover3, cover4, cover5, cover6, cover7, cover8].map((src, i) => (
                 <div
                   key={i}
-                  className={`shrink-0 snap-center w-44 h-60 rounded-lg bg-gradient-to-br ${grad} shadow-lg flex items-center justify-center border border-white/40`}
+                  className="shrink-0 snap-center w-44 h-60 rounded-lg overflow-hidden shadow-lg border border-border bg-card"
                 >
-                  <BookOpen className="w-10 h-10 text-foreground/40" />
+                  <img
+                    src={src}
+                    alt={`Personalized Torah book cover ${i + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
               ))}
             </div>
