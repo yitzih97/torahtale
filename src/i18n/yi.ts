@@ -5,6 +5,7 @@ export const yi: typeof en = {
   nav: {
     home: "דף הבית",
     howItWorks: "איך זה עובד",
+    pricing: "פּרײַזן",
     gallery: "גלריה",
     reviews: "ביקורות",
     testimonials: "המלצות",
