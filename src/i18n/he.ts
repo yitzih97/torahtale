@@ -5,6 +5,7 @@ export const he: typeof en = {
   nav: {
     home: "דף הבית",
     howItWorks: "איך זה עובד",
+    pricing: "מחירים",
     gallery: "גלריה",
     reviews: "ביקורות",
     testimonials: "המלצות",
