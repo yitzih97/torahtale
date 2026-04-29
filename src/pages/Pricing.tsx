@@ -89,14 +89,7 @@ const Pricing = () => {
                 <div className="text-5xl font-bold text-foreground">$22</div>
                 <p className="text-sm text-muted-foreground mt-1">One-time purchase</p>
               </div>
-              <ul className="space-y-3 mb-10 flex-1">
-                <li className="flex items-center gap-3 text-sm text-foreground/90">
-                  <Check className="w-4 h-4 text-accent shrink-0" /> Any story
-                </li>
-                <li className="flex items-center gap-3 text-sm text-foreground/90">
-                  <Check className="w-4 h-4 text-accent shrink-0" /> One-time order
-                </li>
-              </ul>
+              <ul className="space-y-3 mb-10 flex-1"></ul>
               <Button variant="outline" size="lg" onClick={() => goCreate("single")} className="w-full">
                 Create Book
               </Button>
@@ -110,7 +103,7 @@ const Pricing = () => {
               <div className="flex items-center gap-2 mb-6">
                 <Sparkles className="w-5 h-5 text-accent" />
                 <h3 className="font-display text-xl font-semibold text-primary-foreground">
-                  Subscription
+                  Torah Series
                 </h3>
               </div>
               <div className="mb-8">
@@ -126,9 +119,6 @@ const Pricing = () => {
                 <li className="flex items-center gap-3 text-sm text-primary-foreground">
                   <Check className="w-4 h-4 text-accent shrink-0" /> Weekly Parsha + Holidays
                 </li>
-                <li className="flex items-center gap-3 text-sm text-primary-foreground">
-                  <Check className="w-4 h-4 text-accent shrink-0" /> Ongoing series
-                </li>
               </ul>
               <Button variant="gold" size="lg" onClick={() => goCreate("subscription")} className="w-full">
                 Start Subscription
@@ -140,7 +130,7 @@ const Pricing = () => {
               <div className="flex items-center gap-2 mb-6">
                 <Crown className="w-5 h-5 text-accent" />
                 <h3 className="font-display text-xl font-semibold text-foreground">
-                  Full Access
+                  Tanach Series
                 </h3>
               </div>
               <div className="mb-8">
@@ -152,14 +142,7 @@ const Pricing = () => {
                   All of Torah, Neviim, Kesuvim
                 </p>
               </div>
-              <ul className="space-y-3 mb-10 flex-1">
-                <li className="flex items-center gap-3 text-sm text-foreground/90">
-                  <Check className="w-4 h-4 text-accent shrink-0" /> Full library access
-                </li>
-                <li className="flex items-center gap-3 text-sm text-foreground/90">
-                  <Check className="w-4 h-4 text-accent shrink-0" /> Priority processing
-                </li>
-              </ul>
+              <ul className="space-y-3 mb-10 flex-1"></ul>
               <Button variant="default" size="lg" onClick={() => goCreate("subscription")} className="w-full">
                 Start Full Access
               </Button>
