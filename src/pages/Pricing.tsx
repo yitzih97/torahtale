@@ -49,27 +49,6 @@ const Pricing = () => {
     "Same premium print quality",
   ];
 
-  const testimonials = [
-    {
-      quote:
-        "My son lights up every time a new book arrives. Watching him see himself inside the parsha is priceless.",
-      author: "Rivka G.",
-      location: "Lakewood, NJ",
-    },
-    {
-      quote:
-        "It's the highlight of our Shabbos table — a new personalized story every week. Worth every penny.",
-      author: "Moshe K.",
-      location: "Brooklyn, NY",
-    },
-    {
-      quote:
-        "The print quality is stunning and the stories are tznius and aligned with our values. Finally something built for us.",
-      author: "Chaya L.",
-      location: "Beit Shemesh",
-    },
-  ];
-
   const faqs = [
     {
       q: "Can I cancel anytime?",
