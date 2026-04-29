@@ -287,35 +287,6 @@ const Pricing = () => {
           </Accordion>
         </section>
 
-        {/* FINAL CTA */}
-        <section className="container max-w-4xl pb-20 text-center">
-          <div className="rounded-3xl bg-gradient-to-br from-primary to-primary/90 p-10 lg:p-16 shadow-xl">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
-              Start your child's Torah library today
-            </h2>
-            <p className="text-primary-foreground/80 mt-4 mb-8 max-w-xl mx-auto">
-              Join hundreds of families building a growing personalized Torah
-              collection.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                variant="gold"
-                size="xl"
-                onClick={() => goCreate("subscription")}
-              >
-                Start Subscription
-              </Button>
-              <Button
-                variant="outline"
-                size="xl"
-                onClick={() => goCreate("single")}
-                className="bg-transparent text-primary-foreground border-primary-foreground/30 hover:bg-primary-foreground hover:text-primary"
-              >
-                Create One Book
-              </Button>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />
