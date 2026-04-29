@@ -44,7 +44,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
 
   const solid = scrolled || !transparentHero;
 
-  const navLinks = [
+  const navLinks: { label: string; href: string; section?: string }[] = [
     { label: t.nav.home, href: "/" },
     { label: t.nav.about, href: "/about" },
     { label: t.nav.pricing, href: "/pricing" },

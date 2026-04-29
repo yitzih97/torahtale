@@ -42,21 +42,6 @@ const Pricing = () => {
     navigate("/create");
   };
 
-  const subscriptionFeatures = [
-    "Personalized child as main character",
-    "Weekly Parsha stories",
-    "Holiday editions included",
-    "Ongoing growing book collection",
-    "Premium print quality, shipped to your door",
-    "Cancel anytime",
-  ];
-
-  const singleFeatures = [
-    "One personalized story",
-    "Choose any Parsha or story",
-    "Same premium print quality",
-  ];
-
   const faqs = [
     {
       q: "Can I cancel anytime?",
