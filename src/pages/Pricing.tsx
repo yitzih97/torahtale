@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Check, Crown, Sparkles, BookOpen, Star } from "lucide-react";
+import { Check, Crown, Sparkles, BookOpen } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 const Pricing = () => {
   const navigate = useNavigate();
