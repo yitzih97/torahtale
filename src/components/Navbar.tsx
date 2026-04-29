@@ -48,7 +48,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
     { label: t.nav.home, href: "/" },
     { label: t.nav.about, href: "/about" },
     { label: t.nav.pricing, href: "/pricing" },
-    { label: t.nav.testimonials, href: "/#testimonials", section: "testimonials" },
+    { label: t.nav.testimonials, href: "/testimonials" },
     { label: t.nav.contact, href: "/contact" },
   ];
 
