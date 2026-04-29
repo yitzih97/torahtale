@@ -42,21 +42,6 @@ const Pricing = () => {
     navigate("/create");
   };
 
-  const subscriptionFeatures = [
-    "Personalized child as main character",
-    "Weekly Parsha stories",
-    "Holiday editions included",
-    "Ongoing growing book collection",
-    "Premium print quality, shipped to your door",
-    "Cancel anytime",
-  ];
-
-  const singleFeatures = [
-    "One personalized story",
-    "Choose any Parsha or story",
-    "Same premium print quality",
-  ];
-
   const faqs = [
     {
       q: "Can I cancel anytime?",
@@ -92,116 +77,98 @@ const Pricing = () => {
         {/* PRICING CARDS */}
         <section className="container pb-16 lg:pb-24">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto items-stretch">
-            {/* CARD 2 — Single (rendered first on desktop left) */}
+            {/* CARD 1 — Single */}
             <div className="order-2 lg:order-1 relative rounded-2xl border border-border bg-card p-8 flex flex-col shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-6">
                 <BookOpen className="w-5 h-5 text-muted-foreground" />
                 <h3 className="font-display text-xl font-semibold text-foreground">
-                  Single Custom Book
+                  Single Book
                 </h3>
               </div>
-              <div className="mb-6">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-foreground">$29</span>
-                  <span className="text-muted-foreground">–</span>
-                  <span className="text-4xl font-bold text-foreground">$39</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  One-time purchase
-                </p>
+              <div className="mb-8">
+                <div className="text-5xl font-bold text-foreground">$22</div>
+                <p className="text-sm text-muted-foreground mt-1">One-time purchase</p>
               </div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {singleFeatures.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm">
-                    <Check className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                    <span className="text-foreground/90">{f}</span>
-                  </li>
-                ))}
+              <ul className="space-y-3 mb-10 flex-1">
+                <li className="flex items-center gap-3 text-sm text-foreground/90">
+                  <Check className="w-4 h-4 text-accent shrink-0" /> Any story
+                </li>
+                <li className="flex items-center gap-3 text-sm text-foreground/90">
+                  <Check className="w-4 h-4 text-accent shrink-0" /> One-time order
+                </li>
               </ul>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => goCreate("single")}
-                className="w-full"
-              >
-                Create One Book
+              <Button variant="outline" size="lg" onClick={() => goCreate("single")} className="w-full">
+                Create Book
               </Button>
             </div>
 
-            {/* CARD 1 — Subscription PRIMARY */}
+            {/* CARD 2 — Subscription PRIMARY */}
             <div className="order-1 lg:order-2 relative rounded-2xl border-2 border-accent bg-gradient-to-br from-primary to-primary/90 p-8 flex flex-col shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.6)] lg:scale-105 lg:-my-2">
               <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground border-0 px-4 py-1 text-xs font-bold tracking-wide shadow-lg">
                 <Crown className="w-3 h-3 mr-1" /> MOST POPULAR
               </Badge>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-6">
                 <Sparkles className="w-5 h-5 text-accent" />
                 <h3 className="font-display text-xl font-semibold text-primary-foreground">
-                  Torah Journey Subscription
+                  Subscription
                 </h3>
               </div>
-              <div className="mb-6">
+              <div className="mb-8">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-sm text-primary-foreground/70">From</span>
-                  <span className="text-5xl font-bold text-primary-foreground">
-                    $9
-                  </span>
-                  <span className="text-primary-foreground/80">per book</span>
+                  <span className="text-5xl font-bold text-primary-foreground">$36</span>
+                  <span className="text-primary-foreground/80">/month</span>
                 </div>
-                <p className="text-sm text-primary-foreground/70 mt-1">
-                  Billed monthly • 4 books per month
+                <p className="text-sm text-primary-foreground/80 mt-1">
+                  $9 per book • 4 books per month
                 </p>
               </div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {subscriptionFeatures.map((f) => (
-                  <li
-                    key={f}
-                    className="flex items-start gap-3 text-sm text-primary-foreground"
-                  >
-                    <Check className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                    <span>{f}</span>
-                  </li>
-                ))}
+              <ul className="space-y-3 mb-10 flex-1">
+                <li className="flex items-center gap-3 text-sm text-primary-foreground">
+                  <Check className="w-4 h-4 text-accent shrink-0" /> Weekly Parsha + Holidays
+                </li>
+                <li className="flex items-center gap-3 text-sm text-primary-foreground">
+                  <Check className="w-4 h-4 text-accent shrink-0" /> Ongoing series
+                </li>
               </ul>
-              <Button
-                variant="gold"
-                size="lg"
-                onClick={() => goCreate("subscription")}
-                className="w-full"
-              >
+              <Button variant="gold" size="lg" onClick={() => goCreate("subscription")} className="w-full">
                 Start Subscription
               </Button>
             </div>
 
-            {/* CARD 3 — Coming Soon */}
-            <div className="order-3 relative rounded-2xl border border-dashed border-border bg-muted/30 p-8 flex flex-col">
-              <Badge variant="outline" className="self-start mb-3">
-                Coming Soon
-              </Badge>
-              <h3 className="font-display text-xl font-semibold text-foreground mb-1">
-                Full Tanach Access
-              </h3>
-              <p className="text-sm text-muted-foreground mb-6">
-                Torah + Neviim + Kesuvim tracks
-              </p>
-              <ul className="space-y-3 mb-8 flex-1">
-                <li className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <Check className="w-4 h-4 mt-0.5 shrink-0 opacity-50" />
-                  Complete personalized Tanach library
+            {/* CARD 3 — Full Access */}
+            <div className="order-3 relative rounded-2xl border border-border bg-card p-8 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 mb-6">
+                <Crown className="w-5 h-5 text-accent" />
+                <h3 className="font-display text-xl font-semibold text-foreground">
+                  Full Access
+                </h3>
+              </div>
+              <div className="mb-8">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-foreground">$49</span>
+                  <span className="text-muted-foreground">/month</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  All of Torah, Neviim, Kesuvim
+                </p>
+              </div>
+              <ul className="space-y-3 mb-10 flex-1">
+                <li className="flex items-center gap-3 text-sm text-foreground/90">
+                  <Check className="w-4 h-4 text-accent shrink-0" /> Full library access
                 </li>
-                <li className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <Check className="w-4 h-4 mt-0.5 shrink-0 opacity-50" />
-                  Deeper learning tracks per child
-                </li>
-                <li className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <Check className="w-4 h-4 mt-0.5 shrink-0 opacity-50" />
-                  Priority shipping
+                <li className="flex items-center gap-3 text-sm text-foreground/90">
+                  <Check className="w-4 h-4 text-accent shrink-0" /> Priority processing
                 </li>
               </ul>
-              <Button variant="ghost" size="lg" disabled className="w-full">
-                Notify Me
+              <Button variant="default" size="lg" onClick={() => goCreate("subscription")} className="w-full">
+                Start Full Access
               </Button>
             </div>
           </div>
+
+          <p className="text-center text-sm text-muted-foreground mt-10">
+            All books are premium quality and delivered to your door.
+          </p>
         </section>
 
         {/* COLLECTION VISUAL */}

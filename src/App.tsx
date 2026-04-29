@@ -20,6 +20,7 @@ import Contact from "./pages/Contact.tsx";
 import About from "./pages/About.tsx";
 import FAQ from "./pages/FAQ.tsx";
 import Pricing from "./pages/Pricing.tsx";
+import Testimonials from "./pages/Testimonials.tsx";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const AppInner = () => {
         <Route path="/about" element={<About />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/testimonials" element={<Testimonials />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
