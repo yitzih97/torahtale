@@ -214,7 +214,7 @@ interface Props {
 
 export const CreationWizard = ({ open = true, onClose }: Props) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t, lang } = useLanguage();
   const { children: existingChildren } = useChildren();
 
