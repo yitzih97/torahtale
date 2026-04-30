@@ -214,7 +214,7 @@ interface Props {
 
 export const CreationWizard = ({ open = true, onClose }: Props) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t, lang } = useLanguage();
   const { children: existingChildren } = useChildren();
 
@@ -401,17 +401,28 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   /* ───── login prompt during step 8 auth gate ───── */
 
   useEffect(() => {
-    if (user && showLoginPrompt) {
+    if (authLoading) return;
+    if (!user) return;
+
+    // Sign-in just happened (inline form) OR returned from OAuth redirect.
+    const persistedPending = (() => {
+      try { return localStorage.getItem("torahtale_pending_generation") === "1"; }
+      catch { return false; }
+    })();
+
+    if (showLoginPrompt) {
       setShowLoginPrompt(false);
-      if (step === 8 && pendingGenerationRef.current) {
-        pendingGenerationRef.current = false;
-        toast.success("Signed in! Starting your sefer...");
-        startGeneration();
-      } else {
-        toast.success("Signed in!");
-      }
     }
-  }, [user, showLoginPrompt]);
+
+    if (step === 8 && (pendingGenerationRef.current || persistedPending)) {
+      pendingGenerationRef.current = false;
+      try { localStorage.removeItem("torahtale_pending_generation"); } catch { /* ignore */ }
+      toast.success("Signed in! Starting your sefer...");
+      startGeneration();
+    } else if (showLoginPrompt) {
+      toast.success("Signed in!");
+    }
+  }, [user, authLoading, showLoginPrompt, step]);
 
   const handleWizardLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -544,8 +555,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   const next = async () => {
     if (step === 8) {
+      if (authLoading) {
+        // Auth session still restoring after a redirect — wait silently;
+        // the auth-ready effect will auto-start generation if user is signed in.
+        toast.info("Checking your session...");
+        return;
+      }
       if (!user) {
         pendingGenerationRef.current = true;
+        try { localStorage.setItem("torahtale_pending_generation", "1"); } catch { /* ignore */ }
         saveWizardState();
         setShowLoginPrompt(true);
         toast.info("Please sign in to generate your sefer.");
