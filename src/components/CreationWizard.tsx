@@ -401,17 +401,28 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   /* ───── login prompt during step 8 auth gate ───── */
 
   useEffect(() => {
-    if (user && showLoginPrompt) {
+    if (authLoading) return;
+    if (!user) return;
+
+    // Sign-in just happened (inline form) OR returned from OAuth redirect.
+    const persistedPending = (() => {
+      try { return localStorage.getItem("torahtale_pending_generation") === "1"; }
+      catch { return false; }
+    })();
+
+    if (showLoginPrompt) {
       setShowLoginPrompt(false);
-      if (step === 8 && pendingGenerationRef.current) {
-        pendingGenerationRef.current = false;
-        toast.success("Signed in! Starting your sefer...");
-        startGeneration();
-      } else {
-        toast.success("Signed in!");
-      }
     }
-  }, [user, showLoginPrompt]);
+
+    if (step === 8 && (pendingGenerationRef.current || persistedPending)) {
+      pendingGenerationRef.current = false;
+      try { localStorage.removeItem("torahtale_pending_generation"); } catch { /* ignore */ }
+      toast.success("Signed in! Starting your sefer...");
+      startGeneration();
+    } else if (showLoginPrompt) {
+      toast.success("Signed in!");
+    }
+  }, [user, authLoading, showLoginPrompt, step]);
 
   const handleWizardLogin = async (e: React.FormEvent) => {
     e.preventDefault();
