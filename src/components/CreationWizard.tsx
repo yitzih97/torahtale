@@ -555,8 +555,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   const next = async () => {
     if (step === 8) {
+      if (authLoading) {
+        // Auth session still restoring after a redirect — wait silently;
+        // the auth-ready effect will auto-start generation if user is signed in.
+        toast.info("Checking your session...");
+        return;
+      }
       if (!user) {
         pendingGenerationRef.current = true;
+        try { localStorage.setItem("torahtale_pending_generation", "1"); } catch { /* ignore */ }
         saveWizardState();
         setShowLoginPrompt(true);
         toast.info("Please sign in to generate your sefer.");
