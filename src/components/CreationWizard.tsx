@@ -226,6 +226,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   ];
   const [step, setStep] = useState(0);
   const [planType, setPlanType] = useState<"subscription" | "single">("subscription");
+  const [seriesType, setSeriesType] = useState<"torah" | "tanach">("torah");
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [dir, setDir] = useState(1);
   const [data, setData] = useState<WizardData>(initialData);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
@@ -342,6 +344,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
           restoredData.language = defaultLanguage;
         }
         setData(restoredData);
+        // Seed selectedLanguages from the restored language string
+        if (restoredData.language) {
+          const parts = restoredData.language.split("+").filter((s: string) => ["english", "hebrew", "yiddish"].includes(s));
+          if (parts.length) setSelectedLanguages(parts);
+          else if (["english", "hebrew", "yiddish"].includes(restoredData.language)) setSelectedLanguages([restoredData.language]);
+        }
         setShipping(parsed.shipping || DEFAULT_SHIPPING);
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
         if (typeof parsed.quantity === "number" && parsed.quantity >= 1) setQuantity(parsed.quantity);
@@ -359,6 +367,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       } catch { /* ignore */ }
     } else {
       setData((prev) => ({ ...prev, language: defaultLanguage }));
+      setSelectedLanguages([defaultLanguage]);
     }
     didRestoreRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -580,15 +589,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4;
     }
-    if (step === 4) {
-      // sub-step: art -> format -> next
-      if (styleSubStep === "art") {
-        setStyleSubStep("format");
-        return;
-      }
-    }
     if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
       nextStep = 6;
+    }
+    // Subscription users skip the Torah-portion selection step.
+    if (step === 5 && planType === "subscription") {
+      // auto-pick the upcoming parsha so downstream code has a value
+      if (!data.torahPortion) update({ torahPortion: getUpcomingParsha() });
+      nextStep = 7;
+    }
+    if (step === 6 && planType === "subscription") {
+      nextStep = 7;
     }
     // Skip plan-chooser (step 12) for single-book buyers — they go straight to summary.
     if (step === 11 && planType === "single") {
@@ -603,16 +614,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       setPortionMode(null);
       return;
     }
-    if (step === 4 && styleSubStep === "format") {
-      setStyleSubStep("art");
-      return;
-    }
     setDir(-1);
     setPortionMode(null);
     let prevStep = step - 1;
     if (allChildrenHaveGenderAge()) {
       if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
     }
+    // Subscription skipped step 6, so jump back to 5.
+    if (step === 7 && planType === "subscription") prevStep = 5;
     if (step === 13 && planType === "single") prevStep = 11;
     setStep(Math.max(prevStep, 0));
   };
@@ -804,7 +813,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       case 4: return !!data.artStyle;
       case 5: return true;
       case 6: return !!data.torahPortion;
-      case 7: return true;
+      case 7: return selectedLanguages.length >= 1;
       case 8: return true;
       case 10: return true;
       case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
@@ -1002,43 +1011,51 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     </h2>
                   </motion.div>
 
-                  <div className="grid md:grid-cols-2 gap-4 sm:gap-5">
-                    {/* Card 1 — Subscription (default) */}
+                  <div className="grid md:grid-cols-3 gap-4 sm:gap-5">
+                    {/* Card 1 — Single Custom Book */}
+                    <motion.button
+                      variants={staggerChild}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setPlanType("single");
+                        setSelectedPlan("once");
+                        setDir(1);
+                        setStep(1);
+                      }}
+                      className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/20 flex items-center justify-center mb-4">
+                        <BookOpenCheck className="w-6 h-6 text-foreground/70" />
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                        {t.wizard.planChoiceSingleTitle}
+                      </h3>
+                      <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm border-2 border-border text-foreground hover:border-accent/50 transition-colors">
+                        {t.wizard.planChoiceSingleCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                      </div>
+                    </motion.button>
+
+                    {/* Card 2 — Torah Series (primary) */}
                     <motion.button
                       variants={staggerChild}
                       whileHover={{ y: -4 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         setPlanType("subscription");
+                        setSeriesType("torah");
                         setSelectedPlan("monthly");
                         setDir(1);
                         setStep(1);
                       }}
-                      className={`relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md overflow-hidden ${
-                        planType === "subscription"
-                          ? "border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-transparent shadow-2xl shadow-accent/15 ring-1 ring-accent/30"
-                          : "border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
-                      }`}
+                      className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md overflow-hidden border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-transparent shadow-2xl shadow-accent/15 ring-1 ring-accent/30"
                     >
-                      {planType === "subscription" && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                          className="absolute top-4 end-4 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
-                        >
-                          <Check className="w-4 h-4 text-accent-foreground" />
-                        </motion.div>
-                      )}
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center mb-4">
                         <BookOpen className="w-6 h-6 text-accent" />
                       </div>
                       <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
                         {t.wizard.planChoiceSubscriptionTitle}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-1.5">
-                        {t.wizard.planChoiceSubscriptionSubtitle}
-                      </p>
                       <ul className="space-y-2 mt-5">
                         {t.wizard.planChoiceSubscriptionBullets.map((b, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
@@ -1057,52 +1074,28 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       </p>
                     </motion.button>
 
-                    {/* Card 2 — Single book (secondary) */}
+                    {/* Card 3 — Tanach Series */}
                     <motion.button
                       variants={staggerChild}
                       whileHover={{ y: -4 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
-                        setPlanType("single");
-                        setSelectedPlan("once");
+                        setPlanType("subscription");
+                        setSeriesType("tanach");
+                        setSelectedPlan("monthly");
                         setDir(1);
                         setStep(1);
                       }}
-                      className={`relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md ${
-                        planType === "single"
-                          ? "border-accent bg-accent/5 shadow-xl ring-1 ring-accent/20"
-                          : "border-border/40 bg-card/40 hover:border-accent/30 hover:shadow-md"
-                      }`}
+                      className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
                     >
-                      {planType === "single" && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                          className="absolute top-4 end-4 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
-                        >
-                          <Check className="w-4 h-4 text-accent-foreground" />
-                        </motion.div>
-                      )}
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/20 flex items-center justify-center mb-4">
-                        <BookOpenCheck className="w-6 h-6 text-foreground/70" />
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-4">
+                        <Sparkles className="w-6 h-6 text-accent" />
                       </div>
                       <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                        {t.wizard.planChoiceSingleTitle}
+                        {t.wizard.planChoiceTanachTitle}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-1.5">
-                        {t.wizard.planChoiceSingleSubtitle}
-                      </p>
-                      <ul className="space-y-2 mt-5">
-                        {t.wizard.planChoiceSingleBullets.map((b, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
-                            <Check className="w-4 h-4 text-foreground/50 flex-shrink-0 mt-0.5" />
-                            <span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
                       <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm border-2 border-border text-foreground hover:border-accent/50 transition-colors">
-                        {t.wizard.planChoiceSingleCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                        {t.wizard.planChoiceTanachCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
                       </div>
                     </motion.button>
                   </div>
@@ -1143,106 +1136,25 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </h2>
                 </motion.div>
 
-                {existingChildren.length > 0 && (
-                  <motion.div variants={staggerChild} className="space-y-3">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {existingChildren.map((ec) => {
-                        const isSelected = data.children.some(
-                          (c) => c.name === ec.name && c.gender === (ec.gender || "") && c.age === String(ec.age || "")
-                        );
-                        return (
-                          <button
-                            key={ec.id}
-                            onClick={() => {
-                              if (isSelected) {
-                                const remaining = data.children.filter(
-                                  (c) => !(c.name === ec.name && c.gender === (ec.gender || "") && c.age === String(ec.age || ""))
-                                );
-                                if (remaining.length === 0) remaining.push(createChild());
-                                update({ children: remaining, activeChildIdx: 0 });
-                              } else {
-                                const newChild: ChildProfile = {
-                                  ...createChild(),
-                                  name: ec.name,
-                                  gender: ec.gender || "",
-                                  age: ec.age ? String(ec.age) : "",
-                                  description: ec.description || "",
-                                  photoPreview: ec.photo_url || null,
-                                };
-                                const currentFirst = data.children[0];
-                                const isFirstBlank = !currentFirst.name && !currentFirst.gender && !currentFirst.age;
-                                const newChildren = isFirstBlank
-                                  ? [newChild, ...data.children.slice(1)]
-                                  : [...data.children, newChild];
-                                update({ children: newChildren, activeChildIdx: newChildren.length - 1 });
-                                if (ec.art_style) update({ artStyle: ec.art_style });
-                              }
-                            }}
-                            className={glassCard(isSelected)}
-                          >
-                            <div className="flex items-center gap-2 p-3">
-                              {ec.photo_url ? (
-                                <img src={ec.photo_url} alt={ec.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground flex-shrink-0">
-                                  {ec.name.slice(0, 2).toUpperCase()}
-                                </div>
-                              )}
-                              <div className="min-w-0 text-start">
-                                <p className="font-display font-semibold text-sm text-foreground truncate">{ec.name}</p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {ec.age ? `${ec.age}${t.wizard.yearsSuffix}` : ""}{ec.gender ? ` · ${ec.gender === "boy" ? t.wizard.boy : ec.gender === "girl" ? t.wizard.girl : ec.gender}` : ""}
-                                </p>
-                              </div>
-                              {isSelected && (
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                                >
-                                  <Check className="w-4 h-4 text-accent ms-auto flex-shrink-0" />
-                                </motion.div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-px bg-border/50" />
-                      <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">{t.wizard.orEnterNewName}</span>
-                      <div className="flex-1 h-px bg-border/50" />
-                    </div>
-                  </motion.div>
-                )}
-
                 <motion.div variants={staggerChild}>
                   <Input
                     placeholder={t.wizard.enterChildName}
                     value={child.name}
                     onChange={(e) => updateChild(child.id, { name: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && child.name.trim().length >= 1) {
+                        e.preventDefault();
+                        autoAdvance();
+                      }
+                    }}
+                    onBlur={() => {
+                      if (child.name.trim().length >= 1 && step === 1) autoAdvance();
+                    }}
                     className="rounded-2xl h-14 text-lg text-center border-2 border-border/40 bg-card/60 backdrop-blur-sm focus:border-accent/50 focus:ring-accent/20 placeholder:text-muted-foreground/40 font-medium"
                     autoFocus
                   />
                 </motion.div>
 
-                {data.children.length > 1 && (
-                  <motion.div variants={staggerChild} className="flex flex-wrap gap-2 justify-center">
-                    {data.children.map((c, idx) => (
-                      <button
-                        key={c.id}
-                        onClick={() => update({ activeChildIdx: idx })}
-                        className={`text-xs px-3 py-1.5 rounded-full transition-all font-medium ${
-                          idx === data.activeChildIdx
-                            ? "bg-accent/15 text-accent border border-accent/30"
-                            : "bg-muted/50 text-muted-foreground hover:bg-muted/80 border border-transparent"
-                        }`}
-                      >
-                        {c.name || `${t.wizard.child} ${idx + 1}`}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
               </motion.div>
               </section>
             )}
@@ -1412,104 +1324,46 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     <Palette className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    {styleSubStep === "art" ? t.wizard.chooseStyle : t.wizard.chooseFormat}
+                    {t.wizard.chooseStyle}
                   </h2>
-                  <div className="flex items-center justify-center gap-1.5 mt-3">
-                    <span className={`h-1.5 w-6 rounded-full transition-all ${styleSubStep === "art" ? "bg-accent" : "bg-accent/40"}`} />
-                    <span className={`h-1.5 w-6 rounded-full transition-all ${styleSubStep === "format" ? "bg-accent" : "bg-border/40"}`} />
-                  </div>
                 </motion.div>
 
-                {styleSubStep === "art" && (
-                  <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                    {ART_STYLES.map((s) => {
-                      const previewGender = data.children.length >= 2 ? "duo" : (child.gender || "boy");
-                      const stylePreview = getStylePreset(previewGender, s.key);
-                      return (
-                        <motion.button
-                          key={s.key}
-                          variants={staggerChild}
-                          onClick={() => {
-                            update({ artStyle: s.key });
-                            setStyleSubStep("format");
-                          }}
-                          whileHover={{ y: -4 }}
-                          whileTap={{ scale: 0.97 }}
-                          className={glassCard(data.artStyle === s.key)}
-                        >
-                          <div className="aspect-square bg-muted/20 relative">
-                            <img src={stylePreview} alt={t.wizard[s.labelKey]} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
-                          </div>
-                          <div className="p-2 sm:p-3">
-                            <span className="text-xs sm:text-sm font-semibold text-foreground block">{t.wizard[s.labelKey]}</span>
-                          </div>
-                          {data.artStyle === s.key && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                              className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
-                            >
-                              <Check className="w-3.5 h-3.5 text-accent-foreground" />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {styleSubStep === "format" && (() => {
-                  const childAge = parseInt(child.age) || 0;
-                  const recommendComic = childAge >= 7;
-                  const formats = [
-                    { key: "story" as const, label: t.wizard.formatStory, desc: t.wizard.formatStoryDesc, age: "2–8", img: storybookPreview, recommended: !recommendComic },
-                    { key: "comic" as const, label: t.wizard.formatComic, desc: t.wizard.formatComicDesc, age: "7–12", img: comicbookPreview, recommended: recommendComic },
-                  ];
-                  return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {formats.map((f) => (
-                        <motion.button
-                          key={f.key}
-                          variants={staggerChild}
-                          onClick={() => {
-                            update({ narrativeStyle: f.key });
-                            autoAdvance();
-                          }}
-                          whileHover={{ y: -4 }}
-                          whileTap={{ scale: 0.97 }}
-                          className={glassCard(data.narrativeStyle === f.key)}
-                        >
-                          {f.recommended && childAge > 0 && (
-                            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-0.5 rounded-full shadow-md whitespace-nowrap">
-                              ★ {t.wizard.bestForYou}
-                            </div>
-                          )}
-                          <div className="aspect-[4/3] bg-muted/20 relative overflow-hidden">
-                            <img src={f.img} alt={f.label} className="w-full h-full object-cover" loading="lazy" width={512} height={384} />
-                          </div>
-                          <div className="p-3 sm:p-4 text-start">
-                            <div className="flex items-center justify-between gap-2 mb-1">
-                              <span className="text-sm sm:text-base font-display font-bold text-foreground">{f.label}</span>
-                              <span className="text-[10px] font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full whitespace-nowrap">{t.wizard.recommendedForAge(f.age)}</span>
-                            </div>
-                            <p className="text-[11px] sm:text-xs text-muted-foreground leading-snug">{f.desc}</p>
-                          </div>
-                          {data.narrativeStyle === f.key && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                              className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
-                            >
-                              <Check className="w-3.5 h-3.5 text-accent-foreground" />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      ))}
-                    </div>
-                  );
-                })()}
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                  {ART_STYLES.map((s) => {
+                    const previewGender = data.children.length >= 2 ? "duo" : (child.gender || "boy");
+                    const stylePreview = getStylePreset(previewGender, s.key);
+                    return (
+                      <motion.button
+                        key={s.key}
+                        variants={staggerChild}
+                        onClick={() => {
+                          update({ artStyle: s.key });
+                          autoAdvance();
+                        }}
+                        whileHover={{ y: -4 }}
+                        whileTap={{ scale: 0.97 }}
+                        className={glassCard(data.artStyle === s.key)}
+                      >
+                        <div className="aspect-square bg-muted/20 relative">
+                          <img src={stylePreview} alt={t.wizard[s.labelKey]} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
+                        </div>
+                        <div className="p-2 sm:p-3">
+                          <span className="text-xs sm:text-sm font-semibold text-foreground block">{t.wizard[s.labelKey]}</span>
+                        </div>
+                        {data.artStyle === s.key && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                            className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
+                          >
+                            <Check className="w-3.5 h-3.5 text-accent-foreground" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
               </motion.div>
               </section>
             )}
@@ -1534,65 +1388,21 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 className="space-y-6"
               >
                 <motion.div variants={staggerChild} className="text-center">
-                  <motion.div
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ ...springTransition, delay: 0.1 }}
-                    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4"
-                  >
-                    <Image className="w-7 h-7 text-accent" />
-                  </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
                     {t.wizard.helpDraw(child.name)}
                   </h2>
                 </motion.div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <motion.div
-                    variants={staggerChild}
-                    className="rounded-2xl border-2 border-dashed border-border/50 p-5 sm:p-6 text-center hover:border-accent/40 hover:bg-accent/3 transition-all duration-300 relative bg-card/40 backdrop-blur-sm"
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/15 to-accent/5 flex items-center justify-center">
-                        <Camera className="w-6 h-6 text-accent" />
-                      </div>
-                      <p className="text-sm font-semibold text-foreground">{t.wizard.uploadPhoto}</p>
-                      {child.photoPreview ? (
-                        <div className="flex items-center gap-3 w-full justify-center">
-                          <img src={child.photoPreview} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
-                          <button
-                            onClick={() => updateChild(child.id, { photo: null, photoPreview: null })}
-                            className="text-xs text-destructive hover:underline font-medium"
-                          >
-                            {t.wizard.remove}
-                          </button>
-                        </div>
-                      ) : (
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handlePhoto(child.id, e)}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
-                      )}
-                    </div>
-                  </motion.div>
-
+                <div className="max-w-md mx-auto">
                   <motion.div
                     variants={staggerChild}
                     className="rounded-2xl border-2 border-border/50 p-5 sm:p-6 bg-card/40 backdrop-blur-sm"
                   >
-                    <div className="flex flex-col items-center gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
-                        <PenLine className="w-6 h-6 text-primary" />
-                      </div>
-                      <p className="text-sm font-semibold text-foreground">{t.wizard.describeInstead}</p>
-                    </div>
                     <Textarea
                       placeholder={t.wizard.descPlaceholder}
                       value={child.description}
                       onChange={(e) => updateChild(child.id, { description: e.target.value })}
-                      className="rounded-xl min-h-[100px] text-sm border-border/40 bg-background/50"
+                      className="rounded-xl min-h-[120px] text-sm border-border/40 bg-background/50"
                     />
                   </motion.div>
                 </div>
@@ -1965,51 +1775,53 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 className="space-y-6 max-w-sm mx-auto"
               >
                 <motion.div variants={staggerChild} className="text-center">
-                  <motion.div
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ ...springTransition, delay: 0.1 }}
-                    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4"
-                  >
-                    <Sun className="w-7 h-7 text-accent" />
-                  </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseLanguage}</h2>
                 </motion.div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {[
                     { key: "english", label: t.wizard.english, emoji: "🇺🇸" },
                     { key: "hebrew", label: t.wizard.hebrew, emoji: "🇮🇱" },
                     { key: "yiddish", label: t.wizard.yiddish, emoji: "✡️" },
-                    { key: "bilingual", label: t.wizard.both, emoji: "🌍" },
-                  ].map((l) => (
-                    <motion.button
-                      key={l.key}
-                      variants={staggerChild}
-                      onClick={() => {
-                        update({ language: l.key });
-                        autoAdvance();
-                      }}
-                      whileHover={{ y: -4 }}
-                      whileTap={{ scale: 0.97 }}
-                      className={glassCard(data.language === l.key)}
-                    >
-                      <div className="p-4 sm:p-5">
-                        <span className="text-3xl sm:text-4xl block mb-2">{l.emoji}</span>
-                        <span className="text-xs sm:text-sm font-semibold text-foreground">{l.label}</span>
-                      </div>
-                      {data.language === l.key && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                          className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
-                        >
-                          <Check className="w-3.5 h-3.5 text-accent-foreground" />
-                        </motion.div>
-                      )}
-                    </motion.button>
-                  ))}
+                  ].map((l) => {
+                    const isSelected = selectedLanguages.includes(l.key);
+                    return (
+                      <motion.button
+                        key={l.key}
+                        variants={staggerChild}
+                        onClick={() => {
+                          setSelectedLanguages((prev) => {
+                            const next = prev.includes(l.key)
+                              ? prev.filter((k) => k !== l.key)
+                              : [...prev, l.key];
+                            // Sync the legacy single-language field for downstream code
+                            if (next.length === 0) update({ language: l.key });
+                            else if (next.length === 1) update({ language: next[0] });
+                            else update({ language: next.join("+") });
+                            return next;
+                          });
+                        }}
+                        whileHover={{ y: -4 }}
+                        whileTap={{ scale: 0.97 }}
+                        className={glassCard(isSelected)}
+                      >
+                        <div className="p-4 sm:p-5">
+                          <span className="text-3xl sm:text-4xl block mb-2">{l.emoji}</span>
+                          <span className="text-xs sm:text-sm font-semibold text-foreground">{l.label}</span>
+                        </div>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                            className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
+                          >
+                            <Check className="w-3.5 h-3.5 text-accent-foreground" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </motion.div>
               </section>
@@ -2046,27 +1858,42 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.readyToCreate}</h2>
                 </motion.div>
 
-                {/* Summary cards */}
-                <motion.div variants={staggerChild} className="grid grid-cols-2 gap-2 sm:gap-3">
-                  <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.character}</p>
-                    <p className="text-sm font-semibold text-foreground">{childNames}</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.story}</p>
-                    <p className="text-sm font-semibold text-foreground">{getPortionLabel(data.torahPortion) || "—"}</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.artStyle}</p>
-                    <p className="text-sm font-semibold text-foreground capitalize">{data.artStyle}</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.plan}</p>
-                    <p className="text-sm font-semibold text-foreground">
-                      {planType === "subscription" ? t.wizard.planSubscription : t.wizard.planSingle}
-                    </p>
-                  </div>
-                </motion.div>
+                {/* Bullet-style summary */}
+                <motion.ul variants={staggerChild} className="space-y-3 max-w-md mx-auto text-start">
+                  <li className="flex items-start gap-3 text-base">
+                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.character}:</span> <span className="font-semibold">{childNames}</span></span>
+                  </li>
+                  {planType !== "subscription" && (
+                    <li className="flex items-start gap-3 text-base">
+                      <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                      <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.story}:</span> <span className="font-semibold">{getPortionLabel(data.torahPortion) || "—"}</span></span>
+                    </li>
+                  )}
+                  <li className="flex items-start gap-3 text-base">
+                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.artStyle}:</span> <span className="font-semibold capitalize">{data.artStyle}</span></span>
+                  </li>
+                  <li className="flex items-start gap-3 text-base">
+                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
+                  </li>
+                </motion.ul>
+
+                {/* Large centered Generate button */}
+                {!showLoginPrompt && (
+                  <motion.div variants={staggerChild} className="flex justify-center pt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={next}
+                      className="flex items-center gap-3 px-12 sm:px-16 h-16 sm:h-20 rounded-full font-bold text-lg sm:text-xl shadow-2xl shadow-accent/25 transition-all text-accent-foreground"
+                      style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
+                    >
+                      <Sparkles className="w-6 h-6 sm:w-7 sm:h-7" /> {t.wizard.generateBook}
+                    </motion.button>
+                  </motion.div>
+                )}
 
                 {/* Inline auth gate */}
                 {showLoginPrompt && !user && (
@@ -2355,17 +2182,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 {t.common.continue} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </motion.button>
             )}
-            {step === 8 && (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={next}
-                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 transition-all text-accent-foreground"
-                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
-              >
-                <Sparkles className="w-4 h-4" /> {t.wizard.generateBook}
-              </motion.button>
-            )}
+            {step === 8 && <div />}
             {(step === 10 || step === 11 || step === 12) && (
               <motion.button
                 whileHover={{ scale: 1.03 }}
