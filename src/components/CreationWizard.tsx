@@ -806,7 +806,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       case 4: return !!data.artStyle;
       case 5: return true;
       case 6: return !!data.torahPortion;
-      case 7: return true;
+      case 7: return selectedLanguages.length >= 1;
       case 8: return true;
       case 10: return true;
       case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
