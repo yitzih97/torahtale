@@ -1883,6 +1883,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                     <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.character}:</span> <span className="font-semibold">{childNames}</span></span>
                   </li>
+                  <li className="flex items-start gap-3 text-base">
+                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.age}:</span> <span className="font-semibold">{data.children.map(c => c.age).filter(Boolean).join(" & ") || "—"}</span></span>
+                  </li>
                   {planType !== "subscription" && (
                     <li className="flex items-start gap-3 text-base">
                       <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
@@ -1899,8 +1903,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </li>
                 </motion.ul>
 
-                {/* Large centered Generate button */}
-                {!showLoginPrompt && (
+
+                {/* Large centered Generate button — hidden if not signed in */}
+                {user && (
                   <motion.div variants={staggerChild} className="flex justify-center pt-4">
                     <motion.button
                       whileHover={{ scale: 1.04 }}
@@ -1914,8 +1919,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.div>
                 )}
 
-                {/* Inline auth gate */}
-                {showLoginPrompt && !user && (
+                {/* Inline auth gate — always shown at step 8 when not logged in */}
+                {!user && !authLoading && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

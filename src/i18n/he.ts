@@ -333,7 +333,7 @@ export const he: typeof en = {
     yiddish: "יידיש",
     both: "שתיהן",
     readyToCreate: "!מוכנים ליצירה",
-    character: "דמות",
+    character: "שם",
     story: "סיפור",
     artStyle: "סגנון איור",
     pages: "עמודים",
