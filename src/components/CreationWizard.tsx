@@ -582,11 +582,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4;
     }
-    if (step === 4) {
-      // art style chosen — proceed
-    }
     if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
       nextStep = 6;
+    }
+    // Subscription users skip the Torah-portion selection step.
+    if (step === 5 && planType === "subscription") {
+      // auto-pick the upcoming parsha so downstream code has a value
+      if (!data.torahPortion) update({ torahPortion: getUpcomingParsha() });
+      nextStep = 7;
+    }
+    if (step === 6 && planType === "subscription") {
+      nextStep = 7;
     }
     // Skip plan-chooser (step 12) for single-book buyers — they go straight to summary.
     if (step === 11 && planType === "single") {
