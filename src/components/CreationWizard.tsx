@@ -583,11 +583,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       nextStep = 4;
     }
     if (step === 4) {
-      // sub-step: art -> format -> next
-      if (styleSubStep === "art") {
-        setStyleSubStep("format");
-        return;
-      }
+      // art style chosen — proceed
     }
     if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
       nextStep = 6;
