@@ -1129,84 +1129,20 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </h2>
                 </motion.div>
 
-                {existingChildren.length > 0 && (
-                  <motion.div variants={staggerChild} className="space-y-3">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {existingChildren.map((ec) => {
-                        const isSelected = data.children.some(
-                          (c) => c.name === ec.name && c.gender === (ec.gender || "") && c.age === String(ec.age || "")
-                        );
-                        return (
-                          <button
-                            key={ec.id}
-                            onClick={() => {
-                              if (isSelected) {
-                                const remaining = data.children.filter(
-                                  (c) => !(c.name === ec.name && c.gender === (ec.gender || "") && c.age === String(ec.age || ""))
-                                );
-                                if (remaining.length === 0) remaining.push(createChild());
-                                update({ children: remaining, activeChildIdx: 0 });
-                              } else {
-                                const newChild: ChildProfile = {
-                                  ...createChild(),
-                                  name: ec.name,
-                                  gender: ec.gender || "",
-                                  age: ec.age ? String(ec.age) : "",
-                                  description: ec.description || "",
-                                  photoPreview: ec.photo_url || null,
-                                };
-                                const currentFirst = data.children[0];
-                                const isFirstBlank = !currentFirst.name && !currentFirst.gender && !currentFirst.age;
-                                const newChildren = isFirstBlank
-                                  ? [newChild, ...data.children.slice(1)]
-                                  : [...data.children, newChild];
-                                update({ children: newChildren, activeChildIdx: newChildren.length - 1 });
-                                if (ec.art_style) update({ artStyle: ec.art_style });
-                              }
-                            }}
-                            className={glassCard(isSelected)}
-                          >
-                            <div className="flex items-center gap-2 p-3">
-                              {ec.photo_url ? (
-                                <img src={ec.photo_url} alt={ec.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground flex-shrink-0">
-                                  {ec.name.slice(0, 2).toUpperCase()}
-                                </div>
-                              )}
-                              <div className="min-w-0 text-start">
-                                <p className="font-display font-semibold text-sm text-foreground truncate">{ec.name}</p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {ec.age ? `${ec.age}${t.wizard.yearsSuffix}` : ""}{ec.gender ? ` · ${ec.gender === "boy" ? t.wizard.boy : ec.gender === "girl" ? t.wizard.girl : ec.gender}` : ""}
-                                </p>
-                              </div>
-                              {isSelected && (
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                                >
-                                  <Check className="w-4 h-4 text-accent ms-auto flex-shrink-0" />
-                                </motion.div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-px bg-border/50" />
-                      <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">{t.wizard.orEnterNewName}</span>
-                      <div className="flex-1 h-px bg-border/50" />
-                    </div>
-                  </motion.div>
-                )}
-
                 <motion.div variants={staggerChild}>
                   <Input
                     placeholder={t.wizard.enterChildName}
                     value={child.name}
                     onChange={(e) => updateChild(child.id, { name: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && child.name.trim().length >= 1) {
+                        e.preventDefault();
+                        autoAdvance();
+                      }
+                    }}
+                    onBlur={() => {
+                      if (child.name.trim().length >= 1 && step === 1) autoAdvance();
+                    }}
                     className="rounded-2xl h-14 text-lg text-center border-2 border-border/40 bg-card/60 backdrop-blur-sm focus:border-accent/50 focus:ring-accent/20 placeholder:text-muted-foreground/40 font-medium"
                     autoFocus
                   />
