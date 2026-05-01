@@ -1381,65 +1381,21 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 className="space-y-6"
               >
                 <motion.div variants={staggerChild} className="text-center">
-                  <motion.div
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ ...springTransition, delay: 0.1 }}
-                    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4"
-                  >
-                    <Image className="w-7 h-7 text-accent" />
-                  </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
                     {t.wizard.helpDraw(child.name)}
                   </h2>
                 </motion.div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <motion.div
-                    variants={staggerChild}
-                    className="rounded-2xl border-2 border-dashed border-border/50 p-5 sm:p-6 text-center hover:border-accent/40 hover:bg-accent/3 transition-all duration-300 relative bg-card/40 backdrop-blur-sm"
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/15 to-accent/5 flex items-center justify-center">
-                        <Camera className="w-6 h-6 text-accent" />
-                      </div>
-                      <p className="text-sm font-semibold text-foreground">{t.wizard.uploadPhoto}</p>
-                      {child.photoPreview ? (
-                        <div className="flex items-center gap-3 w-full justify-center">
-                          <img src={child.photoPreview} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
-                          <button
-                            onClick={() => updateChild(child.id, { photo: null, photoPreview: null })}
-                            className="text-xs text-destructive hover:underline font-medium"
-                          >
-                            {t.wizard.remove}
-                          </button>
-                        </div>
-                      ) : (
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handlePhoto(child.id, e)}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
-                      )}
-                    </div>
-                  </motion.div>
-
+                <div className="max-w-md mx-auto">
                   <motion.div
                     variants={staggerChild}
                     className="rounded-2xl border-2 border-border/50 p-5 sm:p-6 bg-card/40 backdrop-blur-sm"
                   >
-                    <div className="flex flex-col items-center gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
-                        <PenLine className="w-6 h-6 text-primary" />
-                      </div>
-                      <p className="text-sm font-semibold text-foreground">{t.wizard.describeInstead}</p>
-                    </div>
                     <Textarea
                       placeholder={t.wizard.descPlaceholder}
                       value={child.description}
                       onChange={(e) => updateChild(child.id, { description: e.target.value })}
-                      className="rounded-xl min-h-[100px] text-sm border-border/40 bg-background/50"
+                      className="rounded-xl min-h-[120px] text-sm border-border/40 bg-background/50"
                     />
                   </motion.div>
                 </div>
