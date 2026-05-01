@@ -344,6 +344,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
           restoredData.language = defaultLanguage;
         }
         setData(restoredData);
+        // Seed selectedLanguages from the restored language string
+        if (restoredData.language) {
+          const parts = restoredData.language.split("+").filter((s: string) => ["english", "hebrew", "yiddish"].includes(s));
+          if (parts.length) setSelectedLanguages(parts);
+          else if (["english", "hebrew", "yiddish"].includes(restoredData.language)) setSelectedLanguages([restoredData.language]);
+        }
         setShipping(parsed.shipping || DEFAULT_SHIPPING);
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
         if (typeof parsed.quantity === "number" && parsed.quantity >= 1) setQuantity(parsed.quantity);
