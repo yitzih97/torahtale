@@ -367,6 +367,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       } catch { /* ignore */ }
     } else {
       setData((prev) => ({ ...prev, language: defaultLanguage }));
+      setSelectedLanguages([defaultLanguage]);
     }
     didRestoreRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
