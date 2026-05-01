@@ -333,7 +333,7 @@ export const yi: typeof en = {
     yiddish: "יידיש",
     both: "ביידע",
     readyToCreate: "!מוכנים ליצירה",
-    character: "דמות",
+    character: "נאָמען",
     story: "סיפור",
     artStyle: "סגנון איור",
     pages: "עמודים",

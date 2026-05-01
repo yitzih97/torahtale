@@ -328,7 +328,7 @@ export const en = {
     yiddish: "Yiddish",
     both: "Both",
     readyToCreate: "Ready to Create!",
-    character: "Character",
+    character: "Name",
     story: "Story",
     artStyle: "Art Style",
     pages: "Pages",
