@@ -1562,16 +1562,18 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 )}
 
                 {/* ── Manual selection browser ── */}
-                {portionMode === "manual" && (
+                {(portionMode === "manual" || planType === "single") && (
                   <>
-                    <motion.div variants={staggerChild}>
-                      <button
-                        onClick={() => setPortionMode(null)}
-                        className="text-xs text-accent hover:underline font-medium"
-                      >
-                        {t.wizard.backToOptions}
-                      </button>
-                    </motion.div>
+                    {planType !== "single" && (
+                      <motion.div variants={staggerChild}>
+                        <button
+                          onClick={() => setPortionMode(null)}
+                          className="text-xs text-accent hover:underline font-medium"
+                        >
+                          {t.wizard.backToOptions}
+                        </button>
+                      </motion.div>
+                    )}
 
                     {/* Category pills */}
                     <motion.div variants={staggerChild} className="flex justify-center flex-wrap gap-2">
