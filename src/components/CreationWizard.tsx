@@ -1858,27 +1858,42 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.readyToCreate}</h2>
                 </motion.div>
 
-                {/* Summary cards */}
-                <motion.div variants={staggerChild} className="grid grid-cols-2 gap-2 sm:gap-3">
-                  <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.character}</p>
-                    <p className="text-sm font-semibold text-foreground">{childNames}</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.story}</p>
-                    <p className="text-sm font-semibold text-foreground">{getPortionLabel(data.torahPortion) || "—"}</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.artStyle}</p>
-                    <p className="text-sm font-semibold text-foreground capitalize">{data.artStyle}</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1">{t.wizard.plan}</p>
-                    <p className="text-sm font-semibold text-foreground">
-                      {planType === "subscription" ? t.wizard.planSubscription : t.wizard.planSingle}
-                    </p>
-                  </div>
-                </motion.div>
+                {/* Bullet-style summary */}
+                <motion.ul variants={staggerChild} className="space-y-3 max-w-md mx-auto text-start">
+                  <li className="flex items-start gap-3 text-base">
+                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.character}:</span> <span className="font-semibold">{childNames}</span></span>
+                  </li>
+                  {planType !== "subscription" && (
+                    <li className="flex items-start gap-3 text-base">
+                      <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                      <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.story}:</span> <span className="font-semibold">{getPortionLabel(data.torahPortion) || "—"}</span></span>
+                    </li>
+                  )}
+                  <li className="flex items-start gap-3 text-base">
+                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.artStyle}:</span> <span className="font-semibold capitalize">{data.artStyle}</span></span>
+                  </li>
+                  <li className="flex items-start gap-3 text-base">
+                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
+                  </li>
+                </motion.ul>
+
+                {/* Large centered Generate button */}
+                {!showLoginPrompt && (
+                  <motion.div variants={staggerChild} className="flex justify-center pt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={next}
+                      className="flex items-center gap-3 px-12 sm:px-16 h-16 sm:h-20 rounded-full font-bold text-lg sm:text-xl shadow-2xl shadow-accent/25 transition-all text-accent-foreground"
+                      style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
+                    >
+                      <Sparkles className="w-6 h-6 sm:w-7 sm:h-7" /> {t.wizard.generateBook}
+                    </motion.button>
+                  </motion.div>
+                )}
 
                 {/* Inline auth gate */}
                 {showLoginPrompt && !user && (
