@@ -607,16 +607,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       setPortionMode(null);
       return;
     }
-    if (step === 4 && styleSubStep === "format") {
-      setStyleSubStep("art");
-      return;
-    }
     setDir(-1);
     setPortionMode(null);
     let prevStep = step - 1;
     if (allChildrenHaveGenderAge()) {
       if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
     }
+    // Subscription skipped step 6, so jump back to 5.
+    if (step === 7 && planType === "subscription") prevStep = 5;
     if (step === 13 && planType === "single") prevStep = 11;
     setStep(Math.max(prevStep, 0));
   };
