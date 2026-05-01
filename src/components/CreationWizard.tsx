@@ -1004,43 +1004,51 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     </h2>
                   </motion.div>
 
-                  <div className="grid md:grid-cols-2 gap-4 sm:gap-5">
-                    {/* Card 1 — Subscription (default) */}
+                  <div className="grid md:grid-cols-3 gap-4 sm:gap-5">
+                    {/* Card 1 — Single Custom Book */}
+                    <motion.button
+                      variants={staggerChild}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setPlanType("single");
+                        setSelectedPlan("once");
+                        setDir(1);
+                        setStep(1);
+                      }}
+                      className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/20 flex items-center justify-center mb-4">
+                        <BookOpenCheck className="w-6 h-6 text-foreground/70" />
+                      </div>
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                        {t.wizard.planChoiceSingleTitle}
+                      </h3>
+                      <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm border-2 border-border text-foreground hover:border-accent/50 transition-colors">
+                        {t.wizard.planChoiceSingleCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                      </div>
+                    </motion.button>
+
+                    {/* Card 2 — Torah Series (primary) */}
                     <motion.button
                       variants={staggerChild}
                       whileHover={{ y: -4 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         setPlanType("subscription");
+                        setSeriesType("torah");
                         setSelectedPlan("monthly");
                         setDir(1);
                         setStep(1);
                       }}
-                      className={`relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md overflow-hidden ${
-                        planType === "subscription"
-                          ? "border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-transparent shadow-2xl shadow-accent/15 ring-1 ring-accent/30"
-                          : "border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
-                      }`}
+                      className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md overflow-hidden border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-transparent shadow-2xl shadow-accent/15 ring-1 ring-accent/30"
                     >
-                      {planType === "subscription" && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                          className="absolute top-4 end-4 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
-                        >
-                          <Check className="w-4 h-4 text-accent-foreground" />
-                        </motion.div>
-                      )}
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center mb-4">
                         <BookOpen className="w-6 h-6 text-accent" />
                       </div>
                       <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
                         {t.wizard.planChoiceSubscriptionTitle}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-1.5">
-                        {t.wizard.planChoiceSubscriptionSubtitle}
-                      </p>
                       <ul className="space-y-2 mt-5">
                         {t.wizard.planChoiceSubscriptionBullets.map((b, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
@@ -1059,52 +1067,28 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       </p>
                     </motion.button>
 
-                    {/* Card 2 — Single book (secondary) */}
+                    {/* Card 3 — Tanach Series */}
                     <motion.button
                       variants={staggerChild}
                       whileHover={{ y: -4 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
-                        setPlanType("single");
-                        setSelectedPlan("once");
+                        setPlanType("subscription");
+                        setSeriesType("tanach");
+                        setSelectedPlan("monthly");
                         setDir(1);
                         setStep(1);
                       }}
-                      className={`relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md ${
-                        planType === "single"
-                          ? "border-accent bg-accent/5 shadow-xl ring-1 ring-accent/20"
-                          : "border-border/40 bg-card/40 hover:border-accent/30 hover:shadow-md"
-                      }`}
+                      className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
                     >
-                      {planType === "single" && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                          className="absolute top-4 end-4 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
-                        >
-                          <Check className="w-4 h-4 text-accent-foreground" />
-                        </motion.div>
-                      )}
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/20 flex items-center justify-center mb-4">
-                        <BookOpenCheck className="w-6 h-6 text-foreground/70" />
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-4">
+                        <Sparkles className="w-6 h-6 text-accent" />
                       </div>
                       <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                        {t.wizard.planChoiceSingleTitle}
+                        {t.wizard.planChoiceTanachTitle}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-1.5">
-                        {t.wizard.planChoiceSingleSubtitle}
-                      </p>
-                      <ul className="space-y-2 mt-5">
-                        {t.wizard.planChoiceSingleBullets.map((b, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
-                            <Check className="w-4 h-4 text-foreground/50 flex-shrink-0 mt-0.5" />
-                            <span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
                       <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm border-2 border-border text-foreground hover:border-accent/50 transition-colors">
-                        {t.wizard.planChoiceSingleCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                        {t.wizard.planChoiceTanachCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
                       </div>
                     </motion.button>
                   </div>
