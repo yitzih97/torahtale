@@ -1477,14 +1477,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     <BookOpen className="w-7 h-7 text-accent" />
                   </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    {portionMode === "manual"
+                    {(portionMode === "manual" || planType === "single")
                       ? t.wizard.chooseParsha
                       : (planType === "subscription" ? t.wizard.storyStartTitleSubscription : t.wizard.storyStartTitleSingle)}
                   </h2>
                 </motion.div>
 
-                {/* ── Mode selection cards ── */}
-                {portionMode !== "manual" && (
+                {/* ── Mode selection cards (hidden for single-book plan) ── */}
+                {portionMode !== "manual" && planType !== "single" && (
                   <motion.div variants={staggerChild} className="space-y-3 max-w-md mx-auto">
                     {/* Weekly Parashah */}
                     <motion.button
