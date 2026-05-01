@@ -226,6 +226,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   ];
   const [step, setStep] = useState(0);
   const [planType, setPlanType] = useState<"subscription" | "single">("subscription");
+  const [seriesType, setSeriesType] = useState<"torah" | "tanach">("torah");
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [dir, setDir] = useState(1);
   const [data, setData] = useState<WizardData>(initialData);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
