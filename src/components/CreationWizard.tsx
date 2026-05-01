@@ -610,7 +610,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   };
 
   const back = () => {
-    if (step === 6 && portionMode === "manual") {
+    if (step === 6 && portionMode === "manual" && planType !== "single") {
       setPortionMode(null);
       return;
     }
