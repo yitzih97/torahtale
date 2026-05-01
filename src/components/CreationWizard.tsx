@@ -1904,8 +1904,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 </motion.ul>
 
 
-                {/* Large centered Generate button */}
-                {!showLoginPrompt && (
+                {/* Large centered Generate button — hidden if not signed in */}
+                {user && (
                   <motion.div variants={staggerChild} className="flex justify-center pt-4">
                     <motion.button
                       whileHover={{ scale: 1.04 }}
@@ -1919,8 +1919,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.div>
                 )}
 
-                {/* Inline auth gate */}
-                {showLoginPrompt && !user && (
+                {/* Inline auth gate — always shown at step 8 when not logged in */}
+                {!user && !authLoading && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
