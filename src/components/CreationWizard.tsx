@@ -1148,23 +1148,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   />
                 </motion.div>
 
-                {data.children.length > 1 && (
-                  <motion.div variants={staggerChild} className="flex flex-wrap gap-2 justify-center">
-                    {data.children.map((c, idx) => (
-                      <button
-                        key={c.id}
-                        onClick={() => update({ activeChildIdx: idx })}
-                        className={`text-xs px-3 py-1.5 rounded-full transition-all font-medium ${
-                          idx === data.activeChildIdx
-                            ? "bg-accent/15 text-accent border border-accent/30"
-                            : "bg-muted/50 text-muted-foreground hover:bg-muted/80 border border-transparent"
-                        }`}
-                      >
-                        {c.name || `${t.wizard.child} ${idx + 1}`}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
               </motion.div>
               </section>
             )}
