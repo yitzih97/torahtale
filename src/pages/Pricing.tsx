@@ -24,20 +24,16 @@ const Pricing = () => {
 
   const goCreate = (plan?: "subscription" | "single") => {
     if (plan) {
+      // Start a fresh wizard run when entering from pricing so users always
+      // go through name → age → photo/description before the order summary,
+      // even if they have a stale persisted step from a previous session.
       try {
-        const existing = JSON.parse(
-          localStorage.getItem("torahtale_wizard_state") || "{}",
-        );
-        localStorage.setItem(
-          "torahtale_wizard_state",
-          JSON.stringify({ ...existing, planType: plan }),
-        );
-      } catch {
-        localStorage.setItem(
-          "torahtale_wizard_state",
-          JSON.stringify({ planType: plan }),
-        );
-      }
+        localStorage.removeItem("torahtale_wizard_state");
+      } catch { /* ignore */ }
+      localStorage.setItem(
+        "torahtale_wizard_state",
+        JSON.stringify({ planType: plan, step: 1 }),
+      );
     }
     navigate("/create");
   };
