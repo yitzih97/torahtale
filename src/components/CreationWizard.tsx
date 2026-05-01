@@ -1768,51 +1768,53 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 className="space-y-6 max-w-sm mx-auto"
               >
                 <motion.div variants={staggerChild} className="text-center">
-                  <motion.div
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ ...springTransition, delay: 0.1 }}
-                    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4"
-                  >
-                    <Sun className="w-7 h-7 text-accent" />
-                  </motion.div>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseLanguage}</h2>
                 </motion.div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {[
                     { key: "english", label: t.wizard.english, emoji: "🇺🇸" },
                     { key: "hebrew", label: t.wizard.hebrew, emoji: "🇮🇱" },
                     { key: "yiddish", label: t.wizard.yiddish, emoji: "✡️" },
-                    { key: "bilingual", label: t.wizard.both, emoji: "🌍" },
-                  ].map((l) => (
-                    <motion.button
-                      key={l.key}
-                      variants={staggerChild}
-                      onClick={() => {
-                        update({ language: l.key });
-                        autoAdvance();
-                      }}
-                      whileHover={{ y: -4 }}
-                      whileTap={{ scale: 0.97 }}
-                      className={glassCard(data.language === l.key)}
-                    >
-                      <div className="p-4 sm:p-5">
-                        <span className="text-3xl sm:text-4xl block mb-2">{l.emoji}</span>
-                        <span className="text-xs sm:text-sm font-semibold text-foreground">{l.label}</span>
-                      </div>
-                      {data.language === l.key && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                          className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
-                        >
-                          <Check className="w-3.5 h-3.5 text-accent-foreground" />
-                        </motion.div>
-                      )}
-                    </motion.button>
-                  ))}
+                  ].map((l) => {
+                    const isSelected = selectedLanguages.includes(l.key);
+                    return (
+                      <motion.button
+                        key={l.key}
+                        variants={staggerChild}
+                        onClick={() => {
+                          setSelectedLanguages((prev) => {
+                            const next = prev.includes(l.key)
+                              ? prev.filter((k) => k !== l.key)
+                              : [...prev, l.key];
+                            // Sync the legacy single-language field for downstream code
+                            if (next.length === 0) update({ language: l.key });
+                            else if (next.length === 1) update({ language: next[0] });
+                            else update({ language: next.join("+") });
+                            return next;
+                          });
+                        }}
+                        whileHover={{ y: -4 }}
+                        whileTap={{ scale: 0.97 }}
+                        className={glassCard(isSelected)}
+                      >
+                        <div className="p-4 sm:p-5">
+                          <span className="text-3xl sm:text-4xl block mb-2">{l.emoji}</span>
+                          <span className="text-xs sm:text-sm font-semibold text-foreground">{l.label}</span>
+                        </div>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                            className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
+                          >
+                            <Check className="w-3.5 h-3.5 text-accent-foreground" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </motion.div>
               </section>
