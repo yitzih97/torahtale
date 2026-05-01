@@ -1282,15 +1282,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   />
                 </motion.div>
 
-                {child.age && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center text-sm font-semibold text-accent"
-                  >
-                    {t.wizard.yearsOld(child.age, child.gender)}
-                  </motion.p>
-                )}
               </motion.div>
               </section>
             )}
