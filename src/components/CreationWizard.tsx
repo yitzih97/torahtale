@@ -1384,7 +1384,33 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </h2>
                 </motion.div>
 
-                <div className="max-w-md mx-auto">
+                <div className="max-w-md mx-auto space-y-4">
+                  <motion.div variants={staggerChild}>
+                    {child.photoPreview ? (
+                      <div className="relative rounded-2xl overflow-hidden border-2 border-accent/40 bg-card/40 backdrop-blur-sm">
+                        <img src={child.photoPreview} alt={child.name} className="w-full h-56 object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => updateChild(child.id, { photo: null, photoPreview: null })}
+                          className="absolute top-2 end-2 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs font-semibold text-foreground hover:bg-background transition"
+                        >
+                          {t.wizard.remove}
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border/60 bg-card/40 backdrop-blur-sm p-8 cursor-pointer hover:border-accent/50 hover:bg-card/60 transition">
+                        <Camera className="w-8 h-8 text-accent" />
+                        <span className="font-display text-sm font-semibold text-foreground">{t.wizard.uploadPhoto}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handlePhoto(child.id, e)}
+                        />
+                      </label>
+                    )}
+                  </motion.div>
+
                   <motion.div
                     variants={staggerChild}
                     className="rounded-2xl border-2 border-border/50 p-5 sm:p-6 bg-card/40 backdrop-blur-sm"
