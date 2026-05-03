@@ -249,10 +249,10 @@ export const yi: typeof en = {
     // Plan-type chooser (Step 0)
     planChoiceTitle: "קלייבט אויס אייער ספר פלאן",
     planSectionBookType: "קלייבט אויס אייער ספר טיפ",
-    planWeekly: "וועכנטליך ספר",
+    planWeekly: "וועכנטליך",
     planWeeklyDesc: "1 ספר יעדע וואך + יום-טובים",
-    planMonthly: "חודשליך ספר",
-    planMonthlyDesc: "4 ספרים א חודש",
+    planMonthly: "חודשליך",
+    planMonthlyDesc: "4 ספרים א חודש + יום-טובים",
     planYearly: "יאר פעקל",
     planYearlyDesc: "פרשה און אלע יום-טובים",
     planChoiceSubscriptionTitle: "תורה סעריע",
