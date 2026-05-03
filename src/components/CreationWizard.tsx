@@ -907,14 +907,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             >
               <StepIcon className="w-4 h-4 text-accent" />
             </motion.div>
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">
-                {t.wizard.createYourBook}
-              </p>
-              <p className="font-display text-sm font-semibold text-foreground truncate">
-                {step === 0 ? t.wizard.planChoiceTitle : step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
-              </p>
-            </div>
+            {step !== 11 && (
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">
+                  {t.wizard.createYourBook}
+                </p>
+                <p className="font-display text-sm font-semibold text-foreground truncate">
+                  {step === 0 ? t.wizard.planChoiceTitle : step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             <button
