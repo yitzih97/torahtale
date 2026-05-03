@@ -1050,6 +1050,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         setSeriesType("torah");
                         setSelectedPlan("monthly");
                         setDir(1);
+                        setBookOptionsChosenEarly(true);
                         setStep(10);
                       }}
                       className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md overflow-hidden border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-transparent shadow-2xl shadow-accent/15 ring-1 ring-accent/30"
