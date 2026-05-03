@@ -1026,9 +1026,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
                   {/* Section A — Subscription cadence */}
                   <motion.div variants={staggerChild} className="space-y-4">
-                    <h3 className="font-display text-lg font-semibold text-foreground">
-                      {t.wizard.planSectionSubscription}
-                    </h3>
                     <div className="grid sm:grid-cols-3 gap-3">
                       {([
                         { id: "weekly" as const, label: t.wizard.planWeekly, desc: t.wizard.planWeeklyDesc },
@@ -1068,11 +1065,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     </div>
                   </motion.div>
 
+                  <motion.div variants={staggerChild} className="text-center">
+                    <h2 className="font-display text-2xl sm:text-4xl font-bold text-foreground">
+                      {t.wizard.planSectionBookType}
+                    </h2>
+                  </motion.div>
+
                   {/* Section B — Book format */}
-                  <motion.div variants={staggerChild} className="space-y-4">
-                    <h3 className="font-display text-lg font-semibold text-foreground">
-                      {t.wizard.planSectionFormat}
-                    </h3>
+                  <motion.div variants={staggerChild}>
                     <BookOptionsStep
                       options={bookOptions}
                       onChange={setBookOptions}
