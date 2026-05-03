@@ -2112,7 +2112,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 11: Shipping ── */}
             {step === 11 && (
               <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <ShippingForm data={shipping} onChange={setShipping} />
+                <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} />
               </motion.div>
             )}
 
