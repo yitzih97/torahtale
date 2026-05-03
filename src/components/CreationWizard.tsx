@@ -1033,6 +1033,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       onClick={() => {
                         setPlanType("single");
                         setSelectedPlan("once");
+                        setBookOptionsChosenEarly(false);
                         setDir(1);
                         setStep(1);
                       }}
