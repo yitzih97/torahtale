@@ -219,10 +219,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
           <div>
             <p className="text-sm font-semibold text-primary">{t.bookOptions.yourSelection}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {productLabels[options.productType]}
-              {options.productType === "hardcover" && options.hardcoverSize
-                ? ` · ${options.hardcoverSize === "11x8.5" ? '11″×8.5″' : '8″×8″'}`
-                : ` · ${PRODUCT_INFO[options.productType].dims}`}
+              {productLabels[options.productType]} · {PRODUCT_INFO[options.productType].dims}
             </p>
           </div>
           <span className="text-2xl font-bold text-accent">{formatPrice(price, priceIls)}</span>
