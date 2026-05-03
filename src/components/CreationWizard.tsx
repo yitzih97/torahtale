@@ -341,6 +341,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         if (parsed.planType === "single" || parsed.planType === "subscription") {
           setPlanType(parsed.planType);
         }
+        if (typeof parsed.bookOptionsChosenEarly === "boolean") {
+          setBookOptionsChosenEarly(parsed.bookOptionsChosenEarly);
+        }
         const restoredData = parsed.data || initialData;
         if (!restoredData.language || restoredData.language === "english") {
           restoredData.language = defaultLanguage;
