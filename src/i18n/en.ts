@@ -245,7 +245,15 @@ export const en = {
     resetConfirm: "Reset the wizard and start over from the beginning? Your progress on this book will be cleared.",
     whatsHeroName: "What's your child's name?",
     // Plan-type chooser (Step 0)
-    planChoiceTitle: "Choose Your Child's Experience",
+    planChoiceTitle: "Choose Your Book Plan",
+    planSectionSubscription: "Choose your subscription",
+    planSectionFormat: "Choose your book format",
+    planWeekly: "Weekly Parsha Book",
+    planWeeklyDesc: "A new personalized book every week",
+    planMonthly: "Monthly Book",
+    planMonthlyDesc: "One personalized book each month",
+    planYearly: "Yearly Bundle",
+    planYearlyDesc: "Full year of stories, best value",
     planChoiceSubscriptionTitle: "Torah Series",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [

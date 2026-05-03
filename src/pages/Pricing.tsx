@@ -34,7 +34,7 @@ const Pricing = () => {
         "torahtale_wizard_state",
         JSON.stringify({
           planType: plan,
-          step: plan === "subscription" ? 10 : 1,
+          step: plan === "subscription" ? 0 : 1,
           bookOptionsChosenEarly: plan === "subscription",
         }),
       );

@@ -1008,7 +1008,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   animate="center"
                   exit="exit"
                   transition={springTransition}
-                  className="space-y-7 max-w-3xl mx-auto w-full"
+                  className="space-y-10 max-w-3xl mx-auto w-full"
                 >
                   <motion.div variants={staggerChild} className="text-center">
                     <motion.div
@@ -1024,97 +1024,61 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     </h2>
                   </motion.div>
 
-                  <div className="grid md:grid-cols-3 gap-4 sm:gap-5">
-                    {/* Card 1 — Single Custom Book */}
-                    <motion.button
-                      variants={staggerChild}
-                      whileHover={{ y: -4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setPlanType("single");
-                        setSelectedPlan("once");
-                        setBookOptionsChosenEarly(false);
-                        setDir(1);
-                        setStep(1);
-                      }}
-                      className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
-                    >
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/20 flex items-center justify-center mb-4">
-                        <BookOpenCheck className="w-6 h-6 text-foreground/70" />
-                      </div>
-                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                        {t.wizard.planChoiceSingleTitle}
-                      </h3>
-                      <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm border-2 border-border text-foreground hover:border-accent/50 transition-colors">
-                        {t.wizard.planChoiceSingleCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-                      </div>
-                    </motion.button>
+                  {/* Section A — Subscription cadence */}
+                  <motion.div variants={staggerChild} className="space-y-4">
+                    <h3 className="font-display text-lg font-semibold text-foreground">
+                      {t.wizard.planSectionSubscription}
+                    </h3>
+                    <div className="grid sm:grid-cols-3 gap-3">
+                      {([
+                        { id: "weekly" as const, label: t.wizard.planWeekly, desc: t.wizard.planWeeklyDesc },
+                        { id: "monthly" as const, label: t.wizard.planMonthly, desc: t.wizard.planMonthlyDesc, popular: true },
+                        { id: "yearly" as const, label: t.wizard.planYearly, desc: t.wizard.planYearlyDesc },
+                      ]).map((p) => {
+                        const active = selectedPlan === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => {
+                              setPlanType("subscription");
+                              setSelectedPlan(p.id);
+                              setBookOptionsChosenEarly(true);
+                            }}
+                            className={`relative text-start p-4 rounded-2xl border-2 transition-all duration-300 backdrop-blur-md ${
+                              active
+                                ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
+                                : "border-border/40 bg-card/60 hover:border-accent/30 hover:shadow-sm"
+                            }`}
+                          >
+                            {p.popular && (
+                              <div className="absolute -top-2.5 right-3 bg-accent text-accent-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                                ★
+                              </div>
+                            )}
+                            <div className="font-display font-bold text-base text-foreground">{p.label}</div>
+                            <div className="text-xs text-muted-foreground mt-1">{p.desc}</div>
+                            {active && (
+                              <div className="absolute top-3 end-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                                <Check className="w-3 h-3 text-accent-foreground" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
 
-                    {/* Card 2 — Torah Series (primary) */}
-                    <motion.button
-                      variants={staggerChild}
-                      whileHover={{ y: -4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setPlanType("subscription");
-                        setSeriesType("torah");
-                        setSelectedPlan("monthly");
-                        setDir(1);
-                        setBookOptionsChosenEarly(true);
-                        setStep(10);
-                      }}
-                      className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md overflow-hidden border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-transparent shadow-2xl shadow-accent/15 ring-1 ring-accent/30"
-                    >
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center mb-4">
-                        <BookOpen className="w-6 h-6 text-accent" />
-                      </div>
-                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                        {t.wizard.planChoiceSubscriptionTitle}
-                      </h3>
-                      <ul className="space-y-2 mt-5">
-                        {t.wizard.planChoiceSubscriptionBullets.map((b, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
-                            <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
-                            <span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 text-accent-foreground"
-                        style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
-                      >
-                        {t.wizard.planChoiceSubscriptionCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-                      </div>
-                      <p className="text-[11px] text-accent/80 font-medium mt-3 flex items-center gap-1.5">
-                        <Sparkles className="w-3 h-3" /> {t.wizard.planChoiceSubscriptionMicro}
-                      </p>
-                    </motion.button>
-
-                    {/* Card 3 — Tanach Series */}
-                    <motion.button
-                      variants={staggerChild}
-                      whileHover={{ y: -4 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setPlanType("subscription");
-                        setSeriesType("tanach");
-                        setSelectedPlan("monthly");
-                        setDir(1);
-                        setBookOptionsChosenEarly(true);
-                        setStep(10);
-                      }}
-                      className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
-                    >
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-4">
-                        <Sparkles className="w-6 h-6 text-accent" />
-                      </div>
-                      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                        {t.wizard.planChoiceTanachTitle}
-                      </h3>
-                      <div className="mt-6 inline-flex items-center gap-2 px-5 h-11 rounded-full font-semibold text-sm border-2 border-border text-foreground hover:border-accent/50 transition-colors">
-                        {t.wizard.planChoiceTanachCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-                      </div>
-                    </motion.button>
-                  </div>
+                  {/* Section B — Book format */}
+                  <motion.div variants={staggerChild} className="space-y-4">
+                    <h3 className="font-display text-lg font-semibold text-foreground">
+                      {t.wizard.planSectionFormat}
+                    </h3>
+                    <BookOptionsStep
+                      options={bookOptions}
+                      onChange={setBookOptions}
+                      childAge={parseInt(child?.age || "0") || 0}
+                    />
+                  </motion.div>
                 </motion.div>
               </section>
             )}
@@ -2193,7 +2157,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       </div>
 
       {/* ── Sticky bottom action bar (Apple/Tesla style) ── */}
-      {step !== 0 && step !== 9 && step !== 13 && step !== 14 && (
+      {step !== 9 && step !== 13 && step !== 14 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -2214,8 +2178,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={next}
-                disabled={!canNext}
+                onClick={() => {
+                  if (step === 0) {
+                    setDir(1);
+                    setStep(1);
+                    return;
+                  }
+                  next();
+                }}
+                disabled={step !== 0 && !canNext}
                 className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
                 style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >

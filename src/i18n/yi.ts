@@ -247,7 +247,15 @@ export const yi: typeof en = {
     resetConfirm: "זיכער צוריקשטעלן דעם אסיסטענט און הויבן פון אנהויב? דיין פראגרעס וועט זיין אויסגעמעקט.",
     whatsHeroName: "?וואָס איז דעם קינד'ס נאָמען",
     // Plan-type chooser (Step 0)
-    planChoiceTitle: "קלייבט אויס די דערפארונג פאר אייער קינד",
+    planChoiceTitle: "קלייבט אויס אייער ספר פלאן",
+    planSectionSubscription: "קלייבט אן אבאנעמענט",
+    planSectionFormat: "קלייבט א ספר פארמאט",
+    planWeekly: "וועכנטליכע פרשה ספר",
+    planWeeklyDesc: "א נייע פערזענליכע ספר יעדע וואך",
+    planMonthly: "חודשליכע ספר",
+    planMonthlyDesc: "איין פערזענליכע ספר יעדן חודש",
+    planYearly: "יערליכע פעקל",
+    planYearlyDesc: "א גאנץ יאר מעשיות, בעסטער ווערט",
     planChoiceSubscriptionTitle: "תורה סעריע",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [
