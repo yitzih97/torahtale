@@ -2134,8 +2134,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         className="w-full rounded-2xl border-2 border-accent/40 bg-gradient-to-r from-accent/10 to-accent/5 p-4 flex items-center justify-between gap-4 hover:border-accent transition-all active:scale-[0.99]"
                       >
                         <div className="text-start">
-                          <p className="font-display font-bold text-primary">Switch to yearly · {fmt(yearlyTotal)}/year</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Get 2 months free when you go yearly</p>
+                          <p className="font-display font-bold text-primary flex flex-wrap items-baseline gap-x-2">
+                            <span>Switch to yearly ·</span>
+                            <span className="text-muted-foreground line-through font-normal">{fmt(monthlyTotal * 12)}/year</span>
+                            <span className="text-accent">{fmt(yearlyTotal)}/year</span>
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Save 2 months free when you go yearly</p>
                         </div>
                         <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-input">
                           <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-0.5" />
