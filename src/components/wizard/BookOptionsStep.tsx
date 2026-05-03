@@ -118,10 +118,6 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
     board: t.bookOptions.features.board,
   };
 
-  const hardcoverSizes = HARDCOVER_SIZES_DATA.map((s, i) => ({
-    ...s,
-    desc: i === 0 ? t.bookOptions.squareCompact : t.bookOptions.landscapeBigger,
-  }));
 
   return (
     <div className="space-y-6">
