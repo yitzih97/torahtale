@@ -240,11 +240,6 @@ export const CheckoutStep = ({
             <span>{t.checkout.totalToday}</span>
             <span className="text-accent">{fmt(total)}</span>
           </div>
-          {isSubscription && (
-            <p className="text-[10px] text-muted-foreground">
-              {t.checkout.freeShipNote}
-            </p>
-          )}
         </div>
       </div>
 
