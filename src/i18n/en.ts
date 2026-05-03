@@ -252,7 +252,7 @@ export const en = {
     planMonthly: "Monthly",
     planMonthlyDesc: "4 books a month + holidays",
     planYearly: "Year Bundle",
-    planYearlyDesc: "Parsha plus all holidays",
+    planYearlyDesc: "Parsha + holidays",
     planChoiceSubscriptionTitle: "Torah Series",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [

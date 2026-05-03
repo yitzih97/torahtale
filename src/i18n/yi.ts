@@ -254,7 +254,7 @@ export const yi: typeof en = {
     planMonthly: "חודשליך",
     planMonthlyDesc: "4 ספרים א חודש + יום-טובים",
     planYearly: "יאר פעקל",
-    planYearlyDesc: "פרשה און אלע יום-טובים",
+    planYearlyDesc: "פרשה + יום-טובים",
     planChoiceSubscriptionTitle: "תורה סעריע",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [
