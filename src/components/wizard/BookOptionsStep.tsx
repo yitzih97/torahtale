@@ -116,11 +116,13 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-          <Sparkles className="w-6 h-6 text-accent" /> {t.bookOptions.chooseSefer}
-        </h2>
-      </div>
+      {!hideHeader && (
+        <div>
+          <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-accent" /> {t.bookOptions.chooseSefer}
+          </h2>
+        </div>
+      )}
 
 
       <div className="grid gap-4">
