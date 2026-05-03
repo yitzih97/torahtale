@@ -24,7 +24,7 @@ const PRODUCT_INFO = {
     dims: '8″ × 8″',
     icon: BookOpen,
     color: "from-blue-500/20 to-blue-600/10",
-    image: sampleCover,
+    image: softcoverImg,
   },
   hardcover: {
     price: 9.95,
@@ -32,7 +32,7 @@ const PRODUCT_INFO = {
     dims: '8″ × 8″',
     icon: Shield,
     color: "from-accent/20 to-accent/10",
-    image: sampleCover,
+    image: hardcoverImg,
   },
   board: {
     price: 18.28,
@@ -40,7 +40,7 @@ const PRODUCT_INFO = {
     dims: '6″ × 6″',
     icon: Baby,
     color: "from-pink-500/20 to-pink-600/10",
-    image: sampleCover,
+    image: boardImg,
   },
 } as const;
 
