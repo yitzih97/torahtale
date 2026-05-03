@@ -249,12 +249,12 @@ export const he: typeof en = {
     // Plan-type chooser (Step 0)
     planChoiceTitle: "בחרו את תוכנית הספר שלכם",
     planSectionBookType: "בחרו את סוג הספר",
-    planWeekly: "ספר פרשה שבועי",
-    planWeeklyDesc: "ספר חדש מותאם אישית כל שבוע",
+    planWeekly: "ספר שבועי",
+    planWeeklyDesc: "ספר אחד כל שבוע + חגים",
     planMonthly: "ספר חודשי",
-    planMonthlyDesc: "ספר מותאם אישית בכל חודש",
-    planYearly: "חבילה שנתית",
-    planYearlyDesc: "שנה שלמה של סיפורים, שווה ביותר",
+    planMonthlyDesc: "4 ספרים בחודש",
+    planYearly: "חבילת שנה",
+    planYearlyDesc: "פרשה ועוד כל החגים",
     planChoiceSubscriptionTitle: "סדרת תורה",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [

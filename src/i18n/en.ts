@@ -247,12 +247,12 @@ export const en = {
     // Plan-type chooser (Step 0)
     planChoiceTitle: "Choose Your Book Plan",
     planSectionBookType: "Choose Your Book Type",
-    planWeekly: "Weekly Parsha Book",
-    planWeeklyDesc: "A new personalized book every week",
+    planWeekly: "Weekly Book",
+    planWeeklyDesc: "1 book every week + holidays",
     planMonthly: "Monthly Book",
-    planMonthlyDesc: "One personalized book each month",
-    planYearly: "Yearly Bundle",
-    planYearlyDesc: "Full year of stories, best value",
+    planMonthlyDesc: "4 books a month",
+    planYearly: "Year Bundle",
+    planYearlyDesc: "Parsha plus all holidays",
     planChoiceSubscriptionTitle: "Torah Series",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [

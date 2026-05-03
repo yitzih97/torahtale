@@ -1081,6 +1081,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       options={bookOptions}
                       onChange={setBookOptions}
                       childAge={parseInt(child?.age || "0") || 0}
+                      hideHeader
                     />
                   </motion.div>
                 </motion.div>
