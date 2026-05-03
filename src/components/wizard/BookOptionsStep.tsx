@@ -2,7 +2,9 @@ import { useState } from "react";
 import { BookOpen, Check, Sparkles, Shield, Baby } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-import sampleCover from "@/assets/gallery/s1-cover.jpg";
+import softcoverImg from "@/assets/gallery/s1-cover.jpg";
+import hardcoverImg from "@/assets/gallery/s2-cover.jpg";
+import boardImg from "@/assets/gallery/s3-cover.jpg";
 
 export interface BookOptions {
   productType: "softcover" | "hardcover" | "board";
