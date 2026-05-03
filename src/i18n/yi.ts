@@ -248,8 +248,7 @@ export const yi: typeof en = {
     whatsHeroName: "?וואָס איז דעם קינד'ס נאָמען",
     // Plan-type chooser (Step 0)
     planChoiceTitle: "קלייבט אויס אייער ספר פלאן",
-    planSectionSubscription: "קלייבט אן אבאנעמענט",
-    planSectionFormat: "קלייבט א ספר פארמאט",
+    planSectionBookType: "קלייבט אויס אייער ספר טיפ",
     planWeekly: "וועכנטליכע פרשה ספר",
     planWeeklyDesc: "א נייע פערזענליכע ספר יעדע וואך",
     planMonthly: "חודשליכע ספר",

@@ -248,8 +248,7 @@ export const he: typeof en = {
     whatsHeroName: "?מה שם הילד שלכם",
     // Plan-type chooser (Step 0)
     planChoiceTitle: "בחרו את תוכנית הספר שלכם",
-    planSectionSubscription: "בחרו מנוי",
-    planSectionFormat: "בחרו פורמט ספר",
+    planSectionBookType: "בחרו את סוג הספר",
     planWeekly: "ספר פרשה שבועי",
     planWeeklyDesc: "ספר חדש מותאם אישית כל שבוע",
     planMonthly: "ספר חודשי",

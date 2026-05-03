@@ -246,8 +246,7 @@ export const en = {
     whatsHeroName: "What's your child's name?",
     // Plan-type chooser (Step 0)
     planChoiceTitle: "Choose Your Book Plan",
-    planSectionSubscription: "Choose your subscription",
-    planSectionFormat: "Choose your book format",
+    planSectionBookType: "Choose Your Book Type",
     planWeekly: "Weekly Parsha Book",
     planWeeklyDesc: "A new personalized book every week",
     planMonthly: "Monthly Book",
