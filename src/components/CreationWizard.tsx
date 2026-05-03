@@ -1049,7 +1049,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                           >
                             {p.popular && (
                               <div className="absolute -top-2.5 right-3 bg-accent text-accent-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                                ★
+                                RECOMMENDED
                               </div>
                             )}
                             <div className="font-display font-bold text-base text-foreground">{p.label}</div>
