@@ -44,10 +44,6 @@ const PRODUCT_INFO = {
   },
 } as const;
 
-const HARDCOVER_SIZES_DATA = [
-  { key: "8x8" as const, label: '8″ × 8″' },
-  { key: "11x8.5" as const, label: '11″ × 8.5″' },
-];
 
 export const BASE_BOOK_PRICE = 7.05;
 
