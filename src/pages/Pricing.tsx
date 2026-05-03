@@ -22,6 +22,7 @@ import cover8 from "@/assets/gallery/s8-cover.jpg";
 
 const Pricing = () => {
   const navigate = useNavigate();
+  const [selected, setSelected] = useState<"single" | "torah" | "tanach">("torah");
 
   const goCreate = (plan?: "subscription" | "single") => {
     if (plan) {
