@@ -90,12 +90,11 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
 
   const selectType = (type: BookOptions["productType"]) => {
     if (type === "hardcover") {
-      onChange({ productType: "hardcover", hardcoverSize: options.hardcoverSize || "8x8" });
-      setSubStep("size");
+      onChange({ productType: "hardcover", hardcoverSize: "8x8" });
     } else {
       onChange({ productType: type, hardcoverSize: undefined });
-      setSubStep("type");
     }
+    setSubStep("type");
   };
 
   const price = calculateBookPrice(options);
