@@ -216,10 +216,12 @@ export const CheckoutStep = ({
               <span className="font-medium">−{fmt(discountAmount)}</span>
             </div>
           )}
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t.wizard.story}</span>
-            <span className="font-medium text-primary">{getPortionLabel(torahPortion)}</span>
-          </div>
+          {!isSubscription && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t.wizard.story}</span>
+              <span className="font-medium text-primary">{getPortionLabel(torahPortion)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t.wizard.artStyle}</span>
             <span className="font-medium text-primary capitalize">{artStyle === "3d-pixar" ? "3D Pixar" : artStyle === "graphic-novel" ? "Graphic Novel" : "Cartoon"}</span>
