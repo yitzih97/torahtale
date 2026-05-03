@@ -190,17 +190,7 @@ export const CheckoutStep = ({
   /* ── Order summary screen (step 13) ── */
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold text-primary">{t.checkout.orderSummary}</h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          {isSubscription
-            ? `${planLabels[selectedPlan]} ${t.checkout.plan}`
-            : t.checkout.oneTimePurchase}
-        </p>
-      </div>
-
       <div className="bg-muted/30 rounded-2xl p-5 space-y-3 border border-border">
-        <h3 className="font-display text-lg font-semibold text-primary">{t.checkout.orderSummary}</h3>
         <div className="space-y-2.5 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">
