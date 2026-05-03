@@ -122,7 +122,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
       </div>
 
 
-      {subStep === "type" && (
+      {(
         <div className="grid gap-4">
           {(Object.keys(PRODUCT_INFO) as Array<keyof typeof PRODUCT_INFO>).map((key) => {
             const info = PRODUCT_INFO[key];
