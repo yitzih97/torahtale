@@ -66,7 +66,31 @@ export const ShippingForm = ({ data, onChange, isSubscription = false }: Props) 
           <div className="rounded-2xl border-2 border-accent/30 bg-accent/5 p-4 text-sm text-foreground text-center">
             Orders after Tuesday ship for the following week's Parsha.
           </div>
-        ) : (
+        ) : null}
+
+        <div className="space-y-4 pt-2 border-t border-border">
+          <h3 className="font-display text-lg font-bold text-primary">Payment Details</h3>
+          <div>
+            <Label className="text-xs text-muted-foreground">Card Number</Label>
+            <Input placeholder="1234 5678 9012 3456" inputMode="numeric" autoComplete="cc-number" className="mt-1.5 rounded-xl h-11" />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <Label className="text-xs text-muted-foreground">Expiration (MM/YY)</Label>
+              <Input placeholder="MM/YY" autoComplete="cc-exp" className="mt-1.5 rounded-xl h-11" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">CVC</Label>
+              <Input placeholder="123" inputMode="numeric" autoComplete="cc-csc" className="mt-1.5 rounded-xl h-11" />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Name on Card</Label>
+            <Input placeholder="Full name" autoComplete="cc-name" className="mt-1.5 rounded-xl h-11" />
+          </div>
+        </div>
+
+        {!isSubscription && (
           <div className="space-y-3">
             <Label className="text-sm font-medium">{t.shipping.shippingSpeed}</Label>
             <div className="grid grid-cols-2 gap-3">
