@@ -59,7 +59,7 @@ const Pricing = () => {
     },
     {
       q: "Is this physical or digital?",
-      a: "Every book is a physical, premium-printed hardcover or softcover, shipped directly to your door.",
+      a: "Every book is a physical, premium-printed hardcover, softcover, or board book, shipped directly to your door.",
     },
   ];
 

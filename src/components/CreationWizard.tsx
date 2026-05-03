@@ -17,7 +17,7 @@ import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/Ship
 import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
-import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
+import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, type BookOptions } from "./wizard/BookOptionsStep";
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, getUpcomingParsha, type TorahOption } from "./wizard/TorahPortions";
@@ -2120,11 +2120,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </h2>
                 </div>
                 {planType === "subscription" && (() => {
-                  const formatDelta: Record<string, number> = { softcover: 0, hardcover: 2.90, board: 11.23 };
-                  const delta = formatDelta[bookOptions.productType] ?? 0;
-                  const monthlyTotal = 36 + delta * 4;
-                  const yearlyTotal = 360 + delta * 52;
-                  const fmt = (n: number) => `$${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`;
+                  const unit = calculateBookPriceForCurrency(bookOptions, t.currency.code) * quantity;
+                  const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
+                  const monthlyTotal = friendly(unit * 4 * 0.8);
+                  const yearlyTotal = friendly(unit * 52 * 0.7);
+                  const sym = t.currency.symbol;
+                  const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
                   if (selectedPlan === "monthly") {
                     return (
                       <button
