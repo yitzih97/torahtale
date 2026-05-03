@@ -74,7 +74,6 @@ const getRecommendedType = (age: number): BookOptions["productType"] | null => {
 };
 
 export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
-  const [subStep, setSubStep] = useState<"type" | "size">("type");
   const { t } = useLanguage();
   const { symbol, rate, code } = t.currency;
   const recommendedType = getRecommendedType(childAge);
@@ -90,7 +89,6 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
     } else {
       onChange({ productType: type, hardcoverSize: undefined });
     }
-    setSubStep("type");
   };
 
   const price = calculateBookPrice(options);
