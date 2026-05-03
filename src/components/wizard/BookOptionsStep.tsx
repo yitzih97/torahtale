@@ -160,15 +160,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
                     <span className="font-display font-bold text-base text-primary">{productLabels[key]}</span>
                     <span className="text-lg font-bold text-accent">{formatPrice(info.price, info.priceIls)}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">{productTaglines[key]} · {info.dims}</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    {productFeatures[key].map((f, i) => (
-                      <p key={i} className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-                        <span className="w-1 h-1 rounded-full bg-accent/60 shrink-0" />
-                        {f}
-                      </p>
-                    ))}
-                  </div>
+                  <p className="text-xs text-muted-foreground">{info.dims}</p>
                 </div>
               </div>
             </button>
