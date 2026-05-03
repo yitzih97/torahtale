@@ -2194,7 +2194,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </motion.button>
             )}
             {step === 8 && <div />}
-            {(step === 10 || step === 11 || step === 12) && (
+            {step === 10 && (
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
