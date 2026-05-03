@@ -2157,7 +2157,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       </div>
 
       {/* ── Sticky bottom action bar (Apple/Tesla style) ── */}
-      {step !== 9 && step !== 13 && step !== 14 && (
+      {step !== 9 && step !== 14 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
