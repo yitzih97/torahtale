@@ -254,7 +254,7 @@ export const he: typeof en = {
     planMonthly: "חודשי",
     planMonthlyDesc: "4 ספרים בחודש + חגים",
     planYearly: "חבילת שנה",
-    planYearlyDesc: "פרשה ועוד כל החגים",
+    planYearlyDesc: "פרשה + חגים",
     planChoiceSubscriptionTitle: "סדרת תורה",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [
