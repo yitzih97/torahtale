@@ -563,6 +563,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   /* ───── navigation ───── */
 
   const next = async () => {
+    // Cancel any queued auto-advance so we don't double-step
+    if (autoAdvanceTimerRef.current) { clearTimeout(autoAdvanceTimerRef.current); autoAdvanceTimerRef.current = null; }
     if (step === 8) {
       if (authLoading) {
         // Auth session still restoring after a redirect — wait silently;
