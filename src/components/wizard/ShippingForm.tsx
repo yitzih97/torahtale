@@ -69,7 +69,7 @@ export const ShippingForm = ({ data, onChange, isSubscription = false }: Props) 
         ) : null}
 
         <div className="space-y-4 pt-2 border-t border-border">
-          <h3 className="font-display text-lg font-bold text-primary">Payment Details</h3>
+          <h3 className="font-display text-2xl font-bold text-primary">Payment Details</h3>
           <div>
             <Label className="text-xs text-muted-foreground">Card Number</Label>
             <Input placeholder="1234 5678 9012 3456" inputMode="numeric" autoComplete="cc-number" className="mt-1.5 rounded-xl h-11" />

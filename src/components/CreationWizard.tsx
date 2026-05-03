@@ -907,14 +907,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             >
               <StepIcon className="w-4 h-4 text-accent" />
             </motion.div>
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">
-                {t.wizard.createYourBook}
-              </p>
-              <p className="font-display text-sm font-semibold text-foreground truncate">
-                {step === 0 ? t.wizard.planChoiceTitle : step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
-              </p>
-            </div>
+            {step !== 11 && (
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">
+                  {t.wizard.createYourBook}
+                </p>
+                <p className="font-display text-sm font-semibold text-foreground truncate">
+                  {step === 0 ? t.wizard.planChoiceTitle : step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             <button
@@ -2112,6 +2114,41 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 11: Shipping + Order Summary (combined final step) ── */}
             {step === 11 && (
               <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-6">
+                <div className="text-center pb-2">
+                  <h2 className="font-display text-4xl sm:text-5xl font-bold text-primary">
+                    {t.checkout.orderSummary}
+                  </h2>
+                </div>
+                {planType === "subscription" && selectedPlan === "monthly" && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlan("yearly")}
+                    className="w-full rounded-2xl border-2 border-accent/40 bg-gradient-to-r from-accent/10 to-accent/5 p-4 flex items-center justify-between gap-4 hover:border-accent transition-all active:scale-[0.99]"
+                  >
+                    <div className="text-start">
+                      <p className="font-display font-bold text-primary">Switch to yearly & save</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Get 2 months free when you go yearly</p>
+                    </div>
+                    <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-input">
+                      <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-0.5" />
+                    </span>
+                  </button>
+                )}
+                {planType === "subscription" && selectedPlan === "yearly" && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlan("monthly")}
+                    className="w-full rounded-2xl border-2 border-accent bg-accent/10 p-4 flex items-center justify-between gap-4 transition-all active:scale-[0.99]"
+                  >
+                    <div className="text-start">
+                      <p className="font-display font-bold text-primary">Yearly plan · 2 months free</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Tap to switch back to monthly</p>
+                    </div>
+                    <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-accent">
+                      <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-[1.375rem]" />
+                    </span>
+                  </button>
+                )}
                 <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} />
                 <CheckoutStep
                   mode="summary"
