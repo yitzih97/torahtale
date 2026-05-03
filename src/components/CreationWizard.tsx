@@ -17,7 +17,7 @@ import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/Ship
 import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
-import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, type BookOptions } from "./wizard/BookOptionsStep";
+import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, type BookOptions } from "./wizard/BookOptionsStep";
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, getUpcomingParsha, type TorahOption } from "./wizard/TorahPortions";
