@@ -130,12 +130,11 @@ const Pricing = () => {
                 <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
                   $9 per book • 4 books per month
                 </p>
+                <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                  Weekly Parsha + Holidays
+                </p>
               </div>
-              <ul className="space-y-3 mb-10 flex-1">
-                <li className={`flex items-center gap-3 text-sm ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>
-                  <Check className="w-4 h-4 text-accent shrink-0" /> Weekly Parsha + Holidays
-                </li>
-              </ul>
+              <ul className="space-y-3 mb-10 flex-1"></ul>
               <Button variant={selected === "torah" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("subscription"); }} className="w-full">
                 Start Subscription
               </Button>
