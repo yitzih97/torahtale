@@ -589,6 +589,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
     setDir(1);
     let nextStep = step + 1;
+    // Subscription flow: book options chosen first → jump back to Step 1 (name) to collect child info
+    if (step === 10 && bookOptionsChosenEarly && planType === "subscription") {
+      nextStep = 1;
+    }
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4;
     }
