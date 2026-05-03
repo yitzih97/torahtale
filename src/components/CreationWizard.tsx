@@ -312,6 +312,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     const serializable = {
       step,
       planType,
+      bookOptionsChosenEarly,
       data: {
         ...data,
         children: data.children.map(c => ({ ...c, photo: null })), // can't serialize File
@@ -325,7 +326,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     try {
       localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
     } catch { /* ignore quota */ }
-  }, [step, planType, data, shipping, bookOptions, portionFilter, quantity]);
+  }, [step, planType, bookOptionsChosenEarly, data, shipping, bookOptions, portionFilter, quantity]);
 
   // Restore wizard state on mount (whether logged in or not)
   useEffect(() => {
