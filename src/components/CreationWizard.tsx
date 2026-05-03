@@ -612,9 +612,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (step === 6 && planType === "subscription") {
       nextStep = 7;
     }
-    // Skip plan-chooser (step 12) for single-book buyers — they go straight to summary.
-    if (step === 11 && planType === "single") {
-      setSelectedPlan("once");
+    // Skip plan-chooser (step 12) — plan was chosen at the start (subscription) or set to "once" (single).
+    if (step === 11) {
+      if (planType === "single") setSelectedPlan("once");
       nextStep = 13;
     }
     setStep(Math.min(nextStep, TOTAL_STEPS));
@@ -634,7 +634,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     }
     // Subscription skipped step 6, so jump back to 5.
     if (step === 7 && planType === "subscription") prevStep = 5;
-    if (step === 13 && planType === "single") prevStep = 11;
+    if (step === 13) prevStep = 11;
     setStep(Math.max(prevStep, 0));
   };
 
