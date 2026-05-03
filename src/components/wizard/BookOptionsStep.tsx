@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Check, Sparkles, Shield, Baby, ChevronRight } from "lucide-react";
+import { BookOpen, Check, Sparkles, Shield, Baby } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import softcoverImg from "@/assets/books/softcover-preview.jpg";
