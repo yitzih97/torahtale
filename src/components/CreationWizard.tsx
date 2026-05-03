@@ -1025,85 +1025,100 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.div>
 
                   {/* Section A — Subscription cadence */}
-                  <motion.div variants={staggerChild} className="space-y-4">
-                    <div className="grid sm:grid-cols-3 gap-3">
-                      {([
-                        { id: "weekly" as const, label: t.wizard.planWeekly, desc: t.wizard.planWeeklyDesc, price: "$9", priceSuffix: "/week" },
-                        { id: "monthly" as const, label: t.wizard.planMonthly, desc: t.wizard.planMonthlyDesc, popular: true, price: "$36", priceSuffix: "/month" },
-                        { id: "yearly" as const, label: t.wizard.planYearly, desc: t.wizard.planYearlyDesc, price: "$360", priceSuffix: "/year" },
-                      ]).map((p) => {
-                        const active = selectedPlan === p.id;
-                        return (
-                          <button
-                            key={p.id}
-                            onClick={() => {
-                              setPlanType("subscription");
-                              setSelectedPlan(p.id);
-                              setBookOptionsChosenEarly(true);
-                            }}
-                            className={`relative text-start p-4 rounded-2xl border-2 transition-all duration-300 backdrop-blur-md ${
-                              active
-                                ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
-                                : "border-border/40 bg-card/60 hover:border-accent/30 hover:shadow-sm"
-                            }`}
-                          >
-                            {p.popular && (
-                              <div className="absolute -top-2.5 right-3 bg-accent text-accent-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                                RECOMMENDED
-                              </div>
-                            )}
-                            <div className="font-display font-bold text-base text-foreground">{p.label}</div>
-                            <div className="mt-1 flex items-baseline gap-1">
-                              <span className="text-xl font-bold text-accent">{p.price}</span>
-                              <span className="text-xs text-muted-foreground">{p.priceSuffix}</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">{p.desc}</div>
-                            {active && (
-                              <div className="absolute top-3 end-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
-                                <Check className="w-3 h-3 text-accent-foreground" />
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
+                  {(() => {
+                    // Format upgrade delta vs. softcover baseline (already included in plan price)
+                    const formatDelta: Record<string, number> = {
+                      softcover: 0,
+                      hardcover: 2.90,
+                      board: 11.23,
+                    };
+                    const delta = formatDelta[bookOptions.productType] ?? 0;
+                    const planMeta: Record<string, { base: number; books: number; suffix: string }> = {
+                      weekly: { base: 9, books: 1, suffix: "/week" },
+                      monthly: { base: 36, books: 4, suffix: "/month" },
+                      yearly: { base: 360, books: 52, suffix: "/year" },
+                    };
+                    const computePlanPrice = (id: string) => {
+                      const m = planMeta[id];
+                      return m ? m.base + delta * m.books : 0;
+                    };
+                    const fmt = (n: number) => `$${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`;
+                    return (
+                      <>
+                        <motion.div variants={staggerChild} className="space-y-4">
+                          <div className="grid sm:grid-cols-3 gap-3">
+                            {([
+                              { id: "weekly" as const, label: t.wizard.planWeekly, desc: t.wizard.planWeeklyDesc, suffix: "/week" },
+                              { id: "monthly" as const, label: t.wizard.planMonthly, desc: t.wizard.planMonthlyDesc, popular: true, suffix: "/month" },
+                              { id: "yearly" as const, label: t.wizard.planYearly, desc: t.wizard.planYearlyDesc, suffix: "/year" },
+                            ]).map((p) => {
+                              const active = selectedPlan === p.id;
+                              const price = fmt(computePlanPrice(p.id));
+                              return (
+                                <button
+                                  key={p.id}
+                                  onClick={() => {
+                                    setPlanType("subscription");
+                                    setSelectedPlan(p.id);
+                                    setBookOptionsChosenEarly(true);
+                                  }}
+                                  className={`relative text-start p-4 rounded-2xl border-2 transition-all duration-300 backdrop-blur-md ${
+                                    active
+                                      ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
+                                      : "border-border/40 bg-card/60 hover:border-accent/30 hover:shadow-sm"
+                                  }`}
+                                >
+                                  {p.popular && (
+                                    <div className="absolute -top-2.5 right-3 bg-accent text-accent-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                                      RECOMMENDED
+                                    </div>
+                                  )}
+                                  <div className="font-display font-bold text-base text-foreground">{p.label}</div>
+                                  <div className="mt-1 flex items-baseline gap-1">
+                                    <span className="text-xl font-bold text-accent">{price}</span>
+                                    <span className="text-xs text-muted-foreground">{p.suffix}</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-1">{p.desc}</div>
+                                  {active && (
+                                    <div className="absolute top-3 end-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                                      <Check className="w-3 h-3 text-accent-foreground" />
+                                    </div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
 
-                  <motion.div variants={staggerChild} className="text-center">
-                    <h2 className="font-display text-2xl sm:text-4xl font-bold text-foreground">
-                      {t.wizard.planSectionBookType}
-                    </h2>
-                  </motion.div>
+                        <motion.div variants={staggerChild} className="text-center">
+                          <h2 className="font-display text-2xl sm:text-4xl font-bold text-foreground">
+                            {t.wizard.planSectionBookType}
+                          </h2>
+                        </motion.div>
 
-                  {/* Section B — Book format */}
-                  <motion.div variants={staggerChild}>
-                    <BookOptionsStep
-                      options={bookOptions}
-                      onChange={setBookOptions}
-                      childAge={parseInt(child?.age || "0") || 0}
-                      hideHeader
-                    />
-                  </motion.div>
+                        {/* Section B — Book format */}
+                        <motion.div variants={staggerChild}>
+                          <BookOptionsStep
+                            options={bookOptions}
+                            onChange={setBookOptions}
+                            childAge={parseInt(child?.age || "0") || 0}
+                            hideHeader
+                          />
+                        </motion.div>
 
-                  {/* Total summary */}
-                  <motion.div variants={staggerChild}>
-                    {(() => {
-                      const planPrices: Record<string, { price: number; suffix: string }> = {
-                        weekly: { price: 9, suffix: "/week" },
-                        monthly: { price: 36, suffix: "/month" },
-                        yearly: { price: 360, suffix: "/year" },
-                      };
-                      const plan = planPrices[selectedPlan] || planPrices.monthly;
-                      return (
-                        <div className="rounded-2xl border-2 border-accent/40 bg-gradient-to-br from-accent/10 to-accent/5 p-5 flex items-center justify-between">
-                          <span className="font-display text-lg font-bold text-foreground">Total</span>
-                          <span className="font-display text-2xl font-bold text-accent">
-                            ${plan.price}<span className="text-sm font-normal text-muted-foreground">{plan.suffix}</span>
-                          </span>
-                        </div>
-                      );
-                    })()}
-                  </motion.div>
+                        {/* Total summary */}
+                        <motion.div variants={staggerChild}>
+                          <div className="rounded-2xl border-2 border-accent/40 bg-gradient-to-br from-accent/10 to-accent/5 p-5 flex items-center justify-between">
+                            <span className="font-display text-lg font-bold text-foreground">Total</span>
+                            <span className="font-display text-2xl font-bold text-accent">
+                              {fmt(computePlanPrice(selectedPlan))}
+                              <span className="text-sm font-normal text-muted-foreground">{planMeta[selectedPlan]?.suffix || "/month"}</span>
+                            </span>
+                          </div>
+                        </motion.div>
+                      </>
+                    );
+                  })()}
                 </motion.div>
               </section>
             )}
