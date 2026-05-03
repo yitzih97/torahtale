@@ -2157,7 +2157,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       </div>
 
       {/* ── Sticky bottom action bar (Apple/Tesla style) ── */}
-      {step !== 0 && step !== 9 && step !== 13 && step !== 14 && (
+      {step !== 9 && step !== 13 && step !== 14 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -2178,8 +2178,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={next}
-                disabled={!canNext}
+                onClick={() => {
+                  if (step === 0) {
+                    setDir(1);
+                    setStep(1);
+                    return;
+                  }
+                  next();
+                }}
+                disabled={step !== 0 && !canNext}
                 className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
                 style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
