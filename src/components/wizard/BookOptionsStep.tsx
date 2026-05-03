@@ -74,7 +74,7 @@ const getRecommendedType = (age: number): BookOptions["productType"] | null => {
   return "hardcover";
 };
 
-export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
+export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = false }: Props) => {
   const { t } = useLanguage();
   const { symbol, rate, code } = t.currency;
   const recommendedType = getRecommendedType(childAge);
