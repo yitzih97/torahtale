@@ -2109,50 +2109,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </motion.div>
             )}
 
-            {/* ── STEP 11: Shipping ── */}
+            {/* ── STEP 11: Shipping + Order Summary (combined final step) ── */}
             {step === 11 && (
-              <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
+              <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-6">
                 <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} />
-              </motion.div>
-            )}
-
-            {/* ── STEP 12: Choose Plan ── */}
-            {step === 12 && (
-              <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-4">
-                <div className="max-w-md mx-auto rounded-2xl border border-accent/20 bg-accent/5 backdrop-blur-sm p-4 flex items-center justify-center gap-4 text-xs sm:text-sm">
-                  <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepBooksPerMonth}</span>
-                  <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepCancelAnytime}</span>
-                </div>
-                <CheckoutStep
-                  mode="plan"
-                  childName={childNames}
-                  torahPortion={data.torahPortion}
-                  artStyle={data.artStyle}
-                  shipping={shipping}
-                  bookOptions={bookOptions}
-                  selectedPlan={selectedPlan}
-                  onSelectPlan={setSelectedPlan}
-                  onPlaceOrder={handlePlaceOrder}
-                />
-              </motion.div>
-            )}
-
-            {/* ── STEP 13: Order Summary ── */}
-            {step === 13 && (
-              <motion.div key="s13" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-4">
-                <div className="max-w-md mx-auto rounded-2xl border border-border/40 bg-muted/30 backdrop-blur-sm p-3.5 flex items-center justify-center gap-4 text-xs sm:text-sm">
-                  {planType === "subscription" ? (
-                    <>
-                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepBooksPerMonth}</span>
-                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.subPrepCancelAnytime}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.singlePrepOneTime}</span>
-                      <span className="inline-flex items-center gap-1.5 text-foreground"><Check className="w-3.5 h-3.5 text-accent" /> {t.wizard.singlePrepDelivery}</span>
-                    </>
-                  )}
-                </div>
                 <CheckoutStep
                   mode="summary"
                   childName={childNames}
@@ -2197,7 +2157,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       </div>
 
       {/* ── Sticky bottom action bar (Apple/Tesla style) ── */}
-      {step !== 9 && step !== 13 && step !== 14 && (
+      {step !== 9 && step !== 14 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -2234,7 +2194,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </motion.button>
             )}
             {step === 8 && <div />}
-            {(step === 10 || step === 11 || step === 12) && (
+            {step === 10 && (
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
