@@ -25,9 +25,10 @@ const DEFAULT_SHIPPING: ShippingData = {
 interface Props {
   data: ShippingData;
   onChange: (data: ShippingData) => void;
+  isSubscription?: boolean;
 }
 
-export const ShippingForm = ({ data, onChange }: Props) => {
+export const ShippingForm = ({ data, onChange, isSubscription = false }: Props) => {
   const update = (partial: Partial<ShippingData>) => onChange({ ...data, ...partial });
   const { t } = useLanguage();
 
@@ -61,30 +62,36 @@ export const ShippingForm = ({ data, onChange }: Props) => {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">{t.shipping.shippingSpeed}</Label>
-          <div className="grid grid-cols-2 gap-3">
-            {([
-              { key: "standard" as const, label: t.shipping.standard, sub: t.shipping.standardTime, price: t.shipping.free, icon: Package },
-              { key: "express" as const, label: t.shipping.express, sub: t.shipping.expressTime, price: t.shipping.expressCost, icon: Zap },
-            ]).map((m) => (
-              <button
-                key={m.key}
-                onClick={() => update({ shippingMethod: m.key })}
-                className={`p-5 rounded-2xl border-2 text-start transition-all duration-300 active:scale-[0.98] ${
-                  data.shippingMethod === m.key
-                    ? "border-accent bg-accent/5 shadow-sm"
-                    : "border-border hover:border-accent/30"
-                }`}
-              >
-                <m.icon className={`w-5 h-5 mb-2 ${data.shippingMethod === m.key ? "text-accent" : "text-muted-foreground"}`} />
-                <span className="font-semibold text-primary text-sm block">{m.label}</span>
-                <span className="block text-xs text-muted-foreground mt-0.5">{m.sub}</span>
-                <span className="block text-xs font-bold text-accent mt-2">{m.price}</span>
-              </button>
-            ))}
+        {isSubscription ? (
+          <div className="rounded-2xl border-2 border-accent/30 bg-accent/5 p-4 text-sm text-foreground text-center">
+            Orders after Tuesday ship for the following week's Parsha.
           </div>
-        </div>
+        ) : (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">{t.shipping.shippingSpeed}</Label>
+            <div className="grid grid-cols-2 gap-3">
+              {([
+                { key: "standard" as const, label: t.shipping.standard, sub: t.shipping.standardTime, price: t.shipping.free, icon: Package },
+                { key: "express" as const, label: t.shipping.express, sub: t.shipping.expressTime, price: t.shipping.expressCost, icon: Zap },
+              ]).map((m) => (
+                <button
+                  key={m.key}
+                  onClick={() => update({ shippingMethod: m.key })}
+                  className={`p-5 rounded-2xl border-2 text-start transition-all duration-300 active:scale-[0.98] ${
+                    data.shippingMethod === m.key
+                      ? "border-accent bg-accent/5 shadow-sm"
+                      : "border-border hover:border-accent/30"
+                  }`}
+                >
+                  <m.icon className={`w-5 h-5 mb-2 ${data.shippingMethod === m.key ? "text-accent" : "text-muted-foreground"}`} />
+                  <span className="font-semibold text-primary text-sm block">{m.label}</span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">{m.sub}</span>
+                  <span className="block text-xs font-bold text-accent mt-2">{m.price}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
