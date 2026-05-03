@@ -80,80 +80,97 @@ const Pricing = () => {
         <section className="container pb-16 lg:pb-24">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto items-stretch">
             {/* CARD 1 — Single */}
-            <div className="order-2 lg:order-1 relative rounded-2xl border border-border bg-card p-8 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <div
+              onClick={() => setSelected("single")}
+              className={`order-2 lg:order-1 relative rounded-2xl border-2 p-8 flex flex-col shadow-sm hover:shadow-md transition-all cursor-pointer ${
+                selected === "single"
+                  ? "border-accent bg-gradient-to-br from-primary to-primary/90 shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.6)]"
+                  : "border-border bg-card"
+              }`}
+            >
               <div className="flex items-center gap-2 mb-6">
-                <BookOpen className="w-5 h-5 text-muted-foreground" />
-                <h3 className="font-display text-xl font-semibold text-foreground">
+                <BookOpen className={`w-5 h-5 ${selected === "single" ? "text-accent" : "text-muted-foreground"}`} />
+                <h3 className={`font-display text-xl font-semibold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>
                   Single Book
                 </h3>
               </div>
               <div className="mb-8">
-                <div className="text-5xl font-bold text-foreground">$22</div>
-                <p className="text-sm text-muted-foreground mt-1">One-time purchase</p>
+                <div className={`text-5xl font-bold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>$22</div>
+                <p className={`text-sm mt-1 ${selected === "single" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>One-time purchase</p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
-              <Button variant="outline" size="lg" onClick={() => goCreate("single")} className="w-full">
+              <Button variant={selected === "single" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("single"); }} className="w-full">
                 Create Book
               </Button>
             </div>
 
             {/* CARD 2 — Subscription PRIMARY */}
-            <div className="order-1 lg:order-2 relative rounded-2xl border-2 border-accent bg-gradient-to-br from-primary to-primary/90 p-8 flex flex-col shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.6)] lg:scale-105 lg:-my-2">
+            <div
+              onClick={() => setSelected("torah")}
+              className={`order-1 lg:order-2 relative rounded-2xl border-2 p-8 flex flex-col transition-all cursor-pointer lg:scale-105 lg:-my-2 ${
+                selected === "torah"
+                  ? "border-accent bg-gradient-to-br from-primary to-primary/90 shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.6)]"
+                  : "border-border bg-card shadow-sm hover:shadow-md"
+              }`}
+            >
               <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground border-0 px-4 py-1 text-xs font-bold tracking-wide shadow-lg">
                 <Crown className="w-3 h-3 mr-1" /> MOST POPULAR
               </Badge>
               <div className="flex items-center gap-2 mb-6">
                 <Sparkles className="w-5 h-5 text-accent" />
-                <h3 className="font-display text-xl font-semibold text-primary-foreground">
+                <h3 className={`font-display text-xl font-semibold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>
                   Torah Series
                 </h3>
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-primary-foreground">$36</span>
-                  <span className="text-primary-foreground/80">/month</span>
+                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>$36</span>
+                  <span className={selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}>/month</span>
                 </div>
-                <p className="text-sm text-primary-foreground/80 mt-1">
+                <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
                   $9 per book • 4 books per month
                 </p>
               </div>
               <ul className="space-y-3 mb-10 flex-1">
-                <li className="flex items-center gap-3 text-sm text-primary-foreground">
+                <li className={`flex items-center gap-3 text-sm ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>
                   <Check className="w-4 h-4 text-accent shrink-0" /> Weekly Parsha + Holidays
                 </li>
               </ul>
-              <Button variant="gold" size="lg" onClick={() => goCreate("subscription")} className="w-full">
+              <Button variant={selected === "torah" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("subscription"); }} className="w-full">
                 Start Subscription
               </Button>
             </div>
 
             {/* CARD 3 — Full Access */}
-            <div className="order-3 relative rounded-2xl border border-border bg-card p-8 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <div
+              onClick={() => setSelected("tanach")}
+              className={`order-3 relative rounded-2xl border-2 p-8 flex flex-col transition-all cursor-pointer ${
+                selected === "tanach"
+                  ? "border-accent bg-gradient-to-br from-primary to-primary/90 shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.6)]"
+                  : "border-border bg-card shadow-sm hover:shadow-md"
+              }`}
+            >
               <div className="flex items-center gap-2 mb-6">
                 <Crown className="w-5 h-5 text-accent" />
-                <h3 className="font-display text-xl font-semibold text-foreground">
+                <h3 className={`font-display text-xl font-semibold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>
                   Tanach Series
                 </h3>
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-foreground">$49</span>
-                  <span className="text-muted-foreground">/month</span>
+                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>$49</span>
+                  <span className={selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}>/month</span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className={`text-sm mt-1 ${selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
                   All of Torah, Neviim, Kesuvim
                 </p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
-              <Button variant="default" size="lg" onClick={() => goCreate("subscription")} className="w-full">
-                Start Full Access
+              <Button variant={selected === "tanach" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("subscription"); }} className="w-full">
+                Start Subscription
               </Button>
             </div>
           </div>
-
-          <p className="text-center text-sm text-muted-foreground mt-10">
-            All books are premium quality and delivered to your door.
-          </p>
         </section>
 
         {/* COLLECTION VISUAL */}
