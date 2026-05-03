@@ -651,6 +651,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setSavedBookId(null);
     setDir(-1);
     setPlanType("subscription");
+    setBookOptionsChosenEarly(false);
     setStep(0);
     toast.success(t.wizard.createYourBook ? `${t.wizard.createYourBook} · ${"1/8"}` : "Wizard reset");
   }, [lang, t]);
