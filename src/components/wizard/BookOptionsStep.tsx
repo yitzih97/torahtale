@@ -131,24 +131,6 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
         </h2>
       </div>
 
-      {/* Step indicator */}
-      {options.productType === "hardcover" && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <button
-            onClick={() => setSubStep("type")}
-            className={`transition-colors ${subStep === "type" ? "text-accent font-semibold" : "hover:text-foreground"}`}
-          >
-            {t.bookOptions.bookType}
-          </button>
-          <ChevronRight className="w-3 h-3" />
-          <button
-            onClick={() => setSubStep("size")}
-            className={`transition-colors ${subStep === "size" ? "text-accent font-semibold" : "hover:text-foreground"}`}
-          >
-            {t.bookOptions.size}
-          </button>
-        </div>
-      )}
 
       {subStep === "type" && (
         <div className="grid gap-4">
