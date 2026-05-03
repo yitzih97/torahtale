@@ -63,6 +63,7 @@ interface Props {
   options: BookOptions;
   onChange: (options: BookOptions) => void;
   childAge?: number;
+  hideHeader?: boolean;
 }
 
 /* age-based recommendation: board ≤3, softcover 4–6, hardcover 7+ */
