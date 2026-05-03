@@ -1028,9 +1028,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   <motion.div variants={staggerChild} className="space-y-4">
                     <div className="grid sm:grid-cols-3 gap-3">
                       {([
-                        { id: "weekly" as const, label: t.wizard.planWeekly, desc: t.wizard.planWeeklyDesc },
-                        { id: "monthly" as const, label: t.wizard.planMonthly, desc: t.wizard.planMonthlyDesc, popular: true },
-                        { id: "yearly" as const, label: t.wizard.planYearly, desc: t.wizard.planYearlyDesc },
+                        { id: "weekly" as const, label: t.wizard.planWeekly, desc: t.wizard.planWeeklyDesc, price: "$9", priceSuffix: "/week" },
+                        { id: "monthly" as const, label: t.wizard.planMonthly, desc: t.wizard.planMonthlyDesc, popular: true, price: "$36", priceSuffix: "/month" },
+                        { id: "yearly" as const, label: t.wizard.planYearly, desc: t.wizard.planYearlyDesc, price: "$360", priceSuffix: "/year" },
                       ]).map((p) => {
                         const active = selectedPlan === p.id;
                         return (
@@ -1053,6 +1053,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                               </div>
                             )}
                             <div className="font-display font-bold text-base text-foreground">{p.label}</div>
+                            <div className="mt-1 flex items-baseline gap-1">
+                              <span className="text-xl font-bold text-accent">{p.price}</span>
+                              <span className="text-xs text-muted-foreground">{p.priceSuffix}</span>
+                            </div>
                             <div className="text-xs text-muted-foreground mt-1">{p.desc}</div>
                             {active && (
                               <div className="absolute top-3 end-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
