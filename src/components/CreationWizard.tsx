@@ -612,6 +612,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   };
 
   const back = () => {
+    if (autoAdvanceTimerRef.current) { clearTimeout(autoAdvanceTimerRef.current); autoAdvanceTimerRef.current = null; }
     if (step === 6 && portionMode === "manual" && planType !== "single") {
       setPortionMode(null);
       return;
