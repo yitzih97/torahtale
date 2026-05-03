@@ -247,7 +247,15 @@ export const he: typeof en = {
     resetConfirm: "לאפס את האשף ולהתחיל מחדש מההתחלה? ההתקדמות בספר הזה תימחק.",
     whatsHeroName: "?מה שם הילד שלכם",
     // Plan-type chooser (Step 0)
-    planChoiceTitle: "בחרו את החוויה לילדכם",
+    planChoiceTitle: "בחרו את תוכנית הספר שלכם",
+    planSectionSubscription: "בחרו מנוי",
+    planSectionFormat: "בחרו פורמט ספר",
+    planWeekly: "ספר פרשה שבועי",
+    planWeeklyDesc: "ספר חדש מותאם אישית כל שבוע",
+    planMonthly: "ספר חודשי",
+    planMonthlyDesc: "ספר מותאם אישית בכל חודש",
+    planYearly: "חבילה שנתית",
+    planYearlyDesc: "שנה שלמה של סיפורים, שווה ביותר",
     planChoiceSubscriptionTitle: "סדרת תורה",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [
