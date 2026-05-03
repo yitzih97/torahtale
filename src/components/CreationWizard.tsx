@@ -2119,36 +2119,48 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     {t.checkout.orderSummary}
                   </h2>
                 </div>
-                {planType === "subscription" && selectedPlan === "monthly" && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPlan("yearly")}
-                    className="w-full rounded-2xl border-2 border-accent/40 bg-gradient-to-r from-accent/10 to-accent/5 p-4 flex items-center justify-between gap-4 hover:border-accent transition-all active:scale-[0.99]"
-                  >
-                    <div className="text-start">
-                      <p className="font-display font-bold text-primary">Switch to yearly & save</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Get 2 months free when you go yearly</p>
-                    </div>
-                    <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-input">
-                      <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-0.5" />
-                    </span>
-                  </button>
-                )}
-                {planType === "subscription" && selectedPlan === "yearly" && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPlan("monthly")}
-                    className="w-full rounded-2xl border-2 border-accent bg-accent/10 p-4 flex items-center justify-between gap-4 transition-all active:scale-[0.99]"
-                  >
-                    <div className="text-start">
-                      <p className="font-display font-bold text-primary">Yearly plan · 2 months free</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Tap to switch back to monthly</p>
-                    </div>
-                    <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-accent">
-                      <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-[1.375rem]" />
-                    </span>
-                  </button>
-                )}
+                {planType === "subscription" && (() => {
+                  const formatDelta: Record<string, number> = { softcover: 0, hardcover: 2.90, board: 11.23 };
+                  const delta = formatDelta[bookOptions.productType] ?? 0;
+                  const monthlyTotal = 36 + delta * 4;
+                  const yearlyTotal = 360 + delta * 52;
+                  const fmt = (n: number) => `$${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`;
+                  if (selectedPlan === "monthly") {
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlan("yearly")}
+                        className="w-full rounded-2xl border-2 border-accent/40 bg-gradient-to-r from-accent/10 to-accent/5 p-4 flex items-center justify-between gap-4 hover:border-accent transition-all active:scale-[0.99]"
+                      >
+                        <div className="text-start">
+                          <p className="font-display font-bold text-primary">Switch to yearly · {fmt(yearlyTotal)}/year</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Get 2 months free when you go yearly</p>
+                        </div>
+                        <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-input">
+                          <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-0.5" />
+                        </span>
+                      </button>
+                    );
+                  }
+                  if (selectedPlan === "yearly") {
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlan("monthly")}
+                        className="w-full rounded-2xl border-2 border-accent bg-accent/10 p-4 flex items-center justify-between gap-4 transition-all active:scale-[0.99]"
+                      >
+                        <div className="text-start">
+                          <p className="font-display font-bold text-primary">Yearly plan · {fmt(yearlyTotal)}/year · 2 months free</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Tap to switch back to monthly ({fmt(monthlyTotal)}/month)</p>
+                        </div>
+                        <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-accent">
+                          <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-[1.375rem]" />
+                        </span>
+                      </button>
+                    );
+                  }
+                  return null;
+                })()}
                 <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} />
                 <CheckoutStep
                   mode="summary"
