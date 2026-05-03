@@ -175,20 +175,6 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
           );
         })}
       </div>
-
-
-      {/* Live price summary */}
-      <div className="rounded-2xl bg-muted/30 border border-border p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-primary">{t.bookOptions.yourSelection}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {productLabels[options.productType]} · {PRODUCT_INFO[options.productType].dims}
-            </p>
-          </div>
-          <span className="text-2xl font-bold text-accent">{formatPrice(price, priceIls)}</span>
-        </div>
-      </div>
     </div>
   );
 };
