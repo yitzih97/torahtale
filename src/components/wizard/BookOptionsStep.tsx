@@ -122,59 +122,56 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
       </div>
 
 
-      {(
-        <div className="grid gap-4">
-          {(Object.keys(PRODUCT_INFO) as Array<keyof typeof PRODUCT_INFO>).map((key) => {
-            const info = PRODUCT_INFO[key];
-            const isActive = options.productType === key;
-            const Icon = info.icon;
-            const isRecommended = recommendedType === key;
-            const badge = isRecommended
-              ? t.bookOptions.recommendedForAge(String(childAge))
-              : key === "hardcover" ? t.bookOptions.mostPopular : undefined;
+      <div className="grid gap-4">
+        {(Object.keys(PRODUCT_INFO) as Array<keyof typeof PRODUCT_INFO>).map((key) => {
+          const info = PRODUCT_INFO[key];
+          const isActive = options.productType === key;
+          const isRecommended = recommendedType === key;
+          const badge = isRecommended
+            ? t.bookOptions.recommendedForAge(String(childAge))
+            : key === "hardcover" ? t.bookOptions.mostPopular : undefined;
 
-            return (
-              <button
-                key={key}
-                onClick={() => selectType(key)}
-                className={`relative rounded-2xl border-2 p-5 text-start transition-all duration-300 active:scale-[0.98] ${
-                  isActive
-                    ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
-                    : "border-border hover:border-accent/30 hover:shadow-sm"
-                }`}
-              >
-                {badge && (
-                  <div className="absolute -top-3 right-4 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full">
-                    {badge}
+          return (
+            <button
+              key={key}
+              onClick={() => selectType(key)}
+              className={`relative rounded-2xl border-2 p-5 text-start transition-all duration-300 active:scale-[0.98] ${
+                isActive
+                  ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
+                  : "border-border hover:border-accent/30 hover:shadow-sm"
+              }`}
+            >
+              {badge && (
+                <div className="absolute -top-3 right-4 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full">
+                  {badge}
+                </div>
+              )}
+
+              <div className="flex items-start gap-4">
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50">
+                  <img src={info.image} alt={productLabels[key]} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-display font-bold text-base text-primary">{productLabels[key]}</span>
+                    <span className="text-lg font-bold text-accent">{formatPrice(info.price, info.priceIls)}</span>
                   </div>
-                )}
-
-                <div className="flex items-start gap-4">
-                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50">
-                    <img src={info.image} alt={productLabels[key]} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-display font-bold text-base text-primary">{productLabels[key]}</span>
-                      <span className="text-lg font-bold text-accent">{formatPrice(info.price, info.priceIls)}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-2">{productTaglines[key]} · {info.dims}</p>
-                    <div className="grid grid-cols-2 gap-1">
-                      {productFeatures[key].map((f, i) => (
-                        <p key={i} className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-                          <span className="w-1 h-1 rounded-full bg-accent/60 shrink-0" />
-                          {f}
-                        </p>
-                      ))}
-                    </div>
+                  <p className="text-xs text-muted-foreground mb-2">{productTaglines[key]} · {info.dims}</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {productFeatures[key].map((f, i) => (
+                      <p key={i} className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-accent/60 shrink-0" />
+                        {f}
+                      </p>
+                    ))}
                   </div>
                 </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
 
       {/* Live price summary */}
