@@ -399,7 +399,7 @@ export const en = {
     ageHardcover: "ages 5–12",
     features: {
       softcover: ["100lb semi-gloss paper", "Lightweight & flexible", "Perfect for everyday reading", "Saddle-stitch binding"],
-      hardcover: ["Glossy or matte finish", "Premium case-wrap binding", "Sturdy & gift-worthy", "Two size options"],
+      hardcover: ["Glossy or matte finish", "Premium case-wrap binding", "Sturdy & gift-worthy", "Lay-flat pages"],
       board: ['1/16″ thick chipboard pages', "Rounded safety corners", "Matte lamination", "Perfect for toddlers"],
     },
   },
