@@ -1087,7 +1087,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         setSeriesType("tanach");
                         setSelectedPlan("monthly");
                         setDir(1);
-                        setStep(1);
+                        setStep(10);
                       }}
                       className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
                     >
