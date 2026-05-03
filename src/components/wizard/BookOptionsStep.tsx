@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Check, Sparkles, Shield, Baby, ChevronRight } from "lucide-react";
+import { BookOpen, Check, Sparkles, Shield, Baby } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import softcoverImg from "@/assets/books/softcover-preview.jpg";
@@ -44,10 +44,6 @@ const PRODUCT_INFO = {
   },
 } as const;
 
-const HARDCOVER_SIZES_DATA = [
-  { key: "8x8" as const, label: '8″ × 8″' },
-  { key: "11x8.5" as const, label: '11″ × 8.5″' },
-];
 
 export const BASE_BOOK_PRICE = 7.05;
 
@@ -78,7 +74,6 @@ const getRecommendedType = (age: number): BookOptions["productType"] | null => {
 };
 
 export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
-  const [subStep, setSubStep] = useState<"type" | "size">("type");
   const { t } = useLanguage();
   const { symbol, rate, code } = t.currency;
   const recommendedType = getRecommendedType(childAge);
@@ -90,11 +85,9 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
 
   const selectType = (type: BookOptions["productType"]) => {
     if (type === "hardcover") {
-      onChange({ productType: "hardcover", hardcoverSize: options.hardcoverSize || "8x8" });
-      setSubStep("size");
+      onChange({ productType: "hardcover", hardcoverSize: "8x8" });
     } else {
       onChange({ productType: type, hardcoverSize: undefined });
-      setSubStep("type");
     }
   };
 
@@ -119,10 +112,6 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
     board: t.bookOptions.features.board,
   };
 
-  const hardcoverSizes = HARDCOVER_SIZES_DATA.map((s, i) => ({
-    ...s,
-    desc: i === 0 ? t.bookOptions.squareCompact : t.bookOptions.landscapeBigger,
-  }));
 
   return (
     <div className="space-y-6">
@@ -132,105 +121,58 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
         </h2>
       </div>
 
-      {/* Step indicator */}
-      {options.productType === "hardcover" && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <button
-            onClick={() => setSubStep("type")}
-            className={`transition-colors ${subStep === "type" ? "text-accent font-semibold" : "hover:text-foreground"}`}
-          >
-            {t.bookOptions.bookType}
-          </button>
-          <ChevronRight className="w-3 h-3" />
-          <button
-            onClick={() => setSubStep("size")}
-            className={`transition-colors ${subStep === "size" ? "text-accent font-semibold" : "hover:text-foreground"}`}
-          >
-            {t.bookOptions.size}
-          </button>
-        </div>
-      )}
 
-      {subStep === "type" && (
-        <div className="grid gap-4">
-          {(Object.keys(PRODUCT_INFO) as Array<keyof typeof PRODUCT_INFO>).map((key) => {
-            const info = PRODUCT_INFO[key];
-            const isActive = options.productType === key;
-            const Icon = info.icon;
-            const isRecommended = recommendedType === key;
-            const badge = isRecommended
-              ? t.bookOptions.recommendedForAge(String(childAge))
-              : key === "hardcover" ? t.bookOptions.mostPopular : undefined;
+      <div className="grid gap-4">
+        {(Object.keys(PRODUCT_INFO) as Array<keyof typeof PRODUCT_INFO>).map((key) => {
+          const info = PRODUCT_INFO[key];
+          const isActive = options.productType === key;
+          const isRecommended = recommendedType === key;
+          const badge = isRecommended
+            ? t.bookOptions.recommendedForAge(String(childAge))
+            : key === "hardcover" ? t.bookOptions.mostPopular : undefined;
 
-            return (
-              <button
-                key={key}
-                onClick={() => selectType(key)}
-                className={`relative rounded-2xl border-2 p-5 text-start transition-all duration-300 active:scale-[0.98] ${
-                  isActive
-                    ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
-                    : "border-border hover:border-accent/30 hover:shadow-sm"
-                }`}
-              >
-                {badge && (
-                  <div className="absolute -top-3 right-4 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full">
-                    {badge}
+          return (
+            <button
+              key={key}
+              onClick={() => selectType(key)}
+              className={`relative rounded-2xl border-2 p-5 text-start transition-all duration-300 active:scale-[0.98] ${
+                isActive
+                  ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
+                  : "border-border hover:border-accent/30 hover:shadow-sm"
+              }`}
+            >
+              {badge && (
+                <div className="absolute -top-3 right-4 bg-accent text-accent-foreground text-[10px] font-bold px-3 py-1 rounded-full">
+                  {badge}
+                </div>
+              )}
+
+              <div className="flex items-start gap-4">
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50">
+                  <img src={info.image} alt={productLabels[key]} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-display font-bold text-base text-primary">{productLabels[key]}</span>
+                    <span className="text-lg font-bold text-accent">{formatPrice(info.price, info.priceIls)}</span>
                   </div>
-                )}
-
-                <div className="flex items-start gap-4">
-                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50">
-                    <img src={info.image} alt={productLabels[key]} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-display font-bold text-base text-primary">{productLabels[key]}</span>
-                      <span className="text-lg font-bold text-accent">{formatPrice(info.price, info.priceIls)}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-2">{productTaglines[key]} · {info.dims}</p>
-                    <div className="grid grid-cols-2 gap-1">
-                      {productFeatures[key].map((f, i) => (
-                        <p key={i} className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-                          <span className="w-1 h-1 rounded-full bg-accent/60 shrink-0" />
-                          {f}
-                        </p>
-                      ))}
-                    </div>
+                  <p className="text-xs text-muted-foreground mb-2">{productTaglines[key]} · {info.dims}</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {productFeatures[key].map((f, i) => (
+                      <p key={i} className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-accent/60 shrink-0" />
+                        {f}
+                      </p>
+                    ))}
                   </div>
                 </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Hardcover size sub-step */}
-      {subStep === "size" && options.productType === "hardcover" && (
-        <div className="space-y-3">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.bookOptions.chooseHardcoverSize}</p>
-          <div className="grid grid-cols-2 gap-4">
-            {hardcoverSizes.map((s) => {
-              const isActive = options.hardcoverSize === s.key;
-              return (
-                <button
-                  key={s.key}
-                  onClick={() => onChange({ ...options, hardcoverSize: s.key })}
-                  className={`rounded-2xl border-2 p-5 text-center transition-all duration-300 active:scale-[0.97] ${
-                    isActive
-                      ? "border-accent bg-accent/5 shadow-sm"
-                      : "border-border hover:border-accent/30"
-                  }`}
-                >
-                  <span className="font-display font-bold text-lg text-primary block">{s.label}</span>
-                  <span className="text-xs text-muted-foreground block mt-1">{s.desc}</span>
-                  {isActive && <Check className="w-5 h-5 text-accent mx-auto mt-2" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Live price summary */}
       <div className="rounded-2xl bg-muted/30 border border-border p-5">
@@ -238,10 +180,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
           <div>
             <p className="text-sm font-semibold text-primary">{t.bookOptions.yourSelection}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {productLabels[options.productType]}
-              {options.productType === "hardcover" && options.hardcoverSize
-                ? ` · ${options.hardcoverSize === "11x8.5" ? '11″×8.5″' : '8″×8″'}`
-                : ` · ${PRODUCT_INFO[options.productType].dims}`}
+              {productLabels[options.productType]} · {PRODUCT_INFO[options.productType].dims}
             </p>
           </div>
           <span className="text-2xl font-bold text-accent">{formatPrice(price, priceIls)}</span>

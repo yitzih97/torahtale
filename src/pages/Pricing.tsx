@@ -32,7 +32,11 @@ const Pricing = () => {
       } catch { /* ignore */ }
       localStorage.setItem(
         "torahtale_wizard_state",
-        JSON.stringify({ planType: plan, step: 1 }),
+        JSON.stringify({
+          planType: plan,
+          step: plan === "subscription" ? 10 : 1,
+          bookOptionsChosenEarly: plan === "subscription",
+        }),
       );
     }
     navigate("/create");

@@ -241,6 +241,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
+  const [bookOptionsChosenEarly, setBookOptionsChosenEarly] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"weekly" | "monthly" | "yearly" | "once">("monthly");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -311,6 +312,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     const serializable = {
       step,
       planType,
+      bookOptionsChosenEarly,
       data: {
         ...data,
         children: data.children.map(c => ({ ...c, photo: null })), // can't serialize File
@@ -324,7 +326,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     try {
       localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
     } catch { /* ignore quota */ }
-  }, [step, planType, data, shipping, bookOptions, portionFilter, quantity]);
+  }, [step, planType, bookOptionsChosenEarly, data, shipping, bookOptions, portionFilter, quantity]);
 
   // Restore wizard state on mount (whether logged in or not)
   useEffect(() => {
@@ -338,6 +340,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         setStep(restoredStep);
         if (parsed.planType === "single" || parsed.planType === "subscription") {
           setPlanType(parsed.planType);
+        }
+        if (typeof parsed.bookOptionsChosenEarly === "boolean") {
+          setBookOptionsChosenEarly(parsed.bookOptionsChosenEarly);
         }
         const restoredData = parsed.data || initialData;
         if (!restoredData.language || restoredData.language === "english") {
@@ -563,6 +568,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   /* ───── navigation ───── */
 
   const next = async () => {
+    // Cancel any queued auto-advance so we don't double-step
+    if (autoAdvanceTimerRef.current) { clearTimeout(autoAdvanceTimerRef.current); autoAdvanceTimerRef.current = null; }
     if (step === 8) {
       if (authLoading) {
         // Auth session still restoring after a redirect — wait silently;
@@ -586,6 +593,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
     setDir(1);
     let nextStep = step + 1;
+    // Subscription flow: book options chosen first → jump back to Step 1 (name) to collect child info
+    if (step === 10 && bookOptionsChosenEarly && planType === "subscription") {
+      nextStep = 1;
+    }
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4;
     }
@@ -610,6 +621,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   };
 
   const back = () => {
+    if (autoAdvanceTimerRef.current) { clearTimeout(autoAdvanceTimerRef.current); autoAdvanceTimerRef.current = null; }
     if (step === 6 && portionMode === "manual" && planType !== "single") {
       setPortionMode(null);
       return;
@@ -639,6 +651,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setSavedBookId(null);
     setDir(-1);
     setPlanType("subscription");
+    setBookOptionsChosenEarly(false);
     setStep(0);
     toast.success(t.wizard.createYourBook ? `${t.wizard.createYourBook} · ${"1/8"}` : "Wizard reset");
   }, [lang, t]);
@@ -1020,6 +1033,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       onClick={() => {
                         setPlanType("single");
                         setSelectedPlan("once");
+                        setBookOptionsChosenEarly(false);
                         setDir(1);
                         setStep(1);
                       }}
@@ -1046,7 +1060,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         setSeriesType("torah");
                         setSelectedPlan("monthly");
                         setDir(1);
-                        setStep(1);
+                        setBookOptionsChosenEarly(true);
+                        setStep(10);
                       }}
                       className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md overflow-hidden border-accent bg-gradient-to-br from-accent/10 via-accent/5 to-transparent shadow-2xl shadow-accent/15 ring-1 ring-accent/30"
                     >
@@ -1084,7 +1099,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         setSeriesType("tanach");
                         setSelectedPlan("monthly");
                         setDir(1);
-                        setStep(1);
+                        setBookOptionsChosenEarly(true);
+                        setStep(10);
                       }}
                       className="relative text-start p-6 sm:p-7 rounded-3xl border-2 transition-all duration-300 backdrop-blur-md border-border/40 bg-card/60 hover:border-accent/40 hover:shadow-xl"
                     >
@@ -2055,7 +2071,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 )}
 
                 {animDone && (
-                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(10); }} delayMs={1500}>
+                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(bookOptionsChosenEarly ? 11 : 10); }} delayMs={1500}>
                     {(progress) => (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
