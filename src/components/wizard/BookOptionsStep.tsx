@@ -186,32 +186,6 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
         </div>
       )}
 
-      {/* Hardcover size sub-step */}
-      {subStep === "size" && options.productType === "hardcover" && (
-        <div className="space-y-3">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.bookOptions.chooseHardcoverSize}</p>
-          <div className="grid grid-cols-2 gap-4">
-            {hardcoverSizes.map((s) => {
-              const isActive = options.hardcoverSize === s.key;
-              return (
-                <button
-                  key={s.key}
-                  onClick={() => onChange({ ...options, hardcoverSize: s.key })}
-                  className={`rounded-2xl border-2 p-5 text-center transition-all duration-300 active:scale-[0.97] ${
-                    isActive
-                      ? "border-accent bg-accent/5 shadow-sm"
-                      : "border-border hover:border-accent/30"
-                  }`}
-                >
-                  <span className="font-display font-bold text-lg text-primary block">{s.label}</span>
-                  <span className="text-xs text-muted-foreground block mt-1">{s.desc}</span>
-                  {isActive && <Check className="w-5 h-5 text-accent mx-auto mt-2" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Live price summary */}
       <div className="rounded-2xl bg-muted/30 border border-border p-5">
