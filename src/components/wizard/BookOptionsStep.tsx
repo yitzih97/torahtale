@@ -63,6 +63,7 @@ interface Props {
   options: BookOptions;
   onChange: (options: BookOptions) => void;
   childAge?: number;
+  hideHeader?: boolean;
 }
 
 /* age-based recommendation: board ≤3, softcover 4–6, hardcover 7+ */
@@ -73,7 +74,7 @@ const getRecommendedType = (age: number): BookOptions["productType"] | null => {
   return "hardcover";
 };
 
-export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
+export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = false }: Props) => {
   const { t } = useLanguage();
   const { symbol, rate, code } = t.currency;
   const recommendedType = getRecommendedType(childAge);
@@ -115,11 +116,13 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0 }: Props) => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-          <Sparkles className="w-6 h-6 text-accent" /> {t.bookOptions.chooseSefer}
-        </h2>
-      </div>
+      {!hideHeader && (
+        <div className="text-center">
+          <h2 className="font-display text-xl font-bold text-foreground">
+            {t.bookOptions.chooseSefer}
+          </h2>
+        </div>
+      )}
 
 
       <div className="grid gap-4">
