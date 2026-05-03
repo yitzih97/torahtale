@@ -1084,6 +1084,26 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       hideHeader
                     />
                   </motion.div>
+
+                  {/* Total summary */}
+                  <motion.div variants={staggerChild}>
+                    {(() => {
+                      const planPrices: Record<string, { price: number; suffix: string }> = {
+                        weekly: { price: 9, suffix: "/week" },
+                        monthly: { price: 36, suffix: "/month" },
+                        yearly: { price: 360, suffix: "/year" },
+                      };
+                      const plan = planPrices[selectedPlan] || planPrices.monthly;
+                      return (
+                        <div className="rounded-2xl border-2 border-accent/40 bg-gradient-to-br from-accent/10 to-accent/5 p-5 flex items-center justify-between">
+                          <span className="font-display text-lg font-bold text-foreground">Total</span>
+                          <span className="font-display text-2xl font-bold text-accent">
+                            ${plan.price}<span className="text-sm font-normal text-muted-foreground">{plan.suffix}</span>
+                          </span>
+                        </div>
+                      );
+                    })()}
+                  </motion.div>
                 </motion.div>
               </section>
             )}

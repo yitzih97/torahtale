@@ -247,10 +247,10 @@ export const en = {
     // Plan-type chooser (Step 0)
     planChoiceTitle: "Choose Your Book Plan",
     planSectionBookType: "Choose Your Book Type",
-    planWeekly: "Weekly Book",
+    planWeekly: "Weekly",
     planWeeklyDesc: "1 book every week + holidays",
-    planMonthly: "Monthly Book",
-    planMonthlyDesc: "4 books a month",
+    planMonthly: "Monthly",
+    planMonthlyDesc: "4 books a month + holidays",
     planYearly: "Year Bundle",
     planYearlyDesc: "Parsha plus all holidays",
     planChoiceSubscriptionTitle: "Torah Series",
