@@ -82,7 +82,9 @@ export const HowItWorks = () => {
                 </motion.div>
 
                 <h3 className="font-display text-lg font-semibold text-foreground mb-2">{step.title}</h3>
-                <p className="text-muted-foreground text-sm font-body leading-relaxed max-w-xs mx-auto">{step.description}</p>
+                {step.description && (
+                  <p className="text-muted-foreground text-sm font-body leading-relaxed max-w-xs mx-auto">{step.description}</p>
+                )}
               </div>
             </motion.div>
           ))}
