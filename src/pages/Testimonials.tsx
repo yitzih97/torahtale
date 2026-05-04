@@ -7,7 +7,7 @@ const Testimonials = () => {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onStart={() => navigate("/create")} transparentHero={false} />
+      <Navbar onStart={() => navigate("/pricing")} transparentHero={false} />
       <main className="pt-24 lg:pt-28">
         <TestimonialsSection />
       </main>

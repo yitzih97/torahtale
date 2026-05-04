@@ -29,7 +29,7 @@ const Index = () => {
     return () => clearTimeout(t);
   }, [location.hash]);
 
-  const goToCreate = () => navigate("/create");
+  const goToCreate = () => navigate("/pricing");
 
   return (
     <div className="min-h-screen">

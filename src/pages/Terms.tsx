@@ -112,13 +112,12 @@ const EnContent = () => (
         <table className="w-full text-sm">
           <thead><tr className="bg-background/50"><th className="text-left p-4 font-semibold text-foreground">Plan</th><th className="text-left p-4 font-semibold text-foreground">Price</th><th className="text-left p-4 font-semibold text-foreground">Includes</th></tr></thead>
           <tbody className="divide-y divide-border/30">
-            <tr><td className="p-4 font-medium text-foreground">Weekly</td><td className="p-4">$23.99/week</td><td className="p-4">1 printed sefer per week</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">Monthly</td><td className="p-4">$79.99/month</td><td className="p-4">4 seforim per month</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">Yearly</td><td className="p-4">$799.99/year</td><td className="p-4">52 seforim per year (best value)</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Torah Series</td><td className="p-4">starting at $22.99/month</td><td className="p-4">4 personalized seforim per month (Weekly Parsha + Yomim Tovim)</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Tanach Series</td><td className="p-4">starting at $34.99/month</td><td className="p-4">Full access — Torah, Neviim, Kesuvim</td></tr>
           </tbody>
         </table>
       </div>
-      <p className="mt-3">One-time book purchases are also available starting at $24.99 depending on the book format selected. All prices are in USD and subject to change with prior notice.</p>
+      <p className="mt-3">One-time book purchases are also available starting at $7.05 depending on the book format selected. All prices are in USD and subject to change with prior notice.</p>
     </section>
 
     <section id="pricing">
@@ -128,9 +127,9 @@ const EnContent = () => (
         <table className="w-full text-sm">
           <thead><tr className="bg-background/50"><th className="text-left p-4 font-semibold text-foreground">Format</th><th className="text-left p-4 font-semibold text-foreground">Size</th><th className="text-left p-4 font-semibold text-foreground">Price</th></tr></thead>
           <tbody className="divide-y divide-border/30">
-            <tr><td className="p-4 font-medium text-foreground">Softcover Photo Book</td><td className="p-4">8″ × 8″</td><td className="p-4">$24.99</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">Hardcover Photo Book</td><td className="p-4">8″ × 8″ or 11″ × 8.5″</td><td className="p-4">$39.99</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">Board Book</td><td className="p-4">6″ × 6″ (rounded corners)</td><td className="p-4">$44.99</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Softcover Photo Book</td><td className="p-4">8″ × 8″</td><td className="p-4">$7.05</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Hardcover Photo Book</td><td className="p-4">8″ × 8″ or 11″ × 8.5″</td><td className="p-4">$9.95</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Board Book</td><td className="p-4">6″ × 6″ (rounded corners)</td><td className="p-4">$18.28</td></tr>
           </tbody>
         </table>
       </div>
