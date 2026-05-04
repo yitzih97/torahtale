@@ -771,21 +771,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         localStorage.setItem("torahtale_pending_order", JSON.stringify({ ...stored, checkoutUrl: finalUrl }));
       } catch { /* ignore */ }
 
-      const opened = sendToCheckout(finalUrl);
-
-      toast.success(t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…", {
-        description: finalUrl,
-        duration: 10000,
-        action: {
-          label: t.checkout.openCheckout || "Open checkout",
-          onClick: () => window.open(finalUrl, "_blank", "noopener,noreferrer"),
-        },
-      });
-
-      // Show success page right away. If the popup was blocked we already
-      // navigated the current tab via sendToCheckout, so this only runs in
-      // the popup case.
-      if (opened) goToSuccess();
+      sendToCheckout(finalUrl);
     } catch (err) {
       console.error("Failed to place order:", err);
       const errMsg = err instanceof Error ? err.message : String(err);
@@ -794,11 +780,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         duration: 14000,
         action: {
           label: t.checkout.openCheckout || "Open checkout",
-          onClick: () => window.open(fallbackCheckoutUrl, "_blank", "noopener,noreferrer"),
+          onClick: () => window.location.assign(fallbackCheckoutUrl),
         },
       });
-      const opened = sendToCheckout(fallbackCheckoutUrl);
-      if (opened) goToSuccess();
+      sendToCheckout(fallbackCheckoutUrl);
     }
   };
 
