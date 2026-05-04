@@ -1187,8 +1187,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {[
-                    { key: "boy", label: t.wizard.boy, img: presetBoyCartoon },
-                    { key: "girl", label: t.wizard.girl, img: presetGirlCartoon },
+                    { key: "boy", label: t.wizard.boy, img: presetBoy3dPixar },
+                    { key: "girl", label: t.wizard.girl, img: presetGirl3dPixar },
                   ].map((g) => (
                     <motion.button
                       key={g.key}
