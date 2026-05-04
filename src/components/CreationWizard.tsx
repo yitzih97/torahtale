@@ -662,22 +662,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setOrderNumber(orderNum);
     const { createShopifyCart, SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
 
-    // CRITICAL: open the popup synchronously while we still have the user-gesture
-    // context. We point it at about:blank now and redirect it once we have the
-    // real checkout URL. Without this, Safari/iOS and most popup blockers will
-    // silently swallow the window and the button looks "broken".
-    const popup = window.open("about:blank", "_blank", "noopener,noreferrer");
-
     const sendToCheckout = (url: string) => {
-      try {
-        if (popup && !popup.closed) {
-          popup.location.href = url;
-          return true;
-        }
-      } catch { /* cross-origin write fails are caught below */ }
-      // No popup or write blocked — navigate the current tab instead.
       window.location.assign(url);
-      return false;
     };
 
     // Advance to the success screen so the user sees confirmation immediately.
@@ -785,21 +771,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         localStorage.setItem("torahtale_pending_order", JSON.stringify({ ...stored, checkoutUrl: finalUrl }));
       } catch { /* ignore */ }
 
-      const opened = sendToCheckout(finalUrl);
-
-      toast.success(t.checkout.redirectingToShopify || "Redirecting to Shopify checkout…", {
-        description: finalUrl,
-        duration: 10000,
-        action: {
-          label: t.checkout.openCheckout || "Open checkout",
-          onClick: () => window.open(finalUrl, "_blank", "noopener,noreferrer"),
-        },
-      });
-
-      // Show success page right away. If the popup was blocked we already
-      // navigated the current tab via sendToCheckout, so this only runs in
-      // the popup case.
-      if (opened) goToSuccess();
+      sendToCheckout(finalUrl);
     } catch (err) {
       console.error("Failed to place order:", err);
       const errMsg = err instanceof Error ? err.message : String(err);
@@ -808,11 +780,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         duration: 14000,
         action: {
           label: t.checkout.openCheckout || "Open checkout",
-          onClick: () => window.open(fallbackCheckoutUrl, "_blank", "noopener,noreferrer"),
+          onClick: () => window.location.assign(fallbackCheckoutUrl),
         },
       });
-      const opened = sendToCheckout(fallbackCheckoutUrl);
-      if (opened) goToSuccess();
+      sendToCheckout(fallbackCheckoutUrl);
     }
   };
 
