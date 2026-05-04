@@ -14,11 +14,11 @@ export interface ShippingData {
 }
 
 const DEFAULT_SHIPPING: ShippingData = {
-  fullName: "Rachel Goldberg",
-  street: "9801 Donna Klein Blvd",
-  city: "Boca Raton",
-  state: "FL",
-  zip: "33428",
+  fullName: "",
+  street: "",
+  city: "",
+  state: "",
+  zip: "",
   shippingMethod: "standard",
 };
 
