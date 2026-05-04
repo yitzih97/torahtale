@@ -41,9 +41,9 @@ export const en = {
     title: "Three simple steps to a",
     titleAccent: "personalized Torah story",
     steps: [
-      { title: "Tell Us About Your Child", description: "Share their name, age, and a photo. They'll be woven into a timeless Torah story as part of the adventure." },
-      { title: "AI Creates the Book", description: "Our AI writes the narrative and illustrates every page — all tznius, age-appropriate, and aligned with Torah values." },
-      { title: "Delivered to Your Door", description: "A gorgeous book arrives — a personalized story your family will treasure." },
+      { title: "Tell Us About Your Child", description: "" },
+      { title: "AI Creates the Book", description: "" },
+      { title: "Delivered to Your Door", description: "" },
     ],
   },
 
