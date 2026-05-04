@@ -662,22 +662,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setOrderNumber(orderNum);
     const { createShopifyCart, SHOPIFY_VARIANT_IDS } = await import("@/lib/shopify");
 
-    // CRITICAL: open the popup synchronously while we still have the user-gesture
-    // context. We point it at about:blank now and redirect it once we have the
-    // real checkout URL. Without this, Safari/iOS and most popup blockers will
-    // silently swallow the window and the button looks "broken".
-    const popup = window.open("about:blank", "_blank", "noopener,noreferrer");
-
     const sendToCheckout = (url: string) => {
-      try {
-        if (popup && !popup.closed) {
-          popup.location.href = url;
-          return true;
-        }
-      } catch { /* cross-origin write fails are caught below */ }
-      // No popup or write blocked — navigate the current tab instead.
       window.location.assign(url);
-      return false;
     };
 
     // Advance to the success screen so the user sees confirmation immediately.
