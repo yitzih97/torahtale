@@ -95,7 +95,8 @@ const Pricing = () => {
                 </h3>
               </div>
               <div className="mb-8">
-                <div className={`text-5xl font-bold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>$22</div>
+                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "single" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>starting at</p>
+                <div className={`text-5xl font-bold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>$7.05</div>
                 <p className={`text-sm mt-1 ${selected === "single" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>One-time purchase</p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
@@ -123,15 +124,13 @@ const Pricing = () => {
                 </h3>
               </div>
               <div className="mb-8">
+                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "torah" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>starting at</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>$36</span>
+                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>$21.99</span>
                   <span className={selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}>/month</span>
                 </div>
                 <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  $9 per book • 4 books per month
-                </p>
-                <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  Weekly Parsha + Holidays
+                  4 books per month • Weekly Parsha + Holidays
                 </p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
@@ -156,8 +155,9 @@ const Pricing = () => {
                 </h3>
               </div>
               <div className="mb-8">
+                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "tanach" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>starting at</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>$49</span>
+                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>$34.99</span>
                   <span className={selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}>/month</span>
                 </div>
                 <p className={`text-sm mt-1 ${selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
