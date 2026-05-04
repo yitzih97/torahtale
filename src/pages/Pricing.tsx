@@ -41,7 +41,7 @@ const Pricing = () => {
         }),
       );
     }
-    navigate("/create");
+    navigate(plan ? "/create" : "/create");
   };
 
   const faqs = [
@@ -126,7 +126,7 @@ const Pricing = () => {
               <div className="mb-8">
                 <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "torah" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>starting at</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>$21.99</span>
+                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>$22.99</span>
                   <span className={selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}>/month</span>
                 </div>
                 <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
