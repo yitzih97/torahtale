@@ -14,6 +14,16 @@ export interface BookOptions {
 export const DEFAULT_BOOK_OPTIONS: BookOptions = {
   productType: "softcover",
 };
+/* Story-page counts per format. Covers + questions page are added on top by the renderer. */
+export const PAGES_BY_TYPE: Record<BookOptions["productType"], number> = {
+  softcover: 20,
+  hardcover: 20,
+  board: 10,
+};
+
+export function getStoryPageCount(options: BookOptions): number {
+  return PAGES_BY_TYPE[options.productType] ?? 20;
+}
 
 /* ── pricing (Printify cost + our margin) ── */
 

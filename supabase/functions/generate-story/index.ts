@@ -15,7 +15,11 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
-    const pages = 10; // Always generate 10 pages
+    // Page count is driven by book type (board=10, soft/hardcover=20). Validate to a sane range.
+    const requestedPages = Number(pageCount);
+    const pages = Number.isFinite(requestedPages) && requestedPages > 0
+      ? Math.min(30, Math.max(4, Math.round(requestedPages)))
+      : 10;
 
     // Try to load custom prompts from site_settings
     let customSystemPrompt: string | null = null;

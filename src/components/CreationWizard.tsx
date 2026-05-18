@@ -17,7 +17,7 @@ import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/Ship
 import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
-import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, type BookOptions } from "./wizard/BookOptionsStep";
+import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, getStoryPageCount, type BookOptions } from "./wizard/BookOptionsStep";
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, getUpcomingParsha, type TorahOption } from "./wizard/TorahPortions";
@@ -89,7 +89,7 @@ const initialData: WizardData = {
   artStyle: "cartoon",
   narrativeStyle: "story",
   language: "english",
-  pageCount: 10,
+  pageCount: getStoryPageCount(DEFAULT_BOOK_OPTIONS),
   activeChildIdx: 0,
 };
 
@@ -232,6 +232,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [data, setData] = useState<WizardData>(initialData);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
   const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
+
+  // Keep story pageCount in sync with the chosen book format (board=10, soft/hardcover=20)
+  useEffect(() => {
+    const target = getStoryPageCount(bookOptions);
+    setData((d) => (d.pageCount === target ? d : { ...d, pageCount: target }));
+  }, [bookOptions]);
+
+
   
   const [portionFilter, setPortionFilter] = useState<TorahOption["category"] | "all">("all");
   const [portionSearch, setPortionSearch] = useState("");

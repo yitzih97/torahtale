@@ -118,7 +118,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           torahPortionLabel: book.torah_portion,
           artStyle: book.art_style,
           language: book.language || "english",
-          pageCount: sd.pageCount || 4,
+          pageCount: sd.pageCount || 20,
         },
       });
       if (storyErr) throw storyErr;
@@ -180,10 +180,11 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         ? `hardcover-${hardcoverSize}`
         : productType === "board" ? "board-6x6" : "softcover-8x8";
 
-      // Get the first child's character sheet (primary character)
+      // Get the first child's character sheet (primary character) + their reference photo
       const primaryChildName = childDescriptions[0]?.name || book.child_name;
       const primaryCharacterSheet = characterSheetsRef.current[primaryChildName] || null;
       const primaryChildDesc = childDescriptions[0]?.description || "";
+      const primaryChildPhoto = childDescriptions[0]?.photoUrl || null;
 
       for (let i = 0; i < allPages.length; i++) {
         if (abortRef.current) return;
@@ -213,6 +214,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               bookFormat,
               pageType,
               characterSheet: primaryCharacterSheet,
+              referenceImage: primaryChildPhoto,
               childDescription: primaryChildDesc,
               pageNumber: pg.type === "story" ? i : undefined,
             },

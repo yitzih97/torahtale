@@ -29,7 +29,7 @@ export const BookLoadingSkeleton = ({ type = "story", message }: Props) => {
       : "Illustrating the page...";
 
   return (
-    <div className="w-full aspect-[4/3] rounded-book bg-gradient-to-br from-muted via-muted/80 to-muted relative overflow-hidden flex flex-col items-center justify-center gap-3">
+    <div className="w-full aspect-square rounded-book bg-gradient-to-br from-muted via-muted/80 to-muted relative overflow-hidden flex flex-col items-center justify-center gap-3">
       {/* Shimmer overlay */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-r from-transparent via-accent/10 to-transparent"
