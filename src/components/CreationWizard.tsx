@@ -232,6 +232,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [data, setData] = useState<WizardData>(initialData);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
   const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
+
+  // Keep story pageCount in sync with the chosen book format (board=10, soft/hardcover=20)
+  useEffect(() => {
+    const target = getStoryPageCount(bookOptions);
+    setData((d) => (d.pageCount === target ? d : { ...d, pageCount: target }));
+  }, [bookOptions]);
+
+
   
   const [portionFilter, setPortionFilter] = useState<TorahOption["category"] | "all">("all");
   const [portionSearch, setPortionSearch] = useState("");
