@@ -121,7 +121,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             key={`${currentPage}-${page.image?.slice(-20)}`}
             src={page.image}
             alt={getPageLabel()}
-            className={`w-full aspect-[4/3] object-cover rounded-book ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
+            className={`w-full aspect-square object-cover rounded-book ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
             transition={{ duration: 0.3 }}
@@ -129,7 +129,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         ) : page?.imageLoading ? (
           <BookLoadingSkeleton type={pageType === "cover" ? "cover" : pageType === "back-cover" ? "back-cover" : "story"} />
         ) : (
-          <div className="w-full aspect-[4/3] rounded-book bg-muted flex flex-col items-center justify-center gap-2">
+          <div className="w-full aspect-square rounded-book bg-muted flex flex-col items-center justify-center gap-2">
             {pageType === "cover" || pageType === "back-cover" ? (
               <BookOpen className="w-8 h-8 text-muted-foreground" />
             ) : (
