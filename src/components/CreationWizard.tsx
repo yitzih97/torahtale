@@ -89,7 +89,7 @@ const initialData: WizardData = {
   artStyle: "cartoon",
   narrativeStyle: "story",
   language: "english",
-  pageCount: 10,
+  pageCount: getStoryPageCount(DEFAULT_BOOK_OPTIONS),
   activeChildIdx: 0,
 };
 
