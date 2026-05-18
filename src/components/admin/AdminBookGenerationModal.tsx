@@ -118,7 +118,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           torahPortionLabel: book.torah_portion,
           artStyle: book.art_style,
           language: book.language || "english",
-          pageCount: sd.pageCount || 4,
+          pageCount: sd.pageCount || 20,
         },
       });
       if (storyErr) throw storyErr;
