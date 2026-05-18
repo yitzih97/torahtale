@@ -214,6 +214,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               bookFormat,
               pageType,
               characterSheet: primaryCharacterSheet,
+              referenceImage: primaryChildPhoto,
               childDescription: primaryChildDesc,
               pageNumber: pg.type === "story" ? i : undefined,
             },
