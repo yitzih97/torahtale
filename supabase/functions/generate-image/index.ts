@@ -141,7 +141,7 @@ serve(async (req) => {
     }
 
     if (referenceImage) {
-      imagePrompt = `Using the provided photo as a reference for the child's appearance (face, features, hair), create: ${imagePrompt}. The child in the illustration should closely resemble the child in the reference photo but rendered in the specified art style.`;
+      imagePrompt = `CRITICAL CHILD LIKENESS INSTRUCTION: The attached photograph is the REAL child this book is for. You MUST reproduce their exact face shape, eye color and shape, skin tone, hair color and texture, eyebrows, and overall facial proportions — translated faithfully into the chosen art style. The illustrated child must be IMMEDIATELY and unmistakably recognizable as the SAME real child from the photo, in every single page. Do not invent a generic child. ${imagePrompt}`;
 
       if (referenceImage.startsWith("data:")) {
         const match = referenceImage.match(/^data:(image\/\w+);base64,(.+)$/);
@@ -149,7 +149,15 @@ serve(async (req) => {
           parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
         }
       } else {
-        parts.push({ fileData: { fileUri: referenceImage, mimeType: "image/jpeg" } });
+        try {
+          const imgResp = await fetch(referenceImage);
+          if (imgResp.ok) {
+            const buf = await imgResp.arrayBuffer();
+            const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+            const ct = imgResp.headers.get("content-type") || "image/jpeg";
+            parts.push({ inlineData: { mimeType: ct, data: b64 } });
+          }
+        } catch (e) { console.error("Failed to fetch reference image:", e); }
       }
     }
 
