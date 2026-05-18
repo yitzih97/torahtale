@@ -656,9 +656,57 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     toast.success(t.wizard.createYourBook ? `${t.wizard.createYourBook} · ${"1/8"}` : "Wizard reset");
   }, [lang, t]);
 
-  const handlePlaceOrder = async (_planType: string = "once") => {
-    toast.info("Checkout is temporarily unavailable — check back soon!");
-    return;
+  const handlePlaceOrder = async (planType: string = "once") => {
+    // Local mock order flow — no Shopify / external checkout.
+    // Persists the order against the already-created book row and advances to success.
+    try {
+      const mockOrderNumber = `TT-${Date.now().toString(36).toUpperCase()}-${Math.random()
+        .toString(36)
+        .slice(2, 6)
+        .toUpperCase()}`;
+
+      if (user && savedBookId) {
+        const { error: bookErr } = await supabase
+          .from("books")
+          .update({
+            status: "ordered",
+            order_number: mockOrderNumber,
+            shipping_data: {
+              ...shipping,
+              bookOptions,
+              quantity,
+              planType,
+            },
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq("id", savedBookId);
+        if (bookErr) console.error("Mock order: book update failed", bookErr);
+
+        const isSubscription = planType === "weekly" || planType === "monthly" || planType === "yearly";
+        if (isSubscription) {
+          const { error: subErr } = await supabase.from("subscriptions").insert({
+            user_id: user.id,
+            child_name: childNames,
+            art_style: data.artStyle || "cartoon",
+            language: data.language || "english",
+            status: "active",
+            frequency: planType,
+            price_per_week: 24.99,
+            shipping_data: shipping as any,
+          } as any);
+          if (subErr) console.error("Mock order: subscription insert failed", subErr);
+        }
+      }
+
+      setOrderNumber(mockOrderNumber);
+      localStorage.removeItem("torahtale_pending_order");
+      setDir(1);
+      setStep(14);
+      toast.success("Order placed!");
+    } catch (err) {
+      console.error("Mock order failed:", err);
+      toast.error("Something went wrong placing your order.");
+    }
   };
 
 
