@@ -32,6 +32,10 @@ export function useAdminData() {
       return data;
     },
     enabled: isAdminQuery.data === true,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 15000,
+    staleTime: 0,
   });
 
   const allProfilesQuery = useQuery({
