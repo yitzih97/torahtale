@@ -2149,7 +2149,18 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 {t.common.continue} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </motion.button>
             )}
-            {step === 8 && <div />}
+            {step === 8 && (
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={next}
+                disabled={authLoading}
+                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
+                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
+              >
+                {t.hero.cta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+              </motion.button>
+            )}
             {step === 10 && (
               <motion.button
                 whileHover={{ scale: 1.03 }}
