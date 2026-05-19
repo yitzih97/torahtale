@@ -2154,7 +2154,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => { void startGeneration(); }}
-                disabled={authLoading || isGenerating}
+                disabled={authLoading || animating}
                 className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
                 style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
               >
