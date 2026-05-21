@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { ImageCropDialog } from "@/components/ImageCropDialog";
 
 /* ── preset images ── */
 import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
@@ -184,12 +185,14 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
     reset();
   };
 
+  const [cropSrc, setCropSrc] = useState<{ src: string; fileName: string } | null>(null);
+
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (file) {
-      setPhotoFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => setPhotoPreview(reader.result as string);
+      reader.onloadend = () => setCropSrc({ src: reader.result as string, fileName: file.name });
       reader.readAsDataURL(file);
     }
   };
@@ -530,6 +533,18 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
           </div>
         </div>
       </DialogContent>
+      <ImageCropDialog
+        open={!!cropSrc}
+        imageSrc={cropSrc?.src ?? null}
+        fileName={cropSrc?.fileName ?? "photo.jpg"}
+        aspect={1}
+        onCancel={() => setCropSrc(null)}
+        onCropped={(file, dataUrl) => {
+          setPhotoFile(file);
+          setPhotoPreview(dataUrl);
+          setCropSrc(null);
+        }}
+      />
     </Dialog>
   );
 }
