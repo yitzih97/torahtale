@@ -389,7 +389,23 @@ export default function Dashboard() {
                         </div>
 
                         {sub.status !== "canceled" && (
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs rounded-xl gap-1.5"
+                              onClick={() => setEditingSub(sub)}
+                            >
+                              <Pencil className="w-3.5 h-3.5" /> Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs rounded-xl gap-1.5"
+                              onClick={() => window.open("https://fek120-t9.myshopify.com/account", "_blank", "noopener,noreferrer")}
+                            >
+                              <CreditCard className="w-3.5 h-3.5" /> Payment
+                            </Button>
                             {sub.status === "active" ? (
                               <Button
                                 variant="outline"
@@ -418,7 +434,7 @@ export default function Dashboard() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-xs rounded-xl gap-1.5 text-destructive hover:text-destructive"
+                              className="text-xs rounded-xl gap-1.5 text-destructive hover:text-destructive ml-auto"
                               onClick={async () => {
                                 await cancelSubscription.mutateAsync(sub.id);
                                 toast.success("Subscription canceled");
