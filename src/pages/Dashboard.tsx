@@ -9,11 +9,12 @@ import { AddChildWizard, type AddChildResult } from "@/components/dashboard/AddC
 import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { DashboardSettings } from "@/components/dashboard/DashboardSettings";
+import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus,
   Truck, Package, Palette, Eye, Trash2, BookMarked, Pencil,
-  Pause, Play, X, Settings,
+  Pause, Play, X, Settings, CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
