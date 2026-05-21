@@ -2223,6 +2223,18 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         bookOptions.productType === "board" ? t.bookOptions.boardBook : undefined
       }
     />
+
+    <ImageCropDialog
+      open={!!cropState}
+      imageSrc={cropState?.src ?? null}
+      fileName={cropState?.fileName ?? "photo.jpg"}
+      aspect={1}
+      onCancel={() => setCropState(null)}
+      onCropped={(file, dataUrl) => {
+        if (cropState) updateChild(cropState.childId, { photo: file, photoPreview: dataUrl });
+        setCropState(null);
+      }}
+    />
     </>
   );
 };
