@@ -228,9 +228,14 @@ export default function Dashboard() {
                               <span>{t.dash.preferred}: {kid.art_style}</span>
                             </div>
                           )}
-                          <Button variant="outline" size="sm" className="w-full mt-4 text-xs" onClick={() => navigate("/?start=1")}>
-                            <BookOpen className="w-3.5 h-3.5" /> {t.dash.createNewBook}
-                          </Button>
+                          <div className="grid grid-cols-2 gap-2 mt-4">
+                            <Button variant="outline" size="sm" className="text-xs" onClick={() => setEditingChild(kid)}>
+                              <Pencil className="w-3.5 h-3.5" /> {t.dash.edit ?? "Edit"}
+                            </Button>
+                            <Button variant="gold" size="sm" className="text-xs" onClick={() => navigate("/?start=1")}>
+                              <BookOpen className="w-3.5 h-3.5" /> {t.dash.createNewBook}
+                            </Button>
+                          </div>
                         </motion.div>
                       );
                     })}
