@@ -512,7 +512,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         // Upload child photos to storage and collect URLs
         const childDescriptions = await Promise.all(
           data.children.map(async (c) => {
-            let photoUrl: string | null = null;
+            let photoUrl: string | null = c.existingPhotoUrl ?? null;
             if (c.photo) {
               const filePath = `${user.id}/${c.id}-${Date.now()}.jpg`;
               const { error: uploadErr } = await supabase.storage
@@ -523,6 +523,21 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   .from("child-photos")
                   .getPublicUrl(filePath);
                 photoUrl = urlData?.publicUrl || null;
+              }
+            }
+            // Save new children as reusable characters
+            if (!c.savedChildId && c.name && c.age && c.gender) {
+              try {
+                await addChildMutation.mutateAsync({
+                  name: c.name,
+                  age: parseInt(c.age) || null,
+                  gender: c.gender,
+                  photo_url: photoUrl,
+                  art_style: data.artStyle,
+                  description: c.description || null,
+                });
+              } catch (e) {
+                console.warn("Failed to save child as character:", e);
               }
             }
             return {
