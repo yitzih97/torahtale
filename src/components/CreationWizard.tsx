@@ -61,6 +61,8 @@ export interface ChildProfile {
   photoPreview: string | null;
   description: string;
   characterPreview: string | null;
+  savedChildId?: string | null;
+  existingPhotoUrl?: string | null;
 }
 
 const createChild = (): ChildProfile => ({
@@ -72,6 +74,8 @@ const createChild = (): ChildProfile => ({
   photoPreview: null,
   description: "",
   characterPreview: null,
+  savedChildId: null,
+  existingPhotoUrl: null,
 });
 
 interface WizardData {
@@ -217,7 +221,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { t, lang } = useLanguage();
-  const { children: existingChildren } = useChildren();
+  const { children: existingChildren, addChild: addChildMutation } = useChildren();
 
   const GENERATION_PHASES = [
     { icon: BookOpenCheck, text: t.wizard.writingStory, duration: 3000 },
@@ -508,7 +512,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         // Upload child photos to storage and collect URLs
         const childDescriptions = await Promise.all(
           data.children.map(async (c) => {
-            let photoUrl: string | null = null;
+            let photoUrl: string | null = c.existingPhotoUrl ?? null;
             if (c.photo) {
               const filePath = `${user.id}/${c.id}-${Date.now()}.jpg`;
               const { error: uploadErr } = await supabase.storage
@@ -519,6 +523,21 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   .from("child-photos")
                   .getPublicUrl(filePath);
                 photoUrl = urlData?.publicUrl || null;
+              }
+            }
+            // Save new children as reusable characters
+            if (!c.savedChildId && c.name && c.age && c.gender) {
+              try {
+                await addChildMutation.mutateAsync({
+                  name: c.name,
+                  age: parseInt(c.age) || null,
+                  gender: c.gender,
+                  photo_url: photoUrl,
+                  art_style: data.artStyle,
+                  description: c.description || null,
+                });
+              } catch (e) {
+                console.warn("Failed to save child as character:", e);
               }
             }
             return {
@@ -1064,11 +1083,66 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </h2>
                 </motion.div>
 
+                {user && existingChildren.length > 0 && !child.savedChildId && (
+                  <motion.div variants={staggerChild} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                        {lang === "he" ? "בחר ילד שמור" : lang === "yi" ? "קלייַבן אַ געראטעוועט קינד" : "Pick a saved kid"}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/dashboard")}
+                        className="text-xs text-accent hover:underline font-medium"
+                      >
+                        {lang === "he" ? "נהל ילדים" : lang === "yi" ? "פירן קינדער" : "Manage kids"}
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {existingChildren.map((k) => (
+                        <button
+                          key={k.id}
+                          type="button"
+                          onClick={() => {
+                            updateChild(child.id, {
+                              name: k.name,
+                              age: k.age ? String(k.age) : "",
+                              gender: k.gender || "",
+                              photoPreview: k.photo_url || null,
+                              existingPhotoUrl: k.photo_url || null,
+                              description: k.description || "",
+                              savedChildId: k.id,
+                              photo: null,
+                            });
+                            autoAdvance();
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 rounded-full border-2 border-border/40 bg-card/60 hover:border-accent/60 hover:bg-accent/5 transition-all duration-200"
+                        >
+                          {k.photo_url ? (
+                            <img src={k.photo_url} alt={k.name} className="w-7 h-7 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-accent/15 flex items-center justify-center text-xs font-bold text-accent">
+                              {k.name.slice(0, 1).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-foreground">{k.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3 pt-2">
+                      <div className="flex-1 h-px bg-border/60" />
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {lang === "he" ? "או" : lang === "yi" ? "אָדער" : "or"}
+                      </span>
+                      <div className="flex-1 h-px bg-border/60" />
+                    </div>
+                  </motion.div>
+                )}
+
                 <motion.div variants={staggerChild}>
                   <Input
                     placeholder={t.wizard.enterChildName}
                     value={child.name}
-                    onChange={(e) => updateChild(child.id, { name: e.target.value })}
+                    onChange={(e) => updateChild(child.id, { name: e.target.value, savedChildId: null, existingPhotoUrl: null })}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && child.name.trim().length >= 1) {
                         e.preventDefault();
