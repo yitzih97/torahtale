@@ -221,7 +221,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { t, lang } = useLanguage();
-  const { children: existingChildren } = useChildren();
+  const { children: existingChildren, addChild: addChildMutation } = useChildren();
 
   const GENERATION_PHASES = [
     { icon: BookOpenCheck, text: t.wizard.writingStory, duration: 3000 },
