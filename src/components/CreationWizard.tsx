@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useChildren } from "@/hooks/useChildren";
+import { ImageCropDialog } from "./ImageCropDialog";
 
 /* ── preset images ── */
 import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
@@ -476,12 +477,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (error) toast.error(error.message);
   };
 
+  const [cropState, setCropState] = useState<{ childId: string; src: string; fileName: string } | null>(null);
+
   const handlePhoto = (childId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        updateChild(childId, { photo: file, photoPreview: reader.result as string });
+        setCropState({ childId, src: reader.result as string, fileName: file.name });
       };
       reader.readAsDataURL(file);
     }
@@ -2218,6 +2222,18 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         bookOptions.productType === "hardcover" ? t.bookOptions.hardcover :
         bookOptions.productType === "board" ? t.bookOptions.boardBook : undefined
       }
+    />
+
+    <ImageCropDialog
+      open={!!cropState}
+      imageSrc={cropState?.src ?? null}
+      fileName={cropState?.fileName ?? "photo.jpg"}
+      aspect={1}
+      onCancel={() => setCropState(null)}
+      onCropped={(file, dataUrl) => {
+        if (cropState) updateChild(cropState.childId, { photo: file, photoPreview: dataUrl });
+        setCropState(null);
+      }}
     />
     </>
   );
