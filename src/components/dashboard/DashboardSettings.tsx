@@ -193,10 +193,22 @@ export function DashboardSettings({ user }: Props) {
           </div>
         </div>
 
-        <div className="bg-muted/30 rounded-xl p-4 text-center">
-          <CreditCard className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">No payment methods saved yet.</p>
-          <p className="text-xs text-muted-foreground mt-1">Payment methods are saved automatically when you place an order.</p>
+        <div className="bg-muted/30 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex-1">
+            <p className="text-sm font-medium text-primary">Manage cards in Shopify</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Your payment methods are securely stored and managed in your Shopify customer account.
+            </p>
+          </div>
+          <Button
+            variant="gold"
+            size="sm"
+            className="rounded-xl gap-2 flex-shrink-0"
+            onClick={() => window.open("https://fek120-t9.myshopify.com/account", "_blank", "noopener,noreferrer")}
+          >
+            <CreditCard className="w-4 h-4" />
+            Manage Payment
+          </Button>
         </div>
       </motion.div>
 
