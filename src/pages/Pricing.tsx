@@ -135,7 +135,7 @@ const Pricing = () => {
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
               <Button variant={selected === "torah" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("subscription"); }} className="w-full">
-                Start Subscription
+                Start Now
               </Button>
             </div>
 
@@ -166,7 +166,7 @@ const Pricing = () => {
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
               <Button variant={selected === "tanach" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("subscription"); }} className="w-full">
-                Start Subscription
+                Start Now
               </Button>
             </div>
           </div>
