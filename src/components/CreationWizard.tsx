@@ -1083,11 +1083,66 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </h2>
                 </motion.div>
 
+                {user && existingChildren.length > 0 && !child.savedChildId && (
+                  <motion.div variants={staggerChild} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                        {lang === "he" ? "בחר ילד שמור" : lang === "yi" ? "קלייַבן אַ געראטעוועט קינד" : "Pick a saved kid"}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/dashboard")}
+                        className="text-xs text-accent hover:underline font-medium"
+                      >
+                        {lang === "he" ? "נהל ילדים" : lang === "yi" ? "פירן קינדער" : "Manage kids"}
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {existingChildren.map((k) => (
+                        <button
+                          key={k.id}
+                          type="button"
+                          onClick={() => {
+                            updateChild(child.id, {
+                              name: k.name,
+                              age: k.age ? String(k.age) : "",
+                              gender: k.gender || "",
+                              photoPreview: k.photo_url || null,
+                              existingPhotoUrl: k.photo_url || null,
+                              description: k.description || "",
+                              savedChildId: k.id,
+                              photo: null,
+                            });
+                            autoAdvance();
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 rounded-full border-2 border-border/40 bg-card/60 hover:border-accent/60 hover:bg-accent/5 transition-all duration-200"
+                        >
+                          {k.photo_url ? (
+                            <img src={k.photo_url} alt={k.name} className="w-7 h-7 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-accent/15 flex items-center justify-center text-xs font-bold text-accent">
+                              {k.name.slice(0, 1).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-foreground">{k.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3 pt-2">
+                      <div className="flex-1 h-px bg-border/60" />
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {lang === "he" ? "או" : lang === "yi" ? "אָדער" : "or"}
+                      </span>
+                      <div className="flex-1 h-px bg-border/60" />
+                    </div>
+                  </motion.div>
+                )}
+
                 <motion.div variants={staggerChild}>
                   <Input
                     placeholder={t.wizard.enterChildName}
                     value={child.name}
-                    onChange={(e) => updateChild(child.id, { name: e.target.value })}
+                    onChange={(e) => updateChild(child.id, { name: e.target.value, savedChildId: null, existingPhotoUrl: null })}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && child.name.trim().length >= 1) {
                         e.preventDefault();
