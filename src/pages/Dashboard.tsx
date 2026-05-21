@@ -230,7 +230,7 @@ export default function Dashboard() {
                           )}
                           <div className="grid grid-cols-2 gap-2 mt-4">
                             <Button variant="outline" size="sm" className="text-xs" onClick={() => setEditingChild(kid)}>
-                              <Pencil className="w-3.5 h-3.5" /> {t.dash.edit ?? "Edit"}
+                              <Pencil className="w-3.5 h-3.5" /> Edit
                             </Button>
                             <Button variant="gold" size="sm" className="text-xs" onClick={() => navigate("/?start=1")}>
                               <BookOpen className="w-3.5 h-3.5" /> {t.dash.createNewBook}
