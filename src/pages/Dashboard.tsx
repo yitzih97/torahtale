@@ -49,6 +49,7 @@ export default function Dashboard() {
   const { subscriptions, isLoading: subsLoading, cancelSubscription, updateSubscription } = useSubscriptions();
   const [addChildOpen, setAddChildOpen] = useState(false);
   const [editingChild, setEditingChild] = useState<ChildRecord | null>(null);
+  const [editingSub, setEditingSub] = useState<typeof subscriptions[number] | null>(null);
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
   const [activeTab, setActiveTab] = useState("kids");
 
