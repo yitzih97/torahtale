@@ -61,6 +61,8 @@ export interface ChildProfile {
   photoPreview: string | null;
   description: string;
   characterPreview: string | null;
+  savedChildId?: string | null;
+  existingPhotoUrl?: string | null;
 }
 
 const createChild = (): ChildProfile => ({
@@ -72,6 +74,8 @@ const createChild = (): ChildProfile => ({
   photoPreview: null,
   description: "",
   characterPreview: null,
+  savedChildId: null,
+  existingPhotoUrl: null,
 });
 
 interface WizardData {
