@@ -505,6 +505,19 @@ export default function Dashboard() {
           }}
         />
       )}
+
+      {/* Subscription Edit Dialog */}
+      <SubscriptionEditDialog
+        open={!!editingSub}
+        onClose={() => setEditingSub(null)}
+        subscription={editingSub}
+        children={children}
+        onSave={async (updates) => {
+          await updateSubscription.mutateAsync(updates);
+          toast.success("Subscription updated");
+        }}
+        isSaving={updateSubscription.isPending}
+      />
     </div>
   );
 }
