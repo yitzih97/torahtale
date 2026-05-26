@@ -414,6 +414,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     scrollToStep(step);
   }, [step, scrollToStep]);
 
+  // Skip gender/age steps when every selected child already has them
+  // (e.g. all children were chosen from saved profiles).
+  useEffect(() => {
+    if (step === 2 && data.children.length > 0 && data.children.every((c) => !!c.gender)) {
+      setStep(dir >= 0 ? 3 : 1);
+    } else if (step === 3 && data.children.length > 0 && data.children.every((c) => !!c.age && !!c.gender && !!c.savedChildId)) {
+      setStep(dir >= 0 ? 4 : 1);
+    }
+  }, [step, dir, data.children]);
+
   const autoAdvance = useCallback(() => {
     if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
     autoAdvanceTimerRef.current = setTimeout(() => {
@@ -1083,11 +1093,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </h2>
                 </motion.div>
 
-                {user && existingChildren.length > 0 && !child.savedChildId && (
+                {user && existingChildren.length > 0 && (
                   <motion.div variants={staggerChild} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-                        {lang === "he" ? "בחר ילד שמור" : lang === "yi" ? "קלייַבן אַ געראטעוועט קינד" : "Pick a saved kid"}
+                        {lang === "he" ? "בחר ילדים שמורים" : lang === "yi" ? "קלייַבן געראטעוועטע קינדער" : "Pick saved kids"}
                       </p>
                       <button
                         type="button"
@@ -1098,35 +1108,71 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {existingChildren.map((k) => (
-                        <button
-                          key={k.id}
-                          type="button"
-                          onClick={() => {
-                            updateChild(child.id, {
-                              name: k.name,
-                              age: k.age ? String(k.age) : "",
-                              gender: k.gender || "",
-                              photoPreview: k.photo_url || null,
-                              existingPhotoUrl: k.photo_url || null,
-                              description: k.description || "",
-                              savedChildId: k.id,
-                              photo: null,
-                            });
-                            autoAdvance();
-                          }}
-                          className="flex items-center gap-2 px-3 py-2 rounded-full border-2 border-border/40 bg-card/60 hover:border-accent/60 hover:bg-accent/5 transition-all duration-200"
-                        >
-                          {k.photo_url ? (
-                            <img src={k.photo_url} alt={k.name} className="w-7 h-7 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-7 h-7 rounded-full bg-accent/15 flex items-center justify-center text-xs font-bold text-accent">
-                              {k.name.slice(0, 1).toUpperCase()}
-                            </div>
-                          )}
-                          <span className="text-sm font-medium text-foreground">{k.name}</span>
-                        </button>
-                      ))}
+                      {existingChildren.map((k) => {
+                        const selected = data.children.some((c) => c.savedChildId === k.id);
+                        return (
+                          <button
+                            key={k.id}
+                            type="button"
+                            onClick={() => {
+                              setData((prev) => {
+                                const idx = prev.children.findIndex((c) => c.savedChildId === k.id);
+                                if (idx >= 0) {
+                                  // Toggle off — remove this saved kid
+                                  const next = prev.children.filter((_, i) => i !== idx);
+                                  const remaining = next.length ? next : [createChild()];
+                                  return {
+                                    ...prev,
+                                    children: remaining,
+                                    activeChildIdx: Math.min(prev.activeChildIdx, remaining.length - 1),
+                                  };
+                                }
+                                // Toggle on — add this saved kid
+                                const newEntry: ChildProfile = {
+                                  ...createChild(),
+                                  name: k.name,
+                                  age: k.age ? String(k.age) : "",
+                                  gender: k.gender || "",
+                                  photoPreview: k.photo_url || null,
+                                  existingPhotoUrl: k.photo_url || null,
+                                  description: k.description || "",
+                                  savedChildId: k.id,
+                                };
+                                // If the only existing child is the empty starter, replace it
+                                const base = prev.children;
+                                const onlyEmptyStarter =
+                                  base.length === 1 && !base[0].name && !base[0].savedChildId;
+                                const nextChildren = onlyEmptyStarter ? [newEntry] : [...base, newEntry];
+                                return {
+                                  ...prev,
+                                  children: nextChildren,
+                                  activeChildIdx: nextChildren.length - 1,
+                                };
+                              });
+                            }}
+                            aria-pressed={selected}
+                            className={`relative flex items-center gap-2 px-3 py-2 rounded-full border-2 transition-all duration-200 ${
+                              selected
+                                ? "border-accent bg-accent/10 shadow-sm"
+                                : "border-border/40 bg-card/60 hover:border-accent/60 hover:bg-accent/5"
+                            }`}
+                          >
+                            {k.photo_url ? (
+                              <img src={k.photo_url} alt={k.name} className="w-7 h-7 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-7 h-7 rounded-full bg-accent/15 flex items-center justify-center text-xs font-bold text-accent">
+                                {k.name.slice(0, 1).toUpperCase()}
+                              </div>
+                            )}
+                            <span className="text-sm font-medium text-foreground">{k.name}</span>
+                            {selected && (
+                              <span className="ms-1 w-4 h-4 rounded-full bg-accent flex items-center justify-center">
+                                <Check className="w-3 h-3 text-accent-foreground" />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                     <div className="flex items-center gap-3 pt-2">
                       <div className="flex-1 h-px bg-border/60" />
