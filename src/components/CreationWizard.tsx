@@ -421,6 +421,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       setStep(dir >= 0 ? 3 : 1);
     } else if (step === 3 && data.children.length > 0 && data.children.every((c) => !!c.age && !!c.gender && !!c.savedChildId)) {
       setStep(dir >= 0 ? 4 : 1);
+    } else if (step === 5 && data.children.length > 0 && data.children.every((c) => !!c.savedChildId && !!c.existingPhotoUrl)) {
+      setStep(dir >= 0 ? 6 : 4);
     }
   }, [step, dir, data.children]);
 
