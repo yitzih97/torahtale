@@ -414,6 +414,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     scrollToStep(step);
   }, [step, scrollToStep]);
 
+  // Skip gender/age steps when every selected child already has them
+  // (e.g. all children were chosen from saved profiles).
+  useEffect(() => {
+    if (step === 2 && data.children.length > 0 && data.children.every((c) => !!c.gender)) {
+      setStep(dir >= 0 ? 3 : 1);
+    } else if (step === 3 && data.children.length > 0 && data.children.every((c) => !!c.age && !!c.gender && !!c.savedChildId)) {
+      setStep(dir >= 0 ? 4 : 1);
+    }
+  }, [step, dir, data.children]);
+
   const autoAdvance = useCallback(() => {
     if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
     autoAdvanceTimerRef.current = setTimeout(() => {
