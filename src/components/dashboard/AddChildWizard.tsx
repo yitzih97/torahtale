@@ -203,6 +203,24 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
     }
   };
 
+  const handleRecropExisting = async () => {
+    if (!photoPreview) return;
+    try {
+      // Fetch and convert to data URL to avoid canvas CORS tainting
+      const res = await fetch(photoPreview, { mode: "cors" });
+      const blob = await res.blob();
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onloadend = () => resolve(r.result as string);
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      });
+      setCropSrc({ src: dataUrl, fileName: "photo.jpg" });
+    } catch (err) {
+      console.error("Failed to load photo for recrop:", err);
+    }
+  };
+
   const next = () => { setDir(1); setStep((s) => Math.min(s + 1, TOTAL_STEPS)); };
   const back = () => { setDir(-1); setStep((s) => Math.max(s - 1, 1)); };
 
