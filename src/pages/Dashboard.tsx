@@ -13,7 +13,7 @@ import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditD
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus,
-  Truck, Package, Palette, Eye, Trash2, BookMarked, Pencil,
+  Truck, Package, Palette, Eye, Trash2, BookMarked, Pencil, Camera,
   Pause, Play, X, Settings, CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
