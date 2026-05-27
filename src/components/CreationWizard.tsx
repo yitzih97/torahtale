@@ -1187,23 +1187,48 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 )}
 
                 <motion.div variants={staggerChild}>
-                  <Input
-                    placeholder={t.wizard.enterChildName}
-                    value={child.name}
-                    onChange={(e) => updateChild(child.id, { name: e.target.value, savedChildId: null, existingPhotoUrl: null })}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && child.name.trim().length >= 1) {
-                        e.preventDefault();
-                        autoAdvance();
+                  {(() => {
+                    const activeIsSaved = !!child.savedChildId;
+                    const inputValue = activeIsSaved ? "" : child.name;
+                    const placeholder = activeIsSaved
+                      ? (lang === "he" ? "הוסף ילד נוסף" : lang === "yi" ? "לייג צו אן אנדער קינד" : "Add another child")
+                      : t.wizard.enterChildName;
+                    const handleChange = (val: string) => {
+                      if (activeIsSaved) {
+                        setData((prev) => {
+                          const newEntry: ChildProfile = { ...createChild(), name: val };
+                          const nextChildren = [...prev.children, newEntry];
+                          return {
+                            ...prev,
+                            children: nextChildren,
+                            activeChildIdx: nextChildren.length - 1,
+                          };
+                        });
+                      } else {
+                        updateChild(child.id, { name: val, savedChildId: null, existingPhotoUrl: null });
                       }
-                    }}
-                    onBlur={() => {
-                      if (child.name.trim().length >= 1 && step === 1) autoAdvance();
-                    }}
-                    className="rounded-2xl h-14 text-lg text-center border-2 border-border/40 bg-card/60 backdrop-blur-sm focus:border-accent/50 focus:ring-accent/20 placeholder:text-muted-foreground/40 font-medium"
-                    autoFocus
-                  />
+                    };
+                    return (
+                      <Input
+                        placeholder={placeholder}
+                        value={inputValue}
+                        onChange={(e) => handleChange(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && inputValue.trim().length >= 1) {
+                            e.preventDefault();
+                            autoAdvance();
+                          }
+                        }}
+                        onBlur={() => {
+                          if (!activeIsSaved && child.name.trim().length >= 1 && step === 1) autoAdvance();
+                        }}
+                        className="rounded-2xl h-14 text-lg text-center border-2 border-border/40 bg-card/60 backdrop-blur-sm focus:border-accent/50 focus:ring-accent/20 placeholder:text-muted-foreground/40 font-medium"
+                        autoFocus
+                      />
+                    );
+                  })()}
                 </motion.div>
+
 
               </motion.div>
               </section>
