@@ -509,6 +509,7 @@ export default function Dashboard() {
         onSubmit={handleEditChild}
         isPending={updateChild.isPending}
         mode="edit"
+        initialStep={editChildStep}
         initialData={editingChild ? {
           name: editingChild.name,
           age: editingChild.age,
