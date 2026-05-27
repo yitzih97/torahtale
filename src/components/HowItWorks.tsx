@@ -3,7 +3,7 @@ import { UserRound, Wand2, Truck } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-import step1Img from "@/assets/steps/step1-tell-us.jpg";
+import step1Img from "@/assets/steps/step1-tell-us.png";
 import step2Img from "@/assets/steps/step2-ai-creates.jpg";
 import step3Img from "@/assets/steps/step3-delivered.jpg";
 
