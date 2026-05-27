@@ -13,7 +13,7 @@ import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditD
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus,
-  Truck, Package, Palette, Eye, Trash2, BookMarked, Pencil,
+  Truck, Package, Palette, Eye, Trash2, BookMarked, Pencil, Camera,
   Pause, Play, X, Settings, CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,6 +49,7 @@ export default function Dashboard() {
   const { subscriptions, isLoading: subsLoading, cancelSubscription, updateSubscription } = useSubscriptions();
   const [addChildOpen, setAddChildOpen] = useState(false);
   const [editingChild, setEditingChild] = useState<ChildRecord | null>(null);
+  const [editChildStep, setEditChildStep] = useState<number>(1);
   const [editingSub, setEditingSub] = useState<typeof subscriptions[number] | null>(null);
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
   const [activeTab, setActiveTab] = useState("kids");
@@ -191,13 +192,23 @@ export default function Dashboard() {
                           className="bg-card rounded-2xl border border-border p-5 shadow-soft-sm hover:shadow-soft-md transition-shadow duration-300"
                         >
                           <div className="flex items-center gap-3 mb-4">
-                            {kid.photo_url ? (
-                              <img src={kid.photo_url} alt={kid.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
-                            ) : (
-                              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-lg flex-shrink-0 ${colors[i % colors.length]}`}>
-                                {initials}
-                              </div>
-                            )}
+                            <button
+                              type="button"
+                              onClick={() => { setEditChildStep(5); setEditingChild(kid); }}
+                              className="relative group flex-shrink-0"
+                              aria-label="Edit photo"
+                            >
+                              {kid.photo_url ? (
+                                <img src={kid.photo_url} alt={kid.name} className="w-12 h-12 rounded-full object-cover" />
+                              ) : (
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-lg ${colors[i % colors.length]}`}>
+                                  {initials}
+                                </div>
+                              )}
+                              <span className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Camera className="w-4 h-4 text-white" />
+                              </span>
+                            </button>
                             <div className="flex-1">
                               <h3 className="font-display text-lg font-semibold text-primary">{kid.name}</h3>
                               <p className="text-xs text-muted-foreground">
@@ -206,8 +217,18 @@ export default function Dashboard() {
                             </div>
                             <div className="flex gap-1">
                               <button
-                                onClick={() => setEditingChild(kid)}
+                                onClick={() => { setEditChildStep(5); setEditingChild(kid); }}
                                 className="p-1.5 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
+                                aria-label="Edit photo"
+                                title="Edit photo"
+                              >
+                                <Camera className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => { setEditChildStep(1); setEditingChild(kid); }}
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
+                                aria-label="Edit child"
+                                title="Edit details"
                               >
                                 <Pencil className="w-4 h-4" />
                               </button>
@@ -228,9 +249,12 @@ export default function Dashboard() {
                               <span>{t.dash.preferred}: {kid.art_style}</span>
                             </div>
                           )}
-                          <div className="grid grid-cols-2 gap-2 mt-4">
-                            <Button variant="outline" size="sm" className="text-xs" onClick={() => setEditingChild(kid)}>
+                          <div className="grid grid-cols-3 gap-2 mt-4">
+                            <Button variant="outline" size="sm" className="text-xs" onClick={() => { setEditChildStep(1); setEditingChild(kid); }}>
                               <Pencil className="w-3.5 h-3.5" /> Edit
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-xs" onClick={() => { setEditChildStep(5); setEditingChild(kid); }}>
+                              <Camera className="w-3.5 h-3.5" /> Photo
                             </Button>
                             <Button variant="gold" size="sm" className="text-xs" onClick={() => navigate("/?start=1")}>
                               <BookOpen className="w-3.5 h-3.5" /> {t.dash.createNewBook}
@@ -485,6 +509,7 @@ export default function Dashboard() {
         onSubmit={handleEditChild}
         isPending={updateChild.isPending}
         mode="edit"
+        initialStep={editChildStep}
         initialData={editingChild ? {
           name: editingChild.name,
           age: editingChild.age,

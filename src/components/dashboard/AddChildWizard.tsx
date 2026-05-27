@@ -114,11 +114,12 @@ interface Props {
     description: string | null;
   };
   mode?: "add" | "edit";
+  initialStep?: number;
 }
 
-export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData, mode = "add" }: Props) {
+export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData, mode = "add", initialStep = 1 }: Props) {
   const { user } = useAuth();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(initialStep);
   const [dir, setDir] = useState(1);
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
@@ -130,15 +131,20 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (open && initialData) {
-      setName(initialData.name || "");
-      setGender(initialData.gender || "");
-      setAge(initialData.age ? String(initialData.age) : "");
-      setArtStyle(initialData.art_style || "");
-      setDescription(initialData.description || "");
-      setPhotoPreview(initialData.photo_url || null);
+    if (open) {
+      setStep(initialStep);
+      setDir(1);
+      if (initialData) {
+        setName(initialData.name || "");
+        setGender(initialData.gender || "");
+        setAge(initialData.age ? String(initialData.age) : "");
+        setArtStyle(initialData.art_style || "");
+        setDescription(initialData.description || "");
+        setPhotoPreview(initialData.photo_url || null);
+        setPhotoFile(null);
+      }
     }
-  }, [open, initialData]);
+  }, [open, initialData, initialStep]);
 
   const reset = useCallback(() => {
     setStep(1);
@@ -194,6 +200,24 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
       const reader = new FileReader();
       reader.onloadend = () => setCropSrc({ src: reader.result as string, fileName: file.name });
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRecropExisting = async () => {
+    if (!photoPreview) return;
+    try {
+      // Fetch and convert to data URL to avoid canvas CORS tainting
+      const res = await fetch(photoPreview, { mode: "cors" });
+      const blob = await res.blob();
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onloadend = () => resolve(r.result as string);
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      });
+      setCropSrc({ src: dataUrl, fileName: "photo.jpg" });
+    } catch (err) {
+      console.error("Failed to load photo for recrop:", err);
     }
   };
 
@@ -444,14 +468,35 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                             <p className="text-xs text-muted-foreground mt-1">Best results with clear face photos</p>
                           </div>
                           {photoPreview ? (
-                            <div className="flex items-center gap-3 w-full">
-                              <img src={photoPreview} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
-                              <button
-                                onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
-                                className="text-xs text-destructive hover:underline font-medium"
-                              >
-                                Remove
-                              </button>
+                            <div className="flex flex-col items-center gap-3 w-full">
+                              <img src={photoPreview} alt="Preview" className="w-24 h-24 rounded-2xl object-cover ring-2 ring-accent/20" />
+                              <div className="flex flex-wrap items-center justify-center gap-2 w-full">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="gold-outline"
+                                  onClick={handleRecropExisting}
+                                  className="text-xs h-8"
+                                >
+                                  Recrop
+                                </Button>
+                                <label className="inline-flex items-center justify-center text-xs h-8 px-4 rounded-lg border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer font-medium">
+                                  Replace
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoSelect}
+                                    className="hidden"
+                                  />
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                                  className="text-xs text-destructive hover:underline font-medium px-2"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                           ) : (
                             <input
