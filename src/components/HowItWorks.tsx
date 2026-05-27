@@ -4,7 +4,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import step1Img from "@/assets/steps/step1-tell-us.png";
-import step2Img from "@/assets/steps/step2-ai-creates.jpg";
+import step2Img from "@/assets/steps/step2-ai-creates.png";
 import step3Img from "@/assets/steps/step3-delivered.png";
 
 const icons = [UserRound, Wand2, Truck];
