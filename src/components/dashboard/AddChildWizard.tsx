@@ -468,14 +468,35 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                             <p className="text-xs text-muted-foreground mt-1">Best results with clear face photos</p>
                           </div>
                           {photoPreview ? (
-                            <div className="flex items-center gap-3 w-full">
-                              <img src={photoPreview} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
-                              <button
-                                onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
-                                className="text-xs text-destructive hover:underline font-medium"
-                              >
-                                Remove
-                              </button>
+                            <div className="flex flex-col items-center gap-3 w-full">
+                              <img src={photoPreview} alt="Preview" className="w-24 h-24 rounded-2xl object-cover ring-2 ring-accent/20" />
+                              <div className="flex flex-wrap items-center justify-center gap-2 w-full">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="gold-outline"
+                                  onClick={handleRecropExisting}
+                                  className="text-xs h-8"
+                                >
+                                  Recrop
+                                </Button>
+                                <label className="inline-flex items-center justify-center text-xs h-8 px-4 rounded-lg border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer font-medium">
+                                  Replace
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoSelect}
+                                    className="hidden"
+                                  />
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                                  className="text-xs text-destructive hover:underline font-medium px-2"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                           ) : (
                             <input
