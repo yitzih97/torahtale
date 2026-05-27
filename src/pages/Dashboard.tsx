@@ -217,8 +217,18 @@ export default function Dashboard() {
                             </div>
                             <div className="flex gap-1">
                               <button
-                                onClick={() => setEditingChild(kid)}
+                                onClick={() => { setEditChildStep(5); setEditingChild(kid); }}
                                 className="p-1.5 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
+                                aria-label="Edit photo"
+                                title="Edit photo"
+                              >
+                                <Camera className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => { setEditChildStep(1); setEditingChild(kid); }}
+                                className="p-1.5 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
+                                aria-label="Edit child"
+                                title="Edit details"
                               >
                                 <Pencil className="w-4 h-4" />
                               </button>
@@ -239,9 +249,12 @@ export default function Dashboard() {
                               <span>{t.dash.preferred}: {kid.art_style}</span>
                             </div>
                           )}
-                          <div className="grid grid-cols-2 gap-2 mt-4">
-                            <Button variant="outline" size="sm" className="text-xs" onClick={() => setEditingChild(kid)}>
+                          <div className="grid grid-cols-3 gap-2 mt-4">
+                            <Button variant="outline" size="sm" className="text-xs" onClick={() => { setEditChildStep(1); setEditingChild(kid); }}>
                               <Pencil className="w-3.5 h-3.5" /> Edit
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-xs" onClick={() => { setEditChildStep(5); setEditingChild(kid); }}>
+                              <Camera className="w-3.5 h-3.5" /> Photo
                             </Button>
                             <Button variant="gold" size="sm" className="text-xs" onClick={() => navigate("/?start=1")}>
                               <BookOpen className="w-3.5 h-3.5" /> {t.dash.createNewBook}
