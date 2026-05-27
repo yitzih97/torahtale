@@ -114,6 +114,7 @@ interface Props {
     description: string | null;
   };
   mode?: "add" | "edit";
+  initialStep?: number;
 }
 
 export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData, mode = "add" }: Props) {
