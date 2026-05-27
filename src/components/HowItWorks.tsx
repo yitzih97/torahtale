@@ -5,7 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 import step1Img from "@/assets/steps/step1-tell-us.png";
 import step2Img from "@/assets/steps/step2-ai-creates.jpg";
-import step3Img from "@/assets/steps/step3-delivered.jpg";
+import step3Img from "@/assets/steps/step3-delivered.png";
 
 const icons = [UserRound, Wand2, Truck];
 const images = [step1Img, step2Img, step3Img];
