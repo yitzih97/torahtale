@@ -1,7 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { CreationWizard } from "@/components/CreationWizard";
 
 const Create = () => {
-  return <CreationWizard />;
+  const navigate = useNavigate();
+  return <CreationWizard onClose={() => navigate("/")} />;
 };
 
 export default Create;
