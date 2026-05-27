@@ -117,9 +117,9 @@ interface Props {
   initialStep?: number;
 }
 
-export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData, mode = "add" }: Props) {
+export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData, mode = "add", initialStep = 1 }: Props) {
   const { user } = useAuth();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(initialStep);
   const [dir, setDir] = useState(1);
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
@@ -131,15 +131,20 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (open && initialData) {
-      setName(initialData.name || "");
-      setGender(initialData.gender || "");
-      setAge(initialData.age ? String(initialData.age) : "");
-      setArtStyle(initialData.art_style || "");
-      setDescription(initialData.description || "");
-      setPhotoPreview(initialData.photo_url || null);
+    if (open) {
+      setStep(initialStep);
+      setDir(1);
+      if (initialData) {
+        setName(initialData.name || "");
+        setGender(initialData.gender || "");
+        setAge(initialData.age ? String(initialData.age) : "");
+        setArtStyle(initialData.art_style || "");
+        setDescription(initialData.description || "");
+        setPhotoPreview(initialData.photo_url || null);
+        setPhotoFile(null);
+      }
     }
-  }, [open, initialData]);
+  }, [open, initialData, initialStep]);
 
   const reset = useCallback(() => {
     setStep(1);
