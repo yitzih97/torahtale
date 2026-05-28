@@ -58,6 +58,8 @@ export default function Dashboard() {
   const [editChildStep, setEditChildStep] = useState<number>(1);
   const [editingSub, setEditingSub] = useState<typeof subscriptions[number] | null>(null);
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
+  const [openBook, setOpenBook] = useState<BookRecord | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("kids");
 
   useEffect(() => {
