@@ -47,7 +47,22 @@ export default function Dashboard() {
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
   const [openBook, setOpenBook] = useState<BookRecord | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [reviewingBook, setReviewingBook] = useState<BookRecord | null>(null);
   const [activeTab, setActiveTab] = useState("kids");
+
+  // Track which books the current user has already reviewed
+  const { data: reviewedBookIds } = useQuery({
+    queryKey: ["my-reviewed-books", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("book_reviews")
+        .select("book_id")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return new Set((data || []).map((r) => r.book_id as string));
+    },
+  });
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
