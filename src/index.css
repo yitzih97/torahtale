@@ -26,8 +26,8 @@
     --muted: 220 14% 94%;
     --muted-foreground: 220 8% 46%;
 
-    --accent: 220 12% 60%;             /* polished silver */
-    --accent-foreground: 220 18% 16%;
+    --accent: 42 88% 55%;              /* warm champagne gold — primary accent */
+    --accent-foreground: 222 30% 12%;
 
     --destructive: 0 65% 48%;
     --destructive-foreground: 220 20% 98%;
@@ -118,8 +118,8 @@
     --muted: 220 12% 20%;
     --muted-foreground: 220 10% 65%;
 
-    --accent: 220 14% 60%;
-    --accent-foreground: 220 14% 14%;
+    --accent: 42 88% 62%;
+    --accent-foreground: 222 30% 12%;
 
     --destructive: 0 65% 48%;
     --destructive-foreground: 220 16% 92%;
