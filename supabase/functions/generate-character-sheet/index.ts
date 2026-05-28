@@ -41,7 +41,6 @@ serve(async (req) => {
     };
     const style = styleMap[artStyle] || styleMap.cartoon;
 
-    const ageNum = parseInt(age, 10);
     const isToddlerBoy = gender === "boy" && !isNaN(ageNum) && ageNum <= 2;
     const genderDetails = gender === "boy"
       ? isToddlerBoy
