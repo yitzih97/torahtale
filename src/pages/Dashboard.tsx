@@ -6,7 +6,6 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AddChildWizard, type AddChildResult } from "@/components/dashboard/AddChildWizard";
-import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { DashboardSettings } from "@/components/dashboard/DashboardSettings";
 import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditDialog";
@@ -18,8 +17,7 @@ import { generateBookZip } from "@/lib/generateBookZip";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus,
-  Truck, Package, Eye, BookMarked,
-  Pause, Play, X, Settings, CreditCard, Pencil,
+  Pause, Play, X, Settings, CreditCard, Pencil, BookMarked,
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,14 +29,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 const ease = [0.22, 1, 0.36, 1];
-
-const statusStyle = (s: string) => {
-  if (s === "delivered") return "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950";
-  if (s === "printing" || s === "ordered") return "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950";
-  return "text-accent bg-accent/10";
-};
-
-const statusIcon = (s: string) => (s === "delivered" ? Truck : Package);
 
 const subStatusStyle = (s: string) => {
   if (s === "active") return "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950";
