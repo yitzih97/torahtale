@@ -424,6 +424,13 @@ export const yi: typeof en = {
     expressTime: "2-3 ימי עסקים",
     free: "חינם",
     expressCost: "+₪36.99",
+    subscriptionShipNote: "באַשטעלונגען נאָך דינסטיק וועלן זיין געשיקט פֿאַר דער קומענדיקער וואָך'ס פּרשה.",
+    paymentDetails: "באַצאָלונג דעטאַלן",
+    cardNumber: "קאַרטל נומער",
+    expiration: "גיכקייט (חודש/יאָר)",
+    cvc: "CVC",
+    nameOnCard: "נאָמען אויפן קאַרטל",
+    cardNamePlaceholder: "פֿולער נאָמען",
   },
 
   // Checkout
