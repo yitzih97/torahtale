@@ -419,6 +419,13 @@ export const en = {
     expressTime: "2–3 business days",
     free: "Free",
     expressCost: "+$9.99",
+    subscriptionShipNote: "Orders after Tuesday ship for the following week's Parsha.",
+    paymentDetails: "Payment Details",
+    cardNumber: "Card Number",
+    expiration: "Expiration (MM/YY)",
+    cvc: "CVC",
+    nameOnCard: "Name on Card",
+    cardNamePlaceholder: "Full name",
   },
 
   // Checkout
