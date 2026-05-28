@@ -317,8 +317,9 @@ export default function Dashboard() {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, delay: i * 0.07, ease }}
-                        className="bg-card rounded-2xl border border-border p-5 shadow-soft-sm"
+                        className="wizard-glass relative rounded-3xl overflow-hidden bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/70 ring-1 ring-black/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_20px_40px_-20px_rgba(15,23,42,0.18)] p-5"
                       >
+                        <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-70 bg-gradient-to-br from-violet-200/60 to-fuchsia-200/40" />
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
