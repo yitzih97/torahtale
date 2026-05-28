@@ -9,7 +9,9 @@ import {
   Settings, Image as ImageIcon, Brain, DollarSign,
   Save, Loader2, RefreshCw, Check, AlertTriangle, Globe,
   Upload, Palette, Printer, TestTube2, BookOpen, Copy, Search, Sparkles,
+  Wand2,
 } from "lucide-react";
+import { WizardStepsTab } from "./WizardStepsTab";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useSiteAssets } from "@/hooks/useSiteAssets";
 import { supabase } from "@/integrations/supabase/client";
@@ -712,11 +714,12 @@ export function AdminCMS() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="prompts" className="w-full">
-        <TabsList className="w-full grid grid-cols-9 mb-4 bg-secondary rounded-xl h-10">
+        <TabsList className="w-full grid grid-cols-10 mb-4 bg-secondary rounded-xl h-10">
           {[
             { val: "prompts", icon: Brain, label: "Prompts" },
             { val: "templates", icon: BookOpen, label: "Templates" },
             { val: "content", icon: Globe, label: "Content" },
+            { val: "wizard", icon: Wand2, label: "Wizard" },
             { val: "images", icon: ImageIcon, label: "Images" },
             { val: "branding", icon: Palette, label: "Branding" },
             { val: "ai", icon: Settings, label: "AI" },
