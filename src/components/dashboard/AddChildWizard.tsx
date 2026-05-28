@@ -584,7 +584,9 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
             )}
           </div>
         </div>
+        </div>
       </DialogContent>
+
       <ImageCropDialog
         open={!!cropSrc}
         imageSrc={cropSrc?.src ?? null}
