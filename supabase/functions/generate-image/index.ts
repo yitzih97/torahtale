@@ -158,7 +158,7 @@ serve(async (req) => {
           const imgResp = await fetch(characterSheet);
           if (imgResp.ok) {
             const buf = await imgResp.arrayBuffer();
-            const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+            const b64 = bufferToBase64(buf);
             const ct = imgResp.headers.get("content-type") || "image/jpeg";
             parts.push({ inlineData: { mimeType: ct, data: b64 } });
           }
@@ -179,7 +179,7 @@ serve(async (req) => {
           const imgResp = await fetch(referenceImage);
           if (imgResp.ok) {
             const buf = await imgResp.arrayBuffer();
-            const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+            const b64 = bufferToBase64(buf);
             const ct = imgResp.headers.get("content-type") || "image/jpeg";
             parts.push({ inlineData: { mimeType: ct, data: b64 } });
           }
@@ -194,7 +194,7 @@ serve(async (req) => {
         const sceneResp = await fetch(sceneReferenceImageUrl);
         if (sceneResp.ok) {
           const buf = await sceneResp.arrayBuffer();
-          const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+          const b64 = bufferToBase64(buf);
           const ct = sceneResp.headers.get("content-type") || "image/jpeg";
           parts.push({ inlineData: { mimeType: ct, data: b64 } });
         }

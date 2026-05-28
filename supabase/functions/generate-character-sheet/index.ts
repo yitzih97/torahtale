@@ -76,7 +76,7 @@ ${referenceImage ? "REFERENCE PHOTO PROVIDED: You MUST match the child's facial 
           const imgResp = await fetch(referenceImage);
           if (imgResp.ok) {
             const buf = await imgResp.arrayBuffer();
-            const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+            const b64 = bufferToBase64(buf);
             const ct = imgResp.headers.get("content-type") || "image/jpeg";
             parts.push({ inlineData: { mimeType: ct, data: b64 } });
           }
