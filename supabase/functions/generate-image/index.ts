@@ -163,7 +163,7 @@ serve(async (req) => {
         }
       } else {
         try {
-          const imgResp = await fetch(characterSheet);
+          const imgResp = await fetchWithTimeout(characterSheet, undefined, 10_000);
           if (imgResp.ok) {
             const buf = await imgResp.arrayBuffer();
             const b64 = bufferToBase64(buf);
@@ -184,7 +184,7 @@ serve(async (req) => {
         }
       } else {
         try {
-          const imgResp = await fetch(referenceImage);
+          const imgResp = await fetchWithTimeout(referenceImage, undefined, 10_000);
           if (imgResp.ok) {
             const buf = await imgResp.arrayBuffer();
             const b64 = bufferToBase64(buf);
@@ -199,7 +199,7 @@ serve(async (req) => {
     if (sceneReferenceImageUrl) {
       imagePrompt += ` SCENE COMPOSITION GUIDE: The attached SCENE REFERENCE IMAGE shows the exact scene layout, background elements, and overall composition you MUST reproduce. Match the same environment, camera angle, lighting, and background details. However, adapt the child character to match the specified name, age, gender, and character sheet. The scene should look nearly identical to the reference — only the child character changes.`;
       try {
-        const sceneResp = await fetch(sceneReferenceImageUrl);
+        const sceneResp = await fetchWithTimeout(sceneReferenceImageUrl, undefined, 10_000);
         if (sceneResp.ok) {
           const buf = await sceneResp.arrayBuffer();
           const b64 = bufferToBase64(buf);
@@ -356,8 +356,9 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("generate-image error:", e);
+    const isTimeout = e instanceof DOMException && e.name === "AbortError";
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
+      status: isTimeout ? 504 : 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
