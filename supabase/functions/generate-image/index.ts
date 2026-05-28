@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const PROVIDER_TIMEOUT_MS = 90_000;
+const PROVIDER_TIMEOUT_MS = 40_000;
 
 // Safely convert an ArrayBuffer to base64 without blowing the stack on large images
 function bufferToBase64(buf: ArrayBuffer): string {
@@ -275,15 +275,13 @@ serve(async (req) => {
     // ============= END OPENAI BRANCH =============
 
     const imageModels = shouldForceGemini
-      ? ["gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview", "gemini-2.5-flash-image"]
+      ? ["gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
       : customImageModel
       ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
       : [
           "gemini-3.1-flash-image-preview",
           "gemini-2.5-flash-image-preview",
           "gemini-2.5-flash-image",
-          "gemini-2.0-flash-exp-image-generation",
-          "gemini-2.0-flash-preview-image-generation",
         ];
 
     let response: Response | null = null;
