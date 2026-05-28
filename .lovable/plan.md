@@ -1,40 +1,54 @@
-## Goal
 
-Add a "Master Book Rules" textarea at the top of the **Templates** tab in Admin → CMS. Whatever the admin writes here is injected into **every** story-page and image-prompt generation, on top of the per-page templates and the master system prompt. It acts as universal guidance for the whole book (e.g. "always end pages on a question", "never depict women's hair", "keep sentences under 12 words").
+# Admin → Users: Enhanced List & Detail
 
-## UI
+Scope: frontend-only changes inside `src/pages/Admin.tsx` (Users tab + selected-user view). No DB or backend changes.
 
-In `src/components/admin/AdminCMS.tsx` → `BookTemplatesTab`, render a new panel **above** the portion selector:
+## 1. Users list — controls bar
 
-- Header: "Master Book Rules" with a `ScrollText` icon
-- One-line helper: "Applied to every page of every book."
-- `Textarea` (8 rows), placeholder showing example rules
-- Save button with the same `savingKey` spinner pattern other fields use
-- Stored under `category: "book-templates"`, `key: "master-rules"` (no portion prefix → global)
+Add a sticky toolbar above the list with:
 
-Loads on mount via a small `useEffect` query — `book-templates` rows where `key = 'master-rules'`.
+- **Search** input — matches name, email, or user id (debounced, client-side).
+- **Sort** dropdown — Newest, Oldest, Name A–Z, Most books, Most subs, Most spend.
+- **Filter** chips:
+  - Has active subscription / Canceled / None
+  - Has orders / No orders
+  - Joined: 7d / 30d / 90d / All
+- **View toggle** — Table (current) ↔ Card grid (avatar tiles, 3-up).
+- **Bulk select** — checkbox column + bulk bar: "Export CSV", "Copy emails", "Mark VIP" (local tag stored in `site_settings` key `admin_user_tags`).
+- **Per-page** selector (25 / 50 / 100) + pagination.
+- **Refresh** button (invalidates `admin-profiles`, `admin-books`, `admin-children`, `admin-subscriptions`).
 
-## Wiring into generation
+Extra columns in table view: avatar, # children, last order date, lifetime book count, active sub badge, total spend (sum of `books.shipping_data.total` when present), row actions menu (View · Email · Copy ID · Tag VIP).
 
-Both edge functions already fetch `category=in.(prompts,ai,book-templates)`, so no extra fetch is needed.
+## 2. User detail — redesigned card
 
-**`supabase/functions/generate-story/index.ts`**
-- After loading settings, pull `masterRules = settings.find(s => s.category==='book-templates' && s.key==='master-rules')?.value`
-- When building `templateGuidance`, prepend a `MASTER BOOK RULES (apply to every page):\n${masterRules}` block if non-empty. Substitute the same `{childName}`, `{age}`, `{gender}`, `{artStyle}`, `{language}`, `{torahPortion}` variables.
+Replace the single long card with a header + tabbed sections:
 
-**`supabase/functions/generate-image/index.ts`**
-- Same lookup. Append the rules (with variable substitution) to every page's final image prompt so the constraints flow into the illustration model too.
+**Header block**
+- Larger avatar (initials or first child photo fallback), name, email (click-to-copy), join date, user id (copy), VIP tag toggle.
+- Quick stats row: Books, Subscriptions, Children, Lifetime spend, Last active.
+- Action buttons: Email user (mailto), Copy ID, Open Shopify customer (link via email search), Delete account (confirm dialog → calls existing delete flow; if not present, hide).
 
-## Skip-list (intentionally out of scope)
+**Tabs inside the detail view**
+1. **Overview** — stats, recent activity timeline (orders + sub events, newest 10).
+2. **Children** — current grid, plus per-kid: edit name/age/gender inline (uses existing children update), delete child.
+3. **Books / Orders** — current list, enriched with: order number, format (soft/hard/board), quantity, total, status pill with inline status changer (reuse `updateBookStatus`), actions (View, Download ZIP, Resend to Printify, Cancel).
+4. **Subscriptions** — list with inline status control (Active / Paused / Canceled via `updateSubscriptionStatus`), next delivery date, price, frequency, child.
+5. **Payments** — derived from `books.shipping_data` + `order_number`: table of payments (date, order #, amount, method=Shopify, status). Note: real charge data lives in Shopify; this view summarizes what we store. A "View in Shopify" deep link is provided when `order_number` exists.
+6. **Addresses** — current shipping-address dedupe view, plus default-address marker.
+7. **Devices / Sessions** — not tracked in DB today. Show an empty-state card explaining this requires a future `auth_sessions` log; hide tab if we decide to omit for now.
 
-- Per-portion master overrides (single global is enough; can add later under `${portion}:master-rules` using the same code path)
-- Bilingual EN/HE split (one rule body, same effect both languages)
-- Versioning / history
+## 3. Small UX polish
 
-## Files touched
+- Sticky tab header inside detail.
+- Empty states with subtle icons + one-line guidance.
+- All controls gold-focus-ring, glass surfaces, matching the existing premium Apple/liquid-silver theme.
+- Mobile: toolbar collapses into a dropdown; card grid stacks 1-col.
 
-- `src/components/admin/AdminCMS.tsx` — new panel in `BookTemplatesTab`
-- `supabase/functions/generate-story/index.ts` — read + inject master rules
-- `supabase/functions/generate-image/index.ts` — read + inject master rules
+## Files to edit
+- `src/pages/Admin.tsx` — Users tab list + selected-user view (the only file touched).
 
-No DB schema changes — `site_settings` already exists and supports the new key.
+## Open questions before build
+1. **Devices tab** — include as empty-state placeholder, or drop entirely? (no session tracking exists)
+2. **Delete account** — should the admin be able to hard-delete a user (cascade their books/children/subs)? If yes, I'll add an edge function; if no, I'll omit.
+3. **VIP tagging** — OK to store in `site_settings` as a JSON map, or do you want a dedicated `user_tags` table? (table is cleaner long-term)
