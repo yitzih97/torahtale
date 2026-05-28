@@ -489,6 +489,17 @@ export default function Dashboard() {
         }}
         isSaving={updateSubscription.isPending}
       />
+
+      {/* Book Detail Dialog */}
+      <BookDetailDialog
+        book={openBook}
+        open={!!openBook}
+        onClose={() => setOpenBook(null)}
+        onView={() => { if (openBook) { setViewingBook(openBook); setOpenBook(null); } }}
+        onDownload={() => openBook && handleDownloadBook(openBook)}
+        onReorder={() => navigate("/?start=1")}
+        downloading={!!openBook && downloadingId === openBook.id}
+      />
     </div>
   );
 }
