@@ -213,7 +213,10 @@ serve(async (req) => {
 
     // ============= OPENAI BRANCH (gpt-image-* / dall-e-*) =============
     // Default to gpt-image-2 (newest) when admin hasn't picked a model.
-    const effectiveImageModel = customImageModel || "gpt-image-2";
+    const requestedImageModel = customImageModel || "gpt-image-2";
+    const hasRealReferencePhoto = Boolean(referenceImage);
+    const shouldForceGemini = hasRealReferencePhoto;
+    const effectiveImageModel = shouldForceGemini ? "gemini-3.1-flash-image-preview" : requestedImageModel;
     const isOpenAI = /^(gpt-image|dall-e)/i.test(effectiveImageModel);
     if (isOpenAI) {
       const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
@@ -238,13 +241,13 @@ serve(async (req) => {
         fd.append("size", size);
         fd.append("n", "1");
         for (const ib of imageBlobs) fd.append("image[]", ib.blob, ib.name);
-        openaiResp = await fetch("https://api.openai.com/v1/images/edits", {
+        openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/edits", {
           method: "POST",
           headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
           body: fd,
         });
       } else {
-        openaiResp = await fetch("https://api.openai.com/v1/images/generations", {
+        openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/generations", {
           method: "POST",
           headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
           body: JSON.stringify({ model: effectiveImageModel, prompt: imagePrompt, size, n: 1 }),
@@ -271,7 +274,9 @@ serve(async (req) => {
     }
     // ============= END OPENAI BRANCH =============
 
-    const imageModels = customImageModel
+    const imageModels = shouldForceGemini
+      ? ["gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview", "gemini-2.5-flash-image"]
+      : customImageModel
       ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
       : [
           "gemini-3.1-flash-image-preview",
@@ -287,7 +292,7 @@ serve(async (req) => {
     let lastErrorBody = "";
 
     for (const model of imageModels) {
-      const attempt = await fetch(
+      const attempt = await fetchWithTimeout(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
         {
           method: "POST",
@@ -296,7 +301,8 @@ serve(async (req) => {
             contents: [{ role: "user", parts }],
             generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
           }),
-        }
+        },
+        PROVIDER_TIMEOUT_MS,
       );
 
       if (attempt.ok) {
