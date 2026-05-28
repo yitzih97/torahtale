@@ -34,7 +34,7 @@
 
     --border: 220 14% 86%;
     --input: 220 14% 86%;
-    --ring: 220 14% 50%;
+    --ring: 42 78% 55%;                /* gold focus ring for vibrance */
 
     --radius: 0.875rem;
 
@@ -45,7 +45,7 @@
     --sidebar-accent: 220 14% 92%;
     --sidebar-accent-foreground: 220 14% 22%;
     --sidebar-border: 220 14% 86%;
-    --sidebar-ring: 220 14% 50%;
+    --sidebar-ring: 42 78% 55%;
 
     /* ─── Metallic tokens (used by gradients + glows) ─── */
     --silver: 220 14% 78%;
@@ -55,9 +55,13 @@
     --graphite-light: 220 10% 38%;
     --ink: 222 18% 18%;
 
-    /* Legacy aliases — keep components working, retuned to metal */
-    --gold: 220 12% 60%;
-    --gold-light: 220 16% 78%;
+    /* ─── New: warm champagne gold for selection + vibrance ─── */
+    --gold: 42 78% 55%;                /* warm champagne gold */
+    --gold-light: 45 90% 72%;
+    --gold-dark: 38 70% 42%;
+    --gold-foreground: 220 30% 12%;
+
+    /* Legacy aliases */
     --royal: 222 18% 28%;
     --royal-light: 220 12% 46%;
     --midnight: 220 14% 22%;
@@ -66,6 +70,7 @@
     --parchment-dark: 220 14% 88%;
     --surface-alt: 220 16% 94%;
     --hero-bg: 220 18% 96%;
+
 
     /* Reusable metallic gradients */
     --metal-gradient: linear-gradient(
