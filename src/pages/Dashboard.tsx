@@ -13,6 +13,7 @@ import { KidCard } from "@/components/dashboard/KidCard";
 import { BookCard } from "@/components/dashboard/BookCard";
 import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
 import { BookTimeline } from "@/components/dashboard/BookTimeline";
+import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
