@@ -151,13 +151,14 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
 }
 
 function ActionTile({
-  Icon, label, onClick, primary, disabled,
+  Icon, label, onClick, primary, disabled, highlight,
 }: {
   Icon: typeof BookOpen;
   label: string;
   onClick: () => void | Promise<void>;
   primary?: boolean;
   disabled?: boolean;
+  highlight?: boolean;
 }) {
   return (
     <Button
@@ -172,10 +173,13 @@ function ActionTile({
         hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_8px_20px_-8px_rgba(15,23,42,0.18)]
         ${primary
           ? "bg-foreground text-background hover:bg-foreground hover:text-background border-transparent ring-0"
-          : "bg-white/55 text-foreground hover:bg-white/75"}`}
+          : highlight
+            ? "bg-amber-50/80 text-amber-800 hover:bg-amber-50 border-amber-200/60"
+            : "bg-white/55 text-foreground hover:bg-white/75"}`}
     >
-      <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.75} />
+      <Icon className={`w-4 h-4 flex-shrink-0 ${highlight ? "fill-amber-400 text-amber-500" : ""}`} strokeWidth={1.75} />
       <span className="truncate">{label}</span>
     </Button>
   );
 }
+
