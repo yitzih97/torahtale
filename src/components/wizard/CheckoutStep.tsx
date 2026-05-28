@@ -202,7 +202,7 @@ export const CheckoutStep = ({
           </div>
           {!isSubscription && volumeDiscount > 0 && (
             <div className="flex justify-between text-accent">
-              <span>− {Math.round(volumeDiscount * 100)}% volume discount</span>
+              <span>{t.checkout.volumeDiscount(Math.round(volumeDiscount * 100))}</span>
               <span className="font-medium">−{fmt(discountAmount)}</span>
             </div>
           )}
