@@ -31,6 +31,7 @@ serve(async (req) => {
     let customImageModel: string | null = null;
     let pageImageTemplate: string | null = null;
     let sceneReferenceImageUrl: string | null = null;
+    let masterBookRules: string | null = null;
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -41,6 +42,8 @@ serve(async (req) => {
         const settings = await settingsRes.json();
         customImageTemplate = settings.find((s: any) => s.category === "prompts" && s.key === "image-prompt-template")?.value || null;
         customImageModel = settings.find((s: any) => s.category === "ai" && s.key === "image-model")?.value || null;
+        masterBookRules = settings.find((s: any) => s.category === "book-templates" && s.key === "master-rules")?.value || null;
+
 
         // Look for page-specific image prompt template and reference image
         if (torahPortion) {
