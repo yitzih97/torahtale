@@ -10,12 +10,14 @@ import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { DashboardSettings } from "@/components/dashboard/DashboardSettings";
 import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditDialog";
+import { KidCard } from "@/components/dashboard/KidCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus,
-  Truck, Package, Palette, Eye, Trash2, BookMarked, Pencil, Camera,
-  Pause, Play, X, Settings, CreditCard,
+  Truck, Package, Eye, BookMarked,
+  Pause, Play, X, Settings, CreditCard, Pencil,
 } from "lucide-react";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBooks, type BookRecord } from "@/hooks/useBooks";
