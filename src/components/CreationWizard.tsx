@@ -855,7 +855,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               <GlassIconTile Icon={StepIcon} size="sm" />
             </motion.div>
 
-            </motion.div>
             {step !== 11 && (
               <div className="min-w-0">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">
