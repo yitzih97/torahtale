@@ -450,6 +450,8 @@ export const en = {
     freeShipping: "Free",
     freeShipNote: "🚚 Free shipping on all subscription deliveries · Cancel anytime",
     secureCheckout: "Secure checkout · 256-bit encryption · Your payment details are safe",
+    volumeDiscount: (pct: number) => `− ${pct}% volume discount`,
+    disclaimer: "Each book is created based on the description and photos uploaded by you. We do our best to bring your vision to life, but we are not responsible if the final result doesn't come out exactly the way you envisioned it.",
     subscribeOrder: (total: string) => `Subscribe & Place Order — $${total}`,
     placeOrder: (total: string) => `Place Order — $${total}`,
     redirectingToShopify: "Redirecting to Shopify checkout…",
