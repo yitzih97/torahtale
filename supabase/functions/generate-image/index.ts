@@ -119,6 +119,18 @@ serve(async (req) => {
       imagePrompt += ` The child character has these features: ${childDescription}.`;
     }
 
+    // Inject MASTER BOOK RULES (apply to every page of every book)
+    if (masterBookRules?.trim() && !prompt) {
+      const rules = masterBookRules
+        .replace(/\{childName\}/g, childName || "the child")
+        .replace(/\{torahPortion\}/g, torahPortion || "Torah")
+        .replace(/\{artStyle\}/g, artStyle || "cartoon")
+        .replace(/\{pageNumber\}/g, String(pageNumber || ""))
+        .replace(/\{pageType\}/g, pageType || "page");
+      imagePrompt += ` MASTER BOOK RULES (apply to every illustration without exception): ${rules}`;
+    }
+
+
     const parts: any[] = [];
 
     // Inject character sheet as primary reference for consistency
