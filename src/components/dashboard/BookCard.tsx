@@ -5,9 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import type { BookRecord } from "@/hooks/useBooks";
 
-import { Button } from "@/components/ui/button";
-import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
-import type { BookRecord } from "@/hooks/useBooks";
+
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
