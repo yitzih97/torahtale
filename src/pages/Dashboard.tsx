@@ -259,74 +259,37 @@ export default function Dashboard() {
               {/* TAB: Books */}
               <TabsContent value="books">
                 {booksLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-20 rounded-2xl" />
-                    ))}
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-3xl" />)}
                   </div>
                 ) : books.length === 0 ? (
-                  <div className="text-center py-16">
+                  <div className="wizard-glass rounded-3xl border border-white/70 ring-1 ring-black/5 bg-white/70 backdrop-blur-xl p-10 text-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_20px_40px_-20px_rgba(15,23,42,0.18)]">
                     <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-display text-lg font-semibold text-primary mb-2">{t.dash.noBooks}</h3>
                     <p className="text-muted-foreground text-sm mb-6">{t.dash.noBooksDesc}</p>
-                    <Button variant="gold" onClick={() => navigate("/")}>
-                      {t.dash.createSefer}
-                    </Button>
+                    <Button variant="gold" onClick={() => navigate("/")}>{t.dash.createSefer}</Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {books.map((book, i) => {
-                      const StatusIcon = statusIcon(book.status);
-                      return (
-                        <motion.div
+                  <>
+                    <BookTimeline books={books} subscriptions={subscriptions} weeksAhead={2} />
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {books.map((book, i) => (
+                        <BookCard
                           key={book.id}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.35, delay: i * 0.07, ease }}
-                          className="bg-card rounded-2xl border border-border p-4 flex items-center gap-4 shadow-soft-sm hover:shadow-soft-md transition-shadow duration-300"
-                        >
-                          {book.cover_image_url ? (
-                            <img src={book.cover_image_url} alt={book.torah_portion || ""} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
-                          ) : (
-                            <div className="w-16 h-16 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
-                              <BookOpen className="w-6 h-6 text-accent" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-display font-semibold text-primary text-sm truncate">
-                              {book.torah_portion || "Torah Tale"}
-                            </h4>
-                            <p className="text-xs text-muted-foreground">
-                              For {book.child_name || "Unknown"} · {format(new Date(book.created_at), "MMM d, yyyy")}
-                            </p>
-                          </div>
-                          {book.status === "generating" ? (
-                            <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                              <span className={`text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1.5 capitalize ${statusStyle(book.status)}`}>
-                                <StatusIcon className="w-3 h-3" />
-                                {book.status}
-                              </span>
-                              <CountdownTimer createdAt={book.created_at} />
-                            </div>
-                          ) : (
-                            <span className={`text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0 capitalize ${statusStyle(book.status)}`}>
-                              <StatusIcon className="w-3 h-3" />
-                              {book.status}
-                            </span>
-                          )}
-                          <div className="flex gap-1.5 flex-shrink-0">
-                            {book.pages_data && (
-                              <Button variant="ghost" size="sm" className="text-xs" onClick={() => setViewingBook(book)}>
-                                <Eye className="w-3.5 h-3.5" /> {t.dash.view}
-                              </Button>
-                            )}
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
+                          book={book}
+                          index={i}
+                          onOpen={() => setOpenBook(book)}
+                          onView={() => setViewingBook(book)}
+                          onDownload={() => handleDownloadBook(book)}
+                          onReorder={() => navigate("/?start=1")}
+                          downloading={downloadingId === book.id}
+                        />
+                      ))}
+                    </div>
+                  </>
                 )}
               </TabsContent>
+
 
               {/* TAB: Subscriptions */}
               <TabsContent value="subs">
