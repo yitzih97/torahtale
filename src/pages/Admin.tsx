@@ -354,193 +354,26 @@ export default function Admin() {
 
               {/* ═══ TAB: USERS ═══ */}
               <TabsContent value="users">
-                {selectedUser ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedUserId(null)} className="text-xs gap-1 mb-2">
-                      ← Back to all users
-                    </Button>
-                    <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center">
-                          <Users className="w-6 h-6 text-accent" />
-                        </div>
-                        <div>
-                          <h3 className="font-display text-xl font-bold text-primary">{selectedUser.full_name || "No Name"}</h3>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                            <Mail className="w-3.5 h-3.5" /> {selectedUser.email || "No email"}
-                          </p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                            <Clock className="w-3 h-3" /> Joined {format(new Date(selectedUser.created_at), "MMM d, yyyy")}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* User's children */}
-                      <div className="mb-6">
-                        <h4 className="font-display font-semibold text-sm text-primary mb-3 flex items-center gap-2">
-                          <Users className="w-4 h-4 text-accent" /> Children ({userChildren.length})
-                        </h4>
-                        {userChildren.length > 0 ? (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {userChildren.map((kid: any) => (
-                              <div key={kid.id} className="bg-muted/30 rounded-xl p-3 flex items-center gap-2">
-                                {kid.photo_url ? (
-                                  <img src={kid.photo_url} alt={kid.name} className="w-8 h-8 rounded-full object-cover" />
-                                ) : (
-                                  <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-xs font-bold text-accent">
-                                    {kid.name.slice(0, 2).toUpperCase()}
-                                  </div>
-                                )}
-                                <div>
-                                  <p className="text-xs font-semibold text-primary">{kid.name}</p>
-                                  <p className="text-[10px] text-muted-foreground">
-                                    {kid.age ? `${kid.age}yo` : ""}{kid.gender ? ` · ${kid.gender}` : ""}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : <p className="text-xs text-muted-foreground">No children added</p>}
-                      </div>
-
-                      {/* User's orders */}
-                      <div className="mb-6">
-                        <h4 className="font-display font-semibold text-sm text-primary mb-3 flex items-center gap-2">
-                          <BookOpen className="w-4 h-4 text-accent" /> Order History ({userBooks.length})
-                        </h4>
-                        {userBooks.length > 0 ? (
-                          <div className="space-y-2">
-                            {userBooks.map((book: any) => (
-                              <div key={book.id} className="bg-muted/30 rounded-xl p-3 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  {book.cover_image_url ? (
-                                    <img src={book.cover_image_url} className="w-10 h-10 rounded-lg object-cover" />
-                                  ) : (
-                                    <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                                      <BookOpen className="w-4 h-4 text-accent" />
-                                    </div>
-                                  )}
-                                  <div>
-                                    <p className="text-xs font-semibold text-primary">{book.torah_portion || "Torah Tale"}</p>
-                                    <p className="text-[10px] text-muted-foreground">
-                                      For {book.child_name || "—"} · {format(new Date(book.created_at), "MMM d, yyyy")}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize ${orderStatusColor(book.status)}`}>
-                                    {book.status}
-                                  </span>
-                                  {book.pages_data && (
-                                    <div className="flex gap-1">
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setGeneratingBook(book)}>
-                                        <Eye className="w-3 h-3" />
-                                      </Button>
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => handleDownloadZip(book)} title="Download images (ZIP)">
-                                        <Download className="w-3 h-3" />
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : <p className="text-xs text-muted-foreground">No orders yet</p>}
-                      </div>
-
-                      {/* User's subscriptions */}
-                      <div className="mb-6">
-                        <h4 className="font-display font-semibold text-sm text-primary mb-3 flex items-center gap-2">
-                          <CalendarHeart className="w-4 h-4 text-accent" /> Subscriptions ({userSubs.length})
-                        </h4>
-                        {userSubs.length > 0 ? (
-                          <div className="space-y-2">
-                            {userSubs.map((sub: any) => (
-                              <div key={sub.id} className="bg-muted/30 rounded-xl p-3 flex items-center justify-between">
-                                <div>
-                                  <p className="text-xs font-semibold text-primary">Parashah Club — {sub.child_name || "Child"}</p>
-                                  <p className="text-[10px] text-muted-foreground">${sub.price_per_week}/week · {sub.art_style}</p>
-                                </div>
-                                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize ${subStatusColor(sub.status)}`}>
-                                  {sub.status}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : <p className="text-xs text-muted-foreground">No subscriptions</p>}
-                      </div>
-
-                      {/* Shipping addresses from orders */}
-                      <div>
-                        <h4 className="font-display font-semibold text-sm text-primary mb-3 flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-accent" /> Shipping Addresses
-                        </h4>
-                        {(() => {
-                          const addresses = userBooks
-                            .filter((b: any) => b.shipping_data)
-                            .map((b: any) => b.shipping_data);
-                          const unique = addresses.filter((a: any, i: number, arr: any[]) =>
-                            i === arr.findIndex((x: any) => x.street === a.street && x.city === a.city)
-                          );
-                          return unique.length > 0 ? (
-                            <div className="space-y-2">
-                              {unique.map((addr: any, i: number) => (
-                                <div key={i} className="bg-muted/30 rounded-xl p-3">
-                                  <p className="text-xs font-semibold text-primary">{addr.fullName}</p>
-                                  <p className="text-[10px] text-muted-foreground">
-                                    {addr.street}{addr.apt ? `, ${addr.apt}` : ""}, {addr.city}, {addr.state} {addr.zip}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
-                          ) : <p className="text-xs text-muted-foreground">No shipping addresses</p>;
-                        })()}
-                      </div>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <>
-                    {profilesLoading ? (
-                      <div className="space-y-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-2xl" />)}</div>
-                    ) : profiles.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">No users yet.</div>
-                    ) : (
-                      <div className="bg-card rounded-2xl border border-border shadow-soft-sm overflow-hidden">
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                            <thead>
-                              <tr className="border-b border-border bg-secondary/50">
-                                {["Name", "Email", "Joined", "Books", "Subs", ""].map((h) => (
-                                  <th key={h} className="text-left p-3 font-mono text-[10px] tracking-widest uppercase text-muted-foreground">{h}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {profiles.map((profile: any) => {
-                                const uBooks = books.filter((b: any) => b.user_id === profile.id).length;
-                                const uSubs = subscriptions.filter((s: any) => s.user_id === profile.id).length;
-                                return (
-                                  <tr key={profile.id} className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors">
-                                    <td className="p-3 text-xs font-medium text-foreground">{profile.full_name || "—"}</td>
-                                    <td className="p-3 text-xs text-muted-foreground">{profile.email || "—"}</td>
-                                    <td className="p-3 text-xs text-muted-foreground">{format(new Date(profile.created_at), "MMM d, yyyy")}</td>
-                                    <td className="p-3 text-xs text-foreground font-semibold">{uBooks}</td>
-                                    <td className="p-3 text-xs text-foreground font-semibold">{uSubs}</td>
-                                    <td className="p-3">
-                                      <Button variant="ghost" size="sm" className="text-[11px] h-7" onClick={() => setSelectedUserId(profile.id)}>
-                                        <Eye className="w-3 h-3 mr-1" /> View
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
+                <AdminUsersTab
+                  profiles={profiles}
+                  books={books}
+                  children={children}
+                  subscriptions={subscriptions}
+                  profilesLoading={profilesLoading}
+                  selectedUserId={selectedUserId}
+                  setSelectedUserId={setSelectedUserId}
+                  setGeneratingBook={setGeneratingBook}
+                  handleDownloadZip={handleDownloadZip}
+                  updateBookStatus={updateBookStatus}
+                  updateSubscriptionStatus={updateSubscriptionStatus}
+                  refetchAll={() => {
+                    queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+                    queryClient.invalidateQueries({ queryKey: ["admin-books"] });
+                    queryClient.invalidateQueries({ queryKey: ["admin-children"] });
+                    queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
+                    toast.success("Refreshed");
+                  }}
+                />
               </TabsContent>
 
               {/* ═══ TAB: SUBSCRIPTIONS ═══ */}
