@@ -93,8 +93,20 @@ CRITICAL RULE: The MAJORITY of story pages (at least 70%) MUST depict the ACTUAL
       ? `Characters: ${childrenInfo}`
       : `Main character: ${childName}, ${age} years old, ${gender}`;
 
-    // Build per-page template guidance if admin has set templates
+    // Build master + per-page template guidance if admin has set them
     let templateGuidance = "";
+
+    if (masterBookRules?.trim()) {
+      const rules = masterBookRules
+        .replace(/\{childName\}/g, childName || "the child")
+        .replace(/\{age\}/g, age || "")
+        .replace(/\{gender\}/g, gender || "")
+        .replace(/\{artStyle\}/g, artStyle || "")
+        .replace(/\{language\}/g, language || "english")
+        .replace(/\{torahPortion\}/g, torahPortionLabel || torahPortion || "");
+      templateGuidance += `\n\nMASTER BOOK RULES — These rules apply to EVERY page of this book without exception:\n${rules}`;
+    }
+
     const hasTemplates = Object.keys(pageTemplates).some((k) => k.endsWith(":text") && pageTemplates[k]?.trim());
     if (hasTemplates) {
       const lines: string[] = [];
