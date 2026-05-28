@@ -424,6 +424,13 @@ export const he: typeof en = {
     expressTime: "2-3 ימי עסקים",
     free: "חינם",
     expressCost: "+₪36.99",
+    subscriptionShipNote: "הזמנות לאחר יום שלישי יישלחו עבור פרשת השבוע הבא.",
+    paymentDetails: "פרטי תשלום",
+    cardNumber: "מספר כרטיס",
+    expiration: "תוקף (חודש/שנה)",
+    cvc: "CVC",
+    nameOnCard: "שם בעל הכרטיס",
+    cardNamePlaceholder: "שם מלא",
   },
 
   // Checkout
