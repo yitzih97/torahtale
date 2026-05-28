@@ -34,7 +34,7 @@
 
     --border: 220 14% 86%;
     --input: 220 14% 86%;
-    --ring: 220 14% 50%;
+    --ring: 42 78% 55%;                /* gold focus ring for vibrance */
 
     --radius: 0.875rem;
 
@@ -45,7 +45,7 @@
     --sidebar-accent: 220 14% 92%;
     --sidebar-accent-foreground: 220 14% 22%;
     --sidebar-border: 220 14% 86%;
-    --sidebar-ring: 220 14% 50%;
+    --sidebar-ring: 42 78% 55%;
 
     /* ─── Metallic tokens (used by gradients + glows) ─── */
     --silver: 220 14% 78%;
@@ -55,9 +55,13 @@
     --graphite-light: 220 10% 38%;
     --ink: 222 18% 18%;
 
-    /* Legacy aliases — keep components working, retuned to metal */
-    --gold: 220 12% 60%;
-    --gold-light: 220 16% 78%;
+    /* ─── New: warm champagne gold for selection + vibrance ─── */
+    --gold: 42 78% 55%;                /* warm champagne gold */
+    --gold-light: 45 90% 72%;
+    --gold-dark: 38 70% 42%;
+    --gold-foreground: 220 30% 12%;
+
+    /* Legacy aliases */
     --royal: 222 18% 28%;
     --royal-light: 220 12% 46%;
     --midnight: 220 14% 22%;
@@ -66,6 +70,7 @@
     --parchment-dark: 220 14% 88%;
     --surface-alt: 220 16% 94%;
     --hero-bg: 220 18% 96%;
+
 
     /* Reusable metallic gradients */
     --metal-gradient: linear-gradient(
@@ -121,7 +126,7 @@
 
     --border: 220 12% 26%;
     --input: 220 12% 26%;
-    --ring: 220 14% 60%;
+    --ring: 42 78% 60%;
 
     --sidebar-background: 220 14% 13%;
     --sidebar-foreground: 220 16% 92%;
@@ -130,7 +135,7 @@
     --sidebar-accent: 220 12% 22%;
     --sidebar-accent-foreground: 220 16% 92%;
     --sidebar-border: 220 12% 26%;
-    --sidebar-ring: 220 14% 60%;
+    --sidebar-ring: 42 78% 60%;
 
     --silver: 220 14% 62%;
     --silver-light: 220 14% 78%;
@@ -139,8 +144,10 @@
     --graphite-light: 220 14% 78%;
     --ink: 220 16% 92%;
 
-    --gold: 220 14% 70%;
-    --gold-light: 220 14% 82%;
+    --gold: 42 78% 60%;
+    --gold-light: 45 90% 75%;
+    --gold-dark: 38 70% 46%;
+    --gold-foreground: 220 30% 12%;
     --royal: 220 14% 78%;
     --royal-light: 220 14% 62%;
     --midnight: 220 14% 14%;
@@ -205,25 +212,64 @@
 }
 
 @layer utilities {
-  /* ─── Glows retuned to silver ─── */
+  /* ─── Gold glows for selection / vibrance ─── */
   .gold-glow {
     box-shadow:
-      0 0 18px hsl(var(--silver) / 0.35),
-      0 0 40px hsl(var(--silver-light) / 0.25);
+      0 0 18px hsl(var(--gold) / 0.45),
+      0 0 40px hsl(var(--gold-light) / 0.3);
   }
   .gold-glow-hover {
     transition: box-shadow 300ms ease, transform 300ms ease;
   }
   .gold-glow-hover:hover {
     box-shadow:
-      0 0 24px hsl(var(--silver) / 0.45),
-      0 0 48px hsl(var(--silver-light) / 0.3);
+      0 0 26px hsl(var(--gold) / 0.6),
+      0 0 56px hsl(var(--gold-light) / 0.35);
   }
   .royal-glow {
     box-shadow:
       0 0 18px hsl(var(--silver-dark) / 0.25),
       0 0 40px hsl(var(--silver) / 0.15);
   }
+
+  /* ─── Gold accent helpers ─── */
+  .text-gold        { color: hsl(var(--gold)); }
+  .bg-gold          { background-color: hsl(var(--gold)); color: hsl(var(--gold-foreground)); }
+  .border-gold      { border-color: hsl(var(--gold)); }
+  .ring-gold        { box-shadow: 0 0 0 2px hsl(var(--gold) / 0.6); }
+  .gold-gradient {
+    background: linear-gradient(135deg,
+      hsl(var(--gold-light)) 0%,
+      hsl(var(--gold)) 50%,
+      hsl(var(--gold-dark)) 100%);
+    color: hsl(var(--gold-foreground));
+  }
+  .gold-text-gradient {
+    background: linear-gradient(180deg,
+      hsl(var(--gold-light)) 0%,
+      hsl(var(--gold)) 55%,
+      hsl(var(--gold-dark)) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Selected state — slap on any card/option to indicate active choice */
+  .is-selected,
+  [data-state="checked"].selectable,
+  [aria-selected="true"].selectable {
+    border-color: hsl(var(--gold)) !important;
+    box-shadow:
+      0 0 0 1px hsl(var(--gold) / 0.7),
+      0 0 22px hsl(var(--gold) / 0.35),
+      0 10px 30px -10px hsl(var(--gold-dark) / 0.35);
+    background-image: linear-gradient(
+      180deg,
+      hsl(var(--gold) / 0.08) 0%,
+      transparent 100%
+    );
+  }
+
 
   /* ─── Liquid glass surfaces ─── */
   .glass {
