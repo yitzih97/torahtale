@@ -6,6 +6,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function bufferToBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk) as unknown as number[]);
+  }
+  return btoa(binary);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -31,7 +41,6 @@ serve(async (req) => {
     };
     const style = styleMap[artStyle] || styleMap.cartoon;
 
-    const ageNum = parseInt(age, 10);
     const isToddlerBoy = gender === "boy" && !isNaN(ageNum) && ageNum <= 2;
     const genderDetails = gender === "boy"
       ? isToddlerBoy
@@ -76,7 +85,7 @@ ${referenceImage ? "REFERENCE PHOTO PROVIDED: You MUST match the child's facial 
           const imgResp = await fetch(referenceImage);
           if (imgResp.ok) {
             const buf = await imgResp.arrayBuffer();
-            const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+            const b64 = bufferToBase64(buf);
             const ct = imgResp.headers.get("content-type") || "image/jpeg";
             parts.push({ inlineData: { mimeType: ct, data: b64 } });
           }
