@@ -13,11 +13,11 @@ import { KidCard } from "@/components/dashboard/KidCard";
 import { BookCard } from "@/components/dashboard/BookCard";
 import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
 import { BookTimeline } from "@/components/dashboard/BookTimeline";
+import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Users, BookOpen, CalendarHeart, Plus,
-  Pause, Play, X, Settings, CreditCard, Pencil, BookMarked,
+  Users, BookOpen, CalendarHeart, Plus, Settings, BookMarked,
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,15 +26,9 @@ import { useBooks, type BookRecord } from "@/hooks/useBooks";
 import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { toast } from "sonner";
-import { format } from "date-fns";
 
 const ease = [0.22, 1, 0.36, 1];
 
-const subStatusStyle = (s: string) => {
-  if (s === "active") return "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950";
-  if (s === "paused") return "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950";
-  return "text-muted-foreground bg-muted";
-};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -300,120 +294,47 @@ export default function Dashboard() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-5">
                     {subscriptions.map((sub, i) => (
-                      <motion.div
+                      <SubscriptionCard
                         key={sub.id}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35, delay: i * 0.07, ease }}
-                        className="wizard-glass relative rounded-3xl overflow-hidden bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/70 ring-1 ring-black/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_20px_40px_-20px_rgba(15,23,42,0.18)] p-5"
-                      >
-                        <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-70 bg-gradient-to-br from-violet-200/60 to-fuchsia-200/40" />
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                              <CalendarHeart className="w-5 h-5 text-accent" />
-                            </div>
-                            <div>
-                              <h4 className="font-display font-semibold text-primary">{t.dash.parashahClub}</h4>
-                              <p className="text-xs text-muted-foreground">
-                                For {sub.child_name || "your kind"} · {t.currency.symbol}{(sub.price_per_week * t.currency.rate).toFixed(2)}{t.dash.perWeek}
-                              </p>
-                            </div>
-                          </div>
-                          <span className={`text-xs font-medium px-3 py-1 rounded-full capitalize ${subStatusStyle(sub.status)}`}>
-                            {sub.status}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-xs mb-4">
-                          <div className="bg-muted/30 rounded-xl p-3">
-                            <p className="text-muted-foreground">Art Style</p>
-                            <p className="font-medium text-primary capitalize mt-0.5">{sub.art_style === "3d-pixar" ? "3D Pixar" : sub.art_style || "Cartoon"}</p>
-                          </div>
-                          <div className="bg-muted/30 rounded-xl p-3">
-                            <p className="text-muted-foreground">{t.dash.nextDelivery}</p>
-                            <p className="font-medium text-primary mt-0.5">
-                              {sub.next_delivery_date ? format(new Date(sub.next_delivery_date), "MMM d, yyyy") : "TBD"}
-                            </p>
-                          </div>
-                          <div className="bg-muted/30 rounded-xl p-3">
-                            <p className="text-muted-foreground">Language</p>
-                            <p className="font-medium text-primary capitalize mt-0.5">{sub.language || "English"}</p>
-                          </div>
-                          <div className="bg-muted/30 rounded-xl p-3">
-                            <p className="text-muted-foreground">Since</p>
-                            <p className="font-medium text-primary mt-0.5">{format(new Date(sub.created_at), "MMM d, yyyy")}</p>
-                          </div>
-                        </div>
-
-                        {sub.status !== "canceled" && (
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs rounded-xl gap-1.5"
-                              onClick={() => setEditingSub(sub)}
-                            >
-                              <Pencil className="w-3.5 h-3.5" /> Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs rounded-xl gap-1.5"
-                              onClick={() => window.open("https://fek120-t9.myshopify.com/account", "_blank", "noopener,noreferrer")}
-                            >
-                              <CreditCard className="w-3.5 h-3.5" /> Payment
-                            </Button>
-                            {sub.status === "active" ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-xs rounded-xl gap-1.5"
-                                onClick={async () => {
-                                  await updateSubscription.mutateAsync({ id: sub.id, status: "paused" });
-                                  toast.success("Subscription paused");
-                                }}
-                              >
-                                <Pause className="w-3.5 h-3.5" /> {t.dash.pause}
-                              </Button>
-                            ) : sub.status === "paused" ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-xs rounded-xl gap-1.5"
-                                onClick={async () => {
-                                  await updateSubscription.mutateAsync({ id: sub.id, status: "active" });
-                                  toast.success("Subscription resumed!");
-                                }}
-                              >
-                                <Play className="w-3.5 h-3.5" /> {t.dash.resume}
-                              </Button>
-                            ) : null}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-xs rounded-xl gap-1.5 text-destructive hover:text-destructive ml-auto"
-                              onClick={async () => {
-                                await cancelSubscription.mutateAsync(sub.id);
-                                toast.success("Subscription canceled");
-                              }}
-                            >
-                              <X className="w-3.5 h-3.5" /> {t.dash.cancel}
-                            </Button>
-                          </div>
-                        )}
-                      </motion.div>
+                        sub={sub}
+                        index={i}
+                        onEdit={() => setEditingSub(sub)}
+                        onPayment={() => window.open("https://fek120-t9.myshopify.com/account", "_blank", "noopener,noreferrer")}
+                        onToggle={async () => {
+                          if (sub.status === "canceled") return;
+                          const next = sub.status === "active" ? "paused" : "active";
+                          await updateSubscription.mutateAsync({ id: sub.id, status: next });
+                          toast.success(next === "paused" ? "Subscription paused" : "Subscription resumed!");
+                        }}
+                        onCancel={async () => {
+                          await cancelSubscription.mutateAsync(sub.id);
+                          toast.success("Subscription canceled");
+                        }}
+                      />
                     ))}
 
                     {/* Add another subscription */}
-                    <Button variant="outline" className="w-full rounded-xl border-dashed border-2 h-12" onClick={() => navigate("/")}>
-                      <Plus className="w-4 h-4" /> Subscribe Another Child
-                    </Button>
+                    <motion.button
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.2, ease }}
+                      onClick={() => navigate("/")}
+                      className="rounded-3xl border-2 border-dashed border-border/60 p-5 flex flex-col items-center justify-center gap-3
+                        text-muted-foreground hover:border-foreground/40 hover:text-foreground
+                        transition-all duration-300 active:scale-[0.98] min-h-[260px]
+                        bg-white/40 backdrop-blur-md"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-white/70 border border-white/70 ring-1 ring-black/5 flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9)]">
+                        <Plus className="w-6 h-6" strokeWidth={1.75} />
+                      </div>
+                      <span className="text-sm font-medium">Subscribe Another Child</span>
+                    </motion.button>
                   </div>
                 )}
               </TabsContent>
+
 
               {/* TAB: Settings */}
               <TabsContent value="settings">
