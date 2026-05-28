@@ -111,6 +111,9 @@ export default function Dashboard() {
       toast.success("Download ready!");
     } catch { toast.error("Download failed"); }
     finally { setDownloadingId(null); }
+  };
+
+
 
   const rawBookPages = viewingBook?.pages_data as any[] || [];
   // Filter out pages that are still loading (imageLoading: true with no image)
