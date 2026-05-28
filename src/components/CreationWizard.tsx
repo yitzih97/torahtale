@@ -28,6 +28,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useChildren } from "@/hooks/useChildren";
 import { ImageCropDialog } from "./ImageCropDialog";
+import { WizardStepHeader } from "./wizard/WizardStepHeader";
+import { GlassIconTile } from "@/components/ui/glass-icon-tile";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+
 
 /* ── preset images ── */
 import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
