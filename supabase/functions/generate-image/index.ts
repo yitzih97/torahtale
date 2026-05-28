@@ -31,6 +31,7 @@ serve(async (req) => {
     let customImageModel: string | null = null;
     let pageImageTemplate: string | null = null;
     let sceneReferenceImageUrl: string | null = null;
+    let masterBookRules: string | null = null;
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -41,6 +42,8 @@ serve(async (req) => {
         const settings = await settingsRes.json();
         customImageTemplate = settings.find((s: any) => s.category === "prompts" && s.key === "image-prompt-template")?.value || null;
         customImageModel = settings.find((s: any) => s.category === "ai" && s.key === "image-model")?.value || null;
+        masterBookRules = settings.find((s: any) => s.category === "book-templates" && s.key === "master-rules")?.value || null;
+
 
         // Look for page-specific image prompt template and reference image
         if (torahPortion) {
@@ -115,6 +118,18 @@ serve(async (req) => {
     if (childDescription && !prompt) {
       imagePrompt += ` The child character has these features: ${childDescription}.`;
     }
+
+    // Inject MASTER BOOK RULES (apply to every page of every book)
+    if (masterBookRules?.trim() && !prompt) {
+      const rules = masterBookRules
+        .replace(/\{childName\}/g, childName || "the child")
+        .replace(/\{torahPortion\}/g, torahPortion || "Torah")
+        .replace(/\{artStyle\}/g, artStyle || "cartoon")
+        .replace(/\{pageNumber\}/g, String(pageNumber || ""))
+        .replace(/\{pageType\}/g, pageType || "page");
+      imagePrompt += ` MASTER BOOK RULES (apply to every illustration without exception): ${rules}`;
+    }
+
 
     const parts: any[] = [];
 
