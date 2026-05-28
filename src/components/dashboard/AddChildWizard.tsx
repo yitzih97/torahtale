@@ -248,9 +248,16 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
+      <DialogContent className="wizard-glass max-w-3xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-[28px] border-white/60 bg-white/85 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.35),inset_0_1px_0_0_rgba(255,255,255,0.9)]">
+        {/* Ambient orbs for the liquid-glass feel */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
+          <div className="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-gradient-to-br from-sky-200/40 to-indigo-200/0 blur-3xl" />
+          <div className="absolute -bottom-24 -right-16 w-80 h-80 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/0 blur-3xl" />
+        </div>
+        <div className="relative">
         {/* ── Stepper ── */}
         <div className="px-6 sm:px-8 pt-6 pb-2">
+
           <div className="flex items-center justify-between gap-1">
             {STEP_LABELS.map((s, i) => {
               const stepNum = i + 1;
