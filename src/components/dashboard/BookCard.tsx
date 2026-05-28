@@ -33,14 +33,18 @@ interface Props {
   onView: () => void;
   onDownload: () => void;
   onReorder: () => void;
+  onReview?: () => void;
+  hasReview?: boolean;
   downloading?: boolean;
 }
 
-export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, downloading }: Props) {
+export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, onReview, hasReview, downloading }: Props) {
   const meta = statusMeta(book.status);
   const hasPages = !!book.pages_data && (book.pages_data as any[]).length > 0;
   const pageCount = hasPages ? (book.pages_data as any[]).length : 0;
   const Icon = meta.Icon;
+  const canReview = !!onReview && (book.status === "shipped" || book.status === "delivered");
+
 
   return (
     <motion.div
