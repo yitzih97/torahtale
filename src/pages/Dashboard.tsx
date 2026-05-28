@@ -6,16 +6,18 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AddChildWizard, type AddChildResult } from "@/components/dashboard/AddChildWizard";
-import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { DashboardSettings } from "@/components/dashboard/DashboardSettings";
 import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditDialog";
 import { KidCard } from "@/components/dashboard/KidCard";
+import { BookCard } from "@/components/dashboard/BookCard";
+import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
+import { BookTimeline } from "@/components/dashboard/BookTimeline";
+import { generateBookZip } from "@/lib/generateBookZip";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus,
-  Truck, Package, Eye, BookMarked,
-  Pause, Play, X, Settings, CreditCard, Pencil,
+  Pause, Play, X, Settings, CreditCard, Pencil, BookMarked,
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,14 +29,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 const ease = [0.22, 1, 0.36, 1];
-
-const statusStyle = (s: string) => {
-  if (s === "delivered") return "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950";
-  if (s === "printing" || s === "ordered") return "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950";
-  return "text-accent bg-accent/10";
-};
-
-const statusIcon = (s: string) => (s === "delivered" ? Truck : Package);
 
 const subStatusStyle = (s: string) => {
   if (s === "active") return "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950";
@@ -54,6 +48,8 @@ export default function Dashboard() {
   const [editChildStep, setEditChildStep] = useState<number>(1);
   const [editingSub, setEditingSub] = useState<typeof subscriptions[number] | null>(null);
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
+  const [openBook, setOpenBook] = useState<BookRecord | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("kids");
 
   useEffect(() => {
@@ -89,6 +85,25 @@ export default function Dashboard() {
     setEditingChild(null);
     toast.success(t.dash.childUpdated);
   };
+
+  const handleDownloadBook = async (book: BookRecord) => {
+    const pages = (book.pages_data as any[]) || [];
+    if (!pages.length) { toast.error("No pages to download"); return; }
+    setDownloadingId(book.id);
+    try {
+      const blob = await generateBookZip(pages, book.child_name || "book", book.order_number || book.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${book.child_name || "book"}-${book.torah_portion || "tale"}.zip`.replace(/\s+/g, "-").toLowerCase();
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Download ready!");
+    } catch { toast.error("Download failed"); }
+    finally { setDownloadingId(null); }
+  };
+
+
 
   const rawBookPages = viewingBook?.pages_data as any[] || [];
   // Filter out pages that are still loading (imageLoading: true with no image)
@@ -234,74 +249,37 @@ export default function Dashboard() {
               {/* TAB: Books */}
               <TabsContent value="books">
                 {booksLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-20 rounded-2xl" />
-                    ))}
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-3xl" />)}
                   </div>
                 ) : books.length === 0 ? (
-                  <div className="text-center py-16">
+                  <div className="wizard-glass rounded-3xl border border-white/70 ring-1 ring-black/5 bg-white/70 backdrop-blur-xl p-10 text-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_20px_40px_-20px_rgba(15,23,42,0.18)]">
                     <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-display text-lg font-semibold text-primary mb-2">{t.dash.noBooks}</h3>
                     <p className="text-muted-foreground text-sm mb-6">{t.dash.noBooksDesc}</p>
-                    <Button variant="gold" onClick={() => navigate("/")}>
-                      {t.dash.createSefer}
-                    </Button>
+                    <Button variant="gold" onClick={() => navigate("/")}>{t.dash.createSefer}</Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {books.map((book, i) => {
-                      const StatusIcon = statusIcon(book.status);
-                      return (
-                        <motion.div
+                  <>
+                    <BookTimeline books={books} subscriptions={subscriptions} weeksAhead={2} />
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {books.map((book, i) => (
+                        <BookCard
                           key={book.id}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.35, delay: i * 0.07, ease }}
-                          className="bg-card rounded-2xl border border-border p-4 flex items-center gap-4 shadow-soft-sm hover:shadow-soft-md transition-shadow duration-300"
-                        >
-                          {book.cover_image_url ? (
-                            <img src={book.cover_image_url} alt={book.torah_portion || ""} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
-                          ) : (
-                            <div className="w-16 h-16 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
-                              <BookOpen className="w-6 h-6 text-accent" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-display font-semibold text-primary text-sm truncate">
-                              {book.torah_portion || "Torah Tale"}
-                            </h4>
-                            <p className="text-xs text-muted-foreground">
-                              For {book.child_name || "Unknown"} · {format(new Date(book.created_at), "MMM d, yyyy")}
-                            </p>
-                          </div>
-                          {book.status === "generating" ? (
-                            <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                              <span className={`text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1.5 capitalize ${statusStyle(book.status)}`}>
-                                <StatusIcon className="w-3 h-3" />
-                                {book.status}
-                              </span>
-                              <CountdownTimer createdAt={book.created_at} />
-                            </div>
-                          ) : (
-                            <span className={`text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0 capitalize ${statusStyle(book.status)}`}>
-                              <StatusIcon className="w-3 h-3" />
-                              {book.status}
-                            </span>
-                          )}
-                          <div className="flex gap-1.5 flex-shrink-0">
-                            {book.pages_data && (
-                              <Button variant="ghost" size="sm" className="text-xs" onClick={() => setViewingBook(book)}>
-                                <Eye className="w-3.5 h-3.5" /> {t.dash.view}
-                              </Button>
-                            )}
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
+                          book={book}
+                          index={i}
+                          onOpen={() => setOpenBook(book)}
+                          onView={() => setViewingBook(book)}
+                          onDownload={() => handleDownloadBook(book)}
+                          onReorder={() => navigate("/?start=1")}
+                          downloading={downloadingId === book.id}
+                        />
+                      ))}
+                    </div>
+                  </>
                 )}
               </TabsContent>
+
 
               {/* TAB: Subscriptions */}
               <TabsContent value="subs">
@@ -310,15 +288,14 @@ export default function Dashboard() {
                     <Skeleton className="h-32 rounded-2xl" />
                   </div>
                 ) : subscriptions.length === 0 ? (
-                  <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm">
-                    <div className="flex items-center gap-3 mb-2">
+                  <div className="wizard-glass relative rounded-3xl overflow-hidden bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/70 ring-1 ring-black/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_20px_40px_-20px_rgba(15,23,42,0.18)] p-6">
+                    <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-70 bg-gradient-to-br from-violet-200/60 to-fuchsia-200/40" />
+                    <div className="relative flex items-center gap-3 mb-2">
                       <CalendarHeart className="w-5 h-5 text-accent" />
                       <h3 className="font-display text-lg font-semibold text-primary">{t.dash.parashahClub}</h3>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-6">
-                      {t.dash.parashahDesc}
-                    </p>
-                    <Button variant="gold" onClick={() => navigate("/?start=1")}>
+                    <p className="relative text-sm text-muted-foreground mb-6">{t.dash.parashahDesc}</p>
+                    <Button variant="gold" onClick={() => navigate("/?start=1")} className="relative">
                       {t.dash.createAndSubscribe}
                     </Button>
                   </div>
@@ -330,8 +307,9 @@ export default function Dashboard() {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, delay: i * 0.07, ease }}
-                        className="bg-card rounded-2xl border border-border p-5 shadow-soft-sm"
+                        className="wizard-glass relative rounded-3xl overflow-hidden bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/70 ring-1 ring-black/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_20px_40px_-20px_rgba(15,23,42,0.18)] p-5"
                       >
+                        <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-70 bg-gradient-to-br from-violet-200/60 to-fuchsia-200/40" />
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
@@ -500,6 +478,17 @@ export default function Dashboard() {
           toast.success("Subscription updated");
         }}
         isSaving={updateSubscription.isPending}
+      />
+
+      {/* Book Detail Dialog */}
+      <BookDetailDialog
+        book={openBook}
+        open={!!openBook}
+        onClose={() => setOpenBook(null)}
+        onView={() => { if (openBook) { setViewingBook(openBook); setOpenBook(null); } }}
+        onDownload={() => openBook && handleDownloadBook(openBook)}
+        onReorder={() => navigate("/?start=1")}
+        downloading={!!openBook && downloadingId === openBook.id}
       />
     </div>
   );
