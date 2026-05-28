@@ -284,6 +284,8 @@ export default function Dashboard() {
                           onView={() => setViewingBook(book)}
                           onDownload={() => handleDownloadBook(book)}
                           onReorder={() => navigate("/?start=1")}
+                          onReview={() => setReviewingBook(book)}
+                          hasReview={reviewedBookIds?.has(book.id)}
                           downloading={downloadingId === book.id}
                         />
                       ))}
