@@ -298,15 +298,14 @@ export default function Dashboard() {
                     <Skeleton className="h-32 rounded-2xl" />
                   </div>
                 ) : subscriptions.length === 0 ? (
-                  <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm">
-                    <div className="flex items-center gap-3 mb-2">
+                  <div className="wizard-glass relative rounded-3xl overflow-hidden bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/70 ring-1 ring-black/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_20px_40px_-20px_rgba(15,23,42,0.18)] p-6">
+                    <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-70 bg-gradient-to-br from-violet-200/60 to-fuchsia-200/40" />
+                    <div className="relative flex items-center gap-3 mb-2">
                       <CalendarHeart className="w-5 h-5 text-accent" />
                       <h3 className="font-display text-lg font-semibold text-primary">{t.dash.parashahClub}</h3>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-6">
-                      {t.dash.parashahDesc}
-                    </p>
-                    <Button variant="gold" onClick={() => navigate("/?start=1")}>
+                    <p className="relative text-sm text-muted-foreground mb-6">{t.dash.parashahDesc}</p>
+                    <Button variant="gold" onClick={() => navigate("/?start=1")} className="relative">
                       {t.dash.createAndSubscribe}
                     </Button>
                   </div>
