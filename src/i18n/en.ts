@@ -548,6 +548,46 @@ export const en = {
     tocLabel: "On this page",
   },
 
+  // Pricing page
+  pricing: {
+    heroTitle: "Create Personalized Torah Books",
+    heroAccent: "Your Kids Will Love",
+    startingAt: "starting at",
+    perMonth: "/month",
+    mostPopular: "MOST POPULAR",
+    singleTitle: "Single Book",
+    singleSubtitle: "One-time purchase",
+    singleCta: "Create Book",
+    torahTitle: "Torah Series",
+    torahSubtitle: "4 books per month • Weekly Parsha + Holidays",
+    torahCta: "Start Now",
+    tanachTitle: "Tanach Series",
+    tanachSubtitle: "All of Torah, Neviim, Kesuvim",
+    tanachCta: "Start Now",
+    collectionTitle: "Build a Library That Grows With Them",
+    collectionDesc: "Every month, a new book joins their personal Torah collection.",
+    faqTitle: "Questions? We've got answers.",
+    faqs: [
+      { q: "Can I cancel anytime?", a: "Yes — your subscription is fully flexible. Cancel from your dashboard at any time, no questions asked." },
+      { q: "How often do I receive books?", a: "Subscribers receive 4 personalized books per month, aligned with the weekly Parsha and major Yomim Tovim." },
+      { q: "Can I choose specific stories?", a: "Yes. With a single book purchase you pick any Parsha or story. Subscribers get the weekly Parsha automatically and can request swaps anytime." },
+      { q: "Is this physical or digital?", a: "Every book is a physical, premium-printed hardcover, softcover, or board book, shipped directly to your door." },
+    ],
+  },
+
+  // Quantity step
+  quantity: {
+    title: "How many copies?",
+    subtitle: "Order one for your home, one for grandparents, or one as a gift.",
+    copyOne: "1 copy",
+    copyMany: (n: number) => `${n} copies`,
+    custom: "Custom quantity",
+    subtotal: "Subtotal",
+    total: "Total",
+    save: (pct: number) => `Save ${pct}%`,
+    giftHint: "💡 Add 2+ copies to unlock automatic volume savings",
+  },
+
   // Currency
   currency: {
     symbol: "$",
