@@ -830,9 +830,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   return (
     <>
-    <div className="min-h-screen w-full bg-gradient-to-b from-background via-background to-muted/20 flex flex-col">
+    <div className="wizard-glass min-h-screen w-full flex flex-col relative">
+      {/* Liquid-glass ambient background */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(1200px_600px_at_15%_-10%,hsl(220_40%_96%),transparent_60%),radial-gradient(900px_500px_at_110%_10%,hsl(225_55%_95%),transparent_55%),linear-gradient(180deg,hsl(220_30%_99%),hsl(220_20%_97%))]" />
+        <div className="absolute -top-32 -left-24 w-[520px] h-[520px] rounded-full bg-[radial-gradient(closest-side,hsl(220_60%_90%/0.55),transparent)] blur-3xl" />
+        <div className="absolute top-40 -right-32 w-[600px] h-[600px] rounded-full bg-[radial-gradient(closest-side,hsl(225_55%_88%/0.45),transparent)] blur-3xl" />
+      </div>
+
       {/* ── Sticky Apple-style top bar ── */}
-      <div className="sticky top-0 z-30 bg-background/70 backdrop-blur-2xl border-b border-border/30">
+      <div className="sticky top-0 z-30 bg-white/55 backdrop-blur-2xl backdrop-saturate-150 border-b border-white/40 shadow-[0_1px_0_0_rgba(255,255,255,0.6)_inset,0_8px_24px_-12px_rgba(15,23,42,0.08)]">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <motion.div

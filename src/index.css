@@ -138,3 +138,28 @@
     box-shadow: 0 0 20px hsl(var(--royal) / 0.3), 0 0 40px hsl(var(--royal) / 0.1);
   }
 }
+
+/* ───────────────── Wizard liquid-glass scope (/create) ─────────────────
+   Overrides gold accent tokens within the wizard to a refined Apple-style
+   graphite ink. Every text-accent / bg-accent / border-accent / shadow-accent
+   inside .wizard-glass becomes neutral ink, and gold-glow loses its color. */
+.wizard-glass {
+  --accent: 222 25% 14%;
+  --accent-foreground: 0 0% 100%;
+  --gold: 222 25% 14%;
+  --gold-light: 222 18% 30%;
+  --ring: 222 25% 14%;
+}
+.wizard-glass .gold-glow {
+  box-shadow:
+    0 1px 0 0 hsl(0 0% 100% / 0.6) inset,
+    0 10px 30px -10px hsl(222 40% 12% / 0.35),
+    0 2px 8px -2px hsl(222 40% 12% / 0.2);
+}
+.wizard-glass .gold-glow-hover:hover {
+  box-shadow:
+    0 1px 0 0 hsl(0 0% 100% / 0.7) inset,
+    0 14px 36px -12px hsl(222 40% 12% / 0.45),
+    0 4px 12px -2px hsl(222 40% 12% / 0.25);
+}
+
