@@ -1,67 +1,40 @@
-# Dashboard refresh + wizard admin editor
+## Goal
 
-Four coordinated changes. All visuals match the new `.wizard-glass` Apple liquid-glass look (graphite ink accents, frosted surfaces, no gold).
+Add a "Master Book Rules" textarea at the top of the **Templates** tab in Admin → CMS. Whatever the admin writes here is injected into **every** story-page and image-prompt generation, on top of the per-page templates and the master system prompt. It acts as universal guidance for the whole book (e.g. "always end pages on a question", "never depict women's hair", "keep sentences under 12 words").
 
-## 1. Dashboard kid card
+## UI
 
-Remove the "Create new book" button and the duplicate avatar/icon row. Replace with a clean liquid-glass card showing:
+In `src/components/admin/AdminCMS.tsx` → `BookTemplatesTab`, render a new panel **above** the portion selector:
 
-- Child photo + name + age (header)
-- Countdown chip "Next book in 4 days" (uses existing `CountdownTimer`)
-- Four equal quick-action tiles in a 2x2 grid:
-  - **View books** — opens that child's library
-  - **Edit child** — opens settings popup
-  - **Manage subscription** — opens subscription dialog
-  - **Pause / Resume** — quick toggle without opening dialog
+- Header: "Master Book Rules" with a `ScrollText` icon
+- One-line helper: "Applied to every page of every book."
+- `Textarea` (8 rows), placeholder showing example rules
+- Save button with the same `savingKey` spinner pattern other fields use
+- Stored under `category: "book-templates"`, `key: "master-rules"` (no portion prefix → global)
 
-Status pill in the corner (Active / Paused / No subscription).
+Loads on mount via a small `useEffect` query — `book-templates` rows where `key = 'master-rules'`.
 
-## 2. Child settings popup (edit-child dialog)
+## Wiring into generation
 
-Restyle to match wizard:
-- `wizard-glass` scope wrapper, frosted background, ambient orbs
-- Photo upload becomes a large rounded liquid-glass tile with hover lift
-- Field rows on individual translucent cards
-- Section headers in Playfair Display
-- Primary action: dark ink pill button (no gold)
-- Section icons swapped from gold to graphite
+Both edge functions already fetch `category=in.(prompts,ai,book-templates)`, so no extra fetch is needed.
 
-## 3. Regenerate wizard + edit-child icons
+**`supabase/functions/generate-story/index.ts`**
+- After loading settings, pull `masterRules = settings.find(s => s.category==='book-templates' && s.key==='master-rules')?.value`
+- When building `templateGuidance`, prepend a `MASTER BOOK RULES (apply to every page):\n${masterRules}` block if non-empty. Substitute the same `{childName}`, `{age}`, `{gender}`, `{artStyle}`, `{language}`, `{torahPortion}` variables.
 
-Replace the colored Lucide icons currently shown in both flows with a unified set of monochrome graphite line icons rendered inside small frosted-glass tiles. Approach:
+**`supabase/functions/generate-image/index.ts`**
+- Same lookup. Append the rules (with variable substitution) to every page's final image prompt so the constraints flow into the illustration model too.
 
-- Keep the existing Lucide icon imports (Users, BookOpen, Palette, Package, etc.)
-- Wrap them in a shared `<GlassIconTile />` component: 48px rounded square, white/8 background, `backdrop-blur`, 1px inner highlight, ink-colored icon
-- Apply to: wizard top-bar step icon, each wizard step's hero icon, dashboard quick-action tiles, child settings section headers
-- No new image generation needed — the unified tile + ink color is what makes them feel consistent
+## Skip-list (intentionally out of scope)
 
-## 4. Admin editor for wizard steps
+- Per-portion master overrides (single global is enough; can add later under `${portion}:master-rules` using the same code path)
+- Bilingual EN/HE split (one rule body, same effect both languages)
+- Versioning / history
 
-New "Wizard Steps" panel in `AdminCMS`. Persists to existing `site_settings` table under category `wizard` so no migration needed.
+## Files touched
 
-Per step (8 steps): title, subtitle, helper text, icon image override, visible toggle, order index.
+- `src/components/admin/AdminCMS.tsx` — new panel in `BookTemplatesTab`
+- `supabase/functions/generate-story/index.ts` — read + inject master rules
+- `supabase/functions/generate-image/index.ts` — read + inject master rules
 
-Storage keys:
-- `wizard.step.{N}.title`, `.subtitle`, `.helper`, `.icon_url`, `.visible`, `.order`
-
-Wizard reads these via `useSiteSettings("wizard")` with fallbacks to the current hard-coded English/Hebrew copy.
-
-Reorder + show/hide handled via simple up/down arrows and a switch in the admin list (drag-and-drop deferred).
-
-## Technical details
-
-- New file `src/components/dashboard/KidCard.tsx` extracted from Dashboard.tsx for the redesigned card
-- New file `src/components/ui/glass-icon-tile.tsx` for the shared icon tile
-- `DashboardSettings.tsx` restructured into glass sections
-- `AdminCMS.tsx` gets a new `WizardStepsEditor` section component
-- `CreationWizard.tsx` step copy/icon reads layered on top of existing `t.wizard.*` strings using `getSetting("wizard", ...)`; English fallbacks preserved
-- Icon image override: when admin uploads an image, the wizard renders `<img>` instead of the Lucide icon
-- No DB schema changes; uses existing `site_settings` + `site-images` bucket
-- Bilingual: admin can save EN and HE separately via `wizard.step.{N}.title.en` / `.he` key suffixes
-
-## Out of scope (call out)
-
-- AI regeneration of wizard imagery — answered question said icons, not photos. If you want new AI-generated photo illustrations as well, say the word and I'll add that pass after.
-- Drag-and-drop reordering — arrows for now; can upgrade later.
-
-Approve and I'll build all four in one pass.
+No DB schema changes — `site_settings` already exists and supports the new key.
