@@ -25,6 +25,7 @@ serve(async (req) => {
     let customSystemPrompt: string | null = null;
     let customModel: string | null = null;
     let customTemperature: number | null = null;
+    let masterBookRules: string | null = null;
     const pageTemplates: Record<string, string> = {}; // e.g. "cover:text" -> template, "page-1:text" -> template
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -40,6 +41,9 @@ serve(async (req) => {
           const v = settings.find((s: any) => s.category === "ai" && s.key === "story-temperature")?.value;
           return v ? parseFloat(v) : null;
         })();
+
+        // Global master rules (apply to every page of every book)
+        masterBookRules = settings.find((s: any) => s.category === "book-templates" && s.key === "master-rules")?.value || null;
 
         // Load book-templates for this Torah portion
         if (torahPortion) {
