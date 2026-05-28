@@ -181,88 +181,32 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : (
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {children.map((kid, i) => {
-                      const initials = kid.name.slice(0, 2).toUpperCase();
-                      const colors = ["bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300", "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300", "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300", "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"];
+                      const kidSub = subscriptions.find(
+                        (s) => s.child_id === kid.id && s.status !== "canceled",
+                      );
+                      const kidBooks = books.filter((b) => b.child_id === kid.id).length;
                       return (
-                        <motion.div
+                        <KidCard
                           key={kid.id}
-                          initial={{ opacity: 0, y: 16 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.4, delay: i * 0.08, ease }}
-                          className="bg-card rounded-2xl border border-border p-5 shadow-soft-sm hover:shadow-soft-md transition-shadow duration-300"
-                        >
-                          <div className="flex items-center gap-3 mb-4">
-                            <button
-                              type="button"
-                              onClick={() => { setEditChildStep(5); setEditingChild(kid); }}
-                              className="relative group flex-shrink-0"
-                              aria-label="Edit photo"
-                            >
-                              {kid.photo_url ? (
-                                <img src={kid.photo_url} alt={kid.name} className="w-12 h-12 rounded-full object-cover" />
-                              ) : (
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-lg ${colors[i % colors.length]}`}>
-                                  {initials}
-                                </div>
-                              )}
-                              <span className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <Camera className="w-4 h-4 text-white" />
-                              </span>
-                            </button>
-                            <div className="flex-1">
-                              <h3 className="font-display text-lg font-semibold text-primary">{kid.name}</h3>
-                              <p className="text-xs text-muted-foreground">
-                                {kid.age ? `${kid.age} ${t.dash.yearsOld}` : t.dash.ageNotSet} · {kid.gender || t.dash.notSet}
-                              </p>
-                            </div>
-                            <div className="flex gap-1">
-                              <button
-                                onClick={() => { setEditChildStep(5); setEditingChild(kid); }}
-                                className="p-1.5 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
-                                aria-label="Edit photo"
-                                title="Edit photo"
-                              >
-                                <Camera className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => { setEditChildStep(1); setEditingChild(kid); }}
-                                className="p-1.5 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
-                                aria-label="Edit child"
-                                title="Edit details"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  deleteChild.mutate(kid.id);
-                                  toast.success(t.dash.childRemoved);
-                                }}
-                                className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                          {kid.art_style && (
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Palette className="w-3.5 h-3.5" />
-                              <span>{t.dash.preferred}: {kid.art_style}</span>
-                            </div>
-                          )}
-                          <div className="grid grid-cols-3 gap-2 mt-4">
-                            <Button variant="outline" size="sm" className="text-xs" onClick={() => { setEditChildStep(1); setEditingChild(kid); }}>
-                              <Pencil className="w-3.5 h-3.5" /> Edit
-                            </Button>
-                            <Button variant="outline" size="sm" className="text-xs" onClick={() => { setEditChildStep(5); setEditingChild(kid); }}>
-                              <Camera className="w-3.5 h-3.5" /> Photo
-                            </Button>
-                            <Button variant="gold" size="sm" className="text-xs" onClick={() => navigate("/?start=1")}>
-                              <BookOpen className="w-3.5 h-3.5" /> {t.dash.createNewBook}
-                            </Button>
-                          </div>
-                        </motion.div>
+                          kid={kid}
+                          index={i}
+                          subscription={kidSub}
+                          bookCount={kidBooks}
+                          onEdit={() => { setEditChildStep(1); setEditingChild(kid); }}
+                          onViewBooks={() => setActiveTab("books")}
+                          onManageSubscription={() => {
+                            if (kidSub) setEditingSub(kidSub);
+                            else setActiveTab("subs");
+                          }}
+                          onToggleSubscription={async () => {
+                            if (!kidSub) return;
+                            const next = kidSub.status === "active" ? "paused" : "active";
+                            await updateSubscription.mutateAsync({ id: kidSub.id, status: next });
+                            toast.success(next === "paused" ? "Subscription paused" : "Subscription resumed!");
+                          }}
+                        />
                       );
                     })}
 
@@ -271,14 +215,21 @@ export default function Dashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: 0.2, ease }}
                       onClick={() => setAddChildOpen(true)}
-                      className="rounded-2xl border-2 border-dashed border-border p-5 flex flex-col items-center justify-center gap-3 text-muted-foreground hover:border-accent hover:text-accent transition-all duration-300 active:scale-[0.98] min-h-[180px]"
+                      className="rounded-3xl border-2 border-dashed border-border/60 p-5 flex flex-col items-center justify-center gap-3
+                        text-muted-foreground hover:border-foreground/40 hover:text-foreground
+                        transition-all duration-300 active:scale-[0.98] min-h-[260px]
+                        bg-white/40 backdrop-blur-md"
                     >
-                      <Plus className="w-8 h-8" />
+                      <div className="w-12 h-12 rounded-2xl bg-white/70 border border-white/70 ring-1 ring-black/5 flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9)]">
+                        <Plus className="w-6 h-6" strokeWidth={1.75} />
+                      </div>
                       <span className="text-sm font-medium">{t.dash.addChild}</span>
                     </motion.button>
                   </div>
                 )}
               </TabsContent>
+
+
 
               {/* TAB: Books */}
               <TabsContent value="books">
