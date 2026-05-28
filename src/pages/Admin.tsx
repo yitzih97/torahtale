@@ -51,6 +51,7 @@ const subStatusColor = (s: string) => {
 
 export default function Admin() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
   const {
     isAdmin, isCheckingAdmin,
