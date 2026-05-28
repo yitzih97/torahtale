@@ -119,7 +119,7 @@ export const QuantityStep = ({ quantity, onChange, unitPrice, currencySymbol }: 
           </div>
         )}
         <div className="border-t border-border pt-2 flex justify-between font-bold">
-          <span className="text-primary">{isHe ? "סה״כ" : "Total"}</span>
+          <span className="text-primary">{t.quantity.total}</span>
           <span className="text-accent text-lg">{currencySymbol}{total.toFixed(2)}</span>
         </div>
       </div>
