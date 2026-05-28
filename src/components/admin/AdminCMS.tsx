@@ -838,6 +838,11 @@ export function AdminCMS() {
           </div>
         </TabsContent>
 
+        {/* WIZARD STEPS */}
+        <TabsContent value="wizard">
+          <WizardStepsTab />
+        </TabsContent>
+
         {/* IMAGES */}
         <TabsContent value="images">
           <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm space-y-6">
