@@ -134,8 +134,18 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
         <ActionTile Icon={Eye} label={hasPages ? "View pages" : "Open"} onClick={hasPages ? onView : onOpen} primary={hasPages} />
         <ActionTile Icon={BookOpen} label="Details" onClick={onOpen} />
         <ActionTile Icon={Download} label={downloading ? "Saving…" : "Download"} onClick={onDownload} disabled={!hasPages || downloading} />
-        <ActionTile Icon={RotateCw} label="Reorder" onClick={onReorder} />
+        {canReview ? (
+          <ActionTile
+            Icon={Star}
+            label={hasReview ? "Edit review" : "Review"}
+            onClick={onReview!}
+            highlight={!hasReview}
+          />
+        ) : (
+          <ActionTile Icon={RotateCw} label="Reorder" onClick={onReorder} />
+        )}
       </div>
+
     </motion.div>
   );
 }
