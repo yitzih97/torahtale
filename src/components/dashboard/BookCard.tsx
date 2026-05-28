@@ -1,9 +1,11 @@
 import { motion } from "framer-motion";
 import { format, formatDistanceToNow } from "date-fns";
-import { BookOpen, Eye, Download, RotateCw, Package, Truck, Loader2, Sparkles, CheckCircle2 } from "lucide-react";
+import { BookOpen, Eye, Download, RotateCw, Package, Truck, Loader2, Sparkles, CheckCircle2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import type { BookRecord } from "@/hooks/useBooks";
+
+
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -31,14 +33,18 @@ interface Props {
   onView: () => void;
   onDownload: () => void;
   onReorder: () => void;
+  onReview?: () => void;
+  hasReview?: boolean;
   downloading?: boolean;
 }
 
-export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, downloading }: Props) {
+export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, onReview, hasReview, downloading }: Props) {
   const meta = statusMeta(book.status);
   const hasPages = !!book.pages_data && (book.pages_data as any[]).length > 0;
   const pageCount = hasPages ? (book.pages_data as any[]).length : 0;
   const Icon = meta.Icon;
+  const canReview = !!onReview && (book.status === "shipped" || book.status === "delivered");
+
 
   return (
     <motion.div
@@ -128,20 +134,31 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, d
         <ActionTile Icon={Eye} label={hasPages ? "View pages" : "Open"} onClick={hasPages ? onView : onOpen} primary={hasPages} />
         <ActionTile Icon={BookOpen} label="Details" onClick={onOpen} />
         <ActionTile Icon={Download} label={downloading ? "Saving…" : "Download"} onClick={onDownload} disabled={!hasPages || downloading} />
-        <ActionTile Icon={RotateCw} label="Reorder" onClick={onReorder} />
+        {canReview ? (
+          <ActionTile
+            Icon={Star}
+            label={hasReview ? "Edit review" : "Review"}
+            onClick={onReview!}
+            highlight={!hasReview}
+          />
+        ) : (
+          <ActionTile Icon={RotateCw} label="Reorder" onClick={onReorder} />
+        )}
       </div>
+
     </motion.div>
   );
 }
 
 function ActionTile({
-  Icon, label, onClick, primary, disabled,
+  Icon, label, onClick, primary, disabled, highlight,
 }: {
   Icon: typeof BookOpen;
   label: string;
   onClick: () => void | Promise<void>;
   primary?: boolean;
   disabled?: boolean;
+  highlight?: boolean;
 }) {
   return (
     <Button
@@ -156,10 +173,13 @@ function ActionTile({
         hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9),0_8px_20px_-8px_rgba(15,23,42,0.18)]
         ${primary
           ? "bg-foreground text-background hover:bg-foreground hover:text-background border-transparent ring-0"
-          : "bg-white/55 text-foreground hover:bg-white/75"}`}
+          : highlight
+            ? "bg-amber-50/80 text-amber-800 hover:bg-amber-50 border-amber-200/60"
+            : "bg-white/55 text-foreground hover:bg-white/75"}`}
     >
-      <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.75} />
+      <Icon className={`w-4 h-4 flex-shrink-0 ${highlight ? "fill-amber-400 text-amber-500" : ""}`} strokeWidth={1.75} />
       <span className="truncate">{label}</span>
     </Button>
   );
 }
+

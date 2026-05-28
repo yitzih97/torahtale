@@ -14,7 +14,10 @@ import { BookCard } from "@/components/dashboard/BookCard";
 import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
 import { BookTimeline } from "@/components/dashboard/BookTimeline";
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
+import { BookReviewDialog } from "@/components/dashboard/BookReviewDialog";
 import { generateBookZip } from "@/lib/generateBookZip";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus, Settings, BookMarked,
@@ -44,7 +47,22 @@ export default function Dashboard() {
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
   const [openBook, setOpenBook] = useState<BookRecord | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [reviewingBook, setReviewingBook] = useState<BookRecord | null>(null);
   const [activeTab, setActiveTab] = useState("kids");
+
+  // Track which books the current user has already reviewed
+  const { data: reviewedBookIds } = useQuery({
+    queryKey: ["my-reviewed-books", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("book_reviews")
+        .select("book_id")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return new Set((data || []).map((r) => r.book_id as string));
+    },
+  });
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
@@ -266,6 +284,8 @@ export default function Dashboard() {
                           onView={() => setViewingBook(book)}
                           onDownload={() => handleDownloadBook(book)}
                           onReorder={() => navigate("/?start=1")}
+                          onReview={() => setReviewingBook(book)}
+                          hasReview={reviewedBookIds?.has(book.id)}
                           downloading={downloadingId === book.id}
                         />
                       ))}
@@ -410,6 +430,13 @@ export default function Dashboard() {
         onDownload={() => openBook && handleDownloadBook(openBook)}
         onReorder={() => navigate("/?start=1")}
         downloading={!!openBook && downloadingId === openBook.id}
+      />
+
+      {/* Book Review Dialog */}
+      <BookReviewDialog
+        book={reviewingBook}
+        open={!!reviewingBook}
+        onClose={() => setReviewingBook(null)}
       />
     </div>
   );
