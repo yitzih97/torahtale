@@ -206,6 +206,25 @@ function BookTemplatesTab({ onSave, savingKey }: {
   const [uploadingRefKey, setUploadingRefKey] = useState<string | null>(null);
   const [generatingRefKey, setGeneratingRefKey] = useState<string | null>(null);
   const [refPrompts, setRefPrompts] = useState<Record<string, string>>({});
+
+  // ─── Master Book Rules (global, applied to every page of every book) ───
+  const [masterRules, setMasterRules] = useState<string>("");
+  const [masterLoaded, setMasterLoaded] = useState(false);
+  useEffect(() => {
+    supabase
+      .from("site_settings" as any)
+      .select("value")
+      .eq("category", "book-templates")
+      .eq("key", "master-rules")
+      .maybeSingle()
+      .then(({ data }) => {
+        setMasterRules(((data as any)?.value as string) || "");
+        setMasterLoaded(true);
+      });
+  }, []);
+  const saveMasterRules = () => onSave("book-templates", "master-rules", masterRules);
+
+
   
 
   const handleUploadRefImage = async (slotKey: string, file: File) => {
