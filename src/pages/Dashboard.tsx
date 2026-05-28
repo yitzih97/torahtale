@@ -431,6 +431,13 @@ export default function Dashboard() {
         onReorder={() => navigate("/?start=1")}
         downloading={!!openBook && downloadingId === openBook.id}
       />
+
+      {/* Book Review Dialog */}
+      <BookReviewDialog
+        book={reviewingBook}
+        open={!!reviewingBook}
+        onClose={() => setReviewingBook(null)}
+      />
     </div>
   );
 }
