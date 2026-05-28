@@ -11,6 +11,10 @@ import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { DashboardSettings } from "@/components/dashboard/DashboardSettings";
 import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditDialog";
 import { KidCard } from "@/components/dashboard/KidCard";
+import { BookCard } from "@/components/dashboard/BookCard";
+import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
+import { BookTimeline } from "@/components/dashboard/BookTimeline";
+import { generateBookZip } from "@/lib/generateBookZip";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus,
