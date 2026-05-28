@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useCartSync } from "@/hooks/useCartSync";
 import { useMetaTags } from "@/hooks/useMetaTags";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 import Index from "./pages/Index.tsx";
 import Create from "./pages/Create.tsx";
 import Admin from "./pages/Admin.tsx";
@@ -27,6 +28,7 @@ const queryClient = new QueryClient();
 const AppInner = () => {
   useCartSync();
   useMetaTags();
+  useScrollReveal();
   return (
     <BrowserRouter>
       <Routes>
