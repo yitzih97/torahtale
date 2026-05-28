@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
 import { format, formatDistanceToNow } from "date-fns";
-import { BookOpen, Eye, Download, RotateCw, Package, Truck, Loader2, Sparkles, CheckCircle2 } from "lucide-react";
+import { BookOpen, Eye, Download, RotateCw, Package, Truck, Loader2, Sparkles, CheckCircle2, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
+import type { BookRecord } from "@/hooks/useBooks";
+
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import type { BookRecord } from "@/hooks/useBooks";
