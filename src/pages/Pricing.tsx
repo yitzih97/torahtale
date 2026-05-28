@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useLanguage } from "@/contexts/LanguageContext";
 import cover1 from "@/assets/gallery/s1-cover.jpg";
 import cover2 from "@/assets/gallery/s2-cover.jpg";
 import cover3 from "@/assets/gallery/s3-cover.jpg";
@@ -22,13 +23,13 @@ import cover8 from "@/assets/gallery/s8-cover.jpg";
 
 const Pricing = () => {
   const navigate = useNavigate();
+  const { t, dir } = useLanguage();
   const [selected, setSelected] = useState<"single" | "torah" | "tanach">("torah");
+  const { symbol, rate } = t.currency;
+  const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
 
   const goCreate = (plan?: "subscription" | "single") => {
     if (plan) {
-      // Start a fresh wizard run when entering from pricing so users always
-      // go through name → age → photo/description before the order summary,
-      // even if they have a stale persisted step from a previous session.
       try {
         localStorage.removeItem("torahtale_wizard_state");
       } catch { /* ignore */ }
@@ -41,38 +42,19 @@ const Pricing = () => {
         }),
       );
     }
-    navigate(plan ? "/create" : "/create");
+    navigate("/create");
   };
 
-  const faqs = [
-    {
-      q: "Can I cancel anytime?",
-      a: "Yes — your subscription is fully flexible. Cancel from your dashboard at any time, no questions asked.",
-    },
-    {
-      q: "How often do I receive books?",
-      a: "Subscribers receive 4 personalized books per month, aligned with the weekly Parsha and major Yomim Tovim.",
-    },
-    {
-      q: "Can I choose specific stories?",
-      a: "Yes. With a single book purchase you pick any Parsha or story. Subscribers get the weekly Parsha automatically and can request swaps anytime.",
-    },
-    {
-      q: "Is this physical or digital?",
-      a: "Every book is a physical, premium-printed hardcover, softcover, or board book, shipped directly to your door.",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" dir={dir}>
       <Navbar onStart={() => goCreate()} transparentHero={false} />
 
       <main className="pt-24 lg:pt-28">
         {/* HERO */}
         <section className="container max-w-5xl text-center py-16 lg:py-24">
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-            Create Personalized Torah Books{" "}
-            <span className="text-accent">Your Kids Will Love</span>
+            {t.pricing.heroTitle}{" "}
+            <span className="text-accent">{t.pricing.heroAccent}</span>
           </h1>
         </section>
 
@@ -91,21 +73,21 @@ const Pricing = () => {
               <div className="flex items-center gap-2 mb-6">
                 <BookOpen className={`w-5 h-5 ${selected === "single" ? "text-accent" : "text-muted-foreground"}`} />
                 <h3 className={`font-display text-xl font-semibold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>
-                  Single Book
+                  {t.pricing.singleTitle}
                 </h3>
               </div>
               <div className="mb-8">
-                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "single" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>starting at</p>
-                <div className={`text-5xl font-bold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>$7.05</div>
-                <p className={`text-sm mt-1 ${selected === "single" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>One-time purchase</p>
+                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "single" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
+                <div className={`text-5xl font-bold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(7.05)}</div>
+                <p className={`text-sm mt-1 ${selected === "single" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{t.pricing.singleSubtitle}</p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
               <Button variant={selected === "single" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("single"); }} className="w-full">
-                Create Book
+                {t.pricing.singleCta}
               </Button>
             </div>
 
-            {/* CARD 2 — Subscription PRIMARY */}
+            {/* CARD 2 — Torah Series */}
             <div
               onClick={() => setSelected("torah")}
               className={`order-1 lg:order-2 relative rounded-2xl border-2 p-8 flex flex-col transition-all cursor-pointer lg:scale-105 lg:-my-2 ${
@@ -115,31 +97,31 @@ const Pricing = () => {
               }`}
             >
               <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground border-0 px-4 py-1 text-xs font-bold tracking-wide shadow-lg">
-                <Crown className="w-3 h-3 mr-1" /> MOST POPULAR
+                <Crown className="w-3 h-3 me-1" /> {t.pricing.mostPopular}
               </Badge>
               <div className="flex items-center gap-2 mb-6">
                 <Sparkles className="w-5 h-5 text-accent" />
                 <h3 className={`font-display text-xl font-semibold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>
-                  Torah Series
+                  {t.pricing.torahTitle}
                 </h3>
               </div>
               <div className="mb-8">
-                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "torah" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>starting at</p>
+                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "torah" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>$22.99</span>
-                  <span className={selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}>/month</span>
+                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(22.99)}</span>
+                  <span className={selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}>{t.pricing.perMonth}</span>
                 </div>
                 <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  4 books per month • Weekly Parsha + Holidays
+                  {t.pricing.torahSubtitle}
                 </p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
               <Button variant={selected === "torah" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("subscription"); }} className="w-full">
-                Start Now
+                {t.pricing.torahCta}
               </Button>
             </div>
 
-            {/* CARD 3 — Full Access */}
+            {/* CARD 3 — Tanach Series */}
             <div
               onClick={() => setSelected("tanach")}
               className={`order-3 relative rounded-2xl border-2 p-8 flex flex-col transition-all cursor-pointer ${
@@ -151,22 +133,22 @@ const Pricing = () => {
               <div className="flex items-center gap-2 mb-6">
                 <Crown className="w-5 h-5 text-accent" />
                 <h3 className={`font-display text-xl font-semibold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>
-                  Tanach Series
+                  {t.pricing.tanachTitle}
                 </h3>
               </div>
               <div className="mb-8">
-                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "tanach" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>starting at</p>
+                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "tanach" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>$34.99</span>
-                  <span className={selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}>/month</span>
+                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(34.99)}</span>
+                  <span className={selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}>{t.pricing.perMonth}</span>
                 </div>
                 <p className={`text-sm mt-1 ${selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  All of Torah, Neviim, Kesuvim
+                  {t.pricing.tanachSubtitle}
                 </p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
               <Button variant={selected === "tanach" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("subscription"); }} className="w-full">
-                Start Now
+                {t.pricing.tanachCta}
               </Button>
             </div>
           </div>
@@ -176,10 +158,10 @@ const Pricing = () => {
         <section className="py-16 lg:py-24 overflow-hidden">
           <div className="container max-w-5xl text-center mb-10">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-              Build a Library That Grows With Them
+              {t.pricing.collectionTitle}
             </h2>
             <p className="text-muted-foreground mt-3">
-              Every month, a new book joins their personal Torah collection.
+              {t.pricing.collectionDesc}
             </p>
           </div>
           <div className="relative">
@@ -191,7 +173,7 @@ const Pricing = () => {
                 >
                   <img
                     src={src}
-                    alt={`Personalized Torah book cover ${i + 1}`}
+                    alt={`${t.pricing.heroTitle} ${i + 1}`}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
@@ -204,12 +186,12 @@ const Pricing = () => {
         {/* FAQ */}
         <section className="container max-w-3xl py-16 lg:py-24">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-center text-foreground mb-10">
-            Questions? We've got answers.
+            {t.pricing.faqTitle}
           </h2>
           <Accordion type="single" collapsible className="w-full">
-            {faqs.map((f, i) => (
+            {t.pricing.faqs.map((f, i) => (
               <AccordionItem key={i} value={`item-${i}`}>
-                <AccordionTrigger className="text-left text-base font-semibold">
+                <AccordionTrigger className="text-start text-base font-semibold">
                   {f.q}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground leading-relaxed">
