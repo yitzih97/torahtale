@@ -96,6 +96,22 @@ export default function Dashboard() {
     toast.success(t.dash.childUpdated);
   };
 
+  const handleDownloadBook = async (book: BookRecord) => {
+    const pages = (book.pages_data as any[]) || [];
+    if (!pages.length) { toast.error("No pages to download"); return; }
+    setDownloadingId(book.id);
+    try {
+      const blob = await generateBookZip(pages, book.child_name || "book", book.order_number || book.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${book.child_name || "book"}-${book.torah_portion || "tale"}.zip`.replace(/\s+/g, "-").toLowerCase();
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Download ready!");
+    } catch { toast.error("Download failed"); }
+    finally { setDownloadingId(null); }
+
   const rawBookPages = viewingBook?.pages_data as any[] || [];
   // Filter out pages that are still loading (imageLoading: true with no image)
   const bookPages = rawBookPages.map((p: any) => ({
