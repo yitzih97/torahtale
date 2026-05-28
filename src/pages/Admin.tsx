@@ -138,11 +138,8 @@ export default function Admin() {
     );
   });
 
-  // User detail view
-  const selectedUser = selectedUserId ? profiles.find((p: any) => p.id === selectedUserId) : null;
-  const userBooks = selectedUserId ? books.filter((b: any) => b.user_id === selectedUserId) : [];
-  const userChildren = selectedUserId ? children.filter((c: any) => c.user_id === selectedUserId) : [];
-  const userSubs = selectedUserId ? subscriptions.filter((s: any) => s.user_id === selectedUserId) : [];
+
+
 
   
 
