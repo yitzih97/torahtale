@@ -20,7 +20,9 @@ import { generateBookZip } from "@/lib/generateBookZip";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { AdminCMS } from "@/components/admin/AdminCMS";
+import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ease = [0.22, 1, 0.36, 1];
 
