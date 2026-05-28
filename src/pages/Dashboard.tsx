@@ -17,8 +17,7 @@ import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Users, BookOpen, CalendarHeart, Plus,
-  Pause, Play, X, Settings, CreditCard, Pencil, BookMarked,
+  Users, BookOpen, CalendarHeart, Plus, Settings, BookMarked,
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,15 +26,9 @@ import { useBooks, type BookRecord } from "@/hooks/useBooks";
 import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { toast } from "sonner";
-import { format } from "date-fns";
 
 const ease = [0.22, 1, 0.36, 1];
 
-const subStatusStyle = (s: string) => {
-  if (s === "active") return "text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950";
-  if (s === "paused") return "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950";
-  return "text-muted-foreground bg-muted";
-};
 
 export default function Dashboard() {
   const navigate = useNavigate();
