@@ -398,6 +398,41 @@ function BookTemplatesTab({ onSave, savingKey }: {
         <span className="font-semibold">Variables:</span> <code className="text-[10px] bg-muted px-1 rounded">{"{childName}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{age}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{gender}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{artStyle}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{language}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{torahPortion}"}</code>
       </p>
 
+      {/* ── Master Book Rules — applied to every page of every book ── */}
+      <div className="rounded-2xl border border-gold/40 bg-gold/5 p-4 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-gold" />
+            Master Book Rules
+          </h4>
+          <Button
+            size="sm"
+            className="text-xs gap-1.5"
+            onClick={saveMasterRules}
+            disabled={savingKey === "book-templates:master-rules" || !masterLoaded}
+          >
+            {savingKey === "book-templates:master-rules" ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <Save className="w-3 h-3" />
+            )}
+            Save
+          </Button>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Applied to every page of every book — text and illustration. Use the same variables above.
+        </p>
+        <Textarea
+          rows={8}
+          value={masterRules}
+          onChange={(e) => setMasterRules(e.target.value)}
+          placeholder={`e.g.\n- Every page must end with a gentle question that ties the lesson back to the child's daily life.\n- Keep sentences under 14 words.\n- Boys 3+ always shown with peyos, kippah, and tzitzis.\n- Never depict women's hair uncovered.`}
+          className="text-sm font-mono"
+        />
+      </div>
+
+
+
       {/* Portion selector */}
       <div className="space-y-2">
         <label className="text-xs font-semibold text-foreground">Select Portion / Story</label>
