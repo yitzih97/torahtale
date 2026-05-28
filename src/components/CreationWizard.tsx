@@ -28,6 +28,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useChildren } from "@/hooks/useChildren";
 import { ImageCropDialog } from "./ImageCropDialog";
+import { GlassIconTile } from "@/components/ui/glass-icon-tile";
+
+
 
 /* ── preset images ── */
 import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
@@ -847,10 +850,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ ...springTransition, stiffness: 400 }}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/20 via-accent/10 to-transparent flex items-center justify-center ring-1 ring-accent/15 flex-shrink-0"
+              className="flex-shrink-0"
             >
-              <StepIcon className="w-4 h-4 text-accent" />
+              <GlassIconTile Icon={StepIcon} size="sm" />
             </motion.div>
+
             {step !== 11 && (
               <div className="min-w-0">
                 <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">

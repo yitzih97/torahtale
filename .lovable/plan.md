@@ -1,49 +1,67 @@
-## Goals
+# Dashboard refresh + wizard admin editor
 
-1. Use OpenAI **`gpt-image-2`** (newest) for all book illustrations.
-2. Pass the child's uploaded reference photo into every page generation and strengthen the prompt so the AI faithfully mimics the child.
-3. Make the number of story pages depend on the chosen book type: **softcover = 20, hardcover = 20, board = 10**.
-4. Generate every page (covers + interior) as a **1:1 square** illustration, and render/export them as 1:1.
+Four coordinated changes. All visuals match the new `.wizard-glass` Apple liquid-glass look (graphite ink accents, frosted surfaces, no gold).
 
-## Changes
+## 1. Dashboard kid card
 
-### 1. Default image model → `gpt-image-2`
-- In `supabase/functions/generate-image/index.ts`, change the model resolution so `gpt-image-2` is the default when no admin override exists (instead of falling back to Gemini). The existing OpenAI branch already supports `gpt-image-*`.
-- Update the OpenAI branch size handling: send `1024x1024` for all pages and covers (square), drop the `1536x1024` cover override.
-- Seed/update the `site_settings` row `category=ai, key=image-model` to `gpt-image-2` so admin CMS reflects it.
-- Same default applied in `admin-generate-image` if it has its own model selection.
+Remove the "Create new book" button and the duplicate avatar/icon row. Replace with a clean liquid-glass card showing:
 
-### 2. Reference photo wiring
-- Audit `CreationWizard.tsx` page-generation calls to `supabase.functions.invoke("generate-image", …)` and confirm `referenceImage` (the child's `photoPreview` / uploaded photo URL) is included on **every** call, not just the character sheet step. Add it where missing.
-- In `generate-image/index.ts`, when `referenceImage` is present, prepend a stronger consistency instruction: "The attached photograph is the REAL child. Reproduce their exact face shape, eye color, skin tone, hair color/texture, and overall likeness in the chosen art style. The illustrated child must be unmistakably recognizable as the same child."
-- Ensure both `characterSheet` AND `referenceImage` can be sent together (already supported via the `parts` array) — confirm order: photo first, then character sheet, then text prompt.
+- Child photo + name + age (header)
+- Countdown chip "Next book in 4 days" (uses existing `CountdownTimer`)
+- Four equal quick-action tiles in a 2x2 grid:
+  - **View books** — opens that child's library
+  - **Edit child** — opens settings popup
+  - **Manage subscription** — opens subscription dialog
+  - **Pause / Resume** — quick toggle without opening dialog
 
-### 3. Page count by book type
-- Add a helper in `BookOptionsStep.tsx` (or a new `bookFormat.ts`):
-  ```
-  PAGES_BY_TYPE = { softcover: 20, hardcover: 20, board: 10 }
-  ```
-- Replace the hardcoded `pageCount: 10` in `CreationWizard.tsx` initial data and recompute it whenever `bookOptions.productType` changes.
-- In `generate-story/index.ts`, replace the hardcoded `const pages = 10` with the `pageCount` received from the request body (validated to 10 or 20). Update the prompt to instruct the model to produce exactly that many story beats.
-- `BookViewer.tsx` page dots & navigation already iterate `pages.length`, so no change needed there beyond aspect ratio (below).
+Status pill in the corner (Active / Paused / No subscription).
 
-### 4. 1:1 square pages everywhere
-- `BookViewer.tsx`: change `aspect-[4/3]` → `aspect-square` for both the image and the loading placeholder.
-- `generate-image/index.ts` OpenAI branch: always request `1024x1024`.
-- Update the `PRINT_SPECS` dimension hint in the prompt so cover and interior both target square output for Printify (we'll keep Printify cover spec separate — generated art will be square and Printify can place it).
-- `generateBookZip.ts` / `generateBookPdf.ts`: ensure the offscreen canvas uses the natural square dimensions of the generated image (it already uses `img.naturalWidth/Height`, so this works automatically once images are 1:1).
-- `BookPreviewModal`, gallery thumbnails, admin generation modal previews: switch any `aspect-[4/3]` to `aspect-square`.
+## 2. Child settings popup (edit-child dialog)
 
-### 5. Admin CMS
-- Update the model dropdown options in `AdminCMS` (if present) to include `gpt-image-2` and default to it.
+Restyle to match wizard:
+- `wizard-glass` scope wrapper, frosted background, ambient orbs
+- Photo upload becomes a large rounded liquid-glass tile with hover lift
+- Field rows on individual translucent cards
+- Section headers in Playfair Display
+- Primary action: dark ink pill button (no gold)
+- Section icons swapped from gold to graphite
 
-## Technical notes
+## 3. Regenerate wizard + edit-child icons
 
-- `gpt-image-2` uses the same `/v1/images/generations` and `/v1/images/edits` endpoints as `gpt-image-1`; the existing OpenAI branch in `generate-image` works as-is once the model string changes.
-- `OPENAI_API_KEY` is already configured in secrets.
-- No database migration required for the page-count or model changes — `pageCount` is stored inside `story_data` JSONB.
-- One small DB seed via `site_settings` upsert to set `image-model = gpt-image-2` (optional; the function defaults will handle it either way).
+Replace the colored Lucide icons currently shown in both flows with a unified set of monochrome graphite line icons rendered inside small frosted-glass tiles. Approach:
 
-## Out of scope
-- No checkout / Shopify / Printify behavior changes.
-- No changes to story text generation logic beyond the page-count parameter.
+- Keep the existing Lucide icon imports (Users, BookOpen, Palette, Package, etc.)
+- Wrap them in a shared `<GlassIconTile />` component: 48px rounded square, white/8 background, `backdrop-blur`, 1px inner highlight, ink-colored icon
+- Apply to: wizard top-bar step icon, each wizard step's hero icon, dashboard quick-action tiles, child settings section headers
+- No new image generation needed — the unified tile + ink color is what makes them feel consistent
+
+## 4. Admin editor for wizard steps
+
+New "Wizard Steps" panel in `AdminCMS`. Persists to existing `site_settings` table under category `wizard` so no migration needed.
+
+Per step (8 steps): title, subtitle, helper text, icon image override, visible toggle, order index.
+
+Storage keys:
+- `wizard.step.{N}.title`, `.subtitle`, `.helper`, `.icon_url`, `.visible`, `.order`
+
+Wizard reads these via `useSiteSettings("wizard")` with fallbacks to the current hard-coded English/Hebrew copy.
+
+Reorder + show/hide handled via simple up/down arrows and a switch in the admin list (drag-and-drop deferred).
+
+## Technical details
+
+- New file `src/components/dashboard/KidCard.tsx` extracted from Dashboard.tsx for the redesigned card
+- New file `src/components/ui/glass-icon-tile.tsx` for the shared icon tile
+- `DashboardSettings.tsx` restructured into glass sections
+- `AdminCMS.tsx` gets a new `WizardStepsEditor` section component
+- `CreationWizard.tsx` step copy/icon reads layered on top of existing `t.wizard.*` strings using `getSetting("wizard", ...)`; English fallbacks preserved
+- Icon image override: when admin uploads an image, the wizard renders `<img>` instead of the Lucide icon
+- No DB schema changes; uses existing `site_settings` + `site-images` bucket
+- Bilingual: admin can save EN and HE separately via `wizard.step.{N}.title.en` / `.he` key suffixes
+
+## Out of scope (call out)
+
+- AI regeneration of wizard imagery — answered question said icons, not photos. If you want new AI-generated photo illustrations as well, say the word and I'll add that pass after.
+- Drag-and-drop reordering — arrows for now; can upgrade later.
+
+Approve and I'll build all four in one pass.
