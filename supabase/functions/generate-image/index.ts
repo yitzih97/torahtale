@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { encode as encodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,15 +7,22 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const PROVIDER_TIMEOUT_MS = 40_000;
+
 // Safely convert an ArrayBuffer to base64 without blowing the stack on large images
 function bufferToBase64(buf: ArrayBuffer): string {
-  const bytes = new Uint8Array(buf);
-  let binary = "";
-  const chunk = 0x8000; // 32KB chunks
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk) as unknown as number[]);
+  return encodeBase64(new Uint8Array(buf));
+}
+
+async function fetchWithTimeout(input: string, init?: RequestInit, timeoutMs = PROVIDER_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort("Request timed out"), timeoutMs);
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return btoa(binary);
 }
 
 serve(async (req) => {
@@ -155,7 +163,7 @@ serve(async (req) => {
         }
       } else {
         try {
-          const imgResp = await fetch(characterSheet);
+          const imgResp = await fetchWithTimeout(characterSheet, undefined, 10_000);
           if (imgResp.ok) {
             const buf = await imgResp.arrayBuffer();
             const b64 = bufferToBase64(buf);
@@ -176,7 +184,7 @@ serve(async (req) => {
         }
       } else {
         try {
-          const imgResp = await fetch(referenceImage);
+          const imgResp = await fetchWithTimeout(referenceImage, undefined, 10_000);
           if (imgResp.ok) {
             const buf = await imgResp.arrayBuffer();
             const b64 = bufferToBase64(buf);
@@ -191,7 +199,7 @@ serve(async (req) => {
     if (sceneReferenceImageUrl) {
       imagePrompt += ` SCENE COMPOSITION GUIDE: The attached SCENE REFERENCE IMAGE shows the exact scene layout, background elements, and overall composition you MUST reproduce. Match the same environment, camera angle, lighting, and background details. However, adapt the child character to match the specified name, age, gender, and character sheet. The scene should look nearly identical to the reference — only the child character changes.`;
       try {
-        const sceneResp = await fetch(sceneReferenceImageUrl);
+        const sceneResp = await fetchWithTimeout(sceneReferenceImageUrl, undefined, 10_000);
         if (sceneResp.ok) {
           const buf = await sceneResp.arrayBuffer();
           const b64 = bufferToBase64(buf);
@@ -205,7 +213,10 @@ serve(async (req) => {
 
     // ============= OPENAI BRANCH (gpt-image-* / dall-e-*) =============
     // Default to gpt-image-2 (newest) when admin hasn't picked a model.
-    const effectiveImageModel = customImageModel || "gpt-image-2";
+    const requestedImageModel = customImageModel || "gpt-image-2";
+    const hasRealReferencePhoto = Boolean(referenceImage);
+    const shouldForceGemini = hasRealReferencePhoto;
+    const effectiveImageModel = shouldForceGemini ? "gemini-3.1-flash-image-preview" : requestedImageModel;
     const isOpenAI = /^(gpt-image|dall-e)/i.test(effectiveImageModel);
     if (isOpenAI) {
       const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
@@ -230,13 +241,13 @@ serve(async (req) => {
         fd.append("size", size);
         fd.append("n", "1");
         for (const ib of imageBlobs) fd.append("image[]", ib.blob, ib.name);
-        openaiResp = await fetch("https://api.openai.com/v1/images/edits", {
+        openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/edits", {
           method: "POST",
           headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
           body: fd,
         });
       } else {
-        openaiResp = await fetch("https://api.openai.com/v1/images/generations", {
+        openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/generations", {
           method: "POST",
           headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
           body: JSON.stringify({ model: effectiveImageModel, prompt: imagePrompt, size, n: 1 }),
@@ -263,14 +274,14 @@ serve(async (req) => {
     }
     // ============= END OPENAI BRANCH =============
 
-    const imageModels = customImageModel
+    const imageModels = shouldForceGemini
+      ? ["gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
+      : customImageModel
       ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
       : [
           "gemini-3.1-flash-image-preview",
           "gemini-2.5-flash-image-preview",
           "gemini-2.5-flash-image",
-          "gemini-2.0-flash-exp-image-generation",
-          "gemini-2.0-flash-preview-image-generation",
         ];
 
     let response: Response | null = null;
@@ -279,7 +290,7 @@ serve(async (req) => {
     let lastErrorBody = "";
 
     for (const model of imageModels) {
-      const attempt = await fetch(
+      const attempt = await fetchWithTimeout(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
         {
           method: "POST",
@@ -288,7 +299,8 @@ serve(async (req) => {
             contents: [{ role: "user", parts }],
             generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
           }),
-        }
+        },
+        PROVIDER_TIMEOUT_MS,
       );
 
       if (attempt.ok) {
@@ -344,8 +356,9 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("generate-image error:", e);
+    const isTimeout = e instanceof DOMException && e.name === "AbortError";
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
+      status: isTimeout ? 504 : 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
