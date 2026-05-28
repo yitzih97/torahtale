@@ -424,6 +424,13 @@ export const he: typeof en = {
     expressTime: "2-3 ימי עסקים",
     free: "חינם",
     expressCost: "+₪36.99",
+    subscriptionShipNote: "הזמנות לאחר יום שלישי יישלחו עבור פרשת השבוע הבא.",
+    paymentDetails: "פרטי תשלום",
+    cardNumber: "מספר כרטיס",
+    expiration: "תוקף (חודש/שנה)",
+    cvc: "CVC",
+    nameOnCard: "שם בעל הכרטיס",
+    cardNamePlaceholder: "שם מלא",
   },
 
   // Checkout
@@ -448,7 +455,9 @@ export const he: typeof en = {
     freeShipping: "חינם",
     freeShipNote: "🚚 משלוח חינם בכל מנוי · ביטול בכל עת",
     secureCheckout: "תשלום מאובטח · הצפנת 256 ביט · פרטי התשלום שלכם בטוחים",
-     subscribeOrder: (total: string) => `הירשמו והזמינו — ₪${total}`,
+    volumeDiscount: (pct: number) => `הנחת כמות ${pct}% −`,
+    disclaimer: "כל ספר נוצר בהתאם לתיאור ולתמונות שהעליתם. אנו עושים כמיטב יכולתנו להגשים את חזונכם, אך איננו אחראים אם התוצאה הסופית לא תצא בדיוק כפי שדמיינתם.",
+    subscribeOrder: (total: string) => `הירשמו והזמינו — ₪${total}`,
     placeOrder: (total: string) => `בצעו הזמנה — ₪${total}`,
     redirectingToShopify: "מעבירים אתכם לעמוד התשלום של Shopify…",
     checkoutFallback: "פותחים את עגלת Shopify (מצב גיבוי)…",
@@ -542,6 +551,46 @@ export const he: typeof en = {
     crossLink: "← מדיניות פרטיות",
     crossLinkPath: "/privacy",
     tocLabel: "בעמוד זה",
+  },
+
+  // Pricing page
+  pricing: {
+    heroTitle: "צרו ספרי תורה מותאמים אישית",
+    heroAccent: "שילדיכם יאהבו",
+    startingAt: "החל מ-",
+    perMonth: "/חודש",
+    mostPopular: "הכי פופולרי",
+    singleTitle: "ספר בודד",
+    singleSubtitle: "רכישה חד פעמית",
+    singleCta: "צרו ספר",
+    torahTitle: "סדרת התורה",
+    torahSubtitle: "4 ספרים בחודש • פרשת השבוע + חגים",
+    torahCta: "התחילו עכשיו",
+    tanachTitle: "סדרת התנ״ך",
+    tanachSubtitle: "כל התורה, נביאים וכתובים",
+    tanachCta: "התחילו עכשיו",
+    collectionTitle: "בנו ספרייה שגדלה איתם",
+    collectionDesc: "כל חודש, ספר חדש מצטרף לאוסף התורה האישי שלהם.",
+    faqTitle: "שאלות? יש לנו תשובות.",
+    faqs: [
+      { q: "האם אפשר לבטל בכל עת?", a: "כן — המנוי שלכם גמיש לחלוטין. ניתן לבטל מלוח הבקרה בכל עת, ללא שאלות." },
+      { q: "כמה ספרים אקבל?", a: "מנויים מקבלים 4 ספרים מותאמים אישית בחודש, בהתאם לפרשת השבוע ולמועדי השנה." },
+      { q: "האם אוכל לבחור סיפורים ספציפיים?", a: "כן. ברכישת ספר בודד תוכלו לבחור כל פרשה או סיפור. מנויים מקבלים את פרשת השבוע אוטומטית ויכולים לבקש החלפות בכל עת." },
+      { q: "האם הספר פיזי או דיגיטלי?", a: "כל ספר הוא פיזי, מודפס באיכות פרימיום בכריכה קשה, רכה או קרטון, ונשלח עד דלת ביתכם." },
+    ],
+  },
+
+  // Quantity step
+  quantity: {
+    title: "כמה עותקים?",
+    subtitle: "הזמינו אחד לבית, אחד לסבא וסבתא, או אחד כמתנה.",
+    copyOne: "עותק 1",
+    copyMany: (n: number) => `${n} עותקים`,
+    custom: "כמות מותאמת",
+    subtotal: "סכום ביניים",
+    total: "סה״כ",
+    save: (pct: number) => `חוסך ${pct}%`,
+    giftHint: "💡 הוסיפו 2+ עותקים לקבלת הנחת כמות אוטומטית",
   },
 
   // Currency

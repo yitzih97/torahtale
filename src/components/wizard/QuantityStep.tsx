@@ -17,24 +17,20 @@ interface Props {
 }
 
 export const QuantityStep = ({ quantity, onChange, unitPrice, currencySymbol }: Props) => {
-  const { lang } = useLanguage();
-  const isHe = lang === "he" || lang === "yi";
+  const { t } = useLanguage();
 
-  const title = isHe ? "כמה עותקים?" : "How many copies?";
-  const sub = isHe
-    ? "הזמינו אחד לבית, אחד לסבא וסבתא, או אחד כמתנה."
-    : "Order one for your home, one for grandparents, or one as a gift.";
-  const copyLabel = (n: number) => isHe ? (n === 1 ? "עותק 1" : `${n} עותקים`) : (n === 1 ? "1 copy" : `${n} copies`);
-  const customLabel = isHe ? "כמות מותאמת" : "Custom quantity";
-  const subtotalLabel = isHe ? "סך הכל" : "Subtotal";
-  const savingsLabel = (pct: number) => isHe ? `חוסך ${pct}%` : `Save ${pct}%`;
-  const giftHint = isHe
-    ? "💡 הזמינו 2+ כדי לקבל הנחת כמות אוטומטית"
-    : "💡 Add 2+ copies to unlock automatic volume savings";
+  const title = t.quantity.title;
+  const sub = t.quantity.subtitle;
+  const copyLabel = (n: number) => (n === 1 ? t.quantity.copyOne : t.quantity.copyMany(n));
+  const customLabel = t.quantity.custom;
+  const subtotalLabel = t.quantity.subtotal;
+  const savingsLabel = (pct: number) => t.quantity.save(pct);
+  const giftHint = t.quantity.giftHint;
 
   const discount = getVolumeDiscount(quantity);
   const subtotal = unitPrice * quantity;
   const total = subtotal * (1 - discount);
+
 
   const presets = [1, 2, 3];
 
@@ -123,7 +119,7 @@ export const QuantityStep = ({ quantity, onChange, unitPrice, currencySymbol }: 
           </div>
         )}
         <div className="border-t border-border pt-2 flex justify-between font-bold">
-          <span className="text-primary">{isHe ? "סה״כ" : "Total"}</span>
+          <span className="text-primary">{t.quantity.total}</span>
           <span className="text-accent text-lg">{currencySymbol}{total.toFixed(2)}</span>
         </div>
       </div>

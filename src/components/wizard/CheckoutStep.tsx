@@ -202,7 +202,7 @@ export const CheckoutStep = ({
           </div>
           {!isSubscription && volumeDiscount > 0 && (
             <div className="flex justify-between text-accent">
-              <span>− {Math.round(volumeDiscount * 100)}% volume discount</span>
+              <span>{t.checkout.volumeDiscount(Math.round(volumeDiscount * 100))}</span>
               <span className="font-medium">−{fmt(discountAmount)}</span>
             </div>
           )}
@@ -249,7 +249,7 @@ export const CheckoutStep = ({
       </div>
 
       <p className="text-xs text-muted-foreground leading-relaxed px-1">
-        Each book is created based on the description and photos uploaded by you. We do our best to bring your vision to life, but we are not responsible if the final result doesn't come out exactly the way you envisioned it.
+        {t.checkout.disclaimer}
       </p>
 
       <Button
