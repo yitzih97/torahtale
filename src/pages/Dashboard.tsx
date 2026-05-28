@@ -14,7 +14,10 @@ import { BookCard } from "@/components/dashboard/BookCard";
 import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
 import { BookTimeline } from "@/components/dashboard/BookTimeline";
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
+import { BookReviewDialog } from "@/components/dashboard/BookReviewDialog";
 import { generateBookZip } from "@/lib/generateBookZip";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus, Settings, BookMarked,
