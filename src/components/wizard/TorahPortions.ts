@@ -135,6 +135,21 @@ export const getPortionLabel = (value: string): string => {
   return found ? `${found.label} / ${found.sub}` : value;
 };
 
+/** Capitalize first letter of fallback slug, replacing dashes with spaces. */
+const prettifySlug = (value: string): string =>
+  value
+    .split("-")
+    .map((s) => (s ? s[0].toUpperCase() + s.slice(1) : s))
+    .join(" ");
+
+/** Language-aware display: English label (already capitalized) for "en", Hebrew sub for "he"/"yi". */
+export const getPortionDisplay = (value: string, lang: "en" | "he" | "yi"): string => {
+  if (!value) return "";
+  const found = TORAH_PORTIONS.find((p) => p.value === value);
+  if (!found) return prettifySlug(value);
+  return lang === "en" ? found.label : found.sub;
+};
+
 /**
  * Weekly Torah portion reading schedule.
  * Maps a Saturday date (YYYY-MM-DD) to the parashah value(s) read that Shabbat.
