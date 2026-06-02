@@ -78,7 +78,7 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
             transition-transform duration-300 active:scale-95"
         >
           {book.cover_image_url ? (
-            <img src={book.cover_image_url} alt={book.torah_portion || ""} className="w-full h-full object-cover" />
+            <img src={book.cover_image_url} alt={portionDisplay} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
               <BookOpen className="w-6 h-6 text-slate-600" />
