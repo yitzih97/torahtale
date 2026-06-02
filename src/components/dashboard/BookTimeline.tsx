@@ -19,6 +19,7 @@ type Slot = {
 };
 
 export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
+  const { lang } = useLanguage();
   const today = new Date();
   const slots: Slot[] = [];
 
