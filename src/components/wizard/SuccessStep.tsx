@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { PartyPopper, ArrowRight, Mail, Plus, Heart } from "lucide-react";
+import { ArrowRight, Mail, Plus, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 import { useLanguage } from "@/contexts/LanguageContext";
+import celebrationPopper from "@/assets/wizard/celebration-popper.png";
 
 interface Props {
   childName: string;
@@ -48,12 +49,12 @@ export const SuccessStep = ({
   return (
     <div className="py-10 text-center space-y-6 max-w-md mx-auto">
       <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 12 }}
-        className="w-24 h-24 rounded-3xl bg-accent/10 flex items-center justify-center mx-auto"
+        initial={{ scale: 0, rotate: -20 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 14 }}
+        className="w-48 h-48 mx-auto flex items-center justify-center"
       >
-        <PartyPopper className="w-12 h-12 text-accent" />
+        <img src={celebrationPopper} alt="" width={256} height={256} loading="lazy" className="w-full h-full object-contain" />
       </motion.div>
 
       <motion.h2

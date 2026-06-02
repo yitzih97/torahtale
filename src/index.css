@@ -371,26 +371,44 @@
   50%      { background-position: 0 100%; }
 }
 
-/* ───────────────── Wizard liquid-glass scope (/create) ─────────────────
-   Refined Apple-style graphite ink inside the wizard. */
+/* ───────────────── Wizard clean-minimal scope (/create) ─────────────────
+   Fanvue-inspired: pure neutrals, huge bold sans headlines, flat soft cards,
+   black pill CTA. Overrides global liquid-silver tokens within wizard only. */
 .wizard-glass {
-  --accent: 222 18% 22%;
-  --accent-foreground: 220 20% 98%;
-  --gold: 222 18% 22%;
-  --gold-light: 220 14% 42%;
-  --ring: 222 18% 22%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 7%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 7%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 0 0% 45%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --primary: 0 0% 7%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 142 71% 45%;
+  --accent-foreground: 0 0% 100%;
+  --gold: 0 0% 7%;
+  --gold-light: 0 0% 25%;
+  --ring: 0 0% 7%;
 }
-.wizard-glass .gold-glow {
-  box-shadow:
-    0 1px 0 0 hsl(0 0% 100% / 0.6) inset,
-    0 10px 30px -10px hsl(222 25% 14% / 0.3),
-    0 2px 8px -2px hsl(222 25% 14% / 0.18);
+/* Big bold left-aligned headlines inside the wizard */
+.wizard-glass h2 {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  text-wrap: balance;
 }
+/* Flat soft selection — replaces gold glow */
+.wizard-glass .is-selected,
+.wizard-glass [aria-selected="true"].selectable {
+  background-image: linear-gradient(180deg, hsl(142 71% 45% / 0.08), hsl(142 71% 45% / 0.04)) !important;
+  border-color: hsl(142 71% 45%) !important;
+  box-shadow: 0 0 0 1px hsl(142 71% 45%) !important;
+}
+.wizard-glass .gold-glow,
 .wizard-glass .gold-glow-hover:hover {
-  box-shadow:
-    0 1px 0 0 hsl(0 0% 100% / 0.7) inset,
-    0 14px 36px -12px hsl(222 25% 14% / 0.4),
-    0 4px 12px -2px hsl(222 25% 14% / 0.22);
+  box-shadow: 0 4px 12px -4px hsl(0 0% 0% / 0.08) !important;
 }
 
 
