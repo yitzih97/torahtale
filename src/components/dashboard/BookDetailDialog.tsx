@@ -3,6 +3,8 @@ import { BookOpen, Eye, Download, RotateCw, Truck, Package, CheckCircle2, Sparkl
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { BookRecord } from "@/hooks/useBooks";
+import { getPortionDisplay } from "@/components/wizard/TorahPortions";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const statusMeta = (s: string) => {
   if (s === "delivered") return { cls: "bg-emerald-50 text-emerald-700 border-emerald-200/60", Icon: Truck, label: "Delivered" };
@@ -24,15 +26,17 @@ interface Props {
 }
 
 export function BookDetailDialog({ book, open, onClose, onView, onDownload, onReorder, downloading }: Props) {
+  const { lang } = useLanguage();
   if (!book) return null;
   const meta = statusMeta(book.status);
   const pages = (book.pages_data as any[]) || [];
   const hasPages = pages.length > 0;
   const ship = book.shipping_data as any;
+  const portionDisplay = book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "";
 
   const infoRows = [
     { Icon: User, label: "Child", value: book.child_name || "—" },
-    { Icon: BookOpen, label: "Portion", value: book.torah_portion || "—" },
+    { Icon: BookOpen, label: "Portion", value: portionDisplay || "—" },
     { Icon: Palette, label: "Art style", value: (book.art_style || "cartoon").replace("3d-pixar", "3D Pixar") },
     { Icon: Globe2, label: "Language", value: book.language || "English" },
     { Icon: Hash, label: "Order #", value: book.order_number || "—" },
@@ -52,7 +56,7 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
           <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row gap-5">
             <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-2xl overflow-hidden ring-1 ring-black/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.7)] flex-shrink-0 mx-auto sm:mx-0">
               {book.cover_image_url ? (
-                <img src={book.cover_image_url} alt={book.torah_portion || ""} className="w-full h-full object-cover" />
+                <img src={book.cover_image_url} alt={portionDisplay} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
                   <BookOpen className="w-10 h-10 text-slate-600" />
@@ -61,7 +65,7 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
             </div>
             <div className="flex-1 min-w-0">
               <DialogHeader className="text-left">
-                <DialogTitle className="font-display text-2xl text-foreground">{book.torah_portion || "Torah Tale"}</DialogTitle>
+                <DialogTitle className="font-display text-2xl text-foreground">{portionDisplay || "Torah Tale"}</DialogTitle>
               </DialogHeader>
               <p className="text-sm text-muted-foreground mt-1">For {book.child_name || "—"}</p>
               <span className={`mt-3 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border ${meta.cls}`}>

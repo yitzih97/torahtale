@@ -2,6 +2,8 @@ import { format, addDays, addWeeks, isSameDay } from "date-fns";
 import { Truck, Sparkles, CalendarDays } from "lucide-react";
 import type { BookRecord } from "@/hooks/useBooks";
 import type { SubscriptionRecord } from "@/hooks/useSubscriptions";
+import { getPortionDisplay } from "@/components/wizard/TorahPortions";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   books: BookRecord[];
@@ -17,6 +19,7 @@ type Slot = {
 };
 
 export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
+  const { lang } = useLanguage();
   const today = new Date();
   const slots: Slot[] = [];
 
@@ -30,7 +33,7 @@ export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
       slots.push({
         date: d,
         kind: b.status === "delivered" ? "past-delivery" : "past-order",
-        label: `${b.torah_portion || "Tale"} · ${b.status}`,
+        label: `${b.torah_portion ? getPortionDisplay(b.torah_portion, lang) : "Tale"} · ${b.status}`,
         sub: b.child_name || undefined,
       });
     });

@@ -135,6 +135,21 @@ export const getPortionLabel = (value: string): string => {
   return found ? `${found.label} / ${found.sub}` : value;
 };
 
+/** Capitalize first letter of fallback slug, replacing dashes with spaces. */
+const prettifySlug = (value: string): string =>
+  value
+    .split("-")
+    .map((s) => (s ? s[0].toUpperCase() + s.slice(1) : s))
+    .join(" ");
+
+/** Language-aware display: English label (already capitalized) for "en", Hebrew sub for "he"/"yi". */
+export const getPortionDisplay = (value: string, lang: "en" | "he" | "yi"): string => {
+  if (!value) return "";
+  const found = TORAH_PORTIONS.find((p) => p.value === value);
+  if (!found) return prettifySlug(value);
+  return lang === "en" ? found.label : found.sub;
+};
+
 /**
  * Weekly Torah portion reading schedule.
  * Maps a Saturday date (YYYY-MM-DD) to the parashah value(s) read that Shabbat.
@@ -250,10 +265,10 @@ const PARSHA_CALENDAR: Record<string, string> = {
 /** Returns the parashah read two weeks from now (skips current and next week to allow production lead time) */
 export const getUpcomingParsha = (): string => {
   const now = new Date();
-  // Jump to the Saturday two weeks out (skip this week's and next week's Shabbat)
+  // Jump to the Saturday three weeks out (skip current + next two Shabbatos for production lead time)
   const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
   const targetSat = new Date(now);
-  targetSat.setDate(now.getDate() + daysUntilSat + 14);
+  targetSat.setDate(now.getDate() + daysUntilSat + 21);
   const key = targetSat.toISOString().slice(0, 10);
   
   if (PARSHA_CALENDAR[key]) return PARSHA_CALENDAR[key];

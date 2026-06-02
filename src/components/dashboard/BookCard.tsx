@@ -4,6 +4,8 @@ import { BookOpen, Eye, Download, RotateCw, Package, Truck, Loader2, Sparkles, C
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import type { BookRecord } from "@/hooks/useBooks";
+import { getPortionDisplay } from "@/components/wizard/TorahPortions";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 
@@ -39,11 +41,13 @@ interface Props {
 }
 
 export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, onReview, hasReview, downloading }: Props) {
+  const { lang } = useLanguage();
   const meta = statusMeta(book.status);
   const hasPages = !!book.pages_data && (book.pages_data as any[]).length > 0;
   const pageCount = hasPages ? (book.pages_data as any[]).length : 0;
   const Icon = meta.Icon;
   const canReview = !!onReview && (book.status === "shipped" || book.status === "delivered");
+  const portionDisplay = book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "";
 
 
   return (
@@ -74,7 +78,7 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
             transition-transform duration-300 active:scale-95"
         >
           {book.cover_image_url ? (
-            <img src={book.cover_image_url} alt={book.torah_portion || ""} className="w-full h-full object-cover" />
+            <img src={book.cover_image_url} alt={portionDisplay} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
               <BookOpen className="w-6 h-6 text-slate-600" />
@@ -86,7 +90,7 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
         </button>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-lg font-semibold text-foreground truncate">{book.torah_portion || "Torah Tale"}</h3>
+          <h3 className="font-display text-lg font-semibold text-foreground truncate">{portionDisplay || "Torah Tale"}</h3>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
             For {book.child_name || "—"} · {format(new Date(book.created_at), "MMM d, yyyy")}
           </p>
