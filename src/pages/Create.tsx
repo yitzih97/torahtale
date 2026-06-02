@@ -48,7 +48,7 @@ const Create = () => {
           <AlertDialogFooter className="gap-2 sm:gap-2">
             <AlertDialogCancel>Keep editing</AlertDialogCancel>
             <Button variant="ghost" onClick={discardAndExit}>
-              Discard progress
+              Discard Progress
             </Button>
             <AlertDialogAction onClick={saveAndExit}>Save & exit</AlertDialogAction>
           </AlertDialogFooter>
