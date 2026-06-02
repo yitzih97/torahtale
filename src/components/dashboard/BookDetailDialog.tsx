@@ -26,15 +26,17 @@ interface Props {
 }
 
 export function BookDetailDialog({ book, open, onClose, onView, onDownload, onReorder, downloading }: Props) {
+  const { lang } = useLanguage();
   if (!book) return null;
   const meta = statusMeta(book.status);
   const pages = (book.pages_data as any[]) || [];
   const hasPages = pages.length > 0;
   const ship = book.shipping_data as any;
+  const portionDisplay = book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "";
 
   const infoRows = [
     { Icon: User, label: "Child", value: book.child_name || "—" },
-    { Icon: BookOpen, label: "Portion", value: book.torah_portion || "—" },
+    { Icon: BookOpen, label: "Portion", value: portionDisplay || "—" },
     { Icon: Palette, label: "Art style", value: (book.art_style || "cartoon").replace("3d-pixar", "3D Pixar") },
     { Icon: Globe2, label: "Language", value: book.language || "English" },
     { Icon: Hash, label: "Order #", value: book.order_number || "—" },
