@@ -2,6 +2,8 @@ import { format, addDays, addWeeks, isSameDay } from "date-fns";
 import { Truck, Sparkles, CalendarDays } from "lucide-react";
 import type { BookRecord } from "@/hooks/useBooks";
 import type { SubscriptionRecord } from "@/hooks/useSubscriptions";
+import { getPortionDisplay } from "@/components/wizard/TorahPortions";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   books: BookRecord[];
