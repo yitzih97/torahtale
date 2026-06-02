@@ -56,7 +56,7 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
           <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row gap-5">
             <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-2xl overflow-hidden ring-1 ring-black/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.7)] flex-shrink-0 mx-auto sm:mx-0">
               {book.cover_image_url ? (
-                <img src={book.cover_image_url} alt={book.torah_portion || ""} className="w-full h-full object-cover" />
+                <img src={book.cover_image_url} alt={portionDisplay} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
                   <BookOpen className="w-10 h-10 text-slate-600" />
