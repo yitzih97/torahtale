@@ -2267,83 +2267,70 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         </div>
       </div>
 
-      {/* ── Sticky bottom action bar (Apple/Tesla style) ── */}
+      {/* ── Sticky bottom action — full-width black pill (Fanvue style) ── */}
       {step !== 9 && step !== 14 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, ...springTransition }}
-          className="fixed bottom-0 inset-x-0 z-30 border-t border-border/30 bg-background/85 backdrop-blur-2xl"
+          className="fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur-xl"
         >
-          <div className="max-w-3xl mx-auto px-5 sm:px-8 py-3.5 sm:py-4 flex justify-between items-center gap-4">
-            {step > 1 ? (
-              <button
-                onClick={back}
-                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium group"
-              >
-                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0" /> {t.common.back}
-              </button>
-            ) : <div />}
-
-            {step <= 7 && (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  if (step === 0) {
-                    setDir(1);
-                    setStep(1);
-                    return;
-                  }
-                  next();
-                }}
-                disabled={step !== 0 && !canNext}
-                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
-                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
-              >
-                {t.common.continue} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-              </motion.button>
-            )}
-            {step === 8 && user && (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => { void startGeneration(); }}
-                disabled={authLoading || animating}
-                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
-                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
-              >
-                {t.hero.cta} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-              </motion.button>
-            )}
-            {step === 8 && !user && !authLoading && (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  const el = document.getElementById(stepIdFor(8));
-                  el?.querySelector("input")?.focus();
-                  toast.info(t.wizard.signInToGenerate);
-                }}
-                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 transition-all text-accent-foreground"
-                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
-              >
-                {t.wizard.signInToGenerate} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-              </motion.button>
-            )}
-            {step === 10 && (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={next}
-                disabled={!canNext}
-                className="flex items-center gap-2 px-7 sm:px-8 h-11 rounded-full font-semibold text-sm shadow-lg shadow-accent/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-accent-foreground"
-                style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
-              >
-                {t.common.continue}
-                <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-              </motion.button>
-            )}
+          <div className="max-w-2xl mx-auto px-6 sm:px-8 py-4 sm:py-5">
+            {(() => {
+              const baseBtn = "w-full h-14 rounded-full font-semibold text-base shadow-[0_8px_24px_-12px_rgba(0,0,0,0.4)] disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98]";
+              if (step <= 7) {
+                return (
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => { if (step === 0) { setDir(1); setStep(1); return; } next(); }}
+                    disabled={step !== 0 && !canNext}
+                    className={baseBtn}
+                  >
+                    {t.common.continue}
+                  </motion.button>
+                );
+              }
+              if (step === 8 && user) {
+                return (
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => { void startGeneration(); }}
+                    disabled={authLoading || animating}
+                    className={baseBtn}
+                  >
+                    {t.hero.cta}
+                  </motion.button>
+                );
+              }
+              if (step === 8 && !user && !authLoading) {
+                return (
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      const el = document.getElementById(stepIdFor(8));
+                      el?.querySelector("input")?.focus();
+                      toast.info(t.wizard.signInToGenerate);
+                    }}
+                    className={baseBtn}
+                  >
+                    {t.wizard.signInToGenerate}
+                  </motion.button>
+                );
+              }
+              if (step === 10) {
+                return (
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={next}
+                    disabled={!canNext}
+                    className={baseBtn}
+                  >
+                    {t.common.continue}
+                  </motion.button>
+                );
+              }
+              return null;
+            })()}
           </div>
         </motion.div>
       )}
