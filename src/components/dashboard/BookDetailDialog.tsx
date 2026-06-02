@@ -65,7 +65,7 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
             </div>
             <div className="flex-1 min-w-0">
               <DialogHeader className="text-left">
-                <DialogTitle className="font-display text-2xl text-foreground">{book.torah_portion || "Torah Tale"}</DialogTitle>
+                <DialogTitle className="font-display text-2xl text-foreground">{portionDisplay || "Torah Tale"}</DialogTitle>
               </DialogHeader>
               <p className="text-sm text-muted-foreground mt-1">For {book.child_name || "—"}</p>
               <span className={`mt-3 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border ${meta.cls}`}>
