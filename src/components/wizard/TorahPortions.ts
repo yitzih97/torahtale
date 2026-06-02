@@ -265,10 +265,10 @@ const PARSHA_CALENDAR: Record<string, string> = {
 /** Returns the parashah read two weeks from now (skips current and next week to allow production lead time) */
 export const getUpcomingParsha = (): string => {
   const now = new Date();
-  // Jump to the Saturday two weeks out (skip this week's and next week's Shabbat)
+  // Jump to the Saturday three weeks out (skip current + next two Shabbatos for production lead time)
   const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
   const targetSat = new Date(now);
-  targetSat.setDate(now.getDate() + daysUntilSat + 14);
+  targetSat.setDate(now.getDate() + daysUntilSat + 21);
   const key = targetSat.toISOString().slice(0, 10);
   
   if (PARSHA_CALENDAR[key]) return PARSHA_CALENDAR[key];
