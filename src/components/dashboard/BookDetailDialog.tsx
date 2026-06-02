@@ -3,6 +3,8 @@ import { BookOpen, Eye, Download, RotateCw, Truck, Package, CheckCircle2, Sparkl
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { BookRecord } from "@/hooks/useBooks";
+import { getPortionDisplay } from "@/components/wizard/TorahPortions";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const statusMeta = (s: string) => {
   if (s === "delivered") return { cls: "bg-emerald-50 text-emerald-700 border-emerald-200/60", Icon: Truck, label: "Delivered" };
