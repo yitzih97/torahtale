@@ -833,85 +833,78 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   return (
     <>
-    <div className="wizard-glass min-h-screen w-full flex flex-col relative">
-      {/* Liquid-glass ambient background */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(1200px_600px_at_15%_-10%,hsl(220_40%_96%),transparent_60%),radial-gradient(900px_500px_at_110%_10%,hsl(225_55%_95%),transparent_55%),linear-gradient(180deg,hsl(220_30%_99%),hsl(220_20%_97%))]" />
-        <div className="absolute -top-32 -left-24 w-[520px] h-[520px] rounded-full bg-[radial-gradient(closest-side,hsl(220_60%_90%/0.55),transparent)] blur-3xl" />
-        <div className="absolute top-40 -right-32 w-[600px] h-[600px] rounded-full bg-[radial-gradient(closest-side,hsl(225_55%_88%/0.45),transparent)] blur-3xl" />
-      </div>
-
-      {/* ── Sticky Apple-style top bar ── */}
-      <div className="sticky top-0 z-30 bg-white/55 backdrop-blur-2xl backdrop-saturate-150 border-b border-white/40 shadow-[0_1px_0_0_rgba(255,255,255,0.6)_inset,0_8px_24px_-12px_rgba(15,23,42,0.08)]">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <motion.div
-              key={`hdr-${step}`}
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ ...springTransition, stiffness: 400 }}
-              className="flex-shrink-0"
-            >
-              <GlassIconTile Icon={StepIcon} size="sm" />
-            </motion.div>
-
-            {step !== 11 && (
-              <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">
-                  {t.wizard.createYourBook}
-                </p>
-                <p className="font-display text-sm font-semibold text-foreground truncate">
-                  {step === 0 ? t.wizard.planChoiceTitle : step <= 8 ? `${t.common.continue} · ${Math.min(step, 8)}/8` : t.checkout.orderSummary}
-                </p>
+    <div className="wizard-glass min-h-screen w-full flex flex-col relative bg-background">
+      {/* ── Clean minimal top bar — back · step title + dots · close ── */}
+      {(() => {
+        const stepTitles: Record<number, string> = {
+          0: t.wizard.planChoiceTitle,
+          1: t.wizard.createYourBook,
+          2: t.wizard.createYourBook,
+          3: t.wizard.createYourBook,
+          4: t.wizard.createYourBook,
+          5: t.wizard.createYourBook,
+          6: t.wizard.createYourBook,
+          7: t.wizard.createYourBook,
+          8: t.wizard.createYourBook,
+        };
+        const mainSteps = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+        const currentIdx = mainSteps.indexOf(step);
+        const showHeader = step <= 8;
+        if (!showHeader) return null;
+        return (
+          <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl">
+            <div className="max-w-3xl mx-auto px-5 sm:px-8 h-16 sm:h-20 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+              <div className="flex items-center">
+                {step > 1 ? (
+                  <button
+                    onClick={back}
+                    aria-label={t.common.back}
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:bg-muted/60 transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5 rtl:rotate-180" />
+                  </button>
+                ) : (
+                  <div className="w-10 h-10" />
+                )}
               </div>
-            )}
-          </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button
-              onClick={() => {
-                if (step === 0 && !data.children.some(c => c.name || c.age || c.gender)) return;
-                if (window.confirm(t.wizard.resetConfirm || "Reset the wizard and start over from the beginning?")) {
-                  resetWizard();
-                }
-              }}
-              aria-label={t.wizard.resetWizard || "Reset wizard"}
-              title={t.wizard.resetWizard || "Reset wizard"}
-              className="h-9 px-2.5 rounded-full inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t.wizard.startOver || "Start over"}</span>
-            </button>
-            {onClose && (
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Progress strip */}
-        {step <= 8 && (
-          <div className="max-w-3xl mx-auto px-5 sm:px-8 pb-3">
-            <div className="h-[2px] bg-border/30 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full rounded-full"
-                style={{ background: "linear-gradient(90deg, hsl(var(--accent)), hsl(var(--accent) / 0.6))" }}
-                initial={false}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              />
+              <div className="flex flex-col items-center gap-1.5 min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate text-center">
+                  {stepTitles[step] || t.wizard.createYourBook}
+                </p>
+                <div className="flex items-center gap-1.5" aria-label={`Step ${currentIdx + 1} of ${mainSteps.length}`}>
+                  {mainSteps.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`block rounded-full transition-all duration-300 ${
+                        i === currentIdx
+                          ? "w-1.5 h-1.5 bg-foreground"
+                          : i < currentIdx
+                          ? "w-1.5 h-1.5 bg-foreground/40"
+                          : "w-1.5 h-1.5 bg-foreground/15"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-end">
+                {onClose && (
+                  <button
+                    onClick={onClose}
+                    aria-label="Close"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:bg-muted/60 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        )}
-      </div>
+        );
+      })()}
 
-      {/* ── Main content area — Apple/Tesla generous spacing ── */}
+      {/* ── Main content area — generous spacing, Fanvue clean layout ── */}
       <div className="flex-1 w-full">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 sm:py-12 pb-[140px] sm:pb-32">
+        <div className="max-w-2xl mx-auto px-6 sm:px-8 py-6 sm:py-10 pb-[140px] sm:pb-32">
           <h1 className="sr-only">{t.wizard.createYourBook}</h1>
 
         <div>
