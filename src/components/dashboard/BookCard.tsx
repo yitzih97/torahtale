@@ -41,11 +41,13 @@ interface Props {
 }
 
 export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, onReview, hasReview, downloading }: Props) {
+  const { lang } = useLanguage();
   const meta = statusMeta(book.status);
   const hasPages = !!book.pages_data && (book.pages_data as any[]).length > 0;
   const pageCount = hasPages ? (book.pages_data as any[]).length : 0;
   const Icon = meta.Icon;
   const canReview = !!onReview && (book.status === "shipped" || book.status === "delivered");
+  const portionDisplay = book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "";
 
 
   return (
