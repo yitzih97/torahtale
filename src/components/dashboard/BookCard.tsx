@@ -4,6 +4,8 @@ import { BookOpen, Eye, Download, RotateCw, Package, Truck, Loader2, Sparkles, C
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import type { BookRecord } from "@/hooks/useBooks";
+import { getPortionDisplay } from "@/components/wizard/TorahPortions";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 
