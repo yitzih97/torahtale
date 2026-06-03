@@ -109,6 +109,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     setPages([]);
 
     try {
+      const portionLabel = book.torah_portion ? getPortionDisplay(book.torah_portion, "en") : "";
       const { data: storyResult, error: storyErr } = await supabase.functions.invoke("generate-story", {
         body: {
           childName: book.child_name,
@@ -116,7 +117,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           age: childDescriptions[0]?.age || "6",
           gender: childDescriptions[0]?.gender || "boy",
           torahPortion: book.torah_portion,
-          torahPortionLabel: book.torah_portion,
+          torahPortionLabel: portionLabel || book.torah_portion,
           artStyle: book.art_style,
           language: book.language || "english",
           pageCount: sd.pageCount || 20,
