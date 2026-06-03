@@ -29,7 +29,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription } = await req.json();
+    const { prompt, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText } = await req.json();
 
     /* ── Printify print-area dimensions by format ── */
     const PRINT_SPECS: Record<string, { page: [number, number]; cover: [number, number] }> = {
