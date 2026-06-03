@@ -133,9 +133,27 @@ serve(async (req) => {
       imagePrompt += ` The output image MUST be exactly ${dims[0]}x${dims[1]} pixels.`;
     }
 
+    // Inject scene text (story page narrative) so the illustration depicts the right moment
+    if (pageText && !prompt && (pageType === "story" || !pageType)) {
+      imagePrompt += ` SCENE TO ILLUSTRATE: "${pageText}". Depict this specific moment vividly.`;
+    }
+
     // Inject child description into prompt if available
     if (childDescription && !prompt) {
       imagePrompt += ` The child character has these features: ${childDescription}.`;
+    }
+
+    // Inject per-child descriptions for multi-child books
+    if (Array.isArray(childRefs) && childRefs.length > 0 && !prompt) {
+      const descLines = childRefs
+        .filter((c: any) => c?.name)
+        .map((c: any) => {
+          const bits = [c.age && `${c.age} years old`, c.gender, c.description].filter(Boolean).join(", ");
+          return `- ${c.name}${bits ? `: ${bits}` : ""}`;
+        });
+      if (descLines.length > 0) {
+        imagePrompt += ` CHARACTERS IN THIS BOOK (must appear identical on EVERY page of this book — same face, hair, eyes, skin tone, outfit colors):\n${descLines.join("\n")}`;
+      }
     }
 
     // Inject MASTER BOOK RULES (apply to every page of every book)
