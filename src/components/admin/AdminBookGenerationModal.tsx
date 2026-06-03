@@ -182,11 +182,25 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         ? `hardcover-${hardcoverSize}`
         : productType === "board" ? "board-6x6" : "softcover-8x8";
 
-      // Get the first child's character sheet (primary character) + their reference photo
+      // Send ALL children's character sheets + photos + descriptions so every kid stays consistent
+      const characterSheetsMap = { ...characterSheetsRef.current };
+      const childRefs = childDescriptions.map((c: any) => ({
+        name: c.name,
+        age: c.age,
+        gender: c.gender,
+        description: c.description || "",
+        photoUrl: c.photoUrl || null,
+        characterSheet: characterSheetsRef.current[c.name] || null,
+      }));
+
+      // Back-compat: primary child
       const primaryChildName = childDescriptions[0]?.name || book.child_name;
       const primaryCharacterSheet = characterSheetsRef.current[primaryChildName] || null;
       const primaryChildDesc = childDescriptions[0]?.description || "";
       const primaryChildPhoto = childDescriptions[0]?.photoUrl || null;
+
+      // Track the story-page index (1-based, excluding cover) so admin per-page templates match
+      let storyPageNumber = 0;
 
       for (let i = 0; i < allPages.length; i++) {
         if (abortRef.current) return;
@@ -194,31 +208,30 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         const pg = allPages[i];
         setStatusText(`Generating image ${i + 1} of ${allPages.length}...`);
 
-        let prompt: string;
-        let pageType = pg.type === "questions" ? "story" : pg.type;
-        if (pg.type === "cover") {
-          prompt = `Create a children's book FRONT COVER illustration. This is a book cover — it should look like a real published book cover with a dramatic, eye-catching composition. The scene shows ${book.child_name} in a key moment from the Torah story "${book.torah_portion}". Art style: ${style}. The composition should be vertically centered with the main character prominent. NO TEXT, no title, no words — just the illustration. Orthodox Jewish setting. The cover must feel magical, inviting, and professional like a real bookstore children's book.`;
-        } else if (pg.type === "back-cover") {
-          prompt = `Create a children's book BACK COVER illustration. This is a back cover — it should be softer and more atmospheric than the front. A gentle, dreamy scene related to the Torah story "${book.torah_portion}" with ${book.child_name}. Art style: ${style}. Warm sunset or twilight tones, peaceful atmosphere. Leave visual space in the center for text overlay. NO TEXT, no words. Orthodox Jewish setting.`;
-        } else if (pg.type === "questions") {
-          prompt = `A warm, inviting children's book illustration suitable as a background for discussion questions. Torah theme "${book.torah_portion}". Style: ${style}. Soft, gentle scene with open books and warm lighting in a cozy beis medrash setting. Leave plenty of visual space for text overlay. No text.`;
-        } else {
-          prompt = `A beautiful children's book page illustration depicting the following scene: "${pg.text}". This is from the Torah story "${book.torah_portion}". The main character is ${book.child_name}, a frum Yiddishe child who MUST look EXACTLY like the character reference sheet provided. Art style: ${style}. Full-page illustration, vivid and immersive. Orthodox Jewish setting — boys with yarmulke, peyos, tzitzis; girls in modest long-sleeved dresses. No text in the image.`;
+        const pageType = pg.type; // keep "cover" | "back-cover" | "questions" | "story" intact
+        let pageNumber: number | undefined;
+        if (pg.type === "story") {
+          storyPageNumber += 1;
+          pageNumber = storyPageNumber;
         }
 
         try {
+          // Do NOT pass `prompt` — let the edge function honor admin per-page templates,
+          // global image-prompt-template, and master rules.
           const { data: imgData } = await supabase.functions.invoke("generate-image", {
             body: {
-              prompt,
               childName: book.child_name,
               artStyle: book.art_style,
               torahPortion: book.torah_portion,
               bookFormat,
               pageType,
+              pageNumber,
               characterSheet: primaryCharacterSheet,
               referenceImage: primaryChildPhoto,
               childDescription: primaryChildDesc,
-              pageNumber: pg.type === "story" ? i : undefined,
+              characterSheets: characterSheetsMap,
+              childRefs,
+              pageText: pg.text,
             },
           });
           allPages[i] = { ...allPages[i], image: imgData?.imageUrl || null, imageLoading: false };
