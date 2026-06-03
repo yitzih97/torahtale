@@ -12,6 +12,7 @@ import {
   Play, Loader2, CheckCircle2, Save, X,
   BookOpen, Sparkles, FileDown, Package,
 } from "lucide-react";
+import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 
 type Phase = "idle" | "character" | "story" | "images" | "done";
 
