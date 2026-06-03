@@ -41,10 +41,17 @@ serve(async (req) => {
     };
     const style = styleMap[artStyle] || styleMap.cartoon;
 
-    const isToddlerBoy = gender === "boy" && !isNaN(ageNum) && ageNum <= 2;
+    const descLower = (description || "").toLowerCase();
+    const mentionsFrumGarb = /kippah|kipa|yarmulke|peyos|payos|peyot|tzitzis|tzitzit/.test(descLower);
+    const hasReferencePhoto = !!referenceImage;
+    // Under age 3 (before upsherin): no kippah AND no peyos by default,
+    // UNLESS the user explicitly described them or attached a photo showing them.
+    const isUnder3Boy = gender === "boy" && !isNaN(ageNum) && ageNum < 3;
+    const isToddlerBoy = isUnder3Boy && !mentionsFrumGarb && !hasReferencePhoto;
+
     const genderDetails = gender === "boy"
       ? isToddlerBoy
-        ? "with beginning peyos (sidelocks), NO yarmulke/kippah (before upsherin age 3), tzitzis optional, and modest clothing"
+        ? "a young toddler in simple modest clothing — NO yarmulke/kippah, NO peyos, NO tzitzis (the child is under 3 and has not yet had their upsherin)"
         : "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
       : "modest dress with long sleeves and long skirt below the knee, no head covering for unmarried girls, tznius appearance";
 
@@ -64,7 +71,7 @@ CHARACTER DETAILS:
 CRITICAL CONSISTENCY RULES:
 - Every view must show the EXACT SAME character — identical face shape, nose, eyes, eyebrows, mouth, hair color, hair style, skin tone, and body proportions.
 - Clothing must be identical in every view — same colors, same patterns, same fit.
-- ${gender === "boy" ? (isToddlerBoy ? "The child is under 3, so NO yarmulke/kippah. Show beginning peyos only. Must be consistent in every view." : "The yarmulke, peyos, and tzitzis must be clearly visible and consistent in every view.") : "The modest dress must be the same in every view — same color, same sleeves, same length."}
+- ${gender === "boy" ? (isToddlerBoy ? "The child is under 3 and pre-upsherin. Do NOT draw a yarmulke/kippah, do NOT draw peyos, do NOT draw tzitzis. Show a simple toddler hairstyle. Must be consistent in every view." : "The yarmulke, peyos, and tzitzis must be clearly visible and consistent in every view.") : "The modest dress must be the same in every view — same color, same sleeves, same length."}
 - This sheet will be used as a reference to generate consistent illustrations across a children's book. The character must be recognizable in every single view.
 
 BACKGROUND: Clean solid white background. No environments, no props, no text labels.

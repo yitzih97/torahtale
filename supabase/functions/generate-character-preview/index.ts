@@ -53,9 +53,16 @@ serve(async (req) => {
     const style = styleMap[artStyle] || styleMap.cartoon;
 
     // Gender-specific details
+    const descLower = (description || "").toLowerCase();
+    const mentionsFrumGarb = /kippah|kipa|yarmulke|peyos|payos|peyot|tzitzis|tzitzit/.test(descLower);
+    const hasReferencePhoto = !!referenceImage;
+    const isUnder3Boy = gender === "boy" && !isNaN(ageNum) && ageNum < 3;
+    const toddlerNoGarb = isUnder3Boy && !mentionsFrumGarb && !hasReferencePhoto;
     const genderDetails =
       gender === "boy"
-        ? "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
+        ? toddlerNoGarb
+          ? "a young toddler in simple modest clothing — NO yarmulke/kippah, NO peyos, NO tzitzis (under age 3, pre-upsherin)"
+          : "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
         : "modest dress with long sleeves and long skirt below the knee, no head covering, tznius appearance";
 
     // Build the prompt
