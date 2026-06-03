@@ -170,26 +170,42 @@ serve(async (req) => {
 
     const parts: any[] = [];
 
-    // Inject character sheet as primary reference for consistency
-    if (characterSheet) {
-      imagePrompt = `CRITICAL CHARACTER CONSISTENCY INSTRUCTION: The attached image is a CHARACTER REFERENCE SHEET showing the child character from multiple angles. You MUST reproduce this EXACT same character in the illustration — identical face shape, identical hair color and style, identical eye color, identical skin tone, identical clothing colors and style, identical proportions. The child in this illustration must be IMMEDIATELY RECOGNIZABLE as the same character from the reference sheet. Do NOT change any physical features. Do NOT alter the character's appearance in any way. ${imagePrompt}`;
-
-      if (characterSheet.startsWith("data:")) {
-        const match = characterSheet.match(/^data:(image\/\w+);base64,(.+)$/);
-        if (match) {
-          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
-        }
-      } else {
-        try {
-          const imgResp = await fetchWithTimeout(characterSheet, undefined, 10_000);
-          if (imgResp.ok) {
-            const buf = await imgResp.arrayBuffer();
-            const b64 = bufferToBase64(buf);
-            const ct = imgResp.headers.get("content-type") || "image/jpeg";
-            parts.push({ inlineData: { mimeType: ct, data: b64 } });
-          }
-        } catch (e) { console.error("Failed to fetch character sheet:", e); }
+    // Helper: push image URL or data-URL as inlineData part
+    const pushImagePart = async (src: string) => {
+      if (!src) return;
+      if (src.startsWith("data:")) {
+        const m = src.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (m) parts.push({ inlineData: { mimeType: m[1], data: m[2] } });
+        return;
       }
+      try {
+        const r = await fetchWithTimeout(src, undefined, 10_000);
+        if (r.ok) {
+          const buf = await r.arrayBuffer();
+          parts.push({ inlineData: { mimeType: r.headers.get("content-type") || "image/jpeg", data: bufferToBase64(buf) } });
+        }
+      } catch (e) { console.error("Failed to fetch image:", e); }
+    };
+
+    // Multi-child character sheets (highest priority for consistency)
+    const sheetEntries: { name: string; sheet: string }[] = [];
+    if (characterSheets && typeof characterSheets === "object") {
+      for (const [name, sheet] of Object.entries(characterSheets)) {
+        if (typeof sheet === "string" && sheet) sheetEntries.push({ name, sheet });
+      }
+    }
+
+    if (sheetEntries.length > 0) {
+      // Cap at 4 attachments to stay within model limits
+      const capped = sheetEntries.slice(0, 4);
+      const legend = capped.map((s, i) => `Reference Sheet ${i + 1} = ${s.name}`).join("; ");
+      imagePrompt = `CRITICAL MULTI-CHARACTER CONSISTENCY INSTRUCTION: The attached images are CHARACTER REFERENCE SHEETS, one per child appearing in this book. ${legend}. On EVERY page of this book each child MUST be reproduced IDENTICALLY to their own reference sheet — identical face shape, hair color and style, eye color, skin tone, clothing colors and style, proportions. The same child must look the same across every page. NEVER swap features between children. NEVER invent a new face. The children must be immediately recognizable as the SAME characters from page to page. ${imagePrompt}`;
+      for (const s of capped) {
+        await pushImagePart(s.sheet);
+      }
+    } else if (characterSheet) {
+      imagePrompt = `CRITICAL CHARACTER CONSISTENCY INSTRUCTION: The attached image is a CHARACTER REFERENCE SHEET showing the child character from multiple angles. You MUST reproduce this EXACT same character IDENTICALLY on every single page of this book — identical face shape, identical hair color and style, identical eye color, identical skin tone, identical clothing colors and style, identical proportions. The child must be IMMEDIATELY RECOGNIZABLE as the same character across every page. Do NOT change any physical features. ${imagePrompt}`;
+      await pushImagePart(characterSheet);
     }
 
     if (referenceImage) {
