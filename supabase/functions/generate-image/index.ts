@@ -31,6 +31,14 @@ serve(async (req) => {
   try {
     const { prompt, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText } = await req.json();
 
+    const childRefsList = Array.isArray(childRefs) ? childRefs : [];
+    const descLower = String(childDescription || "").toLowerCase();
+    const mentionsFrumGarb = /kippah|kipa|yarmulke|peyos|payos|peyot|tzitzis|tzitzit/.test(descLower);
+    const ageMatch = String(childDescription || "").match(/\b(\d{1,2})\s*(?:years? old|yr(?:s)? old|yo|y\/o)\b/i);
+    const inferredAge = ageMatch ? Number(ageMatch[1]) : null;
+    const inferredGender = /\bboy\b/i.test(String(childDescription || "")) ? "boy" : /\bgirl\b/i.test(String(childDescription || "")) ? "girl" : null;
+    const isPrimaryToddlerBoy = inferredGender === "boy" && typeof inferredAge === "number" && inferredAge < 3;
+
     /* ── Printify print-area dimensions by format ── */
     const PRINT_SPECS: Record<string, { page: [number, number]; cover: [number, number] }> = {
       "softcover-8x8":   { page: [2400, 2400], cover: [4790, 2400] },
@@ -144,16 +152,35 @@ serve(async (req) => {
     }
 
     // Inject per-child descriptions for multi-child books
-    if (Array.isArray(childRefs) && childRefs.length > 0 && !prompt) {
-      const descLines = childRefs
+    if (childRefsList.length > 0 && !prompt) {
+      const descLines = childRefsList
         .filter((c: any) => c?.name)
         .map((c: any) => {
           const bits = [c.age && `${c.age} years old`, c.gender, c.description].filter(Boolean).join(", ");
           return `- ${c.name}${bits ? `: ${bits}` : ""}`;
         });
       if (descLines.length > 0) {
-        imagePrompt += ` CHARACTERS IN THIS BOOK (must appear identical on EVERY page of this book — same face, hair, eyes, skin tone, outfit colors):\n${descLines.join("\n")}`;
+        imagePrompt += ` CHARACTERS IN THIS BOOK (must appear identical on EVERY page of this book — same face, exact same apparent age, same body size and height impression, same hair, same eyes, same skin tone, same outfit colors, same clothing style unless the story explicitly requires a change):\n${descLines.join("\n")}`;
       }
+    }
+
+    if (!prompt && childRefsList.length > 0) {
+      const toddlerRules = childRefsList
+        .filter((c: any) => c?.gender === "boy" && Number(c?.age) < 3)
+        .map((c: any) => {
+          const cDesc = String(c?.description || "").toLowerCase();
+          const cMentionsFrumGarb = /kippah|kipa|yarmulke|peyos|payos|peyot|tzitzis|tzitzit/.test(cDesc);
+          return cMentionsFrumGarb
+            ? `- ${c.name}: keep him clearly under age 3 with real toddler proportions; include ONLY the specific religious items explicitly requested in his description, and do not add any others.`
+            : `- ${c.name}: he is under age 3 and pre-upsherin; DO NOT add a yarmulke/kippah, peyos, or tzitzis unless those exact items are clearly visible in his attached photo or reference sheet.`;
+        });
+      if (toddlerRules.length > 0) {
+        imagePrompt += ` AGE-SPECIFIC CHILD RULES:\n${toddlerRules.join("\n")}`;
+      }
+    } else if (!prompt && isPrimaryToddlerBoy) {
+      imagePrompt += mentionsFrumGarb
+        ? " PRIMARY CHILD RULE: This boy is under age 3. Keep true toddler proportions and only include the specific religious items explicitly requested in the description."
+        : " PRIMARY CHILD RULE: This boy is under age 3 and pre-upsherin. Do NOT add a yarmulke/kippah, peyos, or tzitzis unless those exact items are clearly visible in the attached photo or reference sheet.";
     }
 
     // Inject MASTER BOOK RULES (apply to every page of every book)
@@ -199,12 +226,12 @@ serve(async (req) => {
       // Cap at 4 attachments to stay within model limits
       const capped = sheetEntries.slice(0, 4);
       const legend = capped.map((s, i) => `Reference Sheet ${i + 1} = ${s.name}`).join("; ");
-      imagePrompt = `CRITICAL MULTI-CHARACTER CONSISTENCY INSTRUCTION: The attached images are CHARACTER REFERENCE SHEETS, one per child appearing in this book. ${legend}. On EVERY page of this book each child MUST be reproduced IDENTICALLY to their own reference sheet — identical face shape, hair color and style, eye color, skin tone, clothing colors and style, proportions. The same child must look the same across every page. NEVER swap features between children. NEVER invent a new face. The children must be immediately recognizable as the SAME characters from page to page. ${imagePrompt}`;
+      imagePrompt = `CRITICAL MULTI-CHARACTER CONSISTENCY INSTRUCTION: The attached images are CHARACTER REFERENCE SHEETS, one per child appearing in this book. ${legend}. On EVERY page of this book each child MUST be reproduced IDENTICALLY to their own reference sheet — identical face shape, hair color and style, eye color, skin tone, exact same apparent age, exact same body size and proportions, identical clothing colors and style unless the story explicitly requires a change. The same child must look the same across every page. NEVER swap features between children. NEVER invent a new face. NEVER age the child up or down from page to page. The children must be immediately recognizable as the SAME characters from page to page. ${imagePrompt}`;
       for (const s of capped) {
         await pushImagePart(s.sheet);
       }
     } else if (characterSheet) {
-      imagePrompt = `CRITICAL CHARACTER CONSISTENCY INSTRUCTION: The attached image is a CHARACTER REFERENCE SHEET showing the child character from multiple angles. You MUST reproduce this EXACT same character IDENTICALLY on every single page of this book — identical face shape, identical hair color and style, identical eye color, identical skin tone, identical clothing colors and style, identical proportions. The child must be IMMEDIATELY RECOGNIZABLE as the same character across every page. Do NOT change any physical features. ${imagePrompt}`;
+      imagePrompt = `CRITICAL CHARACTER CONSISTENCY INSTRUCTION: The attached image is a CHARACTER REFERENCE SHEET showing the child character from multiple angles. You MUST reproduce this EXACT same character IDENTICALLY on every single page of this book — identical face shape, identical hair color and style, identical eye color, identical skin tone, identical apparent age, identical body size and proportions, identical clothing colors and style unless the story explicitly requires a change. The child must be IMMEDIATELY RECOGNIZABLE as the same character across every page. Do NOT change any physical features. Do NOT age the child up or down across pages. ${imagePrompt}`;
       await pushImagePart(characterSheet);
     }
 
