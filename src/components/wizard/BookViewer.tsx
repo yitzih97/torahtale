@@ -29,9 +29,23 @@ interface Props {
   artStyle: string;
   pages: BookPage[];
   onPagesChange: (pages: BookPage[]) => void;
+  generationContext?: {
+    childDescription?: string;
+    referenceImage?: string | null;
+    characterSheet?: string | null;
+    characterSheets?: Record<string, string>;
+    childRefs?: Array<{
+      name: string;
+      age?: string | number;
+      gender?: string;
+      description?: string;
+      photoUrl?: string | null;
+      characterSheet?: string | null;
+    }>;
+  };
 }
 
-export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesChange }: Props) => {
+export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesChange, generationContext }: Props) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [editingPage, setEditingPage] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
@@ -78,8 +92,28 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
     setShowPromptEditor(false);
     try {
       const finalPrompt = prompt || customPrompt;
+      const targetPage = pages[idx];
+      const pageType = targetPage?.type || "story";
+      const pageNumber = pageType === "story"
+        ? pages.slice(0, idx + 1).filter((p) => p.type === "story").length
+        : undefined;
       const { data, error } = await supabase.functions.invoke("generate-image", {
-        body: { prompt: finalPrompt, childName, artStyle, torahPortion },
+        body: {
+          prompt: finalPrompt
+            ? `${finalPrompt}. NON-NEGOTIABLE: preserve the exact same child face, age, body size, clothing, and all age-specific rules from the existing book across this regenerated page.`
+            : undefined,
+          childName,
+          artStyle,
+          torahPortion,
+          pageType,
+          pageNumber,
+          pageText: targetPage?.text,
+          childDescription: generationContext?.childDescription,
+          referenceImage: generationContext?.referenceImage,
+          characterSheet: generationContext?.characterSheet,
+          characterSheets: generationContext?.characterSheets,
+          childRefs: generationContext?.childRefs,
+        },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
