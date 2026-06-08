@@ -55,13 +55,13 @@ serve(async (req) => {
     // Gender-specific details
     const descLower = (description || "").toLowerCase();
     const mentionsFrumGarb = /kippah|kipa|yarmulke|peyos|payos|peyot|tzitzis|tzitzit/.test(descLower);
-    const hasReferencePhoto = !!referenceImage;
     const isUnder3Boy = gender === "boy" && !isNaN(ageNum) && ageNum < 3;
-    const toddlerNoGarb = isUnder3Boy && !mentionsFrumGarb && !hasReferencePhoto;
     const genderDetails =
       gender === "boy"
-        ? toddlerNoGarb
-          ? "a young toddler in simple modest clothing — NO yarmulke/kippah, NO peyos, NO tzitzis (under age 3, pre-upsherin)"
+        ? isUnder3Boy
+          ? mentionsFrumGarb
+            ? "a real 2-year-old toddler in modest clothing with true toddler proportions; include ONLY the specific religious items explicitly requested in the description and keep them consistent"
+            : "a real 2-year-old toddler in simple modest clothing with true pre-upsherin toddler proportions — NO yarmulke/kippah, NO peyos, NO tzitzis unless those exact items are clearly visible in the attached reference photo"
           : "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
         : "modest dress with long sleeves and long skirt below the knee, no head covering, tznius appearance";
 
@@ -80,7 +80,11 @@ serve(async (req) => {
         .replace("{descPart}", descPart)
         .replace("{style}", style);
     } else {
-      prompt = `Create a character portrait illustration of a ${ageNum}-year-old Jewish ${gender} ${ageDesc}. ${genderDetails}. ${descPart} Style: ${style}. Children's book character design, bust/portrait view, clean white background, vibrant colors, warm and inviting. No text in the image.`;
+      prompt = `Create a character portrait illustration of a ${ageNum}-year-old Jewish ${gender} ${ageDesc}. ${genderDetails}. ${descPart} Style: ${style}. The child must read as exactly ${ageNum} years old with stable age-appropriate proportions, face, clothing, and size. Children's book character design, bust/portrait view, clean white background, vibrant colors, warm and inviting. No text in the image.`;
+    }
+
+    if (isUnder3Boy && !mentionsFrumGarb) {
+      prompt += " CRITICAL TODDLER RULE: For a boy under age 3, do NOT add a yarmulke/kippah, peyos, or tzitzis unless those exact items are clearly visible in the attached photo. Do not invent them.";
     }
 
     // Build parts for Gemini API
