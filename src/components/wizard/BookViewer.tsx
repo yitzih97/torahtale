@@ -99,7 +99,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         : undefined;
       const { data, error } = await supabase.functions.invoke("generate-image", {
         body: {
-          prompt: finalPrompt || undefined,
+          prompt: finalPrompt
+            ? `${finalPrompt}. NON-NEGOTIABLE: preserve the exact same child face, age, body size, clothing, and all age-specific rules from the existing book across this regenerated page.`
+            : undefined,
           childName,
           artStyle,
           torahPortion,
