@@ -43,15 +43,13 @@ serve(async (req) => {
 
     const descLower = (description || "").toLowerCase();
     const mentionsFrumGarb = /kippah|kipa|yarmulke|peyos|payos|peyot|tzitzis|tzitzit/.test(descLower);
-    const hasReferencePhoto = !!referenceImage;
-    // Under age 3 (before upsherin): no kippah AND no peyos by default,
-    // UNLESS the user explicitly described them or attached a photo showing them.
     const isUnder3Boy = gender === "boy" && !isNaN(ageNum) && ageNum < 3;
-    const isToddlerBoy = isUnder3Boy && !mentionsFrumGarb && !hasReferencePhoto;
 
     const genderDetails = gender === "boy"
-      ? isToddlerBoy
-        ? "a young toddler in simple modest clothing — NO yarmulke/kippah, NO peyos, NO tzitzis (the child is under 3 and has not yet had their upsherin)"
+      ? isUnder3Boy
+        ? mentionsFrumGarb
+          ? "a young toddler in modest clothing, keeping true toddler proportions; include ONLY the specific religious items explicitly requested in the description and keep them identical in every view"
+          : "a young toddler in simple modest clothing with true pre-upsherin toddler proportions — NO yarmulke/kippah, NO peyos, NO tzitzis unless those exact items are clearly visible in the attached reference photo"
         : "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
       : "modest dress with long sleeves and long skirt below the knee, no head covering for unmarried girls, tznius appearance";
 
@@ -70,13 +68,14 @@ CHARACTER DETAILS:
 
 CRITICAL CONSISTENCY RULES:
 - Every view must show the EXACT SAME character — identical face shape, nose, eyes, eyebrows, mouth, hair color, hair style, skin tone, and body proportions.
+- The child must read as EXACTLY ${ageNum} years old in every view — never older, never younger. Preserve the same head size, body scale, height impression, and toddler/child proportions in every panel.
 - Clothing must be identical in every view — same colors, same patterns, same fit.
-- ${gender === "boy" ? (isToddlerBoy ? "The child is under 3 and pre-upsherin. Do NOT draw a yarmulke/kippah, do NOT draw peyos, do NOT draw tzitzis. Show a simple toddler hairstyle. Must be consistent in every view." : "The yarmulke, peyos, and tzitzis must be clearly visible and consistent in every view.") : "The modest dress must be the same in every view — same color, same sleeves, same length."}
+- ${gender === "boy" ? (isUnder3Boy ? (mentionsFrumGarb ? "The child is under 3. Keep him a real toddler. Only include the specific religious items explicitly requested in the description, and keep them identical in every view." : "The child is under 3 and pre-upsherin. Do NOT draw a yarmulke/kippah, do NOT draw peyos, and do NOT draw tzitzis unless they are clearly visible in the attached reference photo. Show a simple toddler hairstyle. Must be consistent in every view.") : "The yarmulke, peyos, and tzitzis must be clearly visible and consistent in every view.") : "The modest dress must be the same in every view — same color, same sleeves, same length."}
 - This sheet will be used as a reference to generate consistent illustrations across a children's book. The character must be recognizable in every single view.
 
 BACKGROUND: Clean solid white background. No environments, no props, no text labels.
 
-${referenceImage ? "REFERENCE PHOTO PROVIDED: You MUST match the child's facial features, face shape, hair color, hair texture, eye color, and skin tone from the attached reference photo as closely as possible, while rendering in the specified art style. The illustrated character should be immediately recognizable as the same child in the photo." : ""}`;
+${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial features, face shape, hair color, hair texture, eye color, and skin tone from the attached reference photo as closely as possible, while rendering in the specified art style. The illustrated character should be immediately recognizable as the same child in the photo. If this is a boy under 3, use the photo for likeness first and ONLY keep a kippah, peyos, or tzitzis if they are clearly visible in the photo or explicitly requested in the description.` : ""}`;
 
     const parts: any[] = [];
 
