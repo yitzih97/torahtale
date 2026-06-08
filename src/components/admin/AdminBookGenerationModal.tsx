@@ -420,6 +420,20 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 artStyle={book?.art_style || "cartoon"}
                 pages={pages}
                 onPagesChange={setPages}
+                generationContext={{
+                  childDescription: (book.story_data?.childDescriptions || [])[0]?.description || "",
+                  referenceImage: (book.story_data?.childDescriptions || [])[0]?.photoUrl || null,
+                  characterSheet: characterSheetsRef.current[(book.story_data?.childDescriptions || [])[0]?.name || book?.child_name] || null,
+                  characterSheets: { ...characterSheetsRef.current },
+                  childRefs: (book.story_data?.childDescriptions || []).map((c: any) => ({
+                    name: c.name,
+                    age: c.age,
+                    gender: c.gender,
+                    description: c.description || "",
+                    photoUrl: c.photoUrl || null,
+                    characterSheet: characterSheetsRef.current[c.name] || null,
+                  })),
+                }}
               />
             </motion.div>
           )}
