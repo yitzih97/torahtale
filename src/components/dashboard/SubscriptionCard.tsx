@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import {
-  CalendarHeart, Pencil, CreditCard, Pause, Play, X, Sparkles, Palette, Globe,
+  CalendarHeart, Pencil, CreditCard, Pause, Play, X, Sparkles, Palette, Globe, RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
