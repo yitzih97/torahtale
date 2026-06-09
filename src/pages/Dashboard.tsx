@@ -333,6 +333,10 @@ export default function Dashboard() {
                           await cancelSubscription.mutateAsync(sub.id);
                           toast.success("Subscription canceled");
                         }}
+                        onReactivate={async () => {
+                          await updateSubscription.mutateAsync({ id: sub.id, status: "active", canceled_at: null as any });
+                          toast.success("Subscription reactivated!");
+                        }}
                       />
                     ))}
 
