@@ -222,7 +222,7 @@ export default function Dashboard() {
                           index={i}
                           subscription={kidSub}
                           bookCount={kidBooks}
-                          onEdit={() => { setEditChildStep(1); setEditingChild(kid); }}
+                          onEdit={() => setEditingChild(kid)}
                           onViewBooks={() => setActiveTab("books")}
                           onManageSubscription={() => {
                             if (kidSub) setEditingSub(kidSub);
