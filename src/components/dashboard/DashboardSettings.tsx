@@ -190,6 +190,11 @@ export function DashboardSettings({ user }: Props) {
           ))}
         </div>
       </GlassPanel>
+      {/* Orders & Invoices */}
+      <div className="lg:col-span-2">
+        <OrdersHistoryPanel />
+      </div>
+
 
       {/* Account */}
       <div className="lg:col-span-2">
