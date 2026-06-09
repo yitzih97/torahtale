@@ -92,7 +92,7 @@ export default function Dashboard() {
     toast.success(t.dash.childAdded);
   };
 
-  const handleEditChild = async (child: AddChildResult) => {
+  const handleEditChild = async (child: EditChildResult) => {
     if (!editingChild) return;
     await updateChild.mutateAsync({ id: editingChild.id, ...child });
     setEditingChild(null);
