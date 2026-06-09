@@ -30,9 +30,10 @@ interface Props {
   onPayment: () => void;
   onToggle: () => Promise<void> | void;
   onCancel: () => Promise<void> | void;
+  onReactivate?: () => Promise<void> | void;
 }
 
-export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCancel }: Props) {
+export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCancel, onReactivate }: Props) {
   const { t } = useLanguage();
   const isActive = sub.status === "active";
   const isPaused = sub.status === "paused";
