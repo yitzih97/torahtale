@@ -168,8 +168,8 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
       const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("child-photos").upload(path, photoFile);
       if (error) throw error;
-      const { data: urlData } = supabase.storage.from("child-photos").getPublicUrl(path);
-      return urlData.publicUrl;
+      const { data: signed } = await supabase.storage.from("child-photos").createSignedUrl(path, 60 * 60 * 24 * 365);
+      return signed?.signedUrl ?? null;
     } catch (err) {
       console.error("Photo upload failed:", err);
       return null;

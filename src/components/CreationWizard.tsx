@@ -534,10 +534,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 .from("child-photos")
                 .upload(filePath, c.photo, { upsert: true });
               if (!uploadErr) {
-                const { data: urlData } = supabase.storage
+                const { data: signed } = await supabase.storage
                   .from("child-photos")
-                  .getPublicUrl(filePath);
-                photoUrl = urlData?.publicUrl || null;
+                  .createSignedUrl(filePath, 60 * 60 * 24 * 365);
+                photoUrl = signed?.signedUrl || null;
               }
             }
             // Save new children as reusable characters

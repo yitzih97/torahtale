@@ -72,12 +72,14 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           if (child.photoUrl) {
             photoUrl = child.photoUrl;
           } else if (child.hasPhoto && book.child_id) {
-            // Try to find photo in storage
+            // Try to find photo in storage (admin can list any user's folder)
             const { data: files } = await supabase.storage.from("child-photos").list(book.user_id);
             const match = files?.find((f: any) => f.name.includes(book.child_id) || f.name.includes(child.name.toLowerCase()));
             if (match) {
-              const { data: urlData } = supabase.storage.from("child-photos").getPublicUrl(`${book.user_id}/${match.name}`);
-              photoUrl = urlData?.publicUrl || null;
+              const { data: signed } = await supabase.storage
+                .from("child-photos")
+                .createSignedUrl(`${book.user_id}/${match.name}`, 60 * 60 * 24);
+              photoUrl = signed?.signedUrl || null;
             }
           }
 
