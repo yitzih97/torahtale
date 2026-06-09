@@ -7,20 +7,63 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function verifySignature(secret: string, rawBody: string, signature: string): Promise<boolean> {
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const sigBuf = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawBody));
+    const computed = Array.from(new Uint8Array(sigBuf))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    // Accept either bare hex, "sha256=<hex>", or base64 encodings
+    const provided = signature.replace(/^sha256=/i, "").trim().toLowerCase();
+    const computedB64 = btoa(String.fromCharCode(...new Uint8Array(sigBuf)));
+    return provided === computed || provided === computedB64.toLowerCase();
+  } catch (_e) {
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const PRINTIFY_WEBHOOK_SECRET = Deno.env.get("PRINTIFY_WEBHOOK_SECRET");
+    if (!PRINTIFY_WEBHOOK_SECRET) {
+      console.error("PRINTIFY_WEBHOOK_SECRET is not configured — rejecting webhook");
+      return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const signature =
+      req.headers.get("x-pfy-signature") ||
+      req.headers.get("x-printify-signature") ||
+      req.headers.get("x-signature") ||
+      "";
+    const rawBody = await req.text();
+
+    if (!signature || !(await verifySignature(PRINTIFY_WEBHOOK_SECRET, rawBody, signature))) {
+      console.warn("printify-webhook: invalid or missing signature");
+      return new Response(JSON.stringify({ error: "Invalid signature" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const event = await req.json();
-    console.log("Printify webhook event:", JSON.stringify(event));
+    const event = JSON.parse(rawBody);
+    console.log("Printify webhook event:", event?.type);
 
     const { type, resource } = event;
 
-    // Map Printify event types to book statuses
     const statusMap: Record<string, string> = {
       "order:created": "printing",
       "order:updated": "printing",
@@ -36,7 +79,6 @@ serve(async (req) => {
       });
     }
 
-    // Find book by order number matching Printify order ID
     const { data: books } = await supabase
       .from("books")
       .select("id")
@@ -55,7 +97,7 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("printify-webhook error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Webhook processing error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
