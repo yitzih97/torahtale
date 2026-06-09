@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AddChildWizard, type AddChildResult } from "@/components/dashboard/AddChildWizard";
+import { EditChildDialog, type EditChildResult } from "@/components/dashboard/EditChildDialog";
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { DashboardSettings } from "@/components/dashboard/DashboardSettings";
 import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditDialog";
