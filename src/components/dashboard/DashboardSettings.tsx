@@ -12,6 +12,7 @@ import {
   User as UserIcon, CreditCard, Bell, LogOut, Shield,
   Loader2, Mail, Lock, Trash2,
 } from "lucide-react";
+import { OrdersHistoryPanel } from "./OrdersHistoryPanel";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -189,6 +190,11 @@ export function DashboardSettings({ user }: Props) {
           ))}
         </div>
       </GlassPanel>
+      {/* Orders & Invoices */}
+      <div className="lg:col-span-2">
+        <OrdersHistoryPanel />
+      </div>
+
 
       {/* Account */}
       <div className="lg:col-span-2">

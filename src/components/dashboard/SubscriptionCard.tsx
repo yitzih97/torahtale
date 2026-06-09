@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import {
-  CalendarHeart, Pencil, CreditCard, Pause, Play, X, Sparkles, Palette, Globe,
+  CalendarHeart, Pencil, CreditCard, Pause, Play, X, Sparkles, Palette, Globe, RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
@@ -30,9 +30,10 @@ interface Props {
   onPayment: () => void;
   onToggle: () => Promise<void> | void;
   onCancel: () => Promise<void> | void;
+  onReactivate?: () => Promise<void> | void;
 }
 
-export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCancel }: Props) {
+export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCancel, onReactivate }: Props) {
   const { t } = useLanguage();
   const isActive = sub.status === "active";
   const isPaused = sub.status === "paused";
@@ -119,7 +120,7 @@ export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCa
       </div>
 
       {/* Actions */}
-      {!isCanceled && (
+      {!isCanceled ? (
         <div className="relative grid grid-cols-2 gap-2">
           <ActionTile Icon={Pencil} label="Edit plan" onClick={onEdit} />
           <ActionTile Icon={CreditCard} label="Payment" onClick={onPayment} />
@@ -130,7 +131,11 @@ export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCa
           />
           <ActionTile Icon={X} label={t.dash.cancel} onClick={onCancel} danger />
         </div>
-      )}
+      ) : onReactivate ? (
+        <div className="relative">
+          <ActionTile Icon={RotateCcw} label="Reactivate subscription" onClick={onReactivate} />
+        </div>
+      ) : null}
     </motion.div>
   );
 }
