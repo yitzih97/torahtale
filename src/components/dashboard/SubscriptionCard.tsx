@@ -120,7 +120,7 @@ export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCa
       </div>
 
       {/* Actions */}
-      {!isCanceled && (
+      {!isCanceled ? (
         <div className="relative grid grid-cols-2 gap-2">
           <ActionTile Icon={Pencil} label="Edit plan" onClick={onEdit} />
           <ActionTile Icon={CreditCard} label="Payment" onClick={onPayment} />
@@ -131,7 +131,11 @@ export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCa
           />
           <ActionTile Icon={X} label={t.dash.cancel} onClick={onCancel} danger />
         </div>
-      )}
+      ) : onReactivate ? (
+        <div className="relative">
+          <ActionTile Icon={RotateCcw} label="Reactivate subscription" onClick={onReactivate} />
+        </div>
+      ) : null}
     </motion.div>
   );
 }
