@@ -375,14 +375,12 @@ export default function Dashboard() {
         isPending={addChild.isPending}
       />
 
-      {/* Edit Child Wizard */}
-      <AddChildWizard
+      {/* Edit Child Dialog (single-page) */}
+      <EditChildDialog
         open={!!editingChild}
         onClose={() => setEditingChild(null)}
         onSubmit={handleEditChild}
         isPending={updateChild.isPending}
-        mode="edit"
-        initialStep={editChildStep}
         initialData={editingChild ? {
           name: editingChild.name,
           age: editingChild.age,
@@ -390,8 +388,9 @@ export default function Dashboard() {
           art_style: editingChild.art_style,
           photo_url: editingChild.photo_url,
           description: editingChild.description,
-        } : undefined}
+        } : null}
       />
+
 
       {/* Book Viewer Modal */}
       {viewingBook && (
