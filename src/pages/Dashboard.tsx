@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AddChildWizard, type AddChildResult } from "@/components/dashboard/AddChildWizard";
+import { EditChildDialog, type EditChildResult } from "@/components/dashboard/EditChildDialog";
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { DashboardSettings } from "@/components/dashboard/DashboardSettings";
 import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditDialog";
@@ -42,7 +43,7 @@ export default function Dashboard() {
   const { subscriptions, isLoading: subsLoading, cancelSubscription, updateSubscription } = useSubscriptions();
   const [addChildOpen, setAddChildOpen] = useState(false);
   const [editingChild, setEditingChild] = useState<ChildRecord | null>(null);
-  const [editChildStep, setEditChildStep] = useState<number>(1);
+  
   const [editingSub, setEditingSub] = useState<typeof subscriptions[number] | null>(null);
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
   const [openBook, setOpenBook] = useState<BookRecord | null>(null);
@@ -91,7 +92,7 @@ export default function Dashboard() {
     toast.success(t.dash.childAdded);
   };
 
-  const handleEditChild = async (child: AddChildResult) => {
+  const handleEditChild = async (child: EditChildResult) => {
     if (!editingChild) return;
     await updateChild.mutateAsync({ id: editingChild.id, ...child });
     setEditingChild(null);
@@ -221,7 +222,7 @@ export default function Dashboard() {
                           index={i}
                           subscription={kidSub}
                           bookCount={kidBooks}
-                          onEdit={() => { setEditChildStep(1); setEditingChild(kid); }}
+                          onEdit={() => setEditingChild(kid)}
                           onViewBooks={() => setActiveTab("books")}
                           onManageSubscription={() => {
                             if (kidSub) setEditingSub(kidSub);
@@ -374,14 +375,12 @@ export default function Dashboard() {
         isPending={addChild.isPending}
       />
 
-      {/* Edit Child Wizard */}
-      <AddChildWizard
+      {/* Edit Child Dialog (single-page) */}
+      <EditChildDialog
         open={!!editingChild}
         onClose={() => setEditingChild(null)}
         onSubmit={handleEditChild}
         isPending={updateChild.isPending}
-        mode="edit"
-        initialStep={editChildStep}
         initialData={editingChild ? {
           name: editingChild.name,
           age: editingChild.age,
@@ -389,8 +388,9 @@ export default function Dashboard() {
           art_style: editingChild.art_style,
           photo_url: editingChild.photo_url,
           description: editingChild.description,
-        } : undefined}
+        } : null}
       />
+
 
       {/* Book Viewer Modal */}
       {viewingBook && (
