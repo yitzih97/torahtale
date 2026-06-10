@@ -104,8 +104,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
         <div className="relative grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-center lg:min-h-[640px]">
-          {/* Mobile/tablet — hero background image, from top down to roughly CTA area */}
-          <div className="lg:hidden pointer-events-none select-none absolute inset-x-0 -top-20 sm:-top-24 h-[360px] sm:h-[440px] z-0">
+          {/* Mobile/tablet — hero background image, full-bleed from top down to roughly CTA area */}
+          <div className="lg:hidden pointer-events-none select-none absolute left-1/2 -translate-x-1/2 w-screen -top-20 sm:-top-24 h-[360px] sm:h-[440px] z-0">
             <img
               src={heroSceneDesktop}
               alt=""
@@ -114,7 +114,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               style={{ objectPosition: "center 25%" }}
               loading="eager"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[hsl(42_60%_96%)/0.7] via-[hsl(42_60%_96%)/0.55] to-[hsl(42_60%_96%)]" />
+            {/* Stronger top wash + solid fade at bottom for text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[hsl(42_60%_96%)/0.92] via-[hsl(42_60%_96%)/0.75] to-[hsl(42_60%_96%)]" />
           </div>
 
           {/* LEFT — copy */}
