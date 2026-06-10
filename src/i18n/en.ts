@@ -430,6 +430,7 @@ export const en = {
     nameOnCard: "Name on Card",
     cardNamePlaceholder: "Full name",
     sameAsBilling: "Shipping address same as billing",
+    billingAddress: "Billing Address",
   },
 
   // Checkout

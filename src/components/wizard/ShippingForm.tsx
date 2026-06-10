@@ -131,7 +131,8 @@ export const ShippingForm = ({ data, onChange, isSubscription = false, section =
           </div>
 
           {/* Billing address */}
-          <div className="pt-2">
+          <h4 className="font-display text-lg font-bold text-primary pt-4">{t.shipping.billingAddress}</h4>
+          <div>
             <Label className="text-xs text-muted-foreground">{t.shipping.fullName}</Label>
             <Input value={billing.fullName} onChange={(e) => updateBilling({ fullName: e.target.value })} className="mt-1.5 rounded-xl h-11" />
           </div>
