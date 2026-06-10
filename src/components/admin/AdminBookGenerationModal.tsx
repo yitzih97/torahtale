@@ -35,6 +35,44 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const abortRef = useRef(false);
   const characterSheetsRef = useRef<Record<string, string>>({});
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedPagesRef = useRef<string>("");
+
+  // Persist pages to the books row (used by both auto-save and manual Save).
+  const persistPages = useCallback(
+    async (nextPages: BookPage[], nextStoryData: any) => {
+      if (!book?.id || nextPages.length === 0) return;
+      const serialized = JSON.stringify(nextPages);
+      if (serialized === lastSavedPagesRef.current) return;
+      lastSavedPagesRef.current = serialized;
+      try {
+        await supabase
+          .from("books")
+          .update({
+            pages_data: nextPages as any,
+            story_data: nextStoryData || book.story_data,
+            cover_image_url: nextPages[0]?.image || null,
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq("id", book.id);
+      } catch (err) {
+        console.error("Auto-save failed:", err);
+      }
+    },
+    [book?.id, book?.story_data]
+  );
+
+  // Auto-save: debounced persist whenever pages change after generation is done.
+  useEffect(() => {
+    if (phase !== "done" || pages.length === 0) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      persistPages(pages, storyData);
+    }, 800);
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [pages, storyData, phase, persistPages]);
 
   useEffect(() => {
     if (open && book?.pages_data && (book.pages_data as any[]).length > 0) {
