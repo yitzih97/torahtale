@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { BookOpen, LogOut, User, Menu } from "lucide-react";
+import { LogOut, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { useSiteAssets } from "@/hooks/useSiteAssets";
+import { BrandMark } from "@/components/BrandMark";
 
 interface NavbarProps {
   onStart?: () => void;
@@ -19,7 +19,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   const { user, signOut } = useAuth();
   const { lang, setLang, t, dir } = useLanguage();
   const { getSetting } = useSiteSettings("website");
-  const { getAssetUrl } = useSiteAssets();
+  
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,7 +34,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   };
 
   const brandName = getSetting("website", "brand-name", "Torah Tale");
-  const logoUrl = getAssetUrl("logo", "");
+  
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -57,17 +57,15 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   const langLabelLong = lang === "en" ? "עברית" : lang === "he" ? "יידיש" : "English";
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"}`} data-scrolled={scrolled}>
-      <div className="container flex items-center justify-between h-16 lg:h-18">
-        <a href="/" className="flex items-center gap-2.5 group">
-          {logoUrl ? (
-            <img src={logoUrl} alt={brandName} className="w-8 h-8 rounded-xl object-contain" />
-          ) : (
-            <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-accent-foreground" />
-            </div>
-          )}
-          <span className={`font-display text-lg font-bold tracking-tight transition-colors duration-500 ${solid ? "text-foreground" : "text-white"}`}>{brandName}</span>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/92 backdrop-blur-xl border-b border-[hsl(var(--gold)/0.18)] shadow-sm" : "bg-transparent"}`} data-scrolled={scrolled}>
+      <div className="container flex items-center justify-between h-16 lg:h-20">
+        <a href="/" className="group">
+          <BrandMark
+            className="transition-transform duration-300 group-hover:scale-[1.01]"
+            iconClassName="h-11 w-11 lg:h-12 lg:w-12"
+            wordmarkClassName="h-8 lg:h-9 w-auto"
+          />
+          <span className="sr-only">{brandName}</span>
         </a>
 
         <div className="hidden md:flex items-center gap-8">
@@ -76,7 +74,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
               key={link.href}
               href={link.href}
               onClick={link.section ? handleSectionLink(link.section) : undefined}
-              className={`text-sm font-medium transition-colors duration-500 ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}
+              className={`text-sm font-semibold transition-colors duration-500 ${solid ? "text-foreground/78 hover:text-accent" : "text-foreground/80 hover:text-accent"}`}
             >
               {link.label}
             </a>
