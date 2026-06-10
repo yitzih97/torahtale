@@ -87,8 +87,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       <img
         src={heroSceneDesktop}
         alt="Two Jewish children with their personalized Torah storybook"
-        className="hidden lg:block pointer-events-none select-none absolute inset-y-0 right-0 h-full w-[70%] xl:w-[65%] object-contain object-center"
-        style={isRtl ? { left: 0, right: "auto", transform: "scaleX(-1)" } : undefined}
+        className="hidden lg:block pointer-events-none select-none absolute inset-0 w-full h-full object-cover object-center"
+        style={isRtl ? { transform: "scaleX(-1)" } : undefined}
         width={1536}
         height={1024}
         fetchPriority="high"
