@@ -1,223 +1,271 @@
-import { Suspense, lazy, useState, useCallback, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowRight, Star } from "lucide-react";
+import { motion } from "framer-motion";
+import { Sparkles, ArrowRight, Play, BookOpen, Heart, Gift, Star, ShieldCheck, Award, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { BrandMark } from "@/components/BrandMark";
+
+import heroChildren from "@/assets/hero-children.jpg";
+import heroBook from "@/assets/hero-book.png";
 import kid1 from "@/assets/avatars/kid1.jpg";
 import kid2 from "@/assets/avatars/kid2.jpg";
 import kid3 from "@/assets/avatars/kid3.jpg";
-import kid4 from "@/assets/avatars/kid4.jpg";
-
-// Lazy import with one-shot retry + auto page reload on persistent failure.
-// Vite's dev server can invalidate a previously-fetched dynamic-import URL
-// after re-bundling deps, which throws "Failed to fetch dynamically imported
-// module" and leaves a blank screen. Retrying once recovers in most cases;
-// a hard reload recovers in the rest.
-const BookFlipAnimation = lazy(async () => {
-  const load = () => import("@/components/3d/BookFlipAnimation");
-  try {
-    const m = await load();
-    return { default: m.BookFlipAnimation };
-  } catch (err) {
-    try {
-      const m = await load();
-      return { default: m.BookFlipAnimation };
-    } catch {
-      if (typeof window !== "undefined") {
-        const reloadedKey = "__hero_chunk_reloaded__";
-        if (!sessionStorage.getItem(reloadedKey)) {
-          sessionStorage.setItem(reloadedKey, "1");
-          window.location.reload();
-        }
-      }
-      throw err;
-    }
-  }
-});
 
 const ease = [0.16, 1, 0.3, 1];
-
-const AVATARS = [kid1, kid2, kid3, kid4];
-
-/* ── Animated counter component ── */
-
-function AnimatedNumber({ value }: { value: number }) {
-  const [displayValue, setDisplayValue] = useState(value);
-  const prevValue = useRef(value);
-
-  useEffect(() => {
-    const start = prevValue.current;
-    const end = value;
-    if (start === end) return;
-    
-    const duration = 800;
-    const startTime = performance.now();
-
-    const animate = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(start + (end - start) * eased);
-      setDisplayValue(current);
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-
-    requestAnimationFrame(animate);
-    prevValue.current = end;
-  }, [value]);
-
-  return <>{displayValue.toLocaleString()}+</>;
-}
-
-function SocialProofCounter({ dir, socialProof }: { dir: "ltr" | "rtl"; socialProof: string }) {
-  const [count, setCount] = useState(50);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCount((c) => c + 1);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.8, duration: 0.6 }}
-      className={`mt-6 sm:mt-10 flex items-center gap-2 sm:gap-3 justify-center ${
-        dir === "rtl" ? "sm:justify-start" : "sm:justify-start"
-      }`}
-    >
-      <div className={`flex ${dir === "rtl" ? "-space-x-reverse -space-x-2" : "-space-x-2"}`}>
-        {AVATARS.map((src, i) => (
-          <img
-            key={i}
-            src={src}
-            alt=""
-            className="w-7 h-7 sm:w-9 sm:h-9 rounded-full border-2 border-white/30 object-cover"
-            loading="lazy"
-            width={36}
-            height={36}
-          />
-        ))}
-      </div>
-      <div className="flex items-center gap-0.5 sm:gap-1">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-accent text-accent" />
-        ))}
-      </div>
-      <span className="text-xs sm:text-sm text-white/60">
-        <strong className="text-white/80 tabular-nums">
-          <AnimatedNumber value={count} />
-        </strong>{" "}
-        {socialProof}
-      </span>
-    </motion.div>
-  );
-}
-
-/* ── Hero Section ── */
 
 interface HeroSectionProps {
   onStart: () => void;
 }
 
 export const HeroSection = ({ onStart }: HeroSectionProps) => {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const { getSetting } = useSiteSettings("website");
-  const { t, dir } = useLanguage();
+  const { t, dir, lang } = useLanguage();
+  const scrollToHow = () => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const isRtl = dir === "rtl";
 
-  const handlePageChange = useCallback((page: number) => {
-    setActiveSlide(page);
-  }, []);
-
-  const slides = t.hero.slides.map((def, i) => ({
-    headline: [
-      getSetting("website", `hero-slide-${i}-headline-1`, def.headline[0]),
-      getSetting("website", `hero-slide-${i}-headline-2`, def.headline[1]),
-    ],
-    description: getSetting("website", `hero-slide-${i}-description`, def.description),
-  }));
-
-  const slide = slides[activeSlide];
-  const badgeText = getSetting("website", "hero-badge", t.hero.badge);
-  const ctaText = getSetting("website", "hero-cta", t.hero.cta);
-  const priceText = getSetting("website", "hero-price-text", t.hero.priceText);
-  const socialProof = getSetting("website", "hero-social-proof", t.hero.socialProof);
+  const copy = lang === "he" || lang === "yi"
+    ? {
+        badge: "ספרי תורה מותאמים אישית לילדכם",
+        title1: "המסע שלהם.",
+        title2: "הסיפור שלהם.",
+        titleAccent: "מושרשים בתורה.",
+        description: "אנו יוצרים ספרים מותאמים אישית שמחיים סיפורי תורה — עם ילדכם בתפקיד הראשי, ומנחילים ערכים לכל החיים.",
+        primaryCta: "צרו את הספר של ילדכם",
+        watchCta: "צפו איך זה עובד",
+        features: [
+          { icon: BookOpen, label: "תוכן יהודי 100%" },
+          { icon: Heart, label: "נעשה באהבה" },
+          { icon: Gift, label: "מתנה שיוקירו לתמיד" },
+        ],
+        trustHeading: "אהוב ע״י משפחות. נבחר ברחבי העולם.",
+        rating: "4.9/5 מתוך 500+ ביקורות",
+        testimonials: [
+          { quote: "הדרך הכי יפה לחבר את הילדים שלנו לתורה. הם מבקשים את הספר שלהם בכל לילה!", name: "רבקי ומשה ש.", location: "ברוקלין, ניו יורק", avatar: kid1 },
+          { quote: "האיכות מדהימה וההתאמה האישית מיוחדת מאוד. מתנה שילדינו יוקירו לנצח.", name: "חנה פ.", location: "לוס אנג׳לס", avatar: kid2 },
+          { quote: "הבן שלנו מרגיש כמו הגיבור של הסיפור — וזה מביא את ערכי התורה לחיים בצורה כל כך יפה.", name: "אבי מ.", location: "טורונטו, קנדה", avatar: kid3 },
+        ],
+        trustBar: [
+          { icon: ShieldCheck, label: "בטוח ומתאים לגיל" },
+          { icon: Award, label: "מהימן ע״י משפחות בעולם" },
+          { icon: Lock, label: "מאובטח ופרטי" },
+        ],
+      }
+    : {
+        badge: "Personalized Torah Books for Your Child",
+        title1: "Their journey.",
+        title2: "Their story.",
+        titleAccent: "Rooted in Torah.",
+        description: "We create personalized books that bring Torah stories to life—starring your child, instilling values that inspire a lifetime.",
+        primaryCta: "Start Your Child's Book",
+        watchCta: "Watch How It Works",
+        features: [
+          { icon: BookOpen, label: "100% Jewish Content" },
+          { icon: Heart, label: "Made with Love" },
+          { icon: Gift, label: "A Gift They'll Cherish" },
+        ],
+        trustHeading: "Loved by families. Trusted worldwide.",
+        rating: "4.9/5 from 500+ reviews",
+        testimonials: [
+          { quote: "The most beautiful way to connect our kids to Torah. They ask for their book every night!", name: "Rivky & Moshe S.", location: "Brooklyn, NY", avatar: kid1 },
+          { quote: "The quality is amazing and the personalization is beyond special. It's a gift our children will cherish forever.", name: "Chana F.", location: "Los Angeles, CA", avatar: kid2 },
+          { quote: "Our son feels like the hero of the story—and it brings Torah values to life in such a beautiful way.", name: "Avi M.", location: "Toronto, Canada", avatar: kid3 },
+        ],
+        trustBar: [
+          { icon: ShieldCheck, label: "Safe & Age Appropriate" },
+          { icon: Award, label: "Trusted by Families Worldwide" },
+          { icon: Lock, label: "Secure & Private" },
+        ],
+      };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
-      <div className={dir === "rtl" ? "absolute inset-0 w-full h-full [transform:scaleX(-1)]" : "absolute inset-0 w-full h-full"}>
-        <Suspense fallback={<div className="absolute inset-0 bg-background" />}>
-          <BookFlipAnimation onPageChange={handlePageChange} />
-        </Suspense>
-      </div>
+    <section
+      className="relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(180deg, hsl(42 60% 96%) 0%, hsl(38 50% 94%) 60%, hsl(36 45% 92%) 100%)",
+      }}
+      dir={dir}
+    >
+      {/* warm bokeh glow on the right */}
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 w-2/3 opacity-70"
+        style={{
+          background:
+            "radial-gradient(ellipse at 70% 40%, hsl(42 90% 80% / 0.55), transparent 60%)",
+        }}
+      />
 
-      <div className={`absolute inset-0 bg-gradient-to-b ${dir === "rtl" ? "sm:bg-gradient-to-l" : "sm:bg-gradient-to-r"} from-[hsl(220,30%,8%)]/95 via-[hsl(220,30%,8%)]/70 to-[hsl(220,30%,8%)]/40 sm:from-[hsl(220,30%,8%)]/85 sm:via-[hsl(220,30%,8%)]/30 sm:to-transparent`} />
-      <div className="absolute inset-0 bg-gradient-to-t from-[hsl(220,30%,8%)]/60 sm:from-[hsl(220,30%,8%)]/40 via-transparent to-transparent" />
-
-      <div className={`relative z-10 w-full py-24 lg:py-0 px-4 ${dir === "rtl" ? "sm:pr-6 lg:pr-12 sm:pl-4" : "sm:pl-6 lg:pl-12 sm:pr-4"}`}>
-        <div className={`flex items-center justify-center ${dir === "rtl" ? "sm:justify-start" : "sm:justify-start"}`}>
-          <div className={`max-w-xl text-center ${dir === "rtl" ? "sm:text-right" : "sm:text-left"}`}>
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease }} className="mb-6 flex justify-center sm:justify-start">
-              <BrandMark iconClassName="h-12 w-12" wordmarkClassName="h-9 w-auto" />
+      <div className="container relative z-10 pt-28 lg:pt-32 pb-10 lg:pb-16">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-8 items-center">
+          {/* LEFT — copy */}
+          <div className={`text-center ${isRtl ? "lg:text-right" : "lg:text-left"}`}>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease }}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[hsl(var(--gold)/0.3)] bg-[hsl(var(--gold)/0.08)] mb-6`}
+            >
+              <Sparkles className="w-4 h-4 text-gold" />
+              <span className="text-sm font-medium text-gold-dark">{copy.badge}</span>
             </motion.div>
-            {badgeText && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }} className="mb-5">
-              <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-[hsl(var(--gold)/0.15)] text-gold text-[10px] sm:text-xs font-semibold tracking-wider uppercase border border-[hsl(var(--gold)/0.2)]">
-                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                {badgeText}
-              </span>
-            </motion.div>
-            )}
 
-            <div className="min-h-[100px] sm:min-h-[140px] lg:min-h-[180px]">
-              <AnimatePresence mode="wait">
-                <motion.h1
-                  key={`headline-${activeSlide}`}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                  className="text-[2.2rem] sm:text-5xl lg:text-[4.1rem] font-display font-semibold leading-[1.04] text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.28)]"
-                >
-                  {slide.headline[0]}<br />
-                  <span className="gold-text-gradient">{slide.headline[1]}</span>
-                </motion.h1>
-              </AnimatePresence>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease }}
+              className="font-display font-bold leading-[1.02] tracking-tight text-foreground text-[2.5rem] sm:text-6xl lg:text-[4.5rem]"
+            >
+              <span className="block">{copy.title1}</span>
+              <span className="block">{copy.title2}</span>
+              <span className="block gold-text-gradient italic">{copy.titleAccent}</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15, ease }}
+              className={`mt-6 text-base sm:text-lg text-foreground/70 max-w-lg leading-relaxed ${isRtl ? "lg:mr-0 mx-auto lg:ml-auto" : "lg:mx-0 mx-auto"}`}
+            >
+              {copy.description}
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3, ease }}
+              className={`mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 ${isRtl ? "lg:justify-end" : "lg:justify-start"} justify-center items-center`}
+            >
+              <Button
+                variant="gold"
+                size="xl"
+                onClick={onStart}
+                className="group gold-glow rounded-xl w-full sm:w-auto px-7"
+              >
+                {copy.primaryCta}
+                <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="xl"
+                onClick={scrollToHow}
+                className="rounded-xl w-full sm:w-auto px-6 bg-background/80 backdrop-blur border-foreground/15 hover:border-gold hover:text-gold-dark"
+              >
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--gold)/0.15)] text-gold">
+                  <Play className="w-3 h-3 fill-current" />
+                </span>
+                {copy.watchCta}
+              </Button>
+            </motion.div>
+
+            {/* feature pills */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.45, ease }}
+              className={`mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 ${isRtl ? "lg:justify-end" : "lg:justify-start"} justify-center`}
+            >
+              {copy.features.map((f, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  {i > 0 && <span className="hidden sm:block w-px h-8 bg-foreground/15" />}
+                  <f.icon className="w-7 h-7 text-gold" strokeWidth={1.5} />
+                  <span className="text-sm font-medium text-foreground/80 max-w-[8rem] leading-tight">
+                    {f.label}
+                  </span>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* RIGHT — children photo + floating book */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.9, ease }}
+            className="relative w-full"
+          >
+            <div className="relative aspect-[5/4] lg:aspect-[6/5] w-full">
+              <img
+                src={heroChildren}
+                alt="Two Jewish children enjoying their personalized Torah storybook"
+                className="absolute inset-0 w-full h-full object-cover rounded-3xl"
+                width={1536}
+                height={1024}
+                fetchPriority="high"
+              />
+              {/* fade-into-cream mask on left edge for blend */}
+              <div className={`absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-1/3 from-[hsl(38_50%_94%)] to-transparent rounded-3xl pointer-events-none`} />
             </div>
 
-            <div className="min-h-[50px] sm:min-h-[70px] mt-3 sm:mt-4">
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={`desc-${activeSlide}`}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
-                  className={`text-base sm:text-lg text-white/78 max-w-md leading-relaxed ${dir === "rtl" ? "sm:mr-0 sm:ml-auto mx-auto" : "sm:mx-0 mx-auto"}`}
-                >
-                  {slide.description}
-                </motion.p>
-              </AnimatePresence>
+            {/* floating book */}
+            <motion.img
+              src={heroBook}
+              alt="Personalized Torah storybook"
+              className={`absolute -bottom-6 sm:-bottom-10 ${isRtl ? "-left-4 sm:left-0" : "-right-4 sm:right-0"} w-[75%] sm:w-[70%] lg:w-[85%] max-w-[640px] drop-shadow-2xl pointer-events-none`}
+              initial={{ opacity: 0, y: 40, rotate: isRtl ? 4 : -4 }}
+              animate={{ opacity: 1, y: 0, rotate: 0 }}
+              transition={{ duration: 1, delay: 0.4, ease }}
+              width={1280}
+              height={896}
+              loading="lazy"
+            />
+          </motion.div>
+        </div>
+
+        {/* Testimonials strip */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6, ease }}
+          className="mt-20 lg:mt-28 rounded-2xl bg-background/70 backdrop-blur border border-foreground/8 shadow-sm px-6 sm:px-8 py-6 sm:py-8"
+        >
+          <div className="grid lg:grid-cols-[1fr_2.4fr] gap-6 lg:gap-10 items-center">
+            <div className={`${isRtl ? "lg:text-right" : "lg:text-left"} text-center`}>
+              <h3 className="font-display text-2xl sm:text-3xl font-semibold text-foreground leading-tight">
+                {copy.trustHeading}
+              </h3>
+              <div className={`mt-3 flex items-center gap-2 ${isRtl ? "lg:justify-end" : "lg:justify-start"} justify-center`}>
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className="w-4 h-4 fill-gold text-gold" />
+                  ))}
+                </div>
+                <span className="text-sm text-foreground/60">{copy.rating}</span>
+              </div>
             </div>
 
-            <div className={`flex gap-1.5 mt-4 sm:mt-6 justify-center ${dir === "rtl" ? "sm:justify-end" : "sm:justify-start"}`}>
-              {slides.map((_, i) => (
-                <div key={i} className="h-1 rounded-full transition-all duration-500"
-                  style={{ width: i === activeSlide ? 28 : 6, background: i === activeSlide ? "hsl(var(--accent))" : "hsl(var(--foreground) / 0.2)" }} />
+            <div className="grid sm:grid-cols-3 gap-5">
+              {copy.testimonials.map((tm, i) => (
+                <div key={i} className="flex gap-3 items-start">
+                  <img
+                    src={tm.avatar}
+                    alt={tm.name}
+                    className="w-12 h-12 rounded-full object-cover flex-shrink-0 ring-2 ring-[hsl(var(--gold)/0.3)]"
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-foreground/75 leading-snug">
+                      <span className="text-gold font-display text-lg leading-none align-top">“</span>
+                      {tm.quote}
+                    </p>
+                    <p className="mt-2 text-xs font-semibold text-foreground">{tm.name}</p>
+                    <p className="text-xs text-foreground/55">{tm.location}</p>
+                  </div>
+                </div>
               ))}
             </div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4, ease }} className={`mt-6 sm:mt-8 flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 sm:gap-4`}>
-              <Button variant="gold" size="xl" onClick={onStart} className="group gold-glow rounded-full w-full sm:w-auto">
-                {ctaText}
-                <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${dir === "rtl" ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
-              </Button>
-              {priceText && <span className="text-white/40 text-xs sm:text-sm font-body">{priceText}</span>}
-            </motion.div>
-
-            {socialProof && <SocialProofCounter dir={dir} socialProof={socialProof} />}
           </div>
+        </motion.div>
+      </div>
+
+      {/* Trust bar */}
+      <div className="relative z-10 bg-[hsl(220_45%_10%)] text-white/85">
+        <div className="container py-4 sm:py-5 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-0 divide-y sm:divide-y-0 sm:divide-x divide-white/10 text-sm">
+          {copy.trustBar.map((item, i) => (
+            <div key={i} className="flex items-center justify-center gap-3 py-2 sm:py-0">
+              <item.icon className="w-5 h-5 text-gold" />
+              <span className="font-medium">{item.label}</span>
+            </div>
+          ))}
         </div>
       </div>
     </section>

@@ -39,7 +39,7 @@ const Index = () => {
         description="AI-personalized Torah storybooks starring your child. Tznius, halachically-mindful stories aligned with the weekly parsha, delivered to your door."
         path="/"
       />
-      <Navbar onStart={goToCreate} />
+      <Navbar onStart={goToCreate} transparentHero={false} />
       <HeroSection onStart={goToCreate} />
       <HowItWorks />
       <GalleryReviewsSection />
