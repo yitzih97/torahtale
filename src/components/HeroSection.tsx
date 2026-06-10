@@ -4,6 +4,7 @@ import { Sparkles, ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { BrandMark } from "@/components/BrandMark";
 import kid1 from "@/assets/avatars/kid1.jpg";
 import kid2 from "@/assets/avatars/kid2.jpg";
 import kid3 from "@/assets/avatars/kid3.jpg";
@@ -161,9 +162,12 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       <div className={`relative z-10 w-full py-24 lg:py-0 px-4 ${dir === "rtl" ? "sm:pr-6 lg:pr-12 sm:pl-4" : "sm:pl-6 lg:pl-12 sm:pr-4"}`}>
         <div className={`flex items-center justify-center ${dir === "rtl" ? "sm:justify-start" : "sm:justify-start"}`}>
           <div className={`max-w-xl text-center ${dir === "rtl" ? "sm:text-right" : "sm:text-left"}`}>
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease }} className="mb-6 flex justify-center sm:justify-start">
+              <BrandMark iconClassName="h-12 w-12" wordmarkClassName="h-9 w-auto" />
+            </motion.div>
             {badgeText && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }} className="mb-5">
-              <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-accent/15 text-accent text-[10px] sm:text-xs font-semibold tracking-wider uppercase border border-accent/20">
+              <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-[hsl(var(--gold)/0.15)] text-gold text-[10px] sm:text-xs font-semibold tracking-wider uppercase border border-[hsl(var(--gold)/0.2)]">
                 <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 {badgeText}
               </span>
@@ -176,10 +180,10 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                   key={`headline-${activeSlide}`}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                  className="text-2xl sm:text-4xl lg:text-[3.2rem] font-display font-bold leading-[1.1] tracking-tight text-white drop-shadow-lg"
+                  className="text-[2.2rem] sm:text-5xl lg:text-[4.1rem] font-display font-semibold leading-[1.04] text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.28)]"
                 >
                   {slide.headline[0]}<br />
-                  <span className="text-gold-light">{slide.headline[1]}</span>
+                  <span className="gold-text-gradient">{slide.headline[1]}</span>
                 </motion.h1>
               </AnimatePresence>
             </div>
@@ -190,7 +194,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                   key={`desc-${activeSlide}`}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
-                  className={`text-sm sm:text-base lg:text-lg text-white/65 font-body max-w-md leading-relaxed ${dir === "rtl" ? "sm:mr-0 sm:ml-auto mx-auto" : "sm:mx-0 mx-auto"}`}
+                  className={`text-base sm:text-lg text-white/78 max-w-md leading-relaxed ${dir === "rtl" ? "sm:mr-0 sm:ml-auto mx-auto" : "sm:mx-0 mx-auto"}`}
                 >
                   {slide.description}
                 </motion.p>
