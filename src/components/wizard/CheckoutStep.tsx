@@ -45,6 +45,12 @@ interface Props {
   quantity?: number;
   /** 0, 0.10 or 0.15 */
   volumeDiscount?: number;
+  /** Override the CTA button label. Defaults to "Generate Book". */
+  ctaLabel?: string;
+  /** Override the CTA icon. Pass null to hide it. */
+  ctaIcon?: ReactNode | null;
+  /** Hide the CTA button entirely. */
+  hideCta?: boolean;
 }
 
 export const CheckoutStep = ({
