@@ -1,13 +1,14 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Check, X, ImageIcon, Wand2, Sparkles, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, RefreshCw, X, Wand2, Sparkles, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
-import { DraggableText, DEFAULT_TEXT_STYLE, type TextStyle } from "./DraggableText";
+import type { TextStyle } from "./DraggableText";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { BrandMark } from "@/components/BrandMark";
 
 export interface BookPage {
   id: number;
@@ -22,6 +23,23 @@ export interface BookPage {
   questions?: { number: number; question: string }[];
   textStyle?: TextStyle;
 }
+
+/**
+ * Single shared text style for the entire book — used by the on-screen
+ * spread viewer AND the print PDF so every page reads identically.
+ */
+export const BOOK_TEXT_STYLE = {
+  fontFamily: "'Cormorant Garamond', 'Georgia', serif",
+  fontSizePx: 19,
+  color: "#2b2418",
+  bgColor: "rgba(252, 247, 236, 0.94)",
+  lineHeight: 1.5,
+  padding: 22,
+  borderRadius: 18,
+};
+
+export const COVER_TAGLINE = ["Stories that inspire.", "Values that last.", "A love that grows."];
+export const COVER_URL = "torahtale.com";
 
 interface Props {
   childName: string;
@@ -47,57 +65,62 @@ interface Props {
 }
 
 export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesChange, generationContext }: Props) => {
+  // Hide any legacy "back-cover" pages — the cover spread renders both sides.
+  const displayPages = pages.filter((p) => p.type !== "back-cover");
+
   const [currentPage, setCurrentPage] = useState(0);
-  const [editingPage, setEditingPage] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
-  const [regenerating, setRegenerating] = useState<number | null>(null);
+  const [regeneratingId, setRegeneratingId] = useState<number | null>(null);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
-  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const spreadRef = useRef<HTMLDivElement>(null);
 
-  const page = pages[currentPage];
+  const safeIndex = Math.min(currentPage, Math.max(displayPages.length - 1, 0));
+  const page = displayPages[safeIndex];
   const pageType = page?.type || "story";
-  const _isSpecialPage = pageType !== "story";
 
-  const startEdit = (idx: number) => {
-    setEditingPage(idx);
-    setEditText(pages[idx].text);
+  const updatePage = (id: number, patch: Partial<BookPage>) => {
+    onPagesChange(pages.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  };
+
+  const startEdit = () => {
+    if (!page) return;
+    setEditingId(page.id);
+    setEditText(page.text || "");
   };
 
   const saveEdit = () => {
-    if (editingPage === null) return;
-    const updated = pages.map((p, i) => (i === editingPage ? { ...p, text: editText } : p));
-    onPagesChange(updated);
-    setEditingPage(null);
+    if (editingId === null) return;
+    updatePage(editingId, { text: editText });
+    setEditingId(null);
+    toast.success("Text updated");
   };
 
-  const openPromptEditor = (idx: number) => {
+  const openPromptEditor = () => {
+    if (!page) return;
     const styleMap: Record<string, string> = {
       cartoon: "colorful cartoon illustration, soft watercolor textures",
       "3d-pixar": "3D Pixar-style CGI render, warm lighting",
       "graphic-novel": "graphic novel, bold ink lines, flat colors",
     };
-    const p = pages[idx];
-    const desc = p.type === "cover"
-      ? `Book cover for "${p.coverTitle}". ${p.coverSubtitle}`
-      : p.type === "back-cover"
-      ? `Back cover of a children's book. ${p.synopsis}`
-      : p.text;
-    const defaultPrompt = `A beautiful children's book page illustration. ${desc}. Characters: children named ${childName}. Torah story: ${torahPortion}. Style: ${styleMap[artStyle] || styleMap.cartoon}. Safe for children, warm magical atmosphere, vibrant colors.`;
+    const desc = page.type === "cover"
+      ? `Book cover for "${page.coverTitle}". ${page.coverSubtitle || ""}`
+      : page.text;
+    const defaultPrompt = `A beautiful children's book illustration that fills a 2:1 landscape spread. ${desc}. Characters: children named ${childName}. Torah story: ${torahPortion}. Style: ${styleMap[artStyle] || styleMap.cartoon}. Composition: subject centered, with breathing room on both halves so text can sit over one side. Safe for children, warm magical atmosphere, vibrant colors.`;
     setCustomPrompt(defaultPrompt);
     setShowPromptEditor(true);
   };
 
-  const regenImage = async (idx: number, prompt?: string) => {
-    setRegenerating(idx);
+  const regenImage = async (prompt?: string) => {
+    if (!page) return;
+    setRegeneratingId(page.id);
     setShowPromptEditor(false);
     try {
       const finalPrompt = prompt || customPrompt;
-      const targetPage = pages[idx];
-      const pageType = targetPage?.type || "story";
-      const pageNumber = pageType === "story"
-        ? pages.slice(0, idx + 1).filter((p) => p.type === "story").length
-        : undefined;
+      const targetType = page.type || "story";
+      const storyPages = pages.filter((p) => p.type === "story");
+      const pageNumber = targetType === "story" ? storyPages.findIndex((p) => p.id === page.id) + 1 : undefined;
       const { data, error } = await supabase.functions.invoke("generate-image", {
         body: {
           promptAdditions: finalPrompt
@@ -107,9 +130,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           artStyle,
           torahPortion,
           bookFormat: generationContext?.bookFormat,
-          pageType,
+          pageType: targetType,
           pageNumber,
-          pageText: targetPage?.text,
+          pageText: page.text,
           childDescription: generationContext?.childDescription,
           referenceImage: generationContext?.referenceImage,
           characterSheet: generationContext?.characterSheet,
@@ -119,134 +142,294 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const updated = pages.map((p, i) => (i === idx ? { ...p, image: data.imageUrl } : p));
-      onPagesChange(updated);
+      updatePage(page.id, { image: data.imageUrl });
       toast.success("Image regenerated!");
     } catch (err: any) {
       console.error("Image regen failed:", err);
       toast.error(err?.message || "Failed to regenerate image.");
     } finally {
-      setRegenerating(null);
+      setRegeneratingId(null);
     }
   };
 
   const getPageLabel = () => {
-    if (pageType === "cover") return "Front Cover";
-    if (pageType === "back-cover") return "Back Cover";
-    if (pageType === "questions") return "Discussion Questions";
-    const storyPages = pages.filter(p => p.type === "story");
-    const storyIdx = storyPages.indexOf(page);
-    return `Page ${storyIdx + 1} of ${storyPages.length}`;
+    if (pageType === "cover") return "Cover (Back · Front)";
+    if (pageType === "questions") return "Discussion Page";
+    const storyPages = displayPages.filter((p) => p.type === "story");
+    const storyIdx = storyPages.findIndex((p) => p.id === page?.id);
+    return `Spread ${storyIdx + 1} of ${storyPages.length}`;
   };
+
+  // Which half of the spread does the story-page text sit on?
+  // First story spread → LEFT, then alternates.
+  const storyTextOnLeft = (() => {
+    if (pageType !== "story") return true;
+    const storyPages = displayPages.filter((p) => p.type === "story");
+    const storyIdx = storyPages.findIndex((p) => p.id === page?.id);
+    return storyIdx % 2 === 0;
+  })();
+
+  const isRegenThis = page && regeneratingId === page.id;
+
+  /* ── Renderers ───────────────────────────────────────────────────── */
+
+  const renderCoverSpread = () => (
+    <div className="absolute inset-0 grid grid-cols-2">
+      {/* Back cover — left */}
+      <div className="relative flex flex-col items-center justify-between p-6 sm:p-8 text-center bg-[hsl(42_50%_94%)]">
+        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
+        <div className="relative">
+          <BrandMark stacked iconClassName="h-12 w-12" wordmarkClassName="h-7" />
+        </div>
+        <div className="relative font-body italic text-primary/80 leading-relaxed space-y-1 text-sm sm:text-base">
+          {COVER_TAGLINE.map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
+        </div>
+        <p className="relative font-mono text-xs tracking-[0.2em] text-gold uppercase">{COVER_URL}</p>
+      </div>
+
+      {/* Front cover — right */}
+      <div className="relative bg-muted">
+        {page?.image ? (
+          <img src={page.image} alt={page.coverTitle || ""} className="absolute inset-0 w-full h-full object-cover" />
+        ) : page?.imageLoading ? (
+          <BookLoadingSkeleton type="cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <BookOpen className="w-10 h-10 text-muted-foreground" />
+          </div>
+        )}
+        <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-10 bg-gradient-to-b from-white/90 via-white/60 to-transparent text-center">
+          <h1 className="font-display font-bold text-primary leading-tight text-lg sm:text-2xl">
+            {page?.coverTitle || `${childName}'s Torah Tale`}
+          </h1>
+          {page?.coverSubtitle && (
+            <p className="mt-1 font-body italic text-gold text-xs sm:text-sm">{page.coverSubtitle}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStorySpread = () => (
+    <div className="absolute inset-0">
+      {page?.image ? (
+        <motion.img
+          key={`${page.id}-${page.image?.slice(-20)}`}
+          src={page.image}
+          alt={getPageLabel()}
+          className={`absolute inset-0 w-full h-full object-cover ${isRegenThis ? "animate-pulse opacity-50" : ""}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isRegenThis ? 0.5 : 1 }}
+          transition={{ duration: 0.3 }}
+        />
+      ) : page?.imageLoading ? (
+        <BookLoadingSkeleton type="story" />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+          <p className="text-muted-foreground text-sm">Generating illustration…</p>
+        </div>
+      )}
+
+      {page?.text && (
+        <div
+          className={`absolute inset-y-0 ${storyTextOnLeft ? "left-0" : "right-0"} w-1/2 flex items-center justify-center p-4 sm:p-6`}
+        >
+          <div
+            className="max-w-full shadow-soft-md"
+            style={{
+              fontFamily: BOOK_TEXT_STYLE.fontFamily,
+              fontSize: `${BOOK_TEXT_STYLE.fontSizePx}px`,
+              color: BOOK_TEXT_STYLE.color,
+              lineHeight: BOOK_TEXT_STYLE.lineHeight,
+              padding: `${BOOK_TEXT_STYLE.padding}px`,
+              background: BOOK_TEXT_STYLE.bgColor,
+              borderRadius: `${BOOK_TEXT_STYLE.borderRadius}px`,
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            {page.text}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderQuestionsSpread = () => (
+    <div className="absolute inset-0">
+      {page?.image ? (
+        <img src={page.image} alt="Discussion" className="absolute inset-0 w-full h-full object-cover" />
+      ) : page?.imageLoading ? (
+        <BookLoadingSkeleton type="story" />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-primary/10" />
+      )}
+      <div className="absolute inset-y-0 left-0 w-1/2 flex items-center justify-center p-4 sm:p-6">
+        <div
+          className="max-w-full shadow-soft-md space-y-2"
+          style={{
+            fontFamily: BOOK_TEXT_STYLE.fontFamily,
+            color: BOOK_TEXT_STYLE.color,
+            padding: `${BOOK_TEXT_STYLE.padding}px`,
+            background: BOOK_TEXT_STYLE.bgColor,
+            borderRadius: `${BOOK_TEXT_STYLE.borderRadius}px`,
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          <p className="font-display font-bold text-sm text-primary mb-2">Discussion Questions</p>
+          {(page?.questions || []).map((q) => (
+            <p
+              key={q.number}
+              style={{ fontSize: `${BOOK_TEXT_STYLE.fontSizePx - 3}px`, lineHeight: BOOK_TEXT_STYLE.lineHeight }}
+            >
+              <span className="font-bold text-gold mr-1">{q.number}.</span>
+              {q.question}
+            </p>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
-      <div>
-        <span className="font-mono text-xs tracking-widest text-accent uppercase">Step 5 of 8</span>
-        <h2 className="font-display text-2xl font-bold text-primary mt-1">The Grand Reveal</h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          Flip through {childName}'s personalized story. Edit text or customize image prompts.
-        </p>
-      </div>
+      {/* Spread frame */}
+      <div
+        ref={spreadRef}
+        className="relative aspect-[2/1] w-full rounded-book overflow-hidden bg-secondary shadow-soft-lg"
+      >
+        {pageType === "cover" && renderCoverSpread()}
+        {pageType === "story" && renderStorySpread()}
+        {pageType === "questions" && renderQuestionsSpread()}
 
-      {/* Book viewer */}
-      <div ref={imageContainerRef} className="relative bg-secondary rounded-book overflow-hidden" onClick={() => {}}>
-        {/* Image section — same for all page types */}
-        {page?.image ? (
-          <motion.img
-            key={`${currentPage}-${page.image?.slice(-20)}`}
-            src={page.image}
-            alt={getPageLabel()}
-            className={`w-full aspect-square object-cover rounded-book ${regenerating === currentPage ? "animate-pulse opacity-50" : ""}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: regenerating === currentPage ? 0.5 : 1 }}
-            transition={{ duration: 0.3 }}
-          />
-        ) : page?.imageLoading ? (
-          <BookLoadingSkeleton type={pageType === "cover" ? "cover" : pageType === "back-cover" ? "back-cover" : "story"} />
-        ) : (
-          <div className="w-full aspect-square rounded-book bg-muted flex flex-col items-center justify-center gap-2">
-            {pageType === "cover" || pageType === "back-cover" ? (
-              <BookOpen className="w-8 h-8 text-muted-foreground" />
-            ) : (
-              <ImageIcon className="w-8 h-8 text-muted-foreground" />
-            )}
-            <p className="text-muted-foreground text-sm">Generating illustration...</p>
-          </div>
-        )}
+        {/* Center gutter */}
+        <div className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 w-2 bg-gradient-to-r from-black/0 via-black/40 to-black/0" />
 
-        {/* Draggable text overlay for story pages */}
-        {pageType === "story" && page?.image && (
-          <DraggableText
-            text={page.text || ""}
-            style={page.textStyle || DEFAULT_TEXT_STYLE}
-            onChange={(newStyle) => {
-              const updated = pages.map((p, i) => (i === currentPage ? { ...p, textStyle: newStyle } : p));
-              onPagesChange(updated);
-            }}
-            onTextChange={(newText) => {
-              const updated = pages.map((p, i) => (i === currentPage ? { ...p, text: newText } : p));
-              onPagesChange(updated);
-            }}
-            containerRef={imageContainerRef as React.RefObject<HTMLDivElement>}
-          />
-        )}
-
-        {regenerating === currentPage && (
-          <div className="absolute inset-0 flex items-center justify-center bg-primary/20 rounded-book">
-            <div className="bg-card/90 backdrop-blur-sm rounded-book p-4 flex items-center gap-3">
+        {isRegenThis && (
+          <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+            <div className="bg-card/90 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-3 shadow-soft-md">
               <RefreshCw className="w-5 h-5 text-accent animate-spin" />
-              <span className="text-sm font-medium text-primary">Regenerating...</span>
+              <span className="text-sm font-medium text-primary">Regenerating…</span>
             </div>
           </div>
         )}
 
         {/* Page nav */}
         <div className="absolute top-1/2 -translate-y-1/2 left-2">
-          <Button variant="secondary" size="icon" onClick={() => setCurrentPage((p) => Math.max(0, p - 1))} disabled={currentPage === 0} className="rounded-full shadow-soft-sm h-8 w-8">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+            disabled={safeIndex === 0}
+            className="rounded-full shadow-soft-sm h-9 w-9"
+          >
             <ChevronLeft className="w-4 h-4" />
           </Button>
         </div>
         <div className="absolute top-1/2 -translate-y-1/2 right-2">
-          <Button variant="secondary" size="icon" onClick={() => setCurrentPage((p) => Math.min(pages.length - 1, p + 1))} disabled={currentPage === pages.length - 1} className="rounded-full shadow-soft-sm h-8 w-8">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => setCurrentPage((p) => Math.min(displayPages.length - 1, p + 1))}
+            disabled={safeIndex >= displayPages.length - 1}
+            className="rounded-full shadow-soft-sm h-9 w-9"
+          >
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
 
-        {/* Page label badge */}
-        <div className="absolute top-3 left-3 bg-card/80 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium text-primary">
+        {/* Page label */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-card/80 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium text-primary">
           {getPageLabel()}
         </div>
       </div>
 
       {/* Page dots */}
       <div className="flex justify-center gap-1.5 flex-wrap">
-        {pages.map((p, i) => (
+        {displayPages.map((p, i) => (
           <button
-            key={i}
+            key={p.id}
             onClick={() => setCurrentPage(i)}
             className={`h-2 rounded-full transition-all duration-300 ${
-              i === currentPage ? "bg-accent w-5" : 
-              p.type === "cover" || p.type === "back-cover" ? "bg-accent/30 w-2.5 hover:bg-accent/50" :
-              "bg-border w-2 hover:bg-muted-foreground/40"
+              i === safeIndex
+                ? "bg-accent w-5"
+                : p.type === "cover"
+                  ? "bg-accent/30 w-2.5 hover:bg-accent/50"
+                  : "bg-border w-2 hover:bg-muted-foreground/40"
             }`}
+            aria-label={`Go to spread ${i + 1}`}
           />
         ))}
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={() => regenImage(currentPage)} disabled={regenerating !== null} className="flex-1 text-xs">
+      <div className="grid grid-cols-3 gap-2">
+        {pageType === "story" && (
+          <Button variant="outline" size="sm" onClick={startEdit} disabled={regeneratingId !== null} className="text-xs">
+            <Pencil className="w-3.5 h-3.5" /> Edit Text
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => regenImage()}
+          disabled={regeneratingId !== null}
+          className={`text-xs ${pageType !== "story" ? "col-span-2" : ""}`}
+        >
           <RefreshCw className="w-3.5 h-3.5" /> Quick Regen
         </Button>
-        <Button variant="outline" size="sm" onClick={() => openPromptEditor(currentPage)} disabled={regenerating !== null} className="flex-1 text-xs">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={openPromptEditor}
+          disabled={regeneratingId !== null}
+          className="text-xs"
+        >
           <Wand2 className="w-3.5 h-3.5" /> Custom Prompt
         </Button>
       </div>
 
+      {/* Text editor */}
+      {editingId !== null && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-3 rounded-book border border-accent/30 bg-accent/5 p-4"
+        >
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-semibold text-primary flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-accent" /> Edit page text
+            </Label>
+            <button onClick={() => setEditingId(null)} className="text-muted-foreground hover:text-foreground">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <Textarea
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            rows={4}
+            className="text-sm bg-card"
+            placeholder="Page text…"
+          />
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={() => setEditingId(null)}>
+              <X className="w-3.5 h-3.5" /> Cancel
+            </Button>
+            <Button variant="gold" size="sm" onClick={saveEdit}>
+              <Sparkles className="w-3.5 h-3.5" /> Save text
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Custom prompt editor */}
       {showPromptEditor && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 rounded-book border border-accent/30 bg-accent/5 p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-3 rounded-book border border-accent/30 bg-accent/5 p-4"
+        >
           <div className="flex items-center justify-between">
             <Label className="text-sm font-semibold text-primary flex items-center gap-2">
               <Wand2 className="w-4 h-4 text-accent" /> Image Prompt Editor
@@ -260,60 +443,17 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             onChange={(e) => setCustomPrompt(e.target.value)}
             rows={4}
             className="text-xs bg-card"
-            placeholder="Describe exactly how you want this illustration to look..."
+            placeholder="Describe exactly how you want this illustration to look…"
           />
           <div className="flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={() => setShowPromptEditor(false)}>
               <X className="w-3.5 h-3.5" /> Cancel
             </Button>
-            <Button variant="gold" size="sm" onClick={() => regenImage(currentPage, customPrompt)} disabled={regenerating !== null}>
+            <Button variant="gold" size="sm" onClick={() => regenImage(customPrompt)} disabled={regeneratingId !== null}>
               <Sparkles className="w-3.5 h-3.5" /> Generate with Prompt
             </Button>
           </div>
         </motion.div>
-      )}
-
-      {/* Cover info section */}
-      {pageType === "cover" && (
-        <div className="bg-card rounded-book border border-border p-4 text-center space-y-1">
-          <h3 className="font-display text-xl font-bold text-primary leading-tight">{page?.coverTitle}</h3>
-          {page?.coverSubtitle && (
-            <p className="font-body text-sm text-muted-foreground italic">{page.coverSubtitle}</p>
-          )}
-        </div>
-      )}
-
-      {/* Back cover info section */}
-      {pageType === "back-cover" && (
-        <div className="bg-card rounded-book border border-border p-4 space-y-3">
-          {page?.synopsis && (
-            <p className="font-body text-sm text-foreground italic text-center leading-relaxed">"{page.synopsis}"</p>
-          )}
-          {page?.dedication && (
-            <p className="font-display text-xs text-muted-foreground text-center">{page.dedication}</p>
-          )}
-        </div>
-      )}
-
-      {/* Questions page section */}
-      {pageType === "questions" && (
-        <div className="bg-card rounded-book border border-border p-4 space-y-3">
-          <p className="font-display text-sm font-bold text-primary mb-2">📖 Discussion Questions</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {(page?.questions || []).map((q) => (
-              <p key={q.number} className="text-xs text-muted-foreground leading-snug">
-                <span className="font-bold text-accent">{q.number}.</span> {q.question}
-              </p>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Story text hint — text is now editable on the image (double-click to edit) */}
-      {pageType === "story" && (
-        <p className="text-[11px] text-muted-foreground text-center italic">
-          💡 Drag text on the image to reposition. Double-click to edit. Click to open style toolbar.
-        </p>
       )}
     </div>
   );
