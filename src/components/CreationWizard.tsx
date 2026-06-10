@@ -658,10 +658,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (step === 6 && planType === "subscription") {
       nextStep = 7;
     }
-    // Skip plan-chooser (step 12) — plan was chosen at the start (subscription) or set to "once" (single).
+    // Step 11 (payment + summary) — the "Continue" CTA inside the step advances directly to step 12 (shipping),
+    // and step 12's own Place Order button calls handlePlaceOrder which jumps to the success step.
     if (step === 11) {
       if (planType === "single") setSelectedPlan("once");
-      nextStep = 13;
+      nextStep = 12;
     }
     setStep(Math.min(nextStep, TOTAL_STEPS));
   };
