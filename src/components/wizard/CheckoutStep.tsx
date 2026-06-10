@@ -272,22 +272,24 @@ export const CheckoutStep = ({
         {t.checkout.disclaimer}
       </p>
 
-      <Button
-        variant="gold"
-        size="lg"
-        className="w-full rounded-xl h-12 text-base"
-        onClick={handlePlaceOrder}
-        disabled={placingOrder}
-      >
-        {placingOrder ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <>
-            <Sparkles className="w-4 h-4" />
-            {t.wizard.generateBook}
-          </>
-        )}
-      </Button>
+      {!hideCta && (
+        <Button
+          variant="gold"
+          size="lg"
+          className="w-full rounded-xl h-12 text-base"
+          onClick={handlePlaceOrder}
+          disabled={placingOrder}
+        >
+          {placingOrder ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <>
+              {ctaIcon === null ? null : (ctaIcon ?? <Sparkles className="w-4 h-4" />)}
+              {ctaLabel ?? t.wizard.generateBook}
+            </>
+          )}
+        </Button>
+      )}
     </div>
   );
 };
