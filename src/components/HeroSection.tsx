@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Sparkles, ArrowRight, Play, BookOpen, Heart, Gift, Star, ShieldCheck, Award, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useNavigate } from "react-router-dom";
+
 import heroChildren from "@/assets/hero-children.jpg";
 import heroBook from "@/assets/hero-book.png";
 import kid1 from "@/assets/avatars/kid1.jpg";
@@ -17,7 +17,7 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ onStart }: HeroSectionProps) => {
   const { t, dir, lang } = useLanguage();
-  const navigate = useNavigate();
+  const scrollToHow = () => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const isRtl = dir === "rtl";
 
   const copy = lang === "he" || lang === "yi"
