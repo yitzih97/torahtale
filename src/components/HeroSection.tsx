@@ -93,7 +93,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       />
 
       <div className="container relative z-10 pt-28 lg:pt-32 pb-10 lg:pb-16">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-8 items-center">
+        <div className="grid lg:grid-cols-[5fr_7fr] gap-10 lg:gap-6 items-center">
           {/* LEFT — copy */}
           <div className={`text-center ${isRtl ? "lg:text-right" : "lg:text-left"}`}>
             <motion.div
@@ -195,7 +195,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             <img
               src={heroSceneDesktop}
               alt="Two Jewish children with their personalized Torah storybook"
-              className="hidden lg:block w-full h-auto rounded-3xl object-contain"
+              className="hidden lg:block w-full h-auto rounded-3xl object-contain scale-110 origin-center lg:-mr-12 xl:-mr-20"
               width={1536}
               height={1024}
               fetchPriority="high"
