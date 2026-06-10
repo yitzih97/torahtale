@@ -3,8 +3,8 @@ import { Sparkles, ArrowRight, Play, BookOpen, Heart, Gift, Star, ShieldCheck, A
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-import heroChildren from "@/assets/hero-children.jpg";
-import heroBook from "@/assets/hero-book.png";
+import heroSceneDesktop from "@/assets/hero-scene-desktop.jpg";
+import heroKidsMobile from "@/assets/hero-kids-mobile.jpg";
 import kid1 from "@/assets/avatars/kid1.jpg";
 import kid2 from "@/assets/avatars/kid2.jpg";
 import kid3 from "@/assets/avatars/kid3.jpg";
@@ -174,40 +174,35 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             </motion.div>
           </div>
 
-          {/* RIGHT — children photo + floating book */}
+          {/* RIGHT — full hero scene (kids + open book) */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.9, ease }}
             className="relative w-full"
           >
-            <div className="relative aspect-[5/4] lg:aspect-[6/5] w-full">
-              <img
-                src={heroChildren}
-                alt="Two Jewish children enjoying their personalized Torah storybook"
-                className="absolute inset-0 w-full h-full object-cover rounded-3xl"
-                width={1536}
-                height={1024}
-                fetchPriority="high"
-              />
-              {/* fade-into-cream mask on left edge for blend */}
-              <div className={`absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-1/3 from-[hsl(38_50%_94%)] to-transparent rounded-3xl pointer-events-none`} />
-            </div>
-
-            {/* floating book */}
-            <motion.img
-              src={heroBook}
-              alt="Personalized Torah storybook"
-              className={`absolute -bottom-6 sm:-bottom-10 ${isRtl ? "-left-4 sm:left-0" : "-right-4 sm:right-0"} w-[75%] sm:w-[70%] lg:w-[85%] max-w-[640px] drop-shadow-2xl pointer-events-none`}
-              initial={{ opacity: 0, y: 40, rotate: isRtl ? 4 : -4 }}
-              animate={{ opacity: 1, y: 0, rotate: 0 }}
-              transition={{ duration: 1, delay: 0.4, ease }}
-              width={1280}
-              height={896}
-              loading="lazy"
+            {/* Mobile: kids-only photo (book is shown separately below in its own section) */}
+            <img
+              src={heroKidsMobile}
+              alt="Two Jewish children in a sunlit meadow"
+              className="lg:hidden w-full h-auto rounded-3xl object-cover"
+              style={{ objectPosition: isRtl ? "left center" : "right center" }}
+              width={1200}
+              height={900}
+              fetchPriority="high"
+            />
+            {/* Desktop: full scene with kids and the open storybook in front */}
+            <img
+              src={heroSceneDesktop}
+              alt="Two Jewish children with their personalized Torah storybook"
+              className="hidden lg:block w-full h-auto rounded-3xl object-contain"
+              width={1536}
+              height={1024}
+              fetchPriority="high"
             />
           </motion.div>
         </div>
+
 
         {/* Testimonials strip */}
         <motion.div
