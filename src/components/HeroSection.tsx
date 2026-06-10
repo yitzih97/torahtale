@@ -170,10 +170,10 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           {/* RIGHT — mobile/tablet: contained image banner; desktop: spacer (image is section bg) */}
           <div className="lg:min-h-[640px]">
             <img
-              src={heroKidsMobile}
+              src={heroSceneDesktop}
               alt="Two Jewish children with their personalized Torah storybook"
               className="lg:hidden w-full h-auto aspect-[4/3] sm:aspect-[16/10] object-cover rounded-2xl sm:rounded-3xl shadow-xl"
-              style={{ objectPosition: "center 28%" }}
+              style={{ objectPosition: "center 30%" }}
               loading="eager"
             />
           </div>
