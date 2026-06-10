@@ -85,7 +85,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
           {/* Language toggle */}
           <button
             onClick={cycleLang}
-            className={`px-2.5 py-1 rounded-full text-xs font-bold border transition-colors duration-300 ${
+            className={`px-2.5 py-1 rounded-full text-xs font-bold border transition-colors duration-300 bg-background/60 backdrop-blur-sm ${
               solid
                 ? "border-border text-muted-foreground hover:text-accent hover:border-accent"
                 : "border-white/20 text-white/80 hover:text-white hover:border-white/40"

@@ -34,6 +34,7 @@ interface Props {
     referenceImage?: string | null;
     characterSheet?: string | null;
     characterSheets?: Record<string, string>;
+    bookFormat?: string;
     childRefs?: Array<{
       name: string;
       age?: string | number;
@@ -99,12 +100,13 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         : undefined;
       const { data, error } = await supabase.functions.invoke("generate-image", {
         body: {
-          prompt: finalPrompt
+          promptAdditions: finalPrompt
             ? `${finalPrompt}. NON-NEGOTIABLE: preserve the exact same child face, age, body size, clothing, and all age-specific rules from the existing book across this regenerated page.`
             : undefined,
           childName,
           artStyle,
           torahPortion,
+          bookFormat: generationContext?.bookFormat,
           pageType,
           pageNumber,
           pageText: targetPage?.text,

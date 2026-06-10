@@ -427,6 +427,14 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                   referenceImage: (book.story_data?.childDescriptions || [])[0]?.photoUrl || null,
                   characterSheet: characterSheetsRef.current[(book.story_data?.childDescriptions || [])[0]?.name || book?.child_name] || null,
                   characterSheets: { ...characterSheetsRef.current },
+                  bookFormat: (() => {
+                    const opts = book.story_data?.bookOptions || {};
+                    return opts.productType === "hardcover"
+                      ? `hardcover-${opts.hardcoverSize || "8x8"}`
+                      : opts.productType === "board"
+                        ? "board-6x6"
+                        : "softcover-8x8";
+                  })(),
                   childRefs: (book.story_data?.childDescriptions || []).map((c: any) => ({
                     name: c.name,
                     age: c.age,
