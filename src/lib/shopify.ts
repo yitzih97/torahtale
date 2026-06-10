@@ -232,3 +232,84 @@ export const SHOPIFY_VARIANT_IDS = {
   bookHardcover11x85: "gid://shopify/ProductVariant/47620121100475",
   bookBoardBook6x6: "gid://shopify/ProductVariant/47620121133243",
 } as const;
+
+// Selling-plan IDs that turn a subscription variant into a recurring charge.
+// These come from the Shopify Subscriptions app once selling plans are configured
+// on the subscription products. Fill these in (gid://shopify/SellingPlan/...) before
+// recurring billing will work — until then, subscription checkouts fall back to a
+// one-off charge of the subscription variant.
+export const SHOPIFY_SELLING_PLAN_IDS: Record<"weekly" | "monthly" | "yearly", string | null> = {
+  weekly: null,
+  monthly: null,
+  yearly: null,
+};
+
+export type OrderPlan = "once" | "weekly" | "monthly" | "yearly";
+
+interface OrderBookOptions {
+  productType: "softcover" | "hardcover" | "board";
+  hardcoverSize?: "8x8" | "11x8.5";
+}
+
+export function getBookVariantId(options: OrderBookOptions): string {
+  if (options.productType === "hardcover") {
+    return options.hardcoverSize === "11x8.5"
+      ? SHOPIFY_VARIANT_IDS.bookHardcover11x85
+      : SHOPIFY_VARIANT_IDS.bookHardcover8x8;
+  }
+  if (options.productType === "board") return SHOPIFY_VARIANT_IDS.bookBoardBook6x6;
+  return SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
+}
+
+interface OrderLine {
+  merchandiseId: string;
+  quantity: number;
+  sellingPlanId?: string;
+}
+
+function buildOrderLines(plan: OrderPlan, options: OrderBookOptions, quantity: number): OrderLine[] {
+  if (plan === "once") {
+    return [{ merchandiseId: getBookVariantId(options), quantity: Math.max(1, quantity) }];
+  }
+  const subVariant =
+    plan === "weekly" ? SHOPIFY_VARIANT_IDS.weeklySubscription
+    : plan === "monthly" ? SHOPIFY_VARIANT_IDS.monthlySubscription
+    : SHOPIFY_VARIANT_IDS.yearlySubscription;
+  const sellingPlanId = SHOPIFY_SELLING_PLAN_IDS[plan] ?? undefined;
+  return [{ merchandiseId: subVariant, quantity: 1, sellingPlanId }];
+}
+
+/**
+ * Create a real Shopify checkout for a single order and return its hosted checkout URL.
+ * The bookId is attached as a cart attribute so the orders/paid webhook can mark the
+ * right book as paid. Returns null on failure (caller should surface an error).
+ */
+export async function createOrderCheckout(params: {
+  bookId: string;
+  plan: OrderPlan;
+  bookOptions: OrderBookOptions;
+  quantity: number;
+}): Promise<{ checkoutUrl: string } | null> {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const lines = buildOrderLines(params.plan, params.bookOptions, params.quantity);
+    const { data, error } = await supabase.functions.invoke("shopify-create-checkout", {
+      body: {
+        lines,
+        attributes: [{ key: "book_id", value: params.bookId }],
+      },
+    });
+    if (error) {
+      console.error("createOrderCheckout invoke error:", error);
+      return null;
+    }
+    if (!data?.checkoutUrl) {
+      console.error("createOrderCheckout returned no checkoutUrl:", data);
+      return null;
+    }
+    return { checkoutUrl: data.checkoutUrl as string };
+  } catch (err) {
+    console.error("createOrderCheckout failed:", err);
+    return null;
+  }
+}

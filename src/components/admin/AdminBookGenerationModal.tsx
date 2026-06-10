@@ -302,10 +302,10 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         pages_data: pages as any,
         story_data: storyData || book.story_data,
         cover_image_url: pages[0]?.image || null,
-        status: "ordered",
+        status: "pending_review",
         updated_at: new Date().toISOString(),
       } as any).eq("id", book.id);
-      toast.success("Book saved!");
+      toast.success("Book saved for review!");
       onBookUpdated();
     } catch {
       toast.error("Failed to save");

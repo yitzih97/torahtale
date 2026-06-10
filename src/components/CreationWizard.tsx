@@ -21,6 +21,7 @@ import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, g
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, getUpcomingParsha, type TorahOption } from "./wizard/TorahPortions";
+import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
@@ -576,7 +577,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             torah_portion: data.torahPortion,
             art_style: data.artStyle,
             language: data.language,
-            status: "generating",
+            status: "awaiting_payment",
             story_data: {
               childrenInfo,
               portionLabel,
@@ -709,55 +710,67 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   }, [lang, t]);
 
   const handlePlaceOrder = async (planType: string = "once") => {
-    // Local mock order flow — no Shopify / external checkout.
-    // Persists the order against the already-created book row and advances to success.
+    // Real checkout: hand the order off to Shopify's hosted checkout. The book stays
+    // "awaiting_payment" until the orders/paid webhook flips it to "paid"; the admin
+    // then generates + approves it before it goes to Printify for printing.
     try {
-      const mockOrderNumber = `TT-${Date.now().toString(36).toUpperCase()}-${Math.random()
-        .toString(36)
-        .slice(2, 6)
-        .toUpperCase()}`;
-
-      if (user && savedBookId) {
-        const { error: bookErr } = await supabase
-          .from("books")
-          .update({
-            status: "ordered",
-            order_number: mockOrderNumber,
-            shipping_data: {
-              ...shipping,
-              bookOptions,
-              quantity,
-              planType,
-            },
-            updated_at: new Date().toISOString(),
-          } as any)
-          .eq("id", savedBookId);
-        if (bookErr) console.error("Mock order: book update failed", bookErr);
-
-        const isSubscription = planType === "weekly" || planType === "monthly" || planType === "yearly";
-        if (isSubscription) {
-          const { error: subErr } = await supabase.from("subscriptions").insert({
-            user_id: user.id,
-            child_name: childNames,
-            art_style: data.artStyle || "cartoon",
-            language: data.language || "english",
-            status: "active",
-            frequency: planType,
-            price_per_week: 24.99,
-            shipping_data: shipping as any,
-          } as any);
-          if (subErr) console.error("Mock order: subscription insert failed", subErr);
-        }
+      if (!user) {
+        setShowLoginPrompt(true);
+        toast.info("Please sign in to complete your order.");
+        return;
+      }
+      if (!savedBookId) {
+        toast.error("Your book isn't ready yet — please try again in a moment.");
+        return;
       }
 
-      setOrderNumber(mockOrderNumber);
+      const orderPlan: OrderPlan =
+        planType === "weekly" || planType === "monthly" || planType === "yearly" ? planType : "once";
+      const isSubscription = orderPlan !== "once";
+
+      // Persist chosen options on the book so the Printify step has them.
+      const { error: bookErr } = await supabase
+        .from("books")
+        .update({
+          status: "awaiting_payment",
+          shipping_data: { ...shipping, bookOptions, quantity, planType: orderPlan },
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq("id", savedBookId);
+      if (bookErr) console.error("Checkout: book update failed", bookErr);
+
+      // For subscriptions, create the row now so the webhook can correlate the
+      // Shopify customer/contract back to it once payment completes.
+      if (isSubscription) {
+        const { error: subErr } = await supabase.from("subscriptions").insert({
+          user_id: user.id,
+          child_name: childNames,
+          art_style: data.artStyle || "cartoon",
+          language: data.language || "english",
+          status: "active",
+          frequency: orderPlan,
+          shipping_data: shipping as any,
+        } as any);
+        if (subErr) console.error("Checkout: subscription insert failed", subErr);
+      }
+
+      const checkout = await createOrderCheckout({
+        bookId: savedBookId,
+        plan: orderPlan,
+        bookOptions,
+        quantity,
+      });
+      if (!checkout) {
+        toast.error("Couldn't start checkout. Please try again.");
+        return;
+      }
+
       localStorage.removeItem("torahtale_pending_order");
-      setDir(1);
-      setStep(14);
-      toast.success("Order placed!");
+      // Redirect to Shopify's hosted checkout to collect payment + shipping address.
+      window.location.href = checkout.checkoutUrl;
     } catch (err) {
-      console.error("Mock order failed:", err);
-      toast.error("Something went wrong placing your order.");
+      console.error("Checkout failed:", err);
+      toast.error("Something went wrong starting checkout.");
     }
   };
 

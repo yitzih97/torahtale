@@ -270,8 +270,10 @@ export default function Admin() {
                                       </SelectTrigger>
                                       <SelectContent>
                                         <SelectItem value="draft">Draft</SelectItem>
+                                        <SelectItem value="awaiting_payment">Awaiting payment</SelectItem>
+                                        <SelectItem value="paid">Paid</SelectItem>
                                         <SelectItem value="generating">Generating</SelectItem>
-                                        <SelectItem value="ordered">Ordered</SelectItem>
+                                        <SelectItem value="pending_review">Pending review</SelectItem>
                                         <SelectItem value="approved">Approved</SelectItem>
                                         <SelectItem value="printing">Printing</SelectItem>
                                         <SelectItem value="shipped">Shipped</SelectItem>
@@ -281,7 +283,7 @@ export default function Admin() {
                                   </td>
                                   <td className="p-3">
                                     <div className="flex gap-1">
-                                      {(book.status === "generating" || book.status === "draft" || (book.status === "ordered" && !book.pages_data)) && (
+                                      {(book.status === "paid" || book.status === "generating" || book.status === "draft" || ((book.status === "ordered" || book.status === "pending_review") && !book.pages_data)) && (
                                         <Button
                                           variant="ghost"
                                           size="sm"
@@ -309,7 +311,7 @@ export default function Admin() {
                                           {downloadingZip === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                                         </Button>
                                       )}
-                                      {book.pages_data && book.status === "ordered" && (
+                                      {book.pages_data && (book.status === "pending_review" || book.status === "ordered") && (
                                         <Button
                                           variant="ghost"
                                           size="sm"
