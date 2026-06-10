@@ -88,7 +88,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       <img
         src={heroSceneDesktop}
         alt="Two Jewish children with their personalized Torah storybook"
-        className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
+        className="pointer-events-none select-none absolute inset-0 w-full h-full object-contain lg:object-cover"
         style={{
           objectPosition: isRtl ? "left bottom" : "right bottom",
           transform: isRtl ? "scaleX(-1)" : undefined,
@@ -103,7 +103,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       />
 
       <div className="container relative z-10 pt-28 lg:pt-32 pb-10 lg:pb-16">
-        <div className="grid lg:grid-cols-[6fr_5fr] gap-10 lg:gap-6 items-center min-h-[520px] lg:min-h-[640px]">
+        <div className="grid lg:grid-cols-[6fr_5fr] gap-10 lg:gap-6 items-center min-h-[420px] sm:min-h-[480px] lg:min-h-[640px]">
           {/* LEFT — copy */}
           <div className={`text-center ${isRtl ? "lg:text-right" : "lg:text-left"}`}>
             <motion.div
