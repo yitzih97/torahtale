@@ -2,8 +2,11 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Pinned to the current Supabase project (gabrobnkelgxazjibbrm). Build-env
+// VITE_SUPABASE_* values may still reference the old, inaccessible project, so
+// they must not take precedence. Both values are public/publishable by design.
+const SUPABASE_URL = "https://gabrobnkelgxazjibbrm.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_9YwM5OE70SQBgDYCV26n8g_unnkgxNH";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
