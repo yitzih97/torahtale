@@ -176,7 +176,10 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 <div key={i} className="flex items-center gap-3">
                   {i > 0 && <span className="hidden sm:block w-px h-8 bg-foreground/15" />}
                   <f.icon className="w-7 h-7 text-gold" strokeWidth={1.5} />
-                  <span className="text-sm font-medium text-foreground/80 max-w-[8rem] leading-tight">
+                  <span
+                    className="text-sm font-medium text-foreground/80 max-w-[8rem] leading-tight"
+                    style={{ textShadow: "0 1px 2px hsl(42 60% 96% / 0.95), 0 0 14px hsl(42 60% 96% / 0.8)" }}
+                  >
                     {f.label}
                   </span>
                 </div>
