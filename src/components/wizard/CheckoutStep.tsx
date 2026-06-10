@@ -275,12 +275,11 @@ export const CheckoutStep = ({
         ) : (
           <>
             <Sparkles className="w-4 h-4" />
-            {isSubscription
-              ? t.checkout.subscribeOrder(total.toFixed(2))
-              : t.checkout.placeOrder(total.toFixed(2))}
+            {t.wizard.generateBook}
           </>
         )}
       </Button>
     </div>
   );
 };
+
