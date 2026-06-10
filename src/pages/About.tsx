@@ -5,6 +5,7 @@ import { BookOpen, Shield, Heart, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
+import { SEO } from "@/components/SEO";
 
 const ICONS = [BookOpen, Shield, Sparkles, Heart];
 
@@ -22,6 +23,11 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
+      <SEO
+        title="About Torah Tale — Our Story & Mission"
+        description="Meet the team behind Torah Tale. Learn how we craft AI-personalized Torah storybooks for Orthodox Jewish families with kedushah and care."
+        path="/about"
+      />
       <Navbar transparentHero={false} />
 
       {/* Ambient orbs */}

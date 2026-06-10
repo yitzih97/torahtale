@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { Mail, Clock, MessageSquare, Send, CheckCircle2, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { SEO } from "@/components/SEO";
 
 const floatingOrb = (delay: number, x: string, y: string, size: string, color: string) => (
   <motion.div
@@ -58,6 +59,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
+      <SEO
+        title="Contact Torah Tale — We'd Love to Hear From You"
+        description="Questions, feedback, or special requests? Reach the Torah Tale team. We typically reply within one business day."
+        path="/contact"
+      />
       <Navbar transparentHero={false} />
 
       {/* Ambient orbs */}

@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { SEO } from "@/components/SEO";
 import { useState } from "react";
 
 const Create = () => {
@@ -36,6 +37,11 @@ const Create = () => {
 
   return (
     <>
+      <SEO
+        title="Create Your Torah Tale — Personalize a Parsha Book"
+        description="Start the personalization wizard. Add your child's name, photo, and details to generate a one-of-a-kind Torah storybook."
+        path="/create"
+      />
       <CreationWizard onClose={handleClose} />
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
+import { SEO } from "@/components/SEO";
 
 const SECTIONS_EN = [
   { id: "intro", label: "Introduction" },
@@ -499,6 +500,11 @@ const Privacy = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
+      <SEO
+        title="Privacy Policy — Torah Tale"
+        description="How Torah Tale collects, uses, and protects your family's information, including children's photos used to personalize books."
+        path="/privacy"
+      />
       <Navbar transparentHero={false} />
 
       {/* Ambient orbs */}

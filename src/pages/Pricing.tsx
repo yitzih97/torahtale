@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Crown, Sparkles, BookOpen } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -47,6 +48,11 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background" dir={dir}>
+      <SEO
+        title="Pricing & Plans — Torah Tale Personalized Books"
+        description="Simple pricing for Torah Tale books. Choose softcover, hardcover, or board book, or join the Parashah Club for a weekly story delivered to your door."
+        path="/pricing"
+      />
       <Navbar onStart={() => goCreate()} transparentHero={false} />
 
       <main className="pt-24 lg:pt-28">

@@ -6,6 +6,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { GalleryReviewsSection } from "@/components/GalleryReviewsSection";
 import { CTASection } from "@/components/CTASection";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -33,6 +34,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Torah Tale — Personalized Torah Storybooks for Jewish Kids"
+        description="AI-personalized Torah storybooks starring your child. Tznius, halachically-mindful stories aligned with the weekly parsha, delivered to your door."
+        path="/"
+      />
       <Navbar onStart={goToCreate} />
       <HeroSection onStart={goToCreate} />
       <HowItWorks />
