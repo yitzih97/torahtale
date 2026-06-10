@@ -103,9 +103,10 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       />
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
-        <div className="grid lg:grid-cols-[6fr_5fr] gap-6 lg:gap-6 items-center lg:min-h-[640px]">
+        <div className="grid grid-cols-[7fr_4fr] sm:grid-cols-[6fr_5fr] gap-3 sm:gap-6 items-center min-h-[520px] sm:min-h-[600px] lg:min-h-[640px]">
           {/* LEFT — copy */}
-          <div className={`text-center ${isRtl ? "lg:text-right" : "lg:text-left"}`}>
+          <div className={`${isRtl ? "text-right" : "text-left"}`}>
+
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
