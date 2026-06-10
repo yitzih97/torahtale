@@ -89,7 +89,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         alt="Two Jewish children with their personalized Torah storybook"
         className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
         style={{
-          objectPosition: isRtl ? "left center" : "right center",
+          objectPosition: isRtl ? "left bottom" : "right bottom",
           transform: isRtl ? "scaleX(-1)" : undefined,
         }}
         width={1536}
