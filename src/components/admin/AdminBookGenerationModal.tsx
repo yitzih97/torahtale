@@ -157,11 +157,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         });
       }
 
-      // Back cover (synopsis + dedication only, no questions)
-      allPages.push({
-        id: pageId++, text: backCover.synopsis || "", image: null, imageLoading: true,
-        type: "back-cover", synopsis: backCover.synopsis, dedication: backCover.dedication,
-      });
+      // NOTE: no separate back-cover page. The cover spread renders front + back together.
+      // Synopsis/dedication metadata is preserved on story_data only.
 
       setPages(allPages);
 
