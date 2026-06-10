@@ -99,7 +99,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       />
       {/* Soft fade from cream into the image so text stays readable */}
       <div
-        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[62%] sm:w-[58%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.9] to-transparent z-[1]`}
+        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[72%] sm:w-[62%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.92] to-transparent z-[1]`}
       />
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
