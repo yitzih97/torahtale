@@ -121,7 +121,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease }}
-              className="font-display font-bold leading-[1.02] tracking-tight text-foreground text-[2.5rem] sm:text-6xl lg:text-[4.5rem]"
+              className="font-display font-bold leading-[1.02] tracking-tight text-foreground text-[2rem] sm:text-5xl lg:text-[4.5rem]"
             >
               <span className="block">{copy.title1}</span>
               <span className="block">{copy.title2}</span>
