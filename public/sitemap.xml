@@ -7,6 +7,7 @@
   <url><loc>https://torahtale.com/testimonials</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://torahtale.com/contact</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://torahtale.com/create</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://torahtale.com/affiliates</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://torahtale.com/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://torahtale.com/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>

@@ -33,6 +33,7 @@ export const Footer = () => {
             <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">{t.footer.support}</h4>
             <nav className="flex flex-col gap-2.5">
               <a href="/contact" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.contactUs}</a>
+              <a href="/affiliates" className="text-sm text-muted-foreground hover:text-accent transition-colors">Affiliate Program</a>
               <a href="mailto:help@torahtale.com" className="text-sm text-muted-foreground hover:text-accent transition-colors">help@torahtale.com</a>
             </nav>
           </div>
