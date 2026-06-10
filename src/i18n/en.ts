@@ -458,6 +458,8 @@ export const en = {
     disclaimer: "Each book is created based on the description and photos uploaded by you. We do our best to bring your vision to life, but we are not responsible if the final result doesn't come out exactly the way you envisioned it.",
     subscribeOrder: (total: string) => `Subscribe & Place Order — $${total}`,
     placeOrder: (total: string) => `Place Order — $${total}`,
+    subscribeOrderShort: "Place Order & Subscribe",
+    placeOrderShort: "Place Order",
     redirectingToShopify: "Redirecting to Shopify checkout…",
     checkoutFallback: "Opening Shopify cart (fallback)…",
     openCheckout: "Open checkout",
