@@ -607,11 +607,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   /* ───── step skipping helpers ───── */
 
+  // Only treat children as "pre-filled" (allowing step skip) when they're loaded saved profiles.
+  // This prevents leftover gender/age from a restored wizard state from skipping required steps.
   const allChildrenHaveGenderAge = useCallback(() =>
-    data.children.every((c) => !!c.gender && !!c.age), [data.children]);
+    data.children.length > 0 && data.children.every((c) => !!c.savedChildId && !!c.gender && !!c.age), [data.children]);
 
   const allChildrenHavePhotoOrDesc = useCallback(() =>
-    data.children.every((c) => !!c.photoPreview || !!c.description), [data.children]);
+    data.children.length > 0 && data.children.every((c) => !!c.savedChildId && (!!c.photoPreview || !!c.description || !!c.existingPhotoUrl)), [data.children]);
 
   /* ───── navigation ───── */
 
