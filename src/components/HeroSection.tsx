@@ -104,17 +104,17 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
         <div className="relative grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-center lg:min-h-[640px]">
-          {/* Mobile/tablet — small background image anchored at the bottom of the hero area */}
-          <div className="lg:hidden pointer-events-none select-none absolute bottom-0 inset-x-[-50vw] sm:inset-x-[-10vw] z-0">
+          {/* Mobile/tablet — full hero background image */}
+          <div className="lg:hidden pointer-events-none select-none absolute inset-0 -top-20 sm:-top-24 z-0">
             <img
               src={heroSceneDesktop}
               alt=""
               aria-hidden="true"
-              className="w-full h-[230px] sm:h-[300px] object-cover mx-auto max-w-none"
-              style={{ objectPosition: "center 28%" }}
+              className="w-full h-full object-cover"
+              style={{ objectPosition: "center 25%" }}
               loading="eager"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.35] to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[hsl(42_60%_96%)/0.85] via-[hsl(42_60%_96%)/0.65] to-[hsl(42_60%_96%)/0.45]" />
           </div>
 
           {/* LEFT — copy */}
