@@ -103,7 +103,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       />
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
-        <div className="grid grid-cols-[7fr_4fr] sm:grid-cols-[6fr_5fr] gap-3 sm:gap-6 items-center min-h-[520px] sm:min-h-[600px] lg:min-h-[640px]">
+        <div className="grid grid-cols-[8fr_3fr] sm:grid-cols-[6fr_5fr] gap-3 sm:gap-6 items-center min-h-[460px] sm:min-h-[560px] lg:min-h-[640px]">
           {/* LEFT — copy */}
           <div className={`${isRtl ? "text-right" : "text-left"}`}>
 
