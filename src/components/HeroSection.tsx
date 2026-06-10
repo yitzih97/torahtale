@@ -84,11 +84,11 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       }}
       dir={dir}
     >
-      {/* Hero scene image as background, anchored right (desktop + mobile) */}
+      {/* Hero scene image as background — desktop only (kids anchored to the side, text on cream) */}
       <img
         src={heroSceneDesktop}
         alt="Two Jewish children with their personalized Torah storybook"
-        className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
+        className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover hidden lg:block"
         style={{
           objectPosition: isRtl ? "left top" : "right top",
           transform: isRtl ? "scaleX(-1)" : undefined,
@@ -97,13 +97,13 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         height={1024}
         fetchPriority="high"
       />
-      {/* Soft fade from cream into the image so text stays readable */}
+      {/* Soft fade from cream into the image so text stays readable (desktop only) */}
       <div
-        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[75%] sm:w-[65%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.85] to-transparent z-[1]`}
+        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.85] to-transparent z-[1] hidden lg:block`}
       />
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
-        <div className="grid lg:grid-cols-[6fr_5fr] gap-6 lg:gap-6 items-center min-h-[340px] sm:min-h-[420px] lg:min-h-[640px]">
+        <div className="grid lg:grid-cols-[6fr_5fr] gap-6 lg:gap-6 items-center lg:min-h-[640px]">
           {/* LEFT — copy */}
           <div className={`text-center ${isRtl ? "lg:text-right" : "lg:text-left"}`}>
             <motion.div
@@ -165,6 +165,27 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               </Button>
             </motion.div>
 
+            {/* Mobile / tablet hero image — contained banner under the CTA, no text overlap */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35, ease }}
+              className="lg:hidden mt-10 -mx-4 sm:mx-0"
+            >
+              <div className="relative overflow-hidden sm:rounded-3xl shadow-xl ring-1 ring-[hsl(var(--gold)/0.2)] aspect-[4/3] sm:aspect-[16/10]">
+                <img
+                  src={heroKidsMobile}
+                  alt="Jewish children enjoying their personalized Torah storybook"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ objectPosition: "center 30%" }}
+                  loading="eager"
+                  fetchPriority="high"
+                />
+                {/* Subtle bottom fade for visual polish */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[hsl(42_60%_96%)/0.6] to-transparent" />
+              </div>
+            </motion.div>
+
             {/* feature pills */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -187,9 +208,10 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             </motion.div>
           </div>
 
-          {/* RIGHT — image lives in the section background on all breakpoints */}
+          {/* RIGHT — image lives in the section background on desktop */}
         </div>
       </div>
+
 
       {/* Trust bar */}
       <div className="relative z-10 bg-[hsl(220_45%_10%)] text-white/85">
