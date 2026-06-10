@@ -420,9 +420,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   // Skip gender/age steps when every selected child already has them
   // (e.g. all children were chosen from saved profiles).
   useEffect(() => {
-    if (step === 2 && data.children.length > 0 && data.children.every((c) => !!c.gender)) {
+    // Only auto-skip when every selected child is a fully-loaded saved profile.
+    // Never skip for fresh entries, even if gender/age are leftover from restored state.
+    if (step === 2 && data.children.length > 0 && data.children.every((c) => !!c.savedChildId && !!c.gender)) {
       setStep(dir >= 0 ? 3 : 1);
-    } else if (step === 3 && data.children.length > 0 && data.children.every((c) => !!c.age && !!c.gender && !!c.savedChildId)) {
+    } else if (step === 3 && data.children.length > 0 && data.children.every((c) => !!c.savedChildId && !!c.age && !!c.gender)) {
       setStep(dir >= 0 ? 4 : 1);
     } else if (step === 5 && data.children.length > 0 && data.children.every((c) => !!c.savedChildId && !!c.existingPhotoUrl)) {
       setStep(dir >= 0 ? 6 : 4);
