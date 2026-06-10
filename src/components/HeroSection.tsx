@@ -183,23 +183,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             </motion.div>
           </div>
 
-          {/* RIGHT — empty on desktop (image is in the background); mobile keeps an inline photo */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, ease }}
-            className="relative w-full lg:hidden"
-          >
-            <img
-              src={heroKidsMobile}
-              alt="Two Jewish children in a sunlit meadow"
-              className="w-full h-auto rounded-3xl object-cover"
-              style={{ objectPosition: isRtl ? "left center" : "right center" }}
-              width={1200}
-              height={900}
-              fetchPriority="high"
-            />
-          </motion.div>
+          {/* RIGHT — image lives in the section background on all breakpoints */}
         </div>
 
         <motion.div
