@@ -3,8 +3,8 @@ import { Sparkles, ArrowRight, Play, BookOpen, Heart, Gift, Star, ShieldCheck, A
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-import heroChildren from "@/assets/hero-children.jpg";
-import heroBook from "@/assets/hero-book.png";
+import heroSceneDesktop from "@/assets/hero-scene-desktop.jpg";
+import heroKidsMobile from "@/assets/hero-kids-mobile.jpg";
 import kid1 from "@/assets/avatars/kid1.jpg";
 import kid2 from "@/assets/avatars/kid2.jpg";
 import kid3 from "@/assets/avatars/kid3.jpg";
