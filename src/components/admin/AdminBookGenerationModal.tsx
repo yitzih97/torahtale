@@ -130,7 +130,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
       setStoryData(storyResult);
       const cover = storyResult.cover || { title: `${book.child_name}'s Torah Adventure`, subtitle: "" };
-      const backCover = storyResult.backCover || { synopsis: "", dedication: "" };
+      // Back-cover synopsis/dedication kept on storyData metadata only — no separate page.
       const questions = storyResult.backCover?.questions || storyResult.questions || [];
 
       let pageId = 0;
