@@ -293,7 +293,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       setPhase("idle");
       setStatusText("");
     }
-  }, [book]);
+  }, [book, persistPages]);
 
   const handleSave = async () => {
     setSaving(true);
