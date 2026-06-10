@@ -84,11 +84,11 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       }}
       dir={dir}
     >
-      {/* Hero scene image as background — desktop only (kids anchored to the side, text on cream) */}
+      {/* Hero scene image as background — kids anchored to the side, text on cream */}
       <img
         src={heroSceneDesktop}
         alt="Two Jewish children with their personalized Torah storybook"
-        className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover hidden lg:block"
+        className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
         style={{
           objectPosition: isRtl ? "left top" : "right top",
           transform: isRtl ? "scaleX(-1)" : undefined,
@@ -97,15 +97,16 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         height={1024}
         fetchPriority="high"
       />
-      {/* Soft fade from cream into the image so text stays readable (desktop only) */}
+      {/* Soft fade from cream into the image so text stays readable */}
       <div
-        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.85] to-transparent z-[1] hidden lg:block`}
+        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[62%] sm:w-[58%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.9] to-transparent z-[1]`}
       />
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
-        <div className="grid lg:grid-cols-[6fr_5fr] gap-6 lg:gap-6 items-center lg:min-h-[640px]">
+        <div className="grid grid-cols-[7fr_4fr] sm:grid-cols-[6fr_5fr] gap-3 sm:gap-6 items-center min-h-[520px] sm:min-h-[600px] lg:min-h-[640px]">
           {/* LEFT — copy */}
-          <div className={`text-center ${isRtl ? "lg:text-right" : "lg:text-left"}`}>
+          <div className={`${isRtl ? "text-right" : "text-left"}`}>
+
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -120,7 +121,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease }}
-              className="font-display font-bold leading-[1.02] tracking-tight text-foreground text-[2.5rem] sm:text-6xl lg:text-[4.5rem]"
+              className="font-display font-bold leading-[1.02] tracking-tight text-foreground text-[2rem] sm:text-5xl lg:text-[4.5rem]"
             >
               <span className="block">{copy.title1}</span>
               <span className="block">{copy.title2}</span>
@@ -131,7 +132,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15, ease }}
-              className={`mt-6 text-base sm:text-lg text-foreground/70 max-w-lg leading-relaxed ${isRtl ? "lg:mr-0 mx-auto lg:ml-auto" : "lg:mx-0 mx-auto"}`}
+              className={`mt-4 sm:mt-6 text-sm sm:text-lg text-foreground/70 max-w-lg leading-relaxed ${isRtl ? "mr-0 ml-auto lg:mr-0 lg:ml-auto" : "mx-0"}`}
             >
               {copy.description}
             </motion.p>
@@ -140,7 +141,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3, ease }}
-              className={`mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 ${isRtl ? "lg:justify-end" : "lg:justify-start"} justify-center items-center`}
+              className={`mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start ${isRtl ? "lg:justify-end" : "lg:justify-start"}`}
             >
               <Button
                 variant="gold"
@@ -164,53 +165,30 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {copy.watchCta}
               </Button>
             </motion.div>
-
-            {/* Mobile / tablet hero image — contained banner under the CTA, no text overlap */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.35, ease }}
-              className="lg:hidden mt-10 -mx-4 sm:mx-0"
-            >
-              <div className="relative overflow-hidden sm:rounded-3xl shadow-xl ring-1 ring-[hsl(var(--gold)/0.2)] aspect-[4/3] sm:aspect-[16/10]">
-                <img
-                  src={heroKidsMobile}
-                  alt="Jewish children enjoying their personalized Torah storybook"
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ objectPosition: "center 30%" }}
-                  loading="eager"
-                  fetchPriority="high"
-                />
-                {/* Subtle bottom fade for visual polish */}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[hsl(42_60%_96%)/0.6] to-transparent" />
-              </div>
-            </motion.div>
-
-            {/* feature pills */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.45, ease }}
-              className={`mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 ${isRtl ? "lg:justify-end" : "lg:justify-start"} justify-center`}
-            >
-              {copy.features.map((f, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  {i > 0 && <span className="hidden sm:block w-px h-8 bg-foreground/15" />}
-                  <f.icon className="w-7 h-7 text-gold" strokeWidth={1.5} />
-                  <span
-                    className="text-sm font-medium text-foreground/80 max-w-[8rem] leading-tight"
-                    style={{ textShadow: "0 1px 2px hsl(42 60% 96% / 0.95), 0 0 14px hsl(42 60% 96% / 0.8)" }}
-                  >
-                    {f.label}
-                  </span>
-                </div>
-              ))}
-            </motion.div>
           </div>
 
-          {/* RIGHT — image lives in the section background on desktop */}
+          {/* RIGHT — image lives in the section background; spacer keeps grid column */}
+          <div aria-hidden className="min-h-[420px] sm:min-h-[560px] lg:min-h-[640px]" />
         </div>
+
+        {/* feature pills — full-width row below the hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.45, ease }}
+          className="mt-8 lg:mt-12 rounded-2xl border border-foreground/8 bg-background/70 backdrop-blur px-4 sm:px-6 py-4 sm:py-5 flex flex-wrap items-center justify-around gap-x-6 gap-y-3"
+        >
+          {copy.features.map((f, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <f.icon className="w-6 h-6 sm:w-7 sm:h-7 text-gold flex-shrink-0" strokeWidth={1.5} />
+              <span className="text-xs sm:text-sm font-medium text-foreground/80 max-w-[8rem] leading-tight">
+                {f.label}
+              </span>
+            </div>
+          ))}
+        </motion.div>
       </div>
+
 
 
       {/* Trust bar */}
