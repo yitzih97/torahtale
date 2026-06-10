@@ -435,6 +435,7 @@ export const he: typeof en = {
     nameOnCard: "שם בעל הכרטיס",
     cardNamePlaceholder: "שם מלא",
     sameAsBilling: "כתובת המשלוח זהה לכתובת החיוב",
+    billingAddress: "כתובת לחיוב",
   },
 
   // Checkout
