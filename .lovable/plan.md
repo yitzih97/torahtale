@@ -1,50 +1,57 @@
-## Plan
+# Book spread redesign + auto-save
 
-1. Refresh the sitewide typography and branding to match your references.
-   - Replace the current font stack used across the public site and platform UI with a closer match to the attached Torah Tale references.
-   - Update the shared font tokens in the global theme so headings, body text, buttons, and navigation all stay consistent.
-   - Swap the live brand mark usage in the navbar, footer, and hero-related brand placements to the uploaded gold Torah Tale logo system.
-   - Rework the homepage hero styling to better match the attached layout feel: refined headline hierarchy, warmer gold accents, cleaner nav/button styling, and more reference-like brand presentation.
+## 1. Auto-save in Admin generation modal
 
-2. Add the coloring book as an add-on, not a replacement book type.
-   - Keep Softcover / Hardcover / Board Book as the main format choices.
-   - Add a new optional coloring-book add-on in the choose-book-type step with a +$3 price increase.
-   - Carry that add-on through pricing, checkout summary, saved wizard data, and order creation so totals stay correct everywhere.
-   - Update labels and translations so the new option reads clearly in English/Hebrew UI.
+In `src/components/admin/AdminBookGenerationModal.tsx`:
 
-3. Fix admin quick regen and custom-prompt regeneration so it follows the original generation system.
-   - Right now the full-book generation path sends rich context into the image generator, while quick regen/custom prompt uses a simplified prompt path that can bypass page templates, master rules, and some consistency controls.
-   - I’ll make regen use the same structural inputs as the original generation flow: page type, story page number, book format, scene text, child references, character sheets, and consistency instructions.
-   - I’ll tighten the custom-prompt flow so your edits can guide the image without replacing the core quality/style rules that make the original pages come out better.
-   - I’ll also preserve print-ready constraints and template-driven scene rules during regen so regenerated pages stay aligned with the approved book style.
+- After the generation loop sets `phase = "done"`, immediately persist the result to the `books` row (same payload as the current `handleSave`: `pages_data`, `story_data`, `cover_image_url`, `status: "ordered"`).
+- Add a debounced auto-save (~800ms) whenever `pages` changes after `phase === "done"`, so any text edit / image regen the admin makes inside `BookViewer` is persisted without clicking Save.
+- Keep the manual Save / Approve buttons; they remain the explicit approve-to-Printify trigger.
 
-4. Validate the connected admin and storefront flows after the implementation.
-   - Check that the hero, navbar, footer, and global typography all render consistently.
-   - Check that selecting the coloring-book add-on updates the displayed total by $3 and persists into checkout/order data.
-   - Check that admin quick regen and edit-with-prompt produce pages that stay visually consistent with the original full generation pipeline.
+## 2. New spread-style page layout
 
-## Technical details
+Update `src/components/wizard/BookViewer.tsx` to render each non-cover page as a two-page spread:
 
-- Files likely involved:
-  - `src/index.css`
-  - `tailwind.config.ts`
-  - `src/components/Navbar.tsx`
-  - `src/components/HeroSection.tsx`
-  - `src/components/Footer.tsx`
-  - `src/components/wizard/BookOptionsStep.tsx`
-  - `src/components/wizard/CheckoutStep.tsx`
-  - `src/components/CreationWizard.tsx`
-  - `src/components/wizard/BookViewer.tsx`
-  - `src/components/admin/AdminBookGenerationModal.tsx`
-  - `supabase/functions/generate-image/index.ts`
-  - possibly checkout/store mapping files if the add-on needs to be represented in order payloads
+- Container becomes a 2:1 landscape spread (`aspect-[2/1]`) with a soft center gutter shadow.
+- The story illustration bleeds across BOTH pages (full-width `object-cover`).
+- Text sits over ONE half only, alternating sides based on story-page index:
+  - odd story page → text panel on the LEFT half
+  - even story page → text panel on the RIGHT half
+- Text uses a fixed, book-wide style (no per-page font/size/color drift). A single shared constant `BOOK_TEXT_STYLE` (Cormorant Garamond, fixed pt size, fixed dark color, soft cream backdrop card with subtle shadow) replaces the per-page `textStyle`.
+- `DraggableText` is removed from story pages; text is shown via a static styled block inside the chosen half. The "drag/double-click to edit" hint is removed; text editing keeps the existing Pencil → textarea flow.
+- The Discussion-Questions page keeps its current layout but is rendered inside the same spread frame.
 
-- Key implementation approach for regen fix:
-  - Reduce dependence on a freeform `prompt` override in page regen.
-  - Add a controlled “prompt additions/edit instructions” path so admin edits are layered on top of the same base prompt construction used in original generation.
-  - Ensure the same templates, master rules, format dimensions, page text, and reference assets are always included.
+The shared style lives in a new export from `BookViewer.tsx` (also imported by the print pipeline) so the on-screen preview and the printed book stay identical.
 
-- Expected result:
-  - Visual system feels much closer to your attached Torah Tale references.
-  - Coloring book becomes a simple +$3 upsell option in the book chooser.
-  - Admin page regeneration becomes much more reliable and consistent with the original book output.
+## 3. Cover spread (shown once at start)
+
+- The wizard generates only ONE cover page (no separate "back cover" page in the pages array). Drop generation/regen logic for the `back-cover` type from `BookViewer`, `AdminBookGenerationModal`, and any page-builder helpers; existing back-cover entries on legacy books are ignored at render time.
+- Render the cover as a single 2:1 spread:
+  - RIGHT half = front: illustration full-bleed with the book title (e.g. "Parashat Noach – with {childName(s)}") set in Playfair Display at the top in champagne gold, matching the inspiration.
+  - LEFT half = back: cream background, Torah Tale logo centered top, the standard tagline ("Stories that inspire. / Values that last. / A love that grows.") in Cormorant Garamond, and `torahtale.com` at the bottom — Hebrew/Yiddish variants pulled from existing i18n strings.
+- Page navigation: cover spread is index 0 and only appears once; story spreads follow.
+
+## 4. Print PDF parity
+
+Update `src/lib/generateBookPdf.ts` so the exported book mirrors the new layout:
+
+- Page size switches to a landscape spread per sheet matching the on-screen 2:1 aspect.
+- Cover sheet renders the back/front composition described above (logo + tagline on left, title + illustration on right).
+- Story sheets composite the illustration full-bleed and draw the text block on the alternating half using the shared `BOOK_TEXT_STYLE` constants for font family, size, color, and padding.
+- Discussion-questions sheet keeps its existing content but inside the spread frame.
+
+## Technical notes
+
+- New shared constant `BOOK_TEXT_STYLE` exported from `BookViewer.tsx` (font family, font size in px and pt, color, background, padding, max width %) used by both the viewer and `generateBookPdf.ts`.
+- `BookPage.textStyle` becomes optional/ignored for story pages going forward; existing data isn't migrated, just visually overridden.
+- Cover deduplication: when loading legacy `pages_data` that contains a `back-cover` entry, the viewer filters it out so old books render with the new single cover spread.
+- Auto-save uses the existing `supabase.from("books").update(...)` call; no schema changes.
+- No copy changes outside the cover tagline/URL, which already exist in i18n.
+
+## Files touched
+
+- `src/components/admin/AdminBookGenerationModal.tsx` — auto-save on done + debounced auto-save on edits; stop generating back-cover page.
+- `src/components/wizard/BookViewer.tsx` — spread layout, alternating text side, fixed text style, single cover spread, export `BOOK_TEXT_STYLE`.
+- `src/components/wizard/BookViewerModal.tsx` — container sizing for 2:1 spread.
+- `src/lib/generateBookPdf.ts` — landscape spread output, cover composition, alternating text side using shared style.
+- (If a separate cover/back-cover generator exists in the page-builder helper, it is updated to emit one cover page only.)

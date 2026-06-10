@@ -35,16 +35,58 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const abortRef = useRef(false);
   const characterSheetsRef = useRef<Record<string, string>>({});
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedPagesRef = useRef<string>("");
+
+  // Persist pages to the books row (used by both auto-save and manual Save).
+  const persistPages = useCallback(
+    async (nextPages: BookPage[], nextStoryData: any) => {
+      if (!book?.id || nextPages.length === 0) return;
+      const serialized = JSON.stringify(nextPages);
+      if (serialized === lastSavedPagesRef.current) return;
+      lastSavedPagesRef.current = serialized;
+      try {
+        await supabase
+          .from("books")
+          .update({
+            pages_data: nextPages as any,
+            story_data: nextStoryData || book.story_data,
+            cover_image_url: nextPages[0]?.image || null,
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq("id", book.id);
+      } catch (err) {
+        console.error("Auto-save failed:", err);
+      }
+    },
+    [book?.id, book?.story_data]
+  );
+
+  // Auto-save: debounced persist whenever pages change after generation is done.
+  useEffect(() => {
+    if (phase !== "done" || pages.length === 0) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      persistPages(pages, storyData);
+    }, 800);
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [pages, storyData, phase, persistPages]);
 
   useEffect(() => {
     if (open && book?.pages_data && (book.pages_data as any[]).length > 0) {
-      setPages(book.pages_data as BookPage[]);
+      const loaded = book.pages_data as BookPage[];
+      setPages(loaded);
       setPhase("done");
-      setStatusText("Book loaded — edit and save changes.");
+      setStatusText("Book loaded — edits save automatically.");
+      // Prime so the auto-save effect doesn't re-write identical pages on mount.
+      lastSavedPagesRef.current = JSON.stringify(loaded);
     } else if (open) {
       setPhase("idle");
       setPages([]);
       setStatusText("");
+      lastSavedPagesRef.current = "";
     }
   }, [open, book?.id]);
 
@@ -130,7 +172,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
       setStoryData(storyResult);
       const cover = storyResult.cover || { title: `${book.child_name}'s Torah Adventure`, subtitle: "" };
-      const backCover = storyResult.backCover || { synopsis: "", dedication: "" };
+      // Back-cover synopsis/dedication kept on storyData metadata only — no separate page.
       const questions = storyResult.backCover?.questions || storyResult.questions || [];
 
       let pageId = 0;
@@ -157,11 +199,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         });
       }
 
-      // Back cover (synopsis + dedication only, no questions)
-      allPages.push({
-        id: pageId++, text: backCover.synopsis || "", image: null, imageLoading: true,
-        type: "back-cover", synopsis: backCover.synopsis, dedication: backCover.dedication,
-      });
+      // NOTE: no separate back-cover page. The cover spread renders front + back together.
+      // Synopsis/dedication metadata is preserved on story_data only.
 
       setPages(allPages);
 
@@ -244,14 +283,17 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       }
 
       setPhase("done");
-      setStatusText("Generation complete! Review, edit, and save.");
-      toast.success("Book generated — review and approve.");
+      setStatusText("Generation complete! Saved automatically — edits keep saving as you make them.");
+      // Fire-and-forget immediate save so the freshly generated book is persisted
+      // even before any edit triggers the debounced auto-save effect.
+      persistPages(allPages, storyResult);
+      toast.success("Book generated and saved.");
     } catch (err: any) {
       toast.error(err?.message || "Generation failed");
       setPhase("idle");
       setStatusText("");
     }
-  }, [book]);
+  }, [book, persistPages]);
 
   const handleSave = async () => {
     setSaving(true);
