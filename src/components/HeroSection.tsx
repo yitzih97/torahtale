@@ -103,9 +103,22 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       />
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-6 items-center lg:min-h-[640px]">
+        <div className="relative grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-center lg:min-h-[640px]">
+          {/* Mobile/tablet — small background image anchored at the bottom of the hero area */}
+          <div className="lg:hidden pointer-events-none select-none absolute bottom-0 inset-x-[-50vw] sm:inset-x-[-10vw] z-0">
+            <img
+              src={heroSceneDesktop}
+              alt=""
+              aria-hidden="true"
+              className="w-full h-[230px] sm:h-[300px] object-cover mx-auto max-w-none"
+              style={{ objectPosition: "center 28%" }}
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.35] to-transparent" />
+          </div>
+
           {/* LEFT — copy */}
-          <div className={`${isRtl ? "text-right" : "text-left"}`}>
+          <div className={`relative z-10 ${isRtl ? "text-right" : "text-left"}`}>
 
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -167,16 +180,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             </motion.div>
           </div>
 
-          {/* RIGHT — mobile/tablet: contained image banner; desktop: spacer (image is section bg) */}
-          <div className="lg:min-h-[640px]">
-            <img
-              src={heroSceneDesktop}
-              alt="Two Jewish children with their personalized Torah storybook"
-              className="lg:hidden w-full h-auto aspect-[4/3] sm:aspect-[16/10] object-cover rounded-2xl sm:rounded-3xl shadow-xl"
-              style={{ objectPosition: "center 30%" }}
-              loading="eager"
-            />
-          </div>
+          {/* RIGHT — mobile/tablet: spacer reserving room for the background image; desktop: spacer (image is section bg) */}
+          <div className="h-[180px] sm:h-[240px] lg:h-auto lg:min-h-[640px]" />
         </div>
 
 
