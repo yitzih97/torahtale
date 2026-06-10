@@ -2227,7 +2227,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   }
                   return null;
                 })()}
-                <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} />
+                <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} section="payment" />
                 <CheckoutStep
                   mode="summary"
                   childName={childNames}
@@ -2237,8 +2237,31 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   bookOptions={bookOptions}
                   selectedPlan={selectedPlan}
                   onSelectPlan={setSelectedPlan}
-                  onPlaceOrder={handlePlaceOrder}
+                  onPlaceOrder={() => { setDir(1); setStep(12); }}
+                  ctaLabel={t.common.continue}
+                  ctaIcon={null}
                 />
+              </motion.div>
+            )}
+
+            {/* ── STEP 12: Shipping address (final step before order) ── */}
+            {step === 12 && (
+              <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-6">
+                <div className="text-center pb-2">
+                  <h2 className="font-display text-4xl sm:text-5xl font-bold text-primary">
+                    {t.shipping.whereShip}
+                  </h2>
+                </div>
+                <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} section="shipping" />
+                <Button
+                  variant="gold"
+                  size="lg"
+                  className="w-full rounded-xl h-12 text-base"
+                  onClick={() => { void handlePlaceOrder(selectedPlan); }}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {planType === "subscription" ? t.checkout.subscribeOrderShort : t.checkout.placeOrderShort}
+                </Button>
               </motion.div>
             )}
 
