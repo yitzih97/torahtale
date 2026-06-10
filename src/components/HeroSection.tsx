@@ -75,6 +75,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       };
 
   return (
+    <>
     <section
       className="relative overflow-hidden"
       style={{
