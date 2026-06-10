@@ -1,0 +1,20 @@
+# Torah Tale
+
+> AI-powered personalized Torah storybooks for frum Yiddishe kinderlach. Each book stars your child as the hero of a weekly parsha story, with cinematic illustrations and tznius, halachically-mindful content.
+
+Torah Tale creates custom hardcover and softcover children's books featuring your child's likeness, name, and age. Stories are aligned with the weekly Torah portion and crafted for the Chareidi/Orthodox Jewish community.
+
+## Pages
+
+- [Home](/): Overview, gallery, and how it works.
+- [About](/about): The story and values behind Torah Tale.
+- [Pricing](/pricing): Book formats, subscription plans, and one-time options.
+- [How it works / Create](/create): Walk through the personalization wizard.
+- [FAQ](/faq): Answers about shipping, customization, billing, and content.
+- [Testimonials](/testimonials): Reviews from families.
+- [Contact](/contact): Get in touch with the team.
+
+## Optional
+
+- [Terms](/terms): Terms of service.
+- [Privacy](/privacy): Privacy policy.
