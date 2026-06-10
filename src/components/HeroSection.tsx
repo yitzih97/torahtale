@@ -165,53 +165,30 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {copy.watchCta}
               </Button>
             </motion.div>
-
-            {/* Mobile / tablet hero image — contained banner under the CTA, no text overlap */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.35, ease }}
-              className="lg:hidden mt-10 -mx-4 sm:mx-0"
-            >
-              <div className="relative overflow-hidden sm:rounded-3xl shadow-xl ring-1 ring-[hsl(var(--gold)/0.2)] aspect-[4/3] sm:aspect-[16/10]">
-                <img
-                  src={heroKidsMobile}
-                  alt="Jewish children enjoying their personalized Torah storybook"
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ objectPosition: "center 30%" }}
-                  loading="eager"
-                  fetchPriority="high"
-                />
-                {/* Subtle bottom fade for visual polish */}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[hsl(42_60%_96%)/0.6] to-transparent" />
-              </div>
-            </motion.div>
-
-            {/* feature pills */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.45, ease }}
-              className={`mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 ${isRtl ? "lg:justify-end" : "lg:justify-start"} justify-center`}
-            >
-              {copy.features.map((f, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  {i > 0 && <span className="hidden sm:block w-px h-8 bg-foreground/15" />}
-                  <f.icon className="w-7 h-7 text-gold" strokeWidth={1.5} />
-                  <span
-                    className="text-sm font-medium text-foreground/80 max-w-[8rem] leading-tight"
-                    style={{ textShadow: "0 1px 2px hsl(42 60% 96% / 0.95), 0 0 14px hsl(42 60% 96% / 0.8)" }}
-                  >
-                    {f.label}
-                  </span>
-                </div>
-              ))}
-            </motion.div>
           </div>
 
-          {/* RIGHT — image lives in the section background on desktop */}
+          {/* RIGHT — image lives in the section background; spacer keeps grid column */}
+          <div aria-hidden className="min-h-[420px] sm:min-h-[560px] lg:min-h-[640px]" />
         </div>
+
+        {/* feature pills — full-width row below the hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.45, ease }}
+          className="mt-8 lg:mt-12 rounded-2xl border border-foreground/8 bg-background/70 backdrop-blur px-4 sm:px-6 py-4 sm:py-5 flex flex-wrap items-center justify-around gap-x-6 gap-y-3"
+        >
+          {copy.features.map((f, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <f.icon className="w-6 h-6 sm:w-7 sm:h-7 text-gold flex-shrink-0" strokeWidth={1.5} />
+              <span className="text-xs sm:text-sm font-medium text-foreground/80 max-w-[8rem] leading-tight">
+                {f.label}
+              </span>
+            </div>
+          ))}
+        </motion.div>
       </div>
+
 
 
       {/* Trust bar */}
