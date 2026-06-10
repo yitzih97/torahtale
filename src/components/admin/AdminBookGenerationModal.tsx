@@ -76,13 +76,17 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
   useEffect(() => {
     if (open && book?.pages_data && (book.pages_data as any[]).length > 0) {
-      setPages(book.pages_data as BookPage[]);
+      const loaded = book.pages_data as BookPage[];
+      setPages(loaded);
       setPhase("done");
-      setStatusText("Book loaded — edit and save changes.");
+      setStatusText("Book loaded — edits save automatically.");
+      // Prime so the auto-save effect doesn't re-write identical pages on mount.
+      lastSavedPagesRef.current = JSON.stringify(loaded);
     } else if (open) {
       setPhase("idle");
       setPages([]);
       setStatusText("");
+      lastSavedPagesRef.current = "";
     }
   }, [open, book?.id]);
 
