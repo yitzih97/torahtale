@@ -37,6 +37,11 @@ const Create = () => {
 
   return (
     <>
+      <SEO
+        title="Create Your Torah Tale — Personalize a Parsha Book"
+        description="Start the personalization wizard. Add your child's name, photo, and details to generate a one-of-a-kind Torah storybook."
+        path="/create"
+      />
       <CreationWizard onClose={handleClose} />
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
