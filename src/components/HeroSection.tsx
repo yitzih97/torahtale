@@ -83,19 +83,22 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       }}
       dir={dir}
     >
-      {/* Desktop: hero scene image as background, anchored right */}
+      {/* Hero scene image as background, anchored right (desktop + mobile) */}
       <img
         src={heroSceneDesktop}
         alt="Two Jewish children with their personalized Torah storybook"
-        className="hidden lg:block pointer-events-none select-none absolute inset-0 w-full h-full object-cover object-center"
-        style={isRtl ? { transform: "scaleX(-1)" } : undefined}
+        className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
+        style={{
+          objectPosition: isRtl ? "left center" : "right center",
+          transform: isRtl ? "scaleX(-1)" : undefined,
+        }}
         width={1536}
         height={1024}
         fetchPriority="high"
       />
       {/* Soft fade from cream into the image so text stays readable */}
       <div
-        className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.85] to-transparent z-[1]`}
+        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[75%] sm:w-[65%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.85] to-transparent z-[1]`}
       />
 
       <div className="container relative z-10 pt-28 lg:pt-32 pb-10 lg:pb-16">
