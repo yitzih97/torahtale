@@ -145,7 +145,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               <Button
                 variant="outline"
                 size="xl"
-                onClick={() => navigate("/how-it-works")}
+                onClick={scrollToHow}
                 className="rounded-xl w-full sm:w-auto px-6 bg-background/80 backdrop-blur border-foreground/15 hover:border-gold hover:text-gold-dark"
               >
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--gold)/0.15)] text-gold">
