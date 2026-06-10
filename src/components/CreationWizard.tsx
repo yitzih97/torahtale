@@ -681,6 +681,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     }
     // Subscription skipped step 6, so jump back to 5.
     if (step === 7 && planType === "subscription") prevStep = 5;
+    if (step === 12) prevStep = 11;
     if (step === 13) prevStep = 11;
     setStep(Math.max(prevStep, 0));
   };
