@@ -132,7 +132,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15, ease }}
-              className={`mt-6 text-base sm:text-lg text-foreground/70 max-w-lg leading-relaxed ${isRtl ? "lg:mr-0 mx-auto lg:ml-auto" : "lg:mx-0 mx-auto"}`}
+              className={`mt-4 sm:mt-6 text-sm sm:text-lg text-foreground/70 max-w-lg leading-relaxed ${isRtl ? "mr-0 ml-auto lg:mr-0 lg:ml-auto" : "mx-0"}`}
             >
               {copy.description}
             </motion.p>
