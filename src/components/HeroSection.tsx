@@ -84,11 +84,11 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       }}
       dir={dir}
     >
-      {/* Hero scene image as background — kids anchored to the side, text on cream */}
+      {/* Hero scene image as background — desktop only; kids anchored to the side, text on cream */}
       <img
         src={heroSceneDesktop}
         alt="Two Jewish children with their personalized Torah storybook"
-        className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
+        className="hidden lg:block pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
         style={{
           objectPosition: isRtl ? "left top" : "right top",
           transform: isRtl ? "scaleX(-1)" : undefined,
@@ -97,13 +97,13 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         height={1024}
         fetchPriority="high"
       />
-      {/* Soft fade from cream into the image so text stays readable */}
+      {/* Soft fade from cream into the image so text stays readable (desktop only) */}
       <div
-        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[72%] sm:w-[62%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.92] to-transparent z-[1]`}
+        className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.92] to-transparent z-[1]`}
       />
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
-        <div className="grid grid-cols-[8fr_3fr] sm:grid-cols-[6fr_5fr] gap-3 sm:gap-6 items-center min-h-[460px] sm:min-h-[560px] lg:min-h-[640px]">
+        <div className="grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-6 items-center lg:min-h-[640px]">
           {/* LEFT — copy */}
           <div className={`${isRtl ? "text-right" : "text-left"}`}>
 
@@ -111,17 +111,17 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease }}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[hsl(var(--gold)/0.3)] bg-[hsl(var(--gold)/0.08)] mb-6`}
+              className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[hsl(var(--gold)/0.3)] bg-[hsl(var(--gold)/0.08)] mb-4 sm:mb-6`}
             >
               <Sparkles className="w-4 h-4 text-gold" />
-              <span className="text-sm font-medium text-gold-dark">{copy.badge}</span>
+              <span className="text-xs sm:text-sm font-medium text-gold-dark">{copy.badge}</span>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease }}
-              className="font-display font-bold leading-[1.02] tracking-tight text-foreground text-[2rem] sm:text-5xl lg:text-[4.5rem]"
+              className="font-display font-bold leading-[1.05] tracking-tight text-foreground text-[2.25rem] sm:text-5xl lg:text-[4.5rem]"
             >
               <span className="block">{copy.title1}</span>
               <span className="block">{copy.title2}</span>
@@ -132,7 +132,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15, ease }}
-              className={`mt-4 sm:mt-6 text-sm sm:text-lg text-foreground/70 max-w-lg leading-relaxed ${isRtl ? "mr-0 ml-auto lg:mr-0 lg:ml-auto" : "mx-0"}`}
+              className={`mt-4 sm:mt-6 text-sm sm:text-lg text-foreground/70 max-w-lg leading-relaxed`}
             >
               {copy.description}
             </motion.p>
@@ -141,7 +141,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3, ease }}
-              className={`mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start ${isRtl ? "lg:justify-end" : "lg:justify-start"}`}
+              className={`mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start ${isRtl ? "lg:justify-end" : "lg:justify-start"}`}
             >
               <Button
                 variant="gold"
@@ -167,9 +167,18 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             </motion.div>
           </div>
 
-          {/* RIGHT — image lives in the section background; spacer keeps grid column */}
-          <div aria-hidden className="min-h-[420px] sm:min-h-[560px] lg:min-h-[640px]" />
+          {/* RIGHT — mobile/tablet: contained image banner; desktop: spacer (image is section bg) */}
+          <div className="lg:min-h-[640px]">
+            <img
+              src={heroKidsMobile}
+              alt="Two Jewish children with their personalized Torah storybook"
+              className="lg:hidden w-full h-auto aspect-[4/3] sm:aspect-[16/10] object-cover rounded-2xl sm:rounded-3xl shadow-xl"
+              style={{ objectPosition: "center 28%" }}
+              loading="eager"
+            />
+          </div>
         </div>
+
 
         {/* feature pills — full-width row below the hero */}
         <motion.div
