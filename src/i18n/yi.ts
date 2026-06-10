@@ -435,6 +435,7 @@ export const yi: typeof en = {
     nameOnCard: "נאָמען אויפן קאַרטל",
     cardNamePlaceholder: "פֿולער נאָמען",
     sameAsBilling: "שיפינג אַדרעס איז דאָס זעלביקע ווי בילינג",
+    billingAddress: "בילינג אַדרעס",
   },
 
   // Checkout
