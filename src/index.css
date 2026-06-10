@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -193,12 +193,17 @@
   }
   body {
     @apply text-foreground font-sans antialiased;
-    background: var(--metal-gradient-soft);
+    background: radial-gradient(circle at top left, hsl(42 100% 94% / 0.9), transparent 28%), var(--metal-gradient-soft);
     background-attachment: fixed;
   }
-  h1, h2, h3, h4 {
+  h1, h2, h3, h4, h5, h6 {
     @apply font-display;
     text-wrap: balance;
+    letter-spacing: 0;
+  }
+  p, li, label, input, button, textarea {
+    @apply font-sans;
+    letter-spacing: 0;
   }
   p {
     text-wrap: pretty;
@@ -392,10 +397,10 @@
   --ring: 0 0% 7%;
 }
 /* Big bold left-aligned headlines inside the wizard */
-.wizard-glass h2 {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.025em;
+ .wizard-glass h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0;
   line-height: 1.05;
   text-wrap: balance;
 }
