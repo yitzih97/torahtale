@@ -53,13 +53,21 @@ serve(async (req) => {
       );
     }
 
-    // Validate each line
+    // Validate each line. A `sellingPlanId` (gid://shopify/SellingPlan/...) turns the
+    // line into a recurring subscription purchase; it is optional and only forwarded
+    // when well-formed.
     const cleanLines = lines
       .filter((l: any) => typeof l?.merchandiseId === "string" && l.merchandiseId.startsWith("gid://shopify/ProductVariant/"))
-      .map((l: any) => ({
-        merchandiseId: l.merchandiseId,
-        quantity: Math.max(1, Math.min(parseInt(l.quantity) || 1, 100)),
-      }));
+      .map((l: any) => {
+        const line: { merchandiseId: string; quantity: number; sellingPlanId?: string } = {
+          merchandiseId: l.merchandiseId,
+          quantity: Math.max(1, Math.min(parseInt(l.quantity) || 1, 100)),
+        };
+        if (typeof l?.sellingPlanId === "string" && l.sellingPlanId.startsWith("gid://shopify/SellingPlan/")) {
+          line.sellingPlanId = l.sellingPlanId;
+        }
+        return line;
+      });
 
     if (cleanLines.length === 0) {
       return new Response(
@@ -67,6 +75,17 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Cart attributes ({key,value}) survive onto the resulting order's note_attributes,
+    // which is how shopify-webhook correlates the paid order back to the book.
+    const attributes = Array.isArray(body?.attributes)
+      ? body.attributes
+          .filter((a: any) => typeof a?.key === "string" && typeof a?.value === "string")
+          .map((a: any) => ({ key: a.key, value: a.value }))
+      : [];
+
+    const cartInput: Record<string, unknown> = { lines: cleanLines };
+    if (attributes.length > 0) cartInput.attributes = attributes;
 
     const shopifyRes = await fetch(SHOPIFY_STOREFRONT_URL, {
       method: "POST",
@@ -76,7 +95,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         query: CART_CREATE_MUTATION,
-        variables: { input: { lines: cleanLines } },
+        variables: { input: cartInput },
       }),
     });
 
