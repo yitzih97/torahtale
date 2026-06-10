@@ -102,8 +102,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[75%] sm:w-[65%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.85] to-transparent z-[1]`}
       />
 
-      <div className="container relative z-10 pt-28 lg:pt-32 pb-10 lg:pb-16">
-        <div className="grid lg:grid-cols-[6fr_5fr] gap-10 lg:gap-6 items-center min-h-[420px] sm:min-h-[480px] lg:min-h-[640px]">
+      <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
+        <div className="grid lg:grid-cols-[6fr_5fr] gap-6 lg:gap-6 items-center min-h-[340px] sm:min-h-[420px] lg:min-h-[640px]">
           {/* LEFT — copy */}
           <div className={`text-center ${isRtl ? "lg:text-right" : "lg:text-left"}`}>
             <motion.div
