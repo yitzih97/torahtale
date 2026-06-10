@@ -283,8 +283,11 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       }
 
       setPhase("done");
-      setStatusText("Generation complete! Review, edit, and save.");
-      toast.success("Book generated — review and approve.");
+      setStatusText("Generation complete! Saved automatically — edits keep saving as you make them.");
+      // Fire-and-forget immediate save so the freshly generated book is persisted
+      // even before any edit triggers the debounced auto-save effect.
+      persistPages(allPages, storyResult);
+      toast.success("Book generated and saved.");
     } catch (err: any) {
       toast.error(err?.message || "Generation failed");
       setPhase("idle");
