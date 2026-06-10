@@ -235,27 +235,19 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
 
               <div className="space-y-2">
                 <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Age</Label>
-                <div className="grid grid-cols-5 gap-2">
-                  {AGE_BRACKETS.map((b) => {
-                    const n = parseInt(age) || 0;
-                    const isSelected = n >= b.min && n <= (b.min === 10 ? 12 : b.min + 1);
-                    return (
-                      <button
-                        key={b.label}
-                        type="button"
-                        onClick={() => setAge(String(b.min))}
-                        className={`rounded-xl border-2 py-2 text-center transition-all ${
-                          isSelected
-                            ? "border-accent bg-accent/10"
-                            : "border-border hover:border-accent/40"
-                        }`}
-                      >
-                        <div className="text-base leading-none">{b.emoji}</div>
-                        <div className="text-[11px] font-semibold mt-1">{b.label}</div>
-                      </button>
-                    );
-                  })}
-                </div>
+                <Input
+                  type="number"
+                  min={1}
+                  max={18}
+                  inputMode="numeric"
+                  value={age}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9]/g, "");
+                    setAge(v);
+                  }}
+                  placeholder="e.g., 6"
+                  className="rounded-xl h-11 w-28"
+                />
               </div>
 
               <div className="space-y-2">
