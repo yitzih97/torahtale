@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2 } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
