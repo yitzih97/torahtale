@@ -537,6 +537,11 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
+      <SEO
+        title="Terms of Service — Torah Tale"
+        description="Read the Torah Tale terms of service covering accounts, subscriptions, book orders, refunds, and acceptable use."
+        path="/terms"
+      />
       <Navbar transparentHero={false} />
 
       {/* Ambient orbs */}

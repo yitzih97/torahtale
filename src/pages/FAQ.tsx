@@ -45,6 +45,20 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
+      <SEO
+        title="Frequently Asked Questions — Torah Tale"
+        description="Answers about Torah Tale orders, shipping, customization, billing, and personalized parsha storybooks for Jewish children."
+        path="/faq"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: items.map((item: { question: string; answer: string }) => ({
+            "@type": "Question",
+            name: item.question,
+            acceptedAnswer: { "@type": "Answer", text: item.answer },
+          })),
+        }}
+      />
       <Navbar transparentHero={false} />
 
       {/* Ambient orbs */}

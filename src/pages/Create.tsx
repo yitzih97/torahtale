@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { SEO } from "@/components/SEO";
 import { useState } from "react";
 
 const Create = () => {
