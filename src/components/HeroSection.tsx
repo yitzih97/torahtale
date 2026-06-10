@@ -83,17 +83,23 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       }}
       dir={dir}
     >
-      {/* warm bokeh glow on the right */}
+      {/* Desktop: hero scene image as background, anchored right */}
+      <img
+        src={heroSceneDesktop}
+        alt="Two Jewish children with their personalized Torah storybook"
+        className="hidden lg:block pointer-events-none select-none absolute inset-y-0 right-0 h-full w-[70%] xl:w-[65%] object-cover object-left"
+        style={isRtl ? { left: 0, right: "auto", transform: "scaleX(-1)" } : undefined}
+        width={1536}
+        height={1024}
+        fetchPriority="high"
+      />
+      {/* Soft fade from cream into the image so text stays readable */}
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-2/3 opacity-70"
-        style={{
-          background:
-            "radial-gradient(ellipse at 70% 40%, hsl(42 90% 80% / 0.55), transparent 60%)",
-        }}
+        className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.85] to-transparent z-[1]`}
       />
 
       <div className="container relative z-10 pt-28 lg:pt-32 pb-10 lg:pb-16">
-        <div className="grid lg:grid-cols-[5fr_7fr] gap-10 lg:gap-6 items-center">
+        <div className="grid lg:grid-cols-[6fr_5fr] gap-10 lg:gap-6 items-center min-h-[640px]">
           {/* LEFT — copy */}
           <div className={`text-center ${isRtl ? "lg:text-right" : "lg:text-left"}`}>
             <motion.div
@@ -174,37 +180,25 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             </motion.div>
           </div>
 
-          {/* RIGHT — full hero scene (kids + open book) */}
+          {/* RIGHT — empty on desktop (image is in the background); mobile keeps an inline photo */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.9, ease }}
-            className="relative w-full"
+            className="relative w-full lg:hidden"
           >
-            {/* Mobile: kids-only photo (book is shown separately below in its own section) */}
             <img
               src={heroKidsMobile}
               alt="Two Jewish children in a sunlit meadow"
-              className="lg:hidden w-full h-auto rounded-3xl object-cover"
+              className="w-full h-auto rounded-3xl object-cover"
               style={{ objectPosition: isRtl ? "left center" : "right center" }}
               width={1200}
               height={900}
               fetchPriority="high"
             />
-            {/* Desktop: full scene with kids and the open storybook in front */}
-            <img
-              src={heroSceneDesktop}
-              alt="Two Jewish children with their personalized Torah storybook"
-              className="hidden lg:block w-full h-auto rounded-3xl object-contain scale-110 origin-center lg:-mr-12 xl:-mr-20"
-              width={1536}
-              height={1024}
-              fetchPriority="high"
-            />
           </motion.div>
         </div>
 
-
-        {/* Testimonials strip */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
