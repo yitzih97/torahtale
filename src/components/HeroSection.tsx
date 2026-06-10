@@ -181,8 +181,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             </motion.div>
           </div>
 
-          {/* RIGHT — mobile/tablet: spacer reserving room for the background image; desktop: spacer (image is section bg) */}
-          <div className="h-[180px] sm:h-[240px] lg:h-auto lg:min-h-[640px]" />
+          {/* RIGHT — desktop only spacer (image is section bg on lg+) */}
+          <div className="hidden lg:block lg:min-h-[640px]" />
         </div>
 
 
