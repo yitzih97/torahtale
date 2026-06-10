@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { Mail, Clock, MessageSquare, Send, CheckCircle2, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { SEO } from "@/components/SEO";
 
 const floatingOrb = (delay: number, x: string, y: string, size: string, color: string) => (
   <motion.div

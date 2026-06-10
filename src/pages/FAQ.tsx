@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle, ChevronDown, Search, BookOpen, Truck, CreditCard, Palette, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { SEO } from "@/components/SEO";
 
 const floatingOrb = (delay: number, x: string, y: string, size: string, color: string) => (
   <motion.div

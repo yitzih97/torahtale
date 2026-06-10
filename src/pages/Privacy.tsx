@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
+import { SEO } from "@/components/SEO";
 
 const SECTIONS_EN = [
   { id: "intro", label: "Introduction" },
