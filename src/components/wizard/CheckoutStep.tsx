@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -45,6 +45,12 @@ interface Props {
   quantity?: number;
   /** 0, 0.10 or 0.15 */
   volumeDiscount?: number;
+  /** Override the CTA button label. Defaults to "Generate Book". */
+  ctaLabel?: string;
+  /** Override the CTA icon. Pass null to hide it. */
+  ctaIcon?: ReactNode | null;
+  /** Hide the CTA button entirely. */
+  hideCta?: boolean;
 }
 
 export const CheckoutStep = ({
@@ -59,6 +65,9 @@ export const CheckoutStep = ({
   onSelectPlan,
   quantity = 1,
   volumeDiscount = 0,
+  ctaLabel,
+  ctaIcon,
+  hideCta = false,
 }: Props) => {
   const [selectedPlanLocal, setSelectedPlanLocal] = useState<PlanType>("monthly");
   const selectedPlan = selectedPlanProp ?? selectedPlanLocal;
@@ -263,22 +272,24 @@ export const CheckoutStep = ({
         {t.checkout.disclaimer}
       </p>
 
-      <Button
-        variant="gold"
-        size="lg"
-        className="w-full rounded-xl h-12 text-base"
-        onClick={handlePlaceOrder}
-        disabled={placingOrder}
-      >
-        {placingOrder ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <>
-            <Sparkles className="w-4 h-4" />
-            {t.wizard.generateBook}
-          </>
-        )}
-      </Button>
+      {!hideCta && (
+        <Button
+          variant="gold"
+          size="lg"
+          className="w-full rounded-xl h-12 text-base"
+          onClick={handlePlaceOrder}
+          disabled={placingOrder}
+        >
+          {placingOrder ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <>
+              {ctaIcon === null ? null : (ctaIcon ?? <Sparkles className="w-4 h-4" />)}
+              {ctaLabel ?? t.wizard.generateBook}
+            </>
+          )}
+        </Button>
+      )}
     </div>
   );
 };

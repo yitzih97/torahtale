@@ -658,10 +658,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (step === 6 && planType === "subscription") {
       nextStep = 7;
     }
-    // Skip plan-chooser (step 12) — plan was chosen at the start (subscription) or set to "once" (single).
+    // Step 11 (payment + summary) — the "Continue" CTA inside the step advances directly to step 12 (shipping),
+    // and step 12's own Place Order button calls handlePlaceOrder which jumps to the success step.
     if (step === 11) {
       if (planType === "single") setSelectedPlan("once");
-      nextStep = 13;
+      nextStep = 12;
     }
     setStep(Math.min(nextStep, TOTAL_STEPS));
   };
@@ -680,6 +681,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     }
     // Subscription skipped step 6, so jump back to 5.
     if (step === 7 && planType === "subscription") prevStep = 5;
+    if (step === 12) prevStep = 11;
     if (step === 13) prevStep = 11;
     setStep(Math.max(prevStep, 0));
   };
@@ -2227,7 +2229,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   }
                   return null;
                 })()}
-                <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} />
+                <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} section="payment" />
                 <CheckoutStep
                   mode="summary"
                   childName={childNames}
@@ -2237,8 +2239,31 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   bookOptions={bookOptions}
                   selectedPlan={selectedPlan}
                   onSelectPlan={setSelectedPlan}
-                  onPlaceOrder={handlePlaceOrder}
+                  onPlaceOrder={() => { setDir(1); setStep(12); }}
+                  ctaLabel={t.common.continue}
+                  ctaIcon={null}
                 />
+              </motion.div>
+            )}
+
+            {/* ── STEP 12: Shipping address (final step before order) ── */}
+            {step === 12 && (
+              <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-6">
+                <div className="text-center pb-2">
+                  <h2 className="font-display text-4xl sm:text-5xl font-bold text-primary">
+                    {t.shipping.whereShip}
+                  </h2>
+                </div>
+                <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} section="shipping" />
+                <Button
+                  variant="gold"
+                  size="lg"
+                  className="w-full rounded-xl h-12 text-base"
+                  onClick={() => { void handlePlaceOrder(selectedPlan); }}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {planType === "subscription" ? t.checkout.subscribeOrderShort : t.checkout.placeOrderShort}
+                </Button>
               </motion.div>
             )}
 
