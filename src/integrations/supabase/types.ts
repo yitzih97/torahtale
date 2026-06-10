@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_applications: {
+        Row: {
+          audience: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          message: string | null
+          payout_email: string
+          phone: string | null
+          social_link: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          audience: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          message?: string | null
+          payout_email: string
+          phone?: string | null
+          social_link?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          message?: string | null
+          payout_email?: string
+          phone?: string | null
+          social_link?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       book_reviews: {
         Row: {
           approved: boolean
