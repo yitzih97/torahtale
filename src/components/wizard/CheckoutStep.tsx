@@ -65,6 +65,9 @@ export const CheckoutStep = ({
   onSelectPlan,
   quantity = 1,
   volumeDiscount = 0,
+  ctaLabel,
+  ctaIcon,
+  hideCta = false,
 }: Props) => {
   const [selectedPlanLocal, setSelectedPlanLocal] = useState<PlanType>("monthly");
   const selectedPlan = selectedPlanProp ?? selectedPlanLocal;
