@@ -463,6 +463,8 @@ export const he: typeof en = {
     disclaimer: "כל ספר נוצר בהתאם לתיאור ולתמונות שהעליתם. אנו עושים כמיטב יכולתנו להגשים את חזונכם, אך איננו אחראים אם התוצאה הסופית לא תצא בדיוק כפי שדמיינתם.",
     subscribeOrder: (total: string) => `הירשמו והזמינו — ₪${total}`,
     placeOrder: (total: string) => `בצעו הזמנה — ₪${total}`,
+    subscribeOrderShort: "בצעו הזמנה והירשמו",
+    placeOrderShort: "בצעו הזמנה",
     redirectingToShopify: "מעבירים אתכם לעמוד התשלום של Shopify…",
     checkoutFallback: "פותחים את עגלת Shopify (מצב גיבוי)…",
     openCheckout: "פתחו את התשלום",
