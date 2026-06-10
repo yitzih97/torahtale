@@ -99,11 +99,11 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       />
       {/* Soft fade from cream into the image so text stays readable */}
       <div
-        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[62%] sm:w-[58%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.9] to-transparent z-[1]`}
+        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[72%] sm:w-[62%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.92] to-transparent z-[1]`}
       />
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
-        <div className="grid grid-cols-[7fr_4fr] sm:grid-cols-[6fr_5fr] gap-3 sm:gap-6 items-center min-h-[520px] sm:min-h-[600px] lg:min-h-[640px]">
+        <div className="grid grid-cols-[8fr_3fr] sm:grid-cols-[6fr_5fr] gap-3 sm:gap-6 items-center min-h-[460px] sm:min-h-[560px] lg:min-h-[640px]">
           {/* LEFT — copy */}
           <div className={`${isRtl ? "text-right" : "text-left"}`}>
 
