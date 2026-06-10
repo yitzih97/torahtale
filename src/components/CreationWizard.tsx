@@ -17,7 +17,7 @@ import { ShippingForm, DEFAULT_SHIPPING, type ShippingData } from "./wizard/Ship
 import { CheckoutStep } from "./wizard/CheckoutStep";
 import { SubscriptionUpsellDialog } from "./wizard/SubscriptionUpsellDialog";
 import { SuccessStep } from "./wizard/SuccessStep";
-import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, getStoryPageCount, type BookOptions } from "./wizard/BookOptionsStep";
+import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, getColoringBookAddonPrice, getStoryPageCount, type BookOptions } from "./wizard/BookOptionsStep";
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { TORAH_PORTIONS, TORAH_BOOKS, CATEGORY_META, getPortionLabel, getUpcomingParsha, type TorahOption } from "./wizard/TorahPortions";
@@ -976,6 +976,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       board: 11.23,
                     };
                     const delta = formatDelta[bookOptions.productType] ?? 0;
+                    const coloringAddon = bookOptions.coloringBook ? getColoringBookAddonPrice("USD") : 0;
                     const planMeta: Record<string, { base: number; books: number; suffix: string }> = {
                       weekly: { base: 9, books: 1, suffix: "/week" },
                       monthly: { base: 36, books: 4, suffix: "/month" },
@@ -983,7 +984,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     };
                     const computePlanPrice = (id: string) => {
                       const m = planMeta[id];
-                      return m ? m.base + delta * m.books : 0;
+                      return m ? m.base + delta * m.books + coloringAddon * m.books : 0;
                     };
                     const fmt = (n: number) => `$${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`;
                     return (
@@ -1051,12 +1052,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
                         {/* Total summary */}
                         <motion.div variants={staggerChild}>
-                          <div className="rounded-2xl border-2 border-accent/40 bg-gradient-to-br from-accent/10 to-accent/5 p-5 flex items-center justify-between">
-                            <span className="font-display text-lg font-bold text-foreground">Total</span>
-                            <span className="font-display text-2xl font-bold text-accent">
-                              {fmt(computePlanPrice(selectedPlan))}
-                              <span className="text-sm font-normal text-muted-foreground">{planMeta[selectedPlan]?.suffix || "/month"}</span>
-                            </span>
+                          <div className="rounded-2xl border-2 border-accent/40 bg-gradient-to-br from-accent/10 to-accent/5 p-5 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-display text-lg font-bold text-foreground">Total</span>
+                              <span className="font-display text-2xl font-bold text-accent">
+                                {fmt(computePlanPrice(selectedPlan))}
+                                <span className="text-sm font-normal text-muted-foreground">{planMeta[selectedPlan]?.suffix || "/month"}</span>
+                              </span>
+                            </div>
+                            {bookOptions.coloringBook && <p className="text-sm text-muted-foreground">Includes coloring book add-on.</p>}
                           </div>
                         </motion.div>
                       </>
@@ -2350,15 +2354,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       bookPriceUsd={(() => {
         const pt = bookOptions.productType;
         const isIls = t.currency.code === "ILS";
-        if (pt === "softcover") return isIls ? 25 : 9;
-        if (pt === "hardcover") return isIls ? 50 : 17;
-        if (pt === "board") return isIls ? 70 : 24;
+        const addon = bookOptions.coloringBook ? getColoringBookAddonPrice(t.currency.code) : 0;
+        if (pt === "softcover") return (isIls ? 25 : 9) + addon;
+        if (pt === "hardcover") return (isIls ? 50 : 17) + addon;
+        if (pt === "board") return (isIls ? 70 : 24) + addon;
         return undefined;
       })()}
       bookLabel={
-        bookOptions.productType === "softcover" ? t.bookOptions.softcover :
+        `${bookOptions.productType === "softcover" ? t.bookOptions.softcover :
         bookOptions.productType === "hardcover" ? t.bookOptions.hardcover :
-        bookOptions.productType === "board" ? t.bookOptions.boardBook : undefined
+        bookOptions.productType === "board" ? t.bookOptions.boardBook : ""}${bookOptions.coloringBook ? ` + ${t.bookOptions.coloringBookAddon}` : ""}`
       }
     />
 

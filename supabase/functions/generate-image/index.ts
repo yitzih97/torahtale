@@ -54,7 +54,7 @@ serve(async (req) => {
   if (authErr) return authErr;
 
   try {
-    const { prompt, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText } = await req.json();
+    const { prompt, promptAdditions, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText } = await req.json();
 
     const childRefsList = Array.isArray(childRefs) ? childRefs : [];
     const descLower = String(childDescription || "").toLowerCase();
@@ -219,6 +219,9 @@ serve(async (req) => {
       imagePrompt += ` MASTER BOOK RULES (apply to every illustration without exception): ${rules}`;
     }
 
+    if (promptAdditions?.trim()) {
+      imagePrompt += ` ADDITIONAL REGEN INSTRUCTIONS: ${promptAdditions.trim()}`;
+    }
 
     const parts: any[] = [];
 

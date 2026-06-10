@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { BookOpen, Check, Sparkles, Shield, Baby } from "lucide-react";
+import { BookOpen, Check, Shield, Baby, Palette } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import softcoverImg from "@/assets/books/mockup-softcover.jpg";
@@ -9,23 +8,26 @@ import boardImg from "@/assets/books/mockup-board.jpg";
 export interface BookOptions {
   productType: "softcover" | "hardcover" | "board";
   hardcoverSize?: "8x8" | "11x8.5";
+  coloringBook?: boolean;
 }
 
 export const DEFAULT_BOOK_OPTIONS: BookOptions = {
   productType: "softcover",
+  coloringBook: false,
 };
-/* Story-page counts per format. Covers + questions page are added on top by the renderer. */
+
 export const PAGES_BY_TYPE: Record<BookOptions["productType"], number> = {
   softcover: 20,
   hardcover: 20,
   board: 10,
 };
 
+const COLORING_BOOK_ADDON_PRICE_USD = 3;
+const COLORING_BOOK_ADDON_PRICE_ILS = 12;
+
 export function getStoryPageCount(options: BookOptions): number {
   return PAGES_BY_TYPE[options.productType] ?? 20;
 }
-
-/* ── pricing (Printify cost + our margin) ── */
 
 const PRODUCT_INFO = {
   softcover: {
@@ -33,7 +35,6 @@ const PRODUCT_INFO = {
     priceIls: 25,
     dims: '8″ × 8″',
     icon: BookOpen,
-    color: "from-blue-500/20 to-blue-600/10",
     image: softcoverImg,
   },
   hardcover: {
@@ -41,7 +42,6 @@ const PRODUCT_INFO = {
     priceIls: 50,
     dims: '8″ × 8″',
     icon: Shield,
-    color: "from-accent/20 to-accent/10",
     image: hardcoverImg,
   },
   board: {
@@ -49,25 +49,25 @@ const PRODUCT_INFO = {
     priceIls: 70,
     dims: '6″ × 6″',
     icon: Baby,
-    color: "from-pink-500/20 to-pink-600/10",
     image: boardImg,
   },
 } as const;
 
-
 export const BASE_BOOK_PRICE = 7.05;
 
-export function calculateBookPrice(options: BookOptions): number {
-  return PRODUCT_INFO[options.productType].price;
+export function getColoringBookAddonPrice(currencyCode: string): number {
+  return currencyCode === "ILS" ? COLORING_BOOK_ADDON_PRICE_ILS : COLORING_BOOK_ADDON_PRICE_USD;
 }
 
-/** Currency-aware price (returns ILS amount for "ILS", USD for everything else) */
+export function calculateBookPrice(options: BookOptions): number {
+  return PRODUCT_INFO[options.productType].price + (options.coloringBook ? COLORING_BOOK_ADDON_PRICE_USD : 0);
+}
+
 export function calculateBookPriceForCurrency(options: BookOptions, currencyCode: string): number {
   const info = PRODUCT_INFO[options.productType];
-  return currencyCode === "ILS" ? info.priceIls : info.price;
+  const base = currencyCode === "ILS" ? info.priceIls : info.price;
+  return base + (options.coloringBook ? getColoringBookAddonPrice(currencyCode) : 0);
 }
-
-/* ── component ── */
 
 interface Props {
   options: BookOptions;
@@ -76,7 +76,6 @@ interface Props {
   hideHeader?: boolean;
 }
 
-/* age-based recommendation: board ≤3, softcover 4–6, hardcover 7+ */
 const getRecommendedType = (age: number): BookOptions["productType"] | null => {
   if (!age || age < 1) return null;
   if (age <= 3) return "board";
@@ -96,44 +95,35 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
 
   const selectType = (type: BookOptions["productType"]) => {
     if (type === "hardcover") {
-      onChange({ productType: "hardcover", hardcoverSize: "8x8" });
-    } else {
-      onChange({ productType: type, hardcoverSize: undefined });
+      onChange({ ...options, productType: "hardcover", hardcoverSize: "8x8" });
+      return;
     }
+    onChange({ ...options, productType: type, hardcoverSize: undefined });
   };
 
-  const price = calculateBookPrice(options);
-  const priceIls = PRODUCT_INFO[options.productType].priceIls;
+  const toggleColoringBook = () => {
+    onChange({ ...options, coloringBook: !options.coloringBook });
+  };
 
-  const productLabels: Record<string, string> = {
+  const productLabels: Record<BookOptions["productType"], string> = {
     softcover: t.bookOptions.softcover,
     hardcover: t.bookOptions.hardcover,
     board: t.bookOptions.boardBook,
   };
 
-  const productTaglines: Record<string, string> = {
+  const productTaglines: Record<BookOptions["productType"], string> = {
     softcover: t.bookOptions.softcoverTagline,
     hardcover: t.bookOptions.hardcoverTagline,
     board: t.bookOptions.boardTagline,
   };
 
-  const productFeatures: Record<string, string[]> = {
-    softcover: t.bookOptions.features.softcover,
-    hardcover: t.bookOptions.features.hardcover,
-    board: t.bookOptions.features.board,
-  };
-
-
   return (
     <div className="space-y-6">
       {!hideHeader && (
         <div className="text-center">
-          <h2 className="font-display text-xl font-bold text-foreground">
-            {t.bookOptions.chooseSefer}
-          </h2>
+          <h2 className="font-display text-xl font-bold text-foreground">{t.bookOptions.chooseSefer}</h2>
         </div>
       )}
-
 
       <div className="grid gap-4">
         {(Object.keys(PRODUCT_INFO) as Array<keyof typeof PRODUCT_INFO>).map((key) => {
@@ -142,7 +132,10 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
           const isRecommended = recommendedType === key;
           const badge = isRecommended
             ? t.bookOptions.recommendedForAge(String(childAge))
-            : key === "hardcover" ? t.bookOptions.mostPopular : undefined;
+            : key === "hardcover"
+              ? t.bookOptions.mostPopular
+              : undefined;
+          const Icon = info.icon;
 
           return (
             <button
@@ -166,8 +159,14 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-display font-bold text-base text-primary">{productLabels[key]}</span>
+                  <div className="flex items-center justify-between gap-3 mb-1">
+                    <div>
+                      <span className="font-display font-bold text-base text-primary flex items-center gap-2">
+                        <Icon className="w-4 h-4 text-accent" />
+                        {productLabels[key]}
+                      </span>
+                      <p className="text-xs text-muted-foreground mt-1">{productTaglines[key]}</p>
+                    </div>
                     <span className="text-lg font-bold text-accent">{formatPrice(info.price, info.priceIls)}</span>
                   </div>
                   <p className="text-xs text-muted-foreground">{info.dims}</p>
@@ -177,6 +176,31 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
           );
         })}
       </div>
+
+      <button
+        onClick={toggleColoringBook}
+        className={`w-full rounded-2xl border-2 p-5 text-start transition-all duration-300 active:scale-[0.98] ${
+          options.coloringBook
+            ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
+            : "border-border hover:border-accent/30 hover:shadow-sm"
+        }`}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className={`mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl ${options.coloringBook ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"}`}>
+              {options.coloringBook ? <Check className="w-5 h-5" /> : <Palette className="w-5 h-5" />}
+            </div>
+            <div>
+              <div className="font-display text-lg font-bold text-primary">{t.bookOptions.coloringBookAddon}</div>
+              <p className="mt-1 text-sm text-muted-foreground">{t.bookOptions.coloringBookAddonDesc}</p>
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-lg font-bold text-accent">+{formatPrice(COLORING_BOOK_ADDON_PRICE_USD, COLORING_BOOK_ADDON_PRICE_ILS)}</div>
+            <div className="text-xs text-muted-foreground">{t.bookOptions.optionalAddOn}</div>
+          </div>
+        </div>
+      </button>
     </div>
   );
 };
