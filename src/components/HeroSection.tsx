@@ -84,11 +84,11 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       }}
       dir={dir}
     >
-      {/* Hero scene image as background — desktop only (kids anchored to the side, text on cream) */}
+      {/* Hero scene image as background — kids anchored to the side, text on cream */}
       <img
         src={heroSceneDesktop}
         alt="Two Jewish children with their personalized Torah storybook"
-        className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover hidden lg:block"
+        className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
         style={{
           objectPosition: isRtl ? "left top" : "right top",
           transform: isRtl ? "scaleX(-1)" : undefined,
@@ -97,9 +97,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         height={1024}
         fetchPriority="high"
       />
-      {/* Soft fade from cream into the image so text stays readable (desktop only) */}
+      {/* Soft fade from cream into the image so text stays readable */}
       <div
-        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.85] to-transparent z-[1] hidden lg:block`}
+        className={`pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[62%] sm:w-[58%] lg:w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.9] to-transparent z-[1]`}
       />
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
