@@ -58,12 +58,12 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/92 backdrop-blur-xl border-b border-[hsl(var(--gold)/0.18)] shadow-sm" : "bg-transparent"}`} data-scrolled={scrolled}>
-      <div className="container flex items-center justify-between h-16 lg:h-20">
+      <div className="container flex items-center justify-between h-20 lg:h-24">
         <a href="/" className="group">
           <BrandMark
             className="transition-transform duration-300 group-hover:scale-[1.01]"
-            iconClassName="h-11 w-11 lg:h-12 lg:w-12"
-            wordmarkClassName="h-8 lg:h-9 w-auto"
+            iconClassName="h-12 w-12 lg:h-14 lg:w-14"
+            wordmarkClassName="h-14 lg:h-16 w-auto"
           />
           <span className="sr-only">{brandName}</span>
         </a>
