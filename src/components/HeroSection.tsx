@@ -75,6 +75,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       };
 
   return (
+    <>
     <section
       className="relative overflow-hidden"
       style={{
@@ -89,7 +90,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         alt="Two Jewish children with their personalized Torah storybook"
         className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
         style={{
-          objectPosition: isRtl ? "left center" : "right center",
+          objectPosition: isRtl ? "left bottom" : "right bottom",
           transform: isRtl ? "scaleX(-1)" : undefined,
         }}
         width={1536}
@@ -185,12 +186,30 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
           {/* RIGHT — image lives in the section background on all breakpoints */}
         </div>
+      </div>
 
+      {/* Trust bar */}
+      <div className="relative z-10 bg-[hsl(220_45%_10%)] text-white/85">
+        <div className="container py-4 sm:py-5 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-0 divide-y sm:divide-y-0 sm:divide-x divide-white/10 text-sm">
+          {copy.trustBar.map((item, i) => (
+            <div key={i} className="flex items-center justify-center gap-3 py-2 sm:py-0">
+              <item.icon className="w-5 h-5 text-gold" />
+              <span className="font-medium">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* Testimonials section */}
+    <section className="relative bg-gradient-to-b from-[hsl(42_55%_95%)] to-[hsl(38_45%_92%)]" dir={dir}>
+      <div className="container py-16 lg:py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6, ease }}
-          className="mt-20 lg:mt-28 rounded-2xl bg-background/70 backdrop-blur border border-foreground/8 shadow-sm px-6 sm:px-8 py-6 sm:py-8"
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease }}
+          className="rounded-2xl bg-background/70 backdrop-blur border border-foreground/8 shadow-sm px-6 sm:px-8 py-6 sm:py-8"
         >
           <div className="grid lg:grid-cols-[1fr_2.4fr] gap-6 lg:gap-10 items-center">
             <div className={`${isRtl ? "lg:text-right" : "lg:text-left"} text-center`}>
@@ -232,18 +251,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           </div>
         </motion.div>
       </div>
-
-      {/* Trust bar */}
-      <div className="relative z-10 bg-[hsl(220_45%_10%)] text-white/85">
-        <div className="container py-4 sm:py-5 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-0 divide-y sm:divide-y-0 sm:divide-x divide-white/10 text-sm">
-          {copy.trustBar.map((item, i) => (
-            <div key={i} className="flex items-center justify-center gap-3 py-2 sm:py-0">
-              <item.icon className="w-5 h-5 text-gold" />
-              <span className="font-medium">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </section>
+    </>
   );
 };
