@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel } from "./TorahPortions";
-import { type BookOptions, calculateBookPrice, calculateBookPriceForCurrency } from "./BookOptionsStep";
+import { type BookOptions, calculateBookPriceForCurrency } from "./BookOptionsStep";
 
 export type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
@@ -74,7 +74,11 @@ export const CheckoutStep = ({
   const fmt = (amount: number) => `${symbol}${amount.toFixed(2)}`;
 
   const unitBookPrice = calculateBookPriceForCurrency(bookOptions, code);
+  const unitBaseBookPrice = calculateBookPriceForCurrency({ ...bookOptions, coloringBook: false }, code);
+  const unitColoringAddonPrice = Math.max(0, unitBookPrice - unitBaseBookPrice);
   const bookPrice = unitBookPrice * quantity;
+  const baseBookPrice = unitBaseBookPrice * quantity;
+  const coloringAddonTotal = unitColoringAddonPrice * quantity;
   const discountAmount = bookPrice * volumeDiscount;
   const bookPriceAfterDiscount = bookPrice - discountAmount;
   const shippingCost = isIls
@@ -197,9 +201,15 @@ export const CheckoutStep = ({
               {t.checkout.bookFor(childName)}{quantity > 1 ? ` × ${quantity}` : ""}
             </span>
             <span className="font-medium text-primary">
-              {isSubscription ? t.checkout.included : fmt(bookPrice)}
+              {isSubscription ? t.checkout.included : fmt(baseBookPrice)}
             </span>
           </div>
+          {bookOptions.coloringBook && (
+            <div className="flex justify-between text-accent">
+              <span>{t.bookOptions.coloringBookAddon}{quantity > 1 ? ` × ${quantity}` : ""}</span>
+              <span className="font-medium">{isSubscription ? t.checkout.included : fmt(coloringAddonTotal)}</span>
+            </div>
+          )}
           {!isSubscription && volumeDiscount > 0 && (
             <div className="flex justify-between text-accent">
               <span>{t.checkout.volumeDiscount(Math.round(volumeDiscount * 100))}</span>
@@ -224,6 +234,7 @@ export const CheckoutStep = ({
                 : bookOptions.productType === "board"
                 ? `${t.bookOptions.boardBook} 6″×6″`
                 : `${t.bookOptions.softcover} 8″×8″`}
+              {bookOptions.coloringBook ? ` + ${t.bookOptions.coloringBookAddon}` : ""}
             </span>
           </div>
           <div className="flex justify-between">
