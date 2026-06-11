@@ -3,7 +3,9 @@ import { toast } from "sonner";
 const SHOPIFY_API_VERSION = '2025-07';
 const SHOPIFY_STORE_PERMANENT_DOMAIN = 'fek120-t9.myshopify.com';
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
-const SHOPIFY_STOREFRONT_TOKEN = '3fd41e871eb32e43cc0f5aea6ce7c08a';
+// Token from the TorahTale Integration app — includes unauthenticated_read_selling_plans,
+// required for subscription (selling plan) checkout lines.
+const SHOPIFY_STOREFRONT_TOKEN = '2054e6abeef4a5e3874606fb768b8096';
 
 export interface ShopifyProduct {
   node: {
