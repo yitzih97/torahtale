@@ -226,14 +226,37 @@ export async function syncShopifyCart(cartId: string): Promise<boolean> {
 
 // Variant IDs for our products (GraphQL format)
 export const SHOPIFY_VARIANT_IDS = {
-  weeklySubscription: "gid://shopify/ProductVariant/47620120543419",
-  monthlySubscription: "gid://shopify/ProductVariant/47620120772795",
-  yearlySubscription: "gid://shopify/ProductVariant/47620120805563",
   bookSoftcover8x8: "gid://shopify/ProductVariant/47620121034939",
   bookHardcover8x8: "gid://shopify/ProductVariant/47620121067707",
   bookHardcover11x85: "gid://shopify/ProductVariant/47620121100475",
   bookBoardBook6x6: "gid://shopify/ProductVariant/47620121133243",
 } as const;
+
+// Subscription variants: one per plan x book type x coloring add-on, so each of
+// the 18 combinations bills at its own recurring price (price = plan base +
+// format delta x books/period + $3 coloring x books/period). These live on the
+// three "Torah Tale ... Subscription" products as Book Type / Coloring Book
+// option combinations.
+export const SUBSCRIPTION_VARIANT_IDS: Record<
+  "weekly" | "monthly" | "yearly",
+  Record<"softcover" | "hardcover" | "board", { standard: string; coloring: string }>
+> = {
+  weekly: {
+    softcover: { standard: "gid://shopify/ProductVariant/47953372446907", coloring: "gid://shopify/ProductVariant/47953372479675" },
+    hardcover: { standard: "gid://shopify/ProductVariant/47953372512443", coloring: "gid://shopify/ProductVariant/47953372545211" },
+    board: { standard: "gid://shopify/ProductVariant/47953372577979", coloring: "gid://shopify/ProductVariant/47953372610747" },
+  },
+  monthly: {
+    softcover: { standard: "gid://shopify/ProductVariant/47953372643515", coloring: "gid://shopify/ProductVariant/47953372676283" },
+    hardcover: { standard: "gid://shopify/ProductVariant/47953372709051", coloring: "gid://shopify/ProductVariant/47953372741819" },
+    board: { standard: "gid://shopify/ProductVariant/47953372774587", coloring: "gid://shopify/ProductVariant/47953372807355" },
+  },
+  yearly: {
+    softcover: { standard: "gid://shopify/ProductVariant/47953372840123", coloring: "gid://shopify/ProductVariant/47953372872891" },
+    hardcover: { standard: "gid://shopify/ProductVariant/47953372905659", coloring: "gid://shopify/ProductVariant/47953372938427" },
+    board: { standard: "gid://shopify/ProductVariant/47953372971195", coloring: "gid://shopify/ProductVariant/47953373003963" },
+  },
+};
 
 // Selling-plan IDs that turn a subscription variant into a recurring charge.
 // These come from the Shopify Subscriptions app once selling plans are configured
@@ -251,6 +274,7 @@ export type OrderPlan = "once" | "weekly" | "monthly" | "yearly";
 interface OrderBookOptions {
   productType: "softcover" | "hardcover" | "board";
   hardcoverSize?: "8x8" | "11x8.5";
+  coloringBook?: boolean;
 }
 
 export function getBookVariantId(options: OrderBookOptions): string {
@@ -273,10 +297,8 @@ function buildOrderLines(plan: OrderPlan, options: OrderBookOptions, quantity: n
   if (plan === "once") {
     return [{ merchandiseId: getBookVariantId(options), quantity: Math.max(1, quantity) }];
   }
-  const subVariant =
-    plan === "weekly" ? SHOPIFY_VARIANT_IDS.weeklySubscription
-    : plan === "monthly" ? SHOPIFY_VARIANT_IDS.monthlySubscription
-    : SHOPIFY_VARIANT_IDS.yearlySubscription;
+  const byFormat = SUBSCRIPTION_VARIANT_IDS[plan][options.productType];
+  const subVariant = options.coloringBook ? byFormat.coloring : byFormat.standard;
   const sellingPlanId = SHOPIFY_SELLING_PLAN_IDS[plan] ?? undefined;
   return [{ merchandiseId: subVariant, quantity: 1, sellingPlanId }];
 }
