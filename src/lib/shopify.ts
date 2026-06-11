@@ -266,9 +266,9 @@ export const SUBSCRIPTION_VARIANT_IDS: Record<
 // recurring billing will work — until then, subscription checkouts fall back to a
 // one-off charge of the subscription variant.
 export const SHOPIFY_SELLING_PLAN_IDS: Record<"weekly" | "monthly" | "yearly", string | null> = {
-  weekly: null,
-  monthly: null,
-  yearly: null,
+  weekly: "gid://shopify/SellingPlan/11163369696",
+  monthly: "gid://shopify/SellingPlan/11163402464",
+  yearly: "gid://shopify/SellingPlan/11163435232",
 };
 
 export type OrderPlan = "once" | "weekly" | "monthly" | "yearly";
