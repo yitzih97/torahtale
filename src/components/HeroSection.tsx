@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import heroSceneDesktop from "@/assets/hero-scene-desktop.jpg";
-import heroKidsMobile from "@/assets/hero-kids-mobile.jpg";
+import heroMobileAsset from "@/assets/hero-mobile.png.asset.json";
+import heroTabletAsset from "@/assets/hero-tablet.png.asset.json";
 import kid1 from "@/assets/avatars/kid1.jpg";
 import kid2 from "@/assets/avatars/kid2.jpg";
 import kid3 from "@/assets/avatars/kid3.jpg";
