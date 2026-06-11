@@ -174,6 +174,21 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           <div className="hidden lg:block lg:min-h-[640px]" />
         </div>
 
+        {/* Mobile/tablet hero illustration — full image with kids + book */}
+        <div className="lg:hidden mt-6 sm:mt-8 -mx-4 sm:-mx-6">
+          <picture>
+            <source media="(min-width: 640px)" srcSet={heroTabletAsset.url} />
+            <img
+              src={heroMobileAsset.url}
+              alt="Two Jewish children with their personalized Torah storybook"
+              className="w-full h-auto block"
+              loading="eager"
+              fetchPriority="high"
+            />
+          </picture>
+        </div>
+
+
 
         {/* feature pills — full-width row below the hero */}
         <motion.div
