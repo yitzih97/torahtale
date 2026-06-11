@@ -125,16 +125,6 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           {/* LEFT — copy */}
           <div className={`relative z-10 ${isRtl ? "text-right" : "text-left"}`}>
 
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease }}
-              className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[hsl(var(--gold)/0.3)] bg-[hsl(var(--gold)/0.08)] mb-4 sm:mb-6`}
-            >
-              <Sparkles className="w-4 h-4 text-gold" />
-              <span className="text-xs sm:text-sm font-medium text-gold-dark">{copy.badge}</span>
-            </motion.div>
-
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
