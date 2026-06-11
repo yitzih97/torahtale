@@ -118,7 +118,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
 
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
-        <div className="relative grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-center lg:min-h-[640px]">
+        <div className="relative grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-start lg:items-center min-h-[178vw] sm:min-h-[132vw] lg:min-h-[640px]">
+
           {/* (Mobile/tablet hero illustration is rendered below the copy — see picture element after copy block) */}
 
           {/* LEFT — copy */}
