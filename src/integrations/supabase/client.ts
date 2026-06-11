@@ -2,11 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Pinned to the current Supabase project (gabrobnkelgxazjibbrm). Build-env
-// VITE_SUPABASE_* values may still reference the old, inaccessible project, so
-// they must not take precedence. Both values are public/publishable by design.
-const SUPABASE_URL = "https://gabrobnkelgxazjibbrm.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_9YwM5OE70SQBgDYCV26n8g_unnkgxNH";
+const SUPABASE_URL = "https://qfcuzhjtdqbjgawqgcvk.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmY3V6aGp0ZHFiamdhd3FnY3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzM5OTUsImV4cCI6MjA4OTgwOTk5NX0.9zuk69zBjtbwVEaH2Rs1esqXUnDh12iUojc0zdU9Vhs";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
@@ -16,5 +13,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'implicit',
   }
 });
