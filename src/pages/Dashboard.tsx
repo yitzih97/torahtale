@@ -322,7 +322,7 @@ export default function Dashboard() {
                         sub={sub}
                         index={i}
                         onEdit={() => setEditingSub(sub)}
-                        onPayment={() => window.open("https://fek120-t9.myshopify.com/account", "_blank", "noopener,noreferrer")}
+                        onPayment={() => window.open("https://cnhtj8-x9.myshopify.com/account", "_blank", "noopener,noreferrer")}
                         onToggle={async () => {
                           if (sub.status === "canceled") return;
                           const next = sub.status === "active" ? "paused" : "active";

@@ -165,7 +165,7 @@ export function DashboardSettings({ user }: Props) {
             variant="gold"
             size="sm"
             className="rounded-2xl gap-2 flex-shrink-0"
-            onClick={() => window.open("https://fek120-t9.myshopify.com/account", "_blank", "noopener,noreferrer")}
+            onClick={() => window.open("https://cnhtj8-x9.myshopify.com/account", "_blank", "noopener,noreferrer")}
           >
             <CreditCard className="w-4 h-4" /> Manage
           </Button>

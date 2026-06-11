@@ -29,23 +29,25 @@ export function getStoryPageCount(options: BookOptions): number {
   return PAGES_BY_TYPE[options.productType] ?? 20;
 }
 
+// Prices must match the live Shopify product variants — checkout charges the
+// variant price, so a mismatch here would show one price and bill another.
 const PRODUCT_INFO = {
   softcover: {
-    price: 7.05,
+    price: 9,
     priceIls: 25,
     dims: '8″ × 8″',
     icon: BookOpen,
     image: softcoverImg,
   },
   hardcover: {
-    price: 9.95,
+    price: 17,
     priceIls: 50,
     dims: '8″ × 8″',
     icon: Shield,
     image: hardcoverImg,
   },
   board: {
-    price: 18.28,
+    price: 24,
     priceIls: 70,
     dims: '6″ × 6″',
     icon: Baby,
@@ -53,7 +55,7 @@ const PRODUCT_INFO = {
   },
 } as const;
 
-export const BASE_BOOK_PRICE = 7.05;
+export const BASE_BOOK_PRICE = 9;
 
 export function getColoringBookAddonPrice(currencyCode: string): number {
   return currencyCode === "ILS" ? COLORING_BOOK_ADDON_PRICE_ILS : COLORING_BOOK_ADDON_PRICE_USD;

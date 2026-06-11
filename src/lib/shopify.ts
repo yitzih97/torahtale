@@ -1,11 +1,11 @@
 import { toast } from "sonner";
 
 const SHOPIFY_API_VERSION = '2025-07';
-const SHOPIFY_STORE_PERMANENT_DOMAIN = 'fek120-t9.myshopify.com';
+const SHOPIFY_STORE_PERMANENT_DOMAIN = 'cnhtj8-x9.myshopify.com';
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 // Token from the TorahTale Integration app — includes unauthenticated_read_selling_plans,
 // required for subscription (selling plan) checkout lines.
-const SHOPIFY_STOREFRONT_TOKEN = '2054e6abeef4a5e3874606fb768b8096';
+const SHOPIFY_STOREFRONT_TOKEN = '370f86bdf115e6b0593f7248f5cfb4b0';
 
 export interface ShopifyProduct {
   node: {
@@ -224,12 +224,14 @@ export async function syncShopifyCart(cartId: string): Promise<boolean> {
   return !!(cart && cart.totalQuantity > 0);
 }
 
-// Variant IDs for our products (GraphQL format)
+// Variant IDs for our products (GraphQL format). Each book format has a
+// standard variant and a coloring-book-add-on variant (+$3) so the add-on is
+// actually billed at checkout.
 export const SHOPIFY_VARIANT_IDS = {
-  bookSoftcover8x8: "gid://shopify/ProductVariant/47620121034939",
-  bookHardcover8x8: "gid://shopify/ProductVariant/47620121067707",
-  bookHardcover11x85: "gid://shopify/ProductVariant/47620121100475",
-  bookBoardBook6x6: "gid://shopify/ProductVariant/47620121133243",
+  bookSoftcover8x8: { standard: "gid://shopify/ProductVariant/53047693738208", coloring: "gid://shopify/ProductVariant/53047693770976" },
+  bookHardcover8x8: { standard: "gid://shopify/ProductVariant/53047693803744", coloring: "gid://shopify/ProductVariant/53047693836512" },
+  bookHardcover11x85: { standard: "gid://shopify/ProductVariant/53047693869280", coloring: "gid://shopify/ProductVariant/53047693902048" },
+  bookBoardBook6x6: { standard: "gid://shopify/ProductVariant/53047693967584", coloring: "gid://shopify/ProductVariant/53047694000352" },
 } as const;
 
 // Subscription variants: one per plan x book type x coloring add-on, so each of
@@ -242,19 +244,19 @@ export const SUBSCRIPTION_VARIANT_IDS: Record<
   Record<"softcover" | "hardcover" | "board", { standard: string; coloring: string }>
 > = {
   weekly: {
-    softcover: { standard: "gid://shopify/ProductVariant/47953372446907", coloring: "gid://shopify/ProductVariant/47953372479675" },
-    hardcover: { standard: "gid://shopify/ProductVariant/47953372512443", coloring: "gid://shopify/ProductVariant/47953372545211" },
-    board: { standard: "gid://shopify/ProductVariant/47953372577979", coloring: "gid://shopify/ProductVariant/47953372610747" },
+    softcover: { standard: "gid://shopify/ProductVariant/53047694033120", coloring: "gid://shopify/ProductVariant/53047694065888" },
+    hardcover: { standard: "gid://shopify/ProductVariant/53047694098656", coloring: "gid://shopify/ProductVariant/53047694131424" },
+    board: { standard: "gid://shopify/ProductVariant/53047694164192", coloring: "gid://shopify/ProductVariant/53047694196960" },
   },
   monthly: {
-    softcover: { standard: "gid://shopify/ProductVariant/47953372643515", coloring: "gid://shopify/ProductVariant/47953372676283" },
-    hardcover: { standard: "gid://shopify/ProductVariant/47953372709051", coloring: "gid://shopify/ProductVariant/47953372741819" },
-    board: { standard: "gid://shopify/ProductVariant/47953372774587", coloring: "gid://shopify/ProductVariant/47953372807355" },
+    softcover: { standard: "gid://shopify/ProductVariant/53047694262496", coloring: "gid://shopify/ProductVariant/53047694295264" },
+    hardcover: { standard: "gid://shopify/ProductVariant/53047694328032", coloring: "gid://shopify/ProductVariant/53047694360800" },
+    board: { standard: "gid://shopify/ProductVariant/53047694393568", coloring: "gid://shopify/ProductVariant/53047694426336" },
   },
   yearly: {
-    softcover: { standard: "gid://shopify/ProductVariant/47953372840123", coloring: "gid://shopify/ProductVariant/47953372872891" },
-    hardcover: { standard: "gid://shopify/ProductVariant/47953372905659", coloring: "gid://shopify/ProductVariant/47953372938427" },
-    board: { standard: "gid://shopify/ProductVariant/47953372971195", coloring: "gid://shopify/ProductVariant/47953373003963" },
+    softcover: { standard: "gid://shopify/ProductVariant/53047694459104", coloring: "gid://shopify/ProductVariant/53047694491872" },
+    hardcover: { standard: "gid://shopify/ProductVariant/53047694524640", coloring: "gid://shopify/ProductVariant/53047694557408" },
+    board: { standard: "gid://shopify/ProductVariant/53047694590176", coloring: "gid://shopify/ProductVariant/53047694622944" },
   },
 };
 
@@ -278,13 +280,13 @@ interface OrderBookOptions {
 }
 
 export function getBookVariantId(options: OrderBookOptions): string {
-  if (options.productType === "hardcover") {
-    return options.hardcoverSize === "11x8.5"
-      ? SHOPIFY_VARIANT_IDS.bookHardcover11x85
-      : SHOPIFY_VARIANT_IDS.bookHardcover8x8;
-  }
-  if (options.productType === "board") return SHOPIFY_VARIANT_IDS.bookBoardBook6x6;
-  return SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
+  const pair =
+    options.productType === "hardcover"
+      ? (options.hardcoverSize === "11x8.5" ? SHOPIFY_VARIANT_IDS.bookHardcover11x85 : SHOPIFY_VARIANT_IDS.bookHardcover8x8)
+      : options.productType === "board"
+      ? SHOPIFY_VARIANT_IDS.bookBoardBook6x6
+      : SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
+  return options.coloringBook ? pair.coloring : pair.standard;
 }
 
 interface OrderLine {

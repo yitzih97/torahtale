@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const SHOPIFY_API_VERSION = "2025-07";
-const SHOPIFY_STORE_PERMANENT_DOMAIN = "fek120-t9.myshopify.com";
+const SHOPIFY_STORE_PERMANENT_DOMAIN = "cnhtj8-x9.myshopify.com";
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 
 const CART_CREATE_MUTATION = `

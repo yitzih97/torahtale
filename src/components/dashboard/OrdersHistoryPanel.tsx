@@ -44,7 +44,7 @@ export function OrdersHistoryPanel() {
           variant="ghost"
           size="sm"
           className="rounded-2xl gap-1.5 text-xs"
-          onClick={() => window.open("https://fek120-t9.myshopify.com/account", "_blank", "noopener,noreferrer")}
+          onClick={() => window.open("https://cnhtj8-x9.myshopify.com/account", "_blank", "noopener,noreferrer")}
         >
           <ExternalLink className="w-3.5 h-3.5" /> Shopify
         </Button>
@@ -100,7 +100,7 @@ export function OrdersHistoryPanel() {
                   size="sm"
                   className="rounded-2xl gap-1.5 text-xs flex-shrink-0"
                   onClick={() =>
-                    window.open("https://fek120-t9.myshopify.com/account", "_blank", "noopener,noreferrer")
+                    window.open("https://cnhtj8-x9.myshopify.com/account", "_blank", "noopener,noreferrer")
                   }
                 >
                   <FileText className="w-3.5 h-3.5" /> Invoice
