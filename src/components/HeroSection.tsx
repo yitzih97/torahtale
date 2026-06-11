@@ -103,8 +103,23 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[55%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)/0.92] to-transparent z-[1]`}
       />
 
+      {/* Mobile/tablet hero background — full image with kids + book */}
+      <picture>
+        <source media="(min-width: 640px) and (max-width: 1023px)" srcSet={heroTabletAsset.url} />
+        <img
+          src={heroMobileAsset.url}
+          alt=""
+          aria-hidden="true"
+          className="lg:hidden pointer-events-none select-none absolute inset-x-0 top-0 w-full h-auto"
+          loading="eager"
+          fetchPriority="high"
+        />
+      </picture>
+
+
       <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
-        <div className="relative grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-center lg:min-h-[640px]">
+        <div className="relative grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-start lg:items-center min-h-[178vw] sm:min-h-[132vw] lg:min-h-[640px]">
+
           {/* (Mobile/tablet hero illustration is rendered below the copy — see picture element after copy block) */}
 
           {/* LEFT — copy */}
@@ -174,19 +189,6 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           <div className="hidden lg:block lg:min-h-[640px]" />
         </div>
 
-        {/* Mobile/tablet hero illustration — full image with kids + book */}
-        <div className="lg:hidden mt-6 sm:mt-8 -mx-4 sm:-mx-6">
-          <picture>
-            <source media="(min-width: 640px)" srcSet={heroTabletAsset.url} />
-            <img
-              src={heroMobileAsset.url}
-              alt="Two Jewish children with their personalized Torah storybook"
-              className="w-full h-auto block"
-              loading="eager"
-              fetchPriority="high"
-            />
-          </picture>
-        </div>
 
 
 
