@@ -376,7 +376,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         setShipping(parsed.shipping || DEFAULT_SHIPPING);
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
         if (typeof parsed.quantity === "number" && parsed.quantity >= 1) setQuantity(parsed.quantity);
-        if (parsed.portionFilter) setPortionFilter(parsed.portionFilter);
+        if (parsed.portionFilter && ["torah","neviim","ketuvim","megillot","holiday"].includes(parsed.portionFilter)) setPortionFilter(parsed.portionFilter);
 
         // Restore to the active section anchor. Stagger the attempts to win
         // against late layout (images, fonts, motion).
