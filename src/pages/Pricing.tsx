@@ -29,20 +29,10 @@ const Pricing = () => {
   const { symbol, rate } = t.currency;
   const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
 
-  const goCreate = (plan?: "subscription" | "single") => {
-    if (plan) {
-      try {
-        localStorage.removeItem("torahtale_wizard_state");
-      } catch { /* ignore */ }
-      localStorage.setItem(
-        "torahtale_wizard_state",
-        JSON.stringify({
-          planType: plan,
-          step: plan === "subscription" ? 0 : 1,
-          bookOptionsChosenEarly: plan === "subscription",
-        }),
-      );
-    }
+  const goCreate = () => {
+    try {
+      localStorage.removeItem("torahtale_wizard_state");
+    } catch { /* ignore */ }
     navigate("/create");
   };
 
