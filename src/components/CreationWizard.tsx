@@ -645,29 +645,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
     setDir(1);
     let nextStep = step + 1;
-    // Subscription flow: book options chosen first → jump back to Step 1 (name) to collect child info
-    if (step === 10 && bookOptionsChosenEarly && planType === "subscription") {
-      nextStep = 1;
-    }
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4;
     }
     if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
       nextStep = 6;
     }
-    // Subscription users skip the Torah-portion selection step.
-    if (step === 5 && planType === "subscription") {
-      // auto-pick the upcoming parsha so downstream code has a value
-      if (!data.torahPortion) update({ torahPortion: getUpcomingParsha() });
-      nextStep = 7;
-    }
-    if (step === 6 && planType === "subscription") {
-      nextStep = 7;
-    }
     // Step 11 (payment + summary) — the "Continue" CTA inside the step advances directly to step 12 (shipping),
     // and step 12's own Place Order button calls handlePlaceOrder which jumps to the success step.
     if (step === 11) {
-      if (planType === "single") setSelectedPlan("once");
       nextStep = 12;
     }
     setStep(Math.min(nextStep, TOTAL_STEPS));
