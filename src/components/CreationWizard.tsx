@@ -682,7 +682,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setData({ ...initialData, children: [createChild()], language: defaultLanguage });
     setShipping(DEFAULT_SHIPPING);
     setBookOptions(DEFAULT_BOOK_OPTIONS);
-    setPortionFilter("all");
+    setPortionFilter("torah");
     setPortionSearch("");
     setPortionMode(null);
     setStyleSubStep("art");
