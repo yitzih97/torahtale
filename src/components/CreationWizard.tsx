@@ -233,8 +233,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     { icon: Sparkles, text: t.wizard.finishing, duration: 3000 },
     { icon: CheckCircle2, text: t.wizard.almostReady, duration: 1000 },
   ];
-  const [step, setStep] = useState(0);
-  const [planType, setPlanType] = useState<"subscription" | "single">("subscription");
+  const [step, setStep] = useState(1);
+  const [planType, setPlanType] = useState<"subscription" | "single">("single");
   const [seriesType, setSeriesType] = useState<"torah" | "tanach">("torah");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [dir, setDir] = useState(1);
@@ -259,7 +259,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [bookOptionsChosenEarly, setBookOptionsChosenEarly] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"weekly" | "monthly" | "yearly" | "once">("monthly");
+  const [selectedPlan, setSelectedPlan] = useState<"weekly" | "monthly" | "yearly" | "once">("once");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -353,7 +353,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         const parsed = JSON.parse(saved);
         // Don't restore terminal/transient steps (success or generation animation)
-        const restoredStep = typeof parsed.step === "number" && parsed.step < 16 ? parsed.step : 0;
+        const rawStep = typeof parsed.step === "number" && parsed.step < 16 ? parsed.step : 1;
+        const restoredStep = rawStep < 1 ? 1 : rawStep;
         setStep(restoredStep);
         if (parsed.planType === "single" || parsed.planType === "subscription") {
           setPlanType(parsed.planType);
@@ -644,29 +645,15 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
     setDir(1);
     let nextStep = step + 1;
-    // Subscription flow: book options chosen first → jump back to Step 1 (name) to collect child info
-    if (step === 10 && bookOptionsChosenEarly && planType === "subscription") {
-      nextStep = 1;
-    }
     if (step === 1 && allChildrenHaveGenderAge()) {
       nextStep = 4;
     }
     if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
       nextStep = 6;
     }
-    // Subscription users skip the Torah-portion selection step.
-    if (step === 5 && planType === "subscription") {
-      // auto-pick the upcoming parsha so downstream code has a value
-      if (!data.torahPortion) update({ torahPortion: getUpcomingParsha() });
-      nextStep = 7;
-    }
-    if (step === 6 && planType === "subscription") {
-      nextStep = 7;
-    }
     // Step 11 (payment + summary) — the "Continue" CTA inside the step advances directly to step 12 (shipping),
     // and step 12's own Place Order button calls handlePlaceOrder which jumps to the success step.
     if (step === 11) {
-      if (planType === "single") setSelectedPlan("once");
       nextStep = 12;
     }
     setStep(Math.min(nextStep, TOTAL_STEPS));
@@ -684,11 +671,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (allChildrenHaveGenderAge()) {
       if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
     }
-    // Subscription skipped step 6, so jump back to 5.
-    if (step === 7 && planType === "subscription") prevStep = 5;
     if (step === 12) prevStep = 11;
     if (step === 13) prevStep = 11;
-    setStep(Math.max(prevStep, 0));
+    setStep(Math.max(prevStep, 1));
   };
 
   const resetWizard = useCallback(() => {
@@ -703,9 +688,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setStyleSubStep("art");
     setSavedBookId(null);
     setDir(-1);
-    setPlanType("subscription");
+    setPlanType("single");
+    setSelectedPlan("once");
     setBookOptionsChosenEarly(false);
-    setStep(0);
+    setStep(1);
     toast.success(t.wizard.createYourBook ? `${t.wizard.createYourBook} · ${"1/8"}` : "Wizard reset");
   }, [lang, t]);
 
@@ -955,139 +941,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
           <div className="space-y-0">
 
-            {/* ── STEP 0: Plan-Type Choice ── */}
-            {step === 0 && (
-              <section
-                id={stepIdFor(0)}
-                ref={setStepRef(0)}
-                className={sectionClass(0)}
-              >
-                <motion.div
-                  key="s0"
-                  custom={dir}
-                  variants={{ ...stepVariants, ...staggerContainer }}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={springTransition}
-                  className="space-y-10 max-w-3xl mx-auto w-full"
-                >
-                  <motion.div variants={staggerChild} className="text-center">
-                    <motion.div
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ ...springTransition, delay: 0.1 }}
-                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4"
-                    >
-                      <Sparkles className="w-7 h-7 text-accent" />
-                    </motion.div>
-                    <h2 className="font-display text-2xl sm:text-4xl font-bold text-foreground">
-                      {t.wizard.planChoiceTitle}
-                    </h2>
-                  </motion.div>
 
-                  {/* Section A — Subscription cadence */}
-                  {(() => {
-                    // Format upgrade delta vs. softcover baseline (already included in plan price)
-                    const formatDelta: Record<string, number> = {
-                      softcover: 0,
-                      hardcover: 2.90,
-                      board: 11.23,
-                    };
-                    const delta = formatDelta[bookOptions.productType] ?? 0;
-                    const coloringAddon = bookOptions.coloringBook ? getColoringBookAddonPrice("USD") : 0;
-                    const planMeta: Record<string, { base: number; books: number; suffix: string }> = {
-                      weekly: { base: 9, books: 1, suffix: "/week" },
-                      monthly: { base: 36, books: 4, suffix: "/month" },
-                      yearly: { base: 360, books: 52, suffix: "/year" },
-                    };
-                    const computePlanPrice = (id: string) => {
-                      const m = planMeta[id];
-                      return m ? m.base + delta * m.books + coloringAddon * m.books : 0;
-                    };
-                    const fmt = (n: number) => `$${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`;
-                    return (
-                      <>
-                        <motion.div variants={staggerChild} className="space-y-4">
-                          <div className="grid sm:grid-cols-3 gap-3">
-                            {([
-                              { id: "weekly" as const, label: t.wizard.planWeekly, desc: t.wizard.planWeeklyDesc, suffix: "/week" },
-                              { id: "monthly" as const, label: t.wizard.planMonthly, desc: t.wizard.planMonthlyDesc, popular: true, suffix: "/month" },
-                              { id: "yearly" as const, label: t.wizard.planYearly, desc: t.wizard.planYearlyDesc, suffix: "/year" },
-                            ]).map((p) => {
-                              const active = selectedPlan === p.id;
-                              const price = fmt(computePlanPrice(p.id));
-                              return (
-                                <button
-                                  key={p.id}
-                                  onClick={() => {
-                                    setPlanType("subscription");
-                                    setSelectedPlan(p.id);
-                                    setBookOptionsChosenEarly(true);
-                                  }}
-                                  className={`relative text-start p-4 rounded-2xl border-2 transition-all duration-300 backdrop-blur-md ${
-                                    active
-                                      ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
-                                      : "border-border/40 bg-card/60 hover:border-accent/30 hover:shadow-sm"
-                                  }`}
-                                >
-                                  {p.popular && (
-                                    <div className="absolute -top-2.5 right-3 bg-accent text-accent-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                                      RECOMMENDED
-                                    </div>
-                                  )}
-                                  <div className="font-display font-bold text-base text-foreground">{p.label}</div>
-                                  <div className="mt-1 flex items-baseline gap-1">
-                                    <span className="text-xl font-bold text-accent">{price}</span>
-                                    <span className="text-xs text-muted-foreground">{p.suffix}</span>
-                                  </div>
-                                  <div className="text-xs text-muted-foreground mt-1">{p.desc}</div>
-                                  {active && (
-                                    <div className="absolute top-3 end-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
-                                      <Check className="w-3 h-3 text-accent-foreground" />
-                                    </div>
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </motion.div>
 
-                        <motion.div variants={staggerChild} className="text-center">
-                          <h2 className="font-display text-2xl sm:text-4xl font-bold text-foreground">
-                            {t.wizard.planSectionBookType}
-                          </h2>
-                        </motion.div>
-
-                        {/* Section B — Book format */}
-                        <motion.div variants={staggerChild}>
-                          <BookOptionsStep
-                            options={bookOptions}
-                            onChange={setBookOptions}
-                            childAge={parseInt(child?.age || "0") || 0}
-                            hideHeader
-                          />
-                        </motion.div>
-
-                        {/* Total summary */}
-                        <motion.div variants={staggerChild}>
-                          <div className="rounded-2xl border-2 border-accent/40 bg-gradient-to-br from-accent/10 to-accent/5 p-5 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="font-display text-lg font-bold text-foreground">Total</span>
-                              <span className="font-display text-2xl font-bold text-accent">
-                                {fmt(computePlanPrice(selectedPlan))}
-                                <span className="text-sm font-normal text-muted-foreground">{planMeta[selectedPlan]?.suffix || "/month"}</span>
-                              </span>
-                            </div>
-                            {bookOptions.coloringBook && <p className="text-sm text-muted-foreground">Includes coloring book add-on.</p>}
-                          </div>
-                        </motion.div>
-                      </>
-                    );
-                  })()}
-                </motion.div>
-              </section>
-            )}
 
             {/* ── STEP 1: Name ── */}
             {step === 1 && (
@@ -2157,7 +2012,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 )}
 
                 {animDone && (
-                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(bookOptionsChosenEarly ? 11 : 10); }} delayMs={1500}>
+                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(10); }} delayMs={1500}>
                     {(progress) => (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -2199,6 +2054,51 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     {t.checkout.orderSummary}
                   </h2>
                 </div>
+                {(() => {
+                  const unit = calculateBookPriceForCurrency(bookOptions, t.currency.code) * quantity;
+                  const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
+                  const sym = t.currency.symbol;
+                  const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
+                  const opts: Array<{ id: "once" | "weekly" | "monthly" | "yearly"; label: string; price: string; suffix: string; popular?: boolean; note?: string }> = [
+                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit),                       suffix: "one-time" },
+                    { id: "weekly",  label: t.wizard.planWeekly,  price: fmt(friendly(unit)),             suffix: "/week" },
+                    { id: "monthly", label: t.wizard.planMonthly, price: fmt(friendly(unit * 4 * 0.8)),   suffix: "/month", popular: true },
+                    { id: "yearly",  label: t.wizard.planYearly,  price: fmt(friendly(unit * 52 * 0.7)),  suffix: "/year",  note: "2 months free" },
+                  ];
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {opts.map((o) => {
+                        const active = (o.id === "once" && planType === "single") || (o.id !== "once" && planType === "subscription" && selectedPlan === o.id);
+                        return (
+                          <button
+                            key={o.id}
+                            type="button"
+                            onClick={() => {
+                              if (o.id === "once") { setPlanType("single"); setSelectedPlan("once"); }
+                              else { setPlanType("subscription"); setSelectedPlan(o.id); }
+                            }}
+                            className={`relative text-start p-4 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
+                          >
+                            {o.popular && (
+                              <span className="absolute -top-2.5 end-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">POPULAR</span>
+                            )}
+                            <div className="font-display font-bold text-base text-foreground">{o.label}</div>
+                            <div className="mt-1 flex items-baseline gap-1">
+                              <span className="text-xl font-bold text-accent">{o.price}</span>
+                              <span className="text-xs text-muted-foreground">{o.suffix}</span>
+                            </div>
+                            {o.note && <div className="text-xs text-accent/80 mt-1">{o.note}</div>}
+                            {active && (
+                              <span className="absolute top-3 start-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                                <Check className="w-3 h-3 text-accent-foreground" />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
                 {planType === "subscription" && (() => {
                   const unit = calculateBookPriceForCurrency(bookOptions, t.currency.code) * quantity;
                   const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
@@ -2328,8 +2228,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 return (
                   <motion.button
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => { if (step === 0) { setDir(1); setStep(1); return; } next(); }}
-                    disabled={step !== 0 && !canNext}
+                    onClick={next}
+                    disabled={!canNext}
                     className={baseBtn}
                   >
                     {t.common.continue}

@@ -6,6 +6,8 @@ type: feature
 
 The creation wizard lives at `/create` as a full-page configurator inspired by Apple and Tesla's product customizers.
 
+**Entry**: Wizard always begins at Step 1 (Name). The old upfront plan-type chooser (Step 0) has been removed; everyone starts as a single-book buyer. The single-vs-subscription upsell now lives inline at the top of Step 11 (Order Summary) as a 4-option selector (Just this book / Weekly / Monthly / Yearly) right before Place Order. The `/pricing` page no longer pre-seeds the wizard — its CTAs just navigate to `/create`.
+
 ## Layout — single-focus, one step at a time
 - Only the **active** step is rendered for steps 1–8. Previous and next sections are NOT visible (the user requested no distractions).
 - Each step is wrapped in `<section id="wizard-step-${n}" className={sectionClass(n)}>` where `sectionClass` produces `min-h-[calc(100vh-11rem)] flex items-center justify-center` so the current question is perfectly centered in the viewport.
