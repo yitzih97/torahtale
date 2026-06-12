@@ -2012,7 +2012,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 )}
 
                 {animDone && (
-                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(bookOptionsChosenEarly ? 11 : 10); }} delayMs={1500}>
+                  <AutoAdvanceStep onAdvance={() => { setDir(1); setStep(10); }} delayMs={1500}>
                     {(progress) => (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
