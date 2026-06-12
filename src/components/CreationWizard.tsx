@@ -2054,6 +2054,51 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     {t.checkout.orderSummary}
                   </h2>
                 </div>
+                {(() => {
+                  const unit = calculateBookPriceForCurrency(bookOptions, t.currency.code) * quantity;
+                  const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
+                  const sym = t.currency.symbol;
+                  const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
+                  const opts: Array<{ id: "once" | "weekly" | "monthly" | "yearly"; label: string; price: string; suffix: string; popular?: boolean; note?: string }> = [
+                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit),                       suffix: t.checkout.oneTime ?? "one-time" },
+                    { id: "weekly",  label: t.wizard.planWeekly,  price: fmt(friendly(unit)),             suffix: "/week" },
+                    { id: "monthly", label: t.wizard.planMonthly, price: fmt(friendly(unit * 4 * 0.8)),   suffix: "/month", popular: true },
+                    { id: "yearly",  label: t.wizard.planYearly,  price: fmt(friendly(unit * 52 * 0.7)),  suffix: "/year",  note: "2 months free" },
+                  ];
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {opts.map((o) => {
+                        const active = (o.id === "once" && planType === "single") || (o.id !== "once" && planType === "subscription" && selectedPlan === o.id);
+                        return (
+                          <button
+                            key={o.id}
+                            type="button"
+                            onClick={() => {
+                              if (o.id === "once") { setPlanType("single"); setSelectedPlan("once"); }
+                              else { setPlanType("subscription"); setSelectedPlan(o.id); }
+                            }}
+                            className={`relative text-start p-4 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
+                          >
+                            {o.popular && (
+                              <span className="absolute -top-2.5 end-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">POPULAR</span>
+                            )}
+                            <div className="font-display font-bold text-base text-foreground">{o.label}</div>
+                            <div className="mt-1 flex items-baseline gap-1">
+                              <span className="text-xl font-bold text-accent">{o.price}</span>
+                              <span className="text-xs text-muted-foreground">{o.suffix}</span>
+                            </div>
+                            {o.note && <div className="text-xs text-accent/80 mt-1">{o.note}</div>}
+                            {active && (
+                              <span className="absolute top-3 start-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                                <Check className="w-3 h-3 text-accent-foreground" />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
                 {planType === "subscription" && (() => {
                   const unit = calculateBookPriceForCurrency(bookOptions, t.currency.code) * quantity;
                   const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
