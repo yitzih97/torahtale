@@ -233,8 +233,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     { icon: Sparkles, text: t.wizard.finishing, duration: 3000 },
     { icon: CheckCircle2, text: t.wizard.almostReady, duration: 1000 },
   ];
-  const [step, setStep] = useState(0);
-  const [planType, setPlanType] = useState<"subscription" | "single">("subscription");
+  const [step, setStep] = useState(1);
+  const [planType, setPlanType] = useState<"subscription" | "single">("single");
   const [seriesType, setSeriesType] = useState<"torah" | "tanach">("torah");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [dir, setDir] = useState(1);
