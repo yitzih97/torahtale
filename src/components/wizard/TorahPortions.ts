@@ -10,73 +10,73 @@ export interface TorahOption {
 export const TORAH_PORTIONS: TorahOption[] = [
   // ──── TORAH (Chumash) ────
 
-  // Bereishit
-  { value: "bereishit", label: "Parshas Bereishis", sub: "פרשת בראשית", category: "torah", book: "Bereishit", emoji: "🌍" },
-  { value: "noach", label: "Parshas Noach", sub: "פרשת נח", category: "torah", book: "Bereishit", emoji: "🌈" },
-  { value: "lech-lecha", label: "Parshas Lech Lecha", sub: "פרשת לך לך", category: "torah", book: "Bereishit", emoji: "🏕️" },
-  { value: "vayera", label: "Parshas Vayeira", sub: "פרשת וירא", category: "torah", book: "Bereishit", emoji: "👼" },
-  { value: "chayei-sarah", label: "Parshas Chayei Sarah", sub: "פרשת חיי שרה", category: "torah", book: "Bereishit", emoji: "💍" },
-  { value: "toldot", label: "Parshas Toldos", sub: "פרשת תולדות", category: "torah", book: "Bereishit", emoji: "👬" },
-  { value: "vayetzei", label: "Parshas Vayeitzei", sub: "פרשת ויצא", category: "torah", book: "Bereishit", emoji: "🪜" },
-  { value: "vayishlach", label: "Parshas Vayishlach", sub: "פרשת וישלח", category: "torah", book: "Bereishit", emoji: "💪" },
-  { value: "vayeshev", label: "Parshas Vayeishev", sub: "פרשת וישב", category: "torah", book: "Bereishit", emoji: "🧥" },
-  { value: "miketz", label: "Parshas Mikeitz", sub: "פרשת מקץ", category: "torah", book: "Bereishit", emoji: "🏛️" },
-  { value: "vayigash", label: "Parshas Vayigash", sub: "פרשת ויגש", category: "torah", book: "Bereishit", emoji: "🤗" },
-  { value: "vayechi", label: "Parshas Vayechi", sub: "פרשת ויחי", category: "torah", book: "Bereishit", emoji: "🙏" },
+  // Bereishis
+  { value: "bereishit", label: "Parashas Bereishis", sub: "פרשת בראשית", category: "torah", book: "Bereishit", emoji: "🌍" },
+  { value: "noach", label: "Parashas Noach", sub: "פרשת נח", category: "torah", book: "Bereishit", emoji: "🌈" },
+  { value: "lech-lecha", label: "Parashas Lech Lecha", sub: "פרשת לך לך", category: "torah", book: "Bereishit", emoji: "🏕️" },
+  { value: "vayera", label: "Parashas Vayeira", sub: "פרשת וירא", category: "torah", book: "Bereishit", emoji: "👼" },
+  { value: "chayei-sarah", label: "Parashas Chayei Sarah", sub: "פרשת חיי שרה", category: "torah", book: "Bereishit", emoji: "💍" },
+  { value: "toldot", label: "Parashas Toldos", sub: "פרשת תולדות", category: "torah", book: "Bereishit", emoji: "👬" },
+  { value: "vayetzei", label: "Parashas Vayeitzei", sub: "פרשת ויצא", category: "torah", book: "Bereishit", emoji: "🪜" },
+  { value: "vayishlach", label: "Parashas Vayishlach", sub: "פרשת וישלח", category: "torah", book: "Bereishit", emoji: "💪" },
+  { value: "vayeshev", label: "Parashas Vayeishev", sub: "פרשת וישב", category: "torah", book: "Bereishit", emoji: "🧥" },
+  { value: "miketz", label: "Parashas Mikeitz", sub: "פרשת מקץ", category: "torah", book: "Bereishit", emoji: "🏛️" },
+  { value: "vayigash", label: "Parashas Vayigash", sub: "פרשת ויגש", category: "torah", book: "Bereishit", emoji: "🤗" },
+  { value: "vayechi", label: "Parashas Vayechi", sub: "פרשת ויחי", category: "torah", book: "Bereishit", emoji: "🙏" },
 
-  // Shemot
-  { value: "shemot", label: "Parshas Shemos", sub: "פרשת שמות", category: "torah", book: "Shemot", emoji: "👶" },
-  { value: "vaera", label: "Parshas Va'eira", sub: "פרשת וארא", category: "torah", book: "Shemot", emoji: "🐸" },
-  { value: "bo", label: "Parshas Bo", sub: "פרשת בא", category: "torah", book: "Shemot", emoji: "🚶" },
-  { value: "beshalach", label: "Parshas Beshalach", sub: "פרשת בשלח", category: "torah", book: "Shemot", emoji: "🌊" },
-  { value: "yitro", label: "Parshas Yisro", sub: "פרשת יתרו", category: "torah", book: "Shemot", emoji: "⛰️" },
-  { value: "mishpatim", label: "Parshas Mishpatim", sub: "פרשת משפטים", category: "torah", book: "Shemot", emoji: "⚖️" },
-  { value: "terumah", label: "Parshas Terumah", sub: "פרשת תרומה", category: "torah", book: "Shemot", emoji: "🏗️" },
-  { value: "tetzaveh", label: "Parshas Tetzaveh", sub: "פרשת תצוה", category: "torah", book: "Shemot", emoji: "👗" },
-  { value: "ki-tisa", label: "Parshas Ki Sisa", sub: "פרשת כי תשא", category: "torah", book: "Shemot", emoji: "🐄" },
-  { value: "vayakhel", label: "Parshas Vayakhel", sub: "פרשת ויקהל", category: "torah", book: "Shemot", emoji: "🤝" },
-  { value: "pekudei", label: "Parshas Pekudei", sub: "פרשת פקודי", category: "torah", book: "Shemot", emoji: "📦" },
+  // Shemos
+  { value: "shemot", label: "Parashas Shemos", sub: "פרשת שמות", category: "torah", book: "Shemot", emoji: "👶" },
+  { value: "vaera", label: "Parashas Va'eira", sub: "פרשת וארא", category: "torah", book: "Shemot", emoji: "🐸" },
+  { value: "bo", label: "Parashas Bo", sub: "פרשת בא", category: "torah", book: "Shemot", emoji: "🚶" },
+  { value: "beshalach", label: "Parashas Beshalach", sub: "פרשת בשלח", category: "torah", book: "Shemot", emoji: "🌊" },
+  { value: "yitro", label: "Parashas Yisro", sub: "פרשת יתרו", category: "torah", book: "Shemot", emoji: "⛰️" },
+  { value: "mishpatim", label: "Parashas Mishpatim", sub: "פרשת משפטים", category: "torah", book: "Shemot", emoji: "⚖️" },
+  { value: "terumah", label: "Parashas Terumah", sub: "פרשת תרומה", category: "torah", book: "Shemot", emoji: "🏗️" },
+  { value: "tetzaveh", label: "Parashas Tetzaveh", sub: "פרשת תצוה", category: "torah", book: "Shemot", emoji: "👗" },
+  { value: "ki-tisa", label: "Parashas Ki Sisa", sub: "פרשת כי תשא", category: "torah", book: "Shemot", emoji: "🐄" },
+  { value: "vayakhel", label: "Parashas Vayakhel", sub: "פרשת ויקהל", category: "torah", book: "Shemot", emoji: "🤝" },
+  { value: "pekudei", label: "Parashas Pekudei", sub: "פרשת פקודי", category: "torah", book: "Shemot", emoji: "📦" },
 
   // Vayikra
-  { value: "vayikra", label: "Parshas Vayikra", sub: "פרשת ויקרא", category: "torah", book: "Vayikra", emoji: "🔥" },
-  { value: "tzav", label: "Parshas Tzav", sub: "פרשת צו", category: "torah", book: "Vayikra", emoji: "🕯️" },
-  { value: "shemini", label: "Parshas Shemini", sub: "פרשת שמיני", category: "torah", book: "Vayikra", emoji: "8️⃣" },
-  { value: "tazria", label: "Parshas Tazria", sub: "פרשת תזריע", category: "torah", book: "Vayikra", emoji: "🌱" },
-  { value: "metzora", label: "Parshas Metzora", sub: "פרשת מצורע", category: "torah", book: "Vayikra", emoji: "💬" },
-  { value: "acharei-mot", label: "Parshas Acharei Mos", sub: "פרשת אחרי מות", category: "torah", book: "Vayikra", emoji: "🕊️" },
-  { value: "kedoshim", label: "Parshas Kedoshim", sub: "פרשת קדושים", category: "torah", book: "Vayikra", emoji: "✨" },
-  { value: "emor", label: "Parshas Emor", sub: "פרשת אמור", category: "torah", book: "Vayikra", emoji: "🎉" },
-  { value: "behar", label: "Parshas Behar", sub: "פרשת בהר", category: "torah", book: "Vayikra", emoji: "🌾" },
-  { value: "bechukotai", label: "Parshas Bechukosai", sub: "פרשת בחוקותי", category: "torah", book: "Vayikra", emoji: "🛤️" },
+  { value: "vayikra", label: "Parashas Vayikra", sub: "פרשת ויקרא", category: "torah", book: "Vayikra", emoji: "🔥" },
+  { value: "tzav", label: "Parashas Tzav", sub: "פרשת צו", category: "torah", book: "Vayikra", emoji: "🕯️" },
+  { value: "shemini", label: "Parashas Shemini", sub: "פרשת שמיני", category: "torah", book: "Vayikra", emoji: "8️⃣" },
+  { value: "tazria", label: "Parashas Tazria", sub: "פרשת תזריע", category: "torah", book: "Vayikra", emoji: "🌱" },
+  { value: "metzora", label: "Parashas Metzora", sub: "פרשת מצורע", category: "torah", book: "Vayikra", emoji: "💬" },
+  { value: "acharei-mot", label: "Parashas Acharei Mos", sub: "פרשת אחרי מות", category: "torah", book: "Vayikra", emoji: "🕊️" },
+  { value: "kedoshim", label: "Parashas Kedoshim", sub: "פרשת קדושים", category: "torah", book: "Vayikra", emoji: "✨" },
+  { value: "emor", label: "Parashas Emor", sub: "פרשת אמור", category: "torah", book: "Vayikra", emoji: "🎉" },
+  { value: "behar", label: "Parashas Behar", sub: "פרשת בהר", category: "torah", book: "Vayikra", emoji: "🌾" },
+  { value: "bechukotai", label: "Parashas Bechukosai", sub: "פרשת בחוקותי", category: "torah", book: "Vayikra", emoji: "🛤️" },
 
   // Bamidbar
-  { value: "bamidbar", label: "Parshas Bamidbar", sub: "פרשת במדבר", category: "torah", book: "Bamidbar", emoji: "🏜️" },
-  { value: "naso", label: "Parshas Naso", sub: "פרשת נשא", category: "torah", book: "Bamidbar", emoji: "🙌" },
-  { value: "behaalotecha", label: "Parshas Beha'aloscha", sub: "פרשת בהעלותך", category: "torah", book: "Bamidbar", emoji: "🕎" },
-  { value: "shelach", label: "Parshas Shelach", sub: "פרשת שלח", category: "torah", book: "Bamidbar", emoji: "🍇" },
-  { value: "korach", label: "Parshas Korach", sub: "פרשת קרח", category: "torah", book: "Bamidbar", emoji: "⚡" },
-  { value: "chukat", label: "Parshas Chukas", sub: "פרשת חוקת", category: "torah", book: "Bamidbar", emoji: "🐄" },
-  { value: "balak", label: "Parshas Balak", sub: "פרשת בלק", category: "torah", book: "Bamidbar", emoji: "🫏" },
-  { value: "pinchas", label: "Parshas Pinchas", sub: "פרשת פנחס", category: "torah", book: "Bamidbar", emoji: "🛡️" },
-  { value: "matot", label: "Parshas Matos", sub: "פרשת מטות", category: "torah", book: "Bamidbar", emoji: "🤞" },
-  { value: "masei", label: "Parshas Masei", sub: "פרשת מסעי", category: "torah", book: "Bamidbar", emoji: "🗺️" },
+  { value: "bamidbar", label: "Parashas Bamidbar", sub: "פרשת במדבר", category: "torah", book: "Bamidbar", emoji: "🏜️" },
+  { value: "naso", label: "Parashas Naso", sub: "פרשת נשא", category: "torah", book: "Bamidbar", emoji: "🙌" },
+  { value: "behaalotecha", label: "Parashas Beha'aloscha", sub: "פרשת בהעלותך", category: "torah", book: "Bamidbar", emoji: "🕎" },
+  { value: "shelach", label: "Parashas Shelach", sub: "פרשת שלח", category: "torah", book: "Bamidbar", emoji: "🍇" },
+  { value: "korach", label: "Parashas Korach", sub: "פרשת קרח", category: "torah", book: "Bamidbar", emoji: "⚡" },
+  { value: "chukat", label: "Parashas Chukas", sub: "פרשת חוקת", category: "torah", book: "Bamidbar", emoji: "🐄" },
+  { value: "balak", label: "Parashas Balak", sub: "פרשת בלק", category: "torah", book: "Bamidbar", emoji: "🫏" },
+  { value: "pinchas", label: "Parashas Pinchas", sub: "פרשת פנחס", category: "torah", book: "Bamidbar", emoji: "🛡️" },
+  { value: "matot", label: "Parashas Matos", sub: "פרשת מטות", category: "torah", book: "Bamidbar", emoji: "🤞" },
+  { value: "masei", label: "Parashas Masei", sub: "פרשת מסעי", category: "torah", book: "Bamidbar", emoji: "🗺️" },
 
   // Devarim
-  { value: "devarim", label: "Parshas Devarim", sub: "פרשת דברים", category: "torah", book: "Devarim", emoji: "📢" },
-  { value: "vaetchanan", label: "Parshas Va'eschanan", sub: "פרשת ואתחנן", category: "torah", book: "Devarim", emoji: "👂" },
-  { value: "eikev", label: "Parshas Eikev", sub: "פרשת עקב", category: "torah", book: "Devarim", emoji: "🍯" },
-  { value: "reeh", label: "Parshas Re'eh", sub: "פרשת ראה", category: "torah", book: "Devarim", emoji: "👁️" },
-  { value: "shoftim", label: "Parshas Shoftim", sub: "פרשת שופטים", category: "torah", book: "Devarim", emoji: "⚖️" },
-  { value: "ki-teitzei", label: "Parshas Ki Seitzei", sub: "פרשת כי תצא", category: "torah", book: "Devarim", emoji: "💛" },
-  { value: "ki-tavo", label: "Parshas Ki Savo", sub: "פרשת כי תבוא", category: "torah", book: "Devarim", emoji: "🍎" },
-  { value: "nitzavim", label: "Parshas Nitzavim", sub: "פרשת נצבים", category: "torah", book: "Devarim", emoji: "🧍" },
-  { value: "vayelech", label: "Parshas Vayeilech", sub: "פרשת וילך", category: "torah", book: "Devarim", emoji: "👋" },
-  { value: "haazinu", label: "Parshas Ha'azinu", sub: "פרשת האזינו", category: "torah", book: "Devarim", emoji: "🎵" },
-  { value: "vezot-habracha", label: "Parshas V'Zos Habracha", sub: "פרשת וזאת הברכה", category: "torah", book: "Devarim", emoji: "🌅" },
+  { value: "devarim", label: "Parashas Devarim", sub: "פרשת דברים", category: "torah", book: "Devarim", emoji: "📢" },
+  { value: "vaetchanan", label: "Parashas Va'eschanan", sub: "פרשת ואתחנן", category: "torah", book: "Devarim", emoji: "👂" },
+  { value: "eikev", label: "Parashas Eikev", sub: "פרשת עקב", category: "torah", book: "Devarim", emoji: "🍯" },
+  { value: "reeh", label: "Parashas Re'eh", sub: "פרשת ראה", category: "torah", book: "Devarim", emoji: "👁️" },
+  { value: "shoftim", label: "Parashas Shoftim", sub: "פרשת שופטים", category: "torah", book: "Devarim", emoji: "⚖️" },
+  { value: "ki-teitzei", label: "Parashas Ki Seitzei", sub: "פרשת כי תצא", category: "torah", book: "Devarim", emoji: "💛" },
+  { value: "ki-tavo", label: "Parashas Ki Savo", sub: "פרשת כי תבוא", category: "torah", book: "Devarim", emoji: "🍎" },
+  { value: "nitzavim", label: "Parashas Nitzavim", sub: "פרשת נצבים", category: "torah", book: "Devarim", emoji: "🧍" },
+  { value: "vayelech", label: "Parashas Vayeilech", sub: "פרשת וילך", category: "torah", book: "Devarim", emoji: "👋" },
+  { value: "haazinu", label: "Parashas Ha'azinu", sub: "פרשת האזינו", category: "torah", book: "Devarim", emoji: "🎵" },
+  { value: "vezot-habracha", label: "Parashas V'Zos Habracha", sub: "פרשת וזאת הברכה", category: "torah", book: "Devarim", emoji: "🌅" },
 
   // ──── NEVI'IM (Prophets) ────
-  { value: "yehoshua-jordan", label: "Sefer Yehoshua – Crossing the Jordan", sub: "ספר יהושע – חציית הירדן", category: "neviim", emoji: "🏞️" },
-  { value: "yehoshua-jericho", label: "Sefer Yehoshua – Walls of Jericho", sub: "ספר יהושע – חומות יריחו", category: "neviim", emoji: "🎺" },
+  { value: "yehoshua-jordan", label: "Sefer Yehoshua – Crossing the Yarden", sub: "ספר יהושע – חציית הירדן", category: "neviim", emoji: "🏞️" },
+  { value: "yehoshua-jericho", label: "Sefer Yehoshua – Walls of Yericho", sub: "ספר יהושע – חומות יריחו", category: "neviim", emoji: "🎺" },
   { value: "devorah", label: "Sefer Shoftim – Devorah", sub: "ספר שופטים – דבורה", category: "neviim", emoji: "⚔️" },
   { value: "shimshon", label: "Sefer Shoftim – Shimshon", sub: "ספר שופטים – שמשון", category: "neviim", emoji: "💪" },
   { value: "shmuel-birth", label: "Sefer Shmuel – Birth of Shmuel", sub: "ספר שמואל – לידת שמואל", category: "neviim", emoji: "🏛️" },
@@ -98,22 +98,22 @@ export const TORAH_PORTIONS: TorahOption[] = [
   { value: "daniel-furnace", label: "Sefer Daniel – The Fiery Furnace", sub: "ספר דניאל – כבשן האש", category: "ketuvim", emoji: "🔥" },
   { value: "ezra-return", label: "Sefer Ezra – Return to Yerushalayim", sub: "ספר עזרא – שיבת ירושלים", category: "ketuvim", emoji: "🏙️" },
   { value: "nechemia-walls", label: "Sefer Nechemia – Rebuilding the Walls", sub: "ספר נחמיה – בניית החומות", category: "ketuvim", emoji: "🧱" },
-  { value: "divrei-hayamim", label: "Divrei HaYamim", sub: "דברי הימים", category: "ketuvim", emoji: "📜" },
+  { value: "divrei-hayamim", label: "Sefer Divrei HaYamim", sub: "ספר דברי הימים", category: "ketuvim", emoji: "📜" },
 
-  // ──── MEGILLOT (Scrolls) ────
+  // ──── MEGILLOS ────
   { value: "esther", label: "Megillas Esther", sub: "מגילת אסתר", category: "megillot", emoji: "👸" },
   { value: "ruth", label: "Megillas Rus", sub: "מגילת רות", category: "megillot", emoji: "🌾" },
   { value: "shir-hashirim", label: "Shir HaShirim", sub: "שיר השירים", category: "megillot", emoji: "🌹" },
   { value: "kohelet", label: "Koheles", sub: "קהלת", category: "megillot", emoji: "⏳" },
   { value: "eicha", label: "Megillas Eicha", sub: "מגילת איכה", category: "megillot", emoji: "😢" },
 
-  // ──── HOLIDAYS ────
+  // ──── YAMIM TOVIM ────
   { value: "pesach", label: "Pesach", sub: "פסח", category: "holiday", emoji: "🫓" },
   { value: "purim", label: "Purim", sub: "פורים", category: "holiday", emoji: "🎭" },
   { value: "chanukah", label: "Chanukah", sub: "חנוכה", category: "holiday", emoji: "🕎" },
   { value: "sukkot", label: "Sukkos", sub: "סוכות", category: "holiday", emoji: "🛖" },
   { value: "shavuot", label: "Shavuos", sub: "שבועות", category: "holiday", emoji: "📜" },
-  { value: "rosh-hashana", label: "Rosh Hashana", sub: "ראש השנה", category: "holiday", emoji: "📯" },
+  { value: "rosh-hashana", label: "Rosh Hashanah", sub: "ראש השנה", category: "holiday", emoji: "📯" },
   { value: "yom-kippur", label: "Yom Kippur", sub: "יום כיפור", category: "holiday", emoji: "🕊️" },
   { value: "simchat-torah", label: "Simchas Torah", sub: "שמחת תורה", category: "holiday", emoji: "🎉" },
   { value: "tu-bishvat", label: "Tu B'Shvat", sub: "ט״ו בשבט", category: "holiday", emoji: "🌳" },
@@ -122,12 +122,21 @@ export const TORAH_PORTIONS: TorahOption[] = [
 
 export const TORAH_BOOKS = ["Bereishit", "Shemot", "Vayikra", "Bamidbar", "Devarim"] as const;
 
+/** Bilingual sefer titles for the Torah books — shown as accordion headers. */
+export const TORAH_BOOK_LABELS: Record<string, { en: string; he: string }> = {
+  Bereishit: { en: "Sefer Bereishis", he: "ספר בראשית" },
+  Shemot: { en: "Sefer Shemos", he: "ספר שמות" },
+  Vayikra: { en: "Sefer Vayikra", he: "ספר ויקרא" },
+  Bamidbar: { en: "Sefer Bamidbar", he: "ספר במדבר" },
+  Devarim: { en: "Sefer Devarim", he: "ספר דברים" },
+};
+
 export const CATEGORY_META: Record<TorahOption["category"], { label: string; emoji: string }> = {
   torah: { label: "Torah", emoji: "📜" },
   neviim: { label: "Nevi'im", emoji: "⚔️" },
-  ketuvim: { label: "Ketuvim", emoji: "✍️" },
-  megillot: { label: "Megillot", emoji: "📖" },
-  holiday: { label: "Holidays", emoji: "🕯️" },
+  ketuvim: { label: "Kesuvim", emoji: "✍️" },
+  megillot: { label: "Megillos", emoji: "📖" },
+  holiday: { label: "Yamim Tovim", emoji: "🕯️" },
 };
 
 export const getPortionLabel = (value: string): string => {
@@ -142,7 +151,7 @@ const prettifySlug = (value: string): string =>
     .map((s) => (s ? s[0].toUpperCase() + s.slice(1) : s))
     .join(" ");
 
-/** Language-aware display: English label (already capitalized) for "en", Hebrew sub for "he"/"yi". */
+/** Language-aware display: English label for "en", Hebrew sub for "he"/"yi". */
 export const getPortionDisplay = (value: string, lang: "en" | "he" | "yi"): string => {
   if (!value) return "";
   const found = TORAH_PORTIONS.find((p) => p.value === value);
@@ -153,7 +162,6 @@ export const getPortionDisplay = (value: string, lang: "en" | "he" | "yi"): stri
 /**
  * Weekly Torah portion reading schedule.
  * Maps a Saturday date (YYYY-MM-DD) to the parashah value(s) read that Shabbat.
- * Covers the current cycle. For dates not found, falls back to the first Torah portion.
  */
 const PARSHA_CALENDAR: Record<string, string> = {
   // 5785 cycle (2024-2025)
@@ -262,22 +270,19 @@ const PARSHA_CALENDAR: Record<string, string> = {
   "2026-10-10": "nitzavim",
 };
 
-/** Returns the parashah read two weeks from now (skips current and next week to allow production lead time) */
+/** Returns the parashah read three weeks from now (production lead time). */
 export const getUpcomingParsha = (): string => {
   const now = new Date();
-  // Jump to the Saturday three weeks out (skip current + next two Shabbatos for production lead time)
   const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
   const targetSat = new Date(now);
   targetSat.setDate(now.getDate() + daysUntilSat + 21);
   const key = targetSat.toISOString().slice(0, 10);
-  
+
   if (PARSHA_CALENDAR[key]) return PARSHA_CALENDAR[key];
-  
-  // Fallback: find the closest future Saturday in the calendar
+
   const allDates = Object.keys(PARSHA_CALENDAR).sort();
   const future = allDates.find(d => d >= key);
   if (future) return PARSHA_CALENDAR[future];
-  
-  // Ultimate fallback
+
   return "bereishit";
 };
