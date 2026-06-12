@@ -2183,8 +2183,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 return (
                   <motion.button
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => { if (step === 0) { setDir(1); setStep(1); return; } next(); }}
-                    disabled={step !== 0 && !canNext}
+                    onClick={next}
+                    disabled={!canNext}
                     className={baseBtn}
                   >
                     {t.common.continue}
