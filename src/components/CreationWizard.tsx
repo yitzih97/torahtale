@@ -2060,7 +2060,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   const sym = t.currency.symbol;
                   const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
                   const opts: Array<{ id: "once" | "weekly" | "monthly" | "yearly"; label: string; price: string; suffix: string; popular?: boolean; note?: string }> = [
-                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit),                       suffix: t.checkout.oneTime ?? "one-time" },
+                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit),                       suffix: "one-time" },
                     { id: "weekly",  label: t.wizard.planWeekly,  price: fmt(friendly(unit)),             suffix: "/week" },
                     { id: "monthly", label: t.wizard.planMonthly, price: fmt(friendly(unit * 4 * 0.8)),   suffix: "/month", popular: true },
                     { id: "yearly",  label: t.wizard.planYearly,  price: fmt(friendly(unit * 52 * 0.7)),  suffix: "/year",  note: "2 months free" },
