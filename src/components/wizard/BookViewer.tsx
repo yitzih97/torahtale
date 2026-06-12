@@ -1,11 +1,12 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Pencil, RefreshCw, X, Wand2, Sparkles, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, RefreshCw, X, Wand2, Sparkles, BookOpen, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import type { TextStyle } from "./DraggableText";
+import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, type TextLayout } from "./EditableTextBox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
@@ -22,16 +23,19 @@ export interface BookPage {
   dedication?: string;
   questions?: { number: number; question: string }[];
   textStyle?: TextStyle;
+  textLayout?: TextLayout;
 }
 
+export type { TextLayout } from "./EditableTextBox";
+
 /**
- * Single shared text style for the entire book — used by the on-screen
- * spread viewer AND the print PDF so every page reads identically.
+ * Legacy default text style — kept for backward-compatible code that
+ * predates the per-page `textLayout` field.
  */
 export const BOOK_TEXT_STYLE = {
-  fontFamily: "'Cormorant Garamond', 'Georgia', serif",
-  fontSizePx: 19,
-  color: "#2b2418",
+  fontFamily: DEFAULT_TEXT_LAYOUT.fontFamily,
+  fontSizePx: DEFAULT_TEXT_LAYOUT.fontSize,
+  color: DEFAULT_TEXT_LAYOUT.color,
   bgColor: "rgba(252, 247, 236, 0.94)",
   lineHeight: 1.5,
   padding: 22,
@@ -212,85 +216,83 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
     </div>
   );
 
-  const renderStorySpread = () => (
-    <div className="absolute inset-0">
-      {page?.image ? (
-        <motion.img
-          key={`${page.id}-${page.image?.slice(-20)}`}
-          src={page.image}
-          alt={getPageLabel()}
-          className={`absolute inset-0 w-full h-full object-cover ${isRegenThis ? "animate-pulse opacity-50" : ""}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isRegenThis ? 0.5 : 1 }}
-          transition={{ duration: 0.3 }}
-        />
-      ) : page?.imageLoading ? (
-        <BookLoadingSkeleton type="story" />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted">
-          <p className="text-muted-foreground text-sm">Generating illustration…</p>
+  const renderStorySpread = () => {
+    const imageOnLeft = !storyTextOnLeft;
+    const layout = page?.textLayout || makeDefaultLayout(storyTextOnLeft ? "left" : "right");
+    return (
+      <div className="absolute inset-0 grid grid-cols-2">
+        {/* Image half */}
+        <div className={`relative bg-muted ${imageOnLeft ? "order-1" : "order-2"}`}>
+          {page?.image ? (
+            <motion.img
+              key={`${page.id}-${page.image?.slice(-20)}`}
+              src={page.image}
+              alt={getPageLabel()}
+              className={`absolute inset-0 w-full h-full object-cover ${isRegenThis ? "animate-pulse opacity-50" : ""}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isRegenThis ? 0.5 : 1 }}
+              transition={{ duration: 0.3 }}
+            />
+          ) : page?.imageLoading ? (
+            <BookLoadingSkeleton type="story" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted">
+              <p className="text-muted-foreground text-sm">Generating illustration…</p>
+            </div>
+          )}
         </div>
-      )}
+        {/* Text-paper half */}
+        <div className={`relative bg-[hsl(42_50%_96%)] ${imageOnLeft ? "order-2" : "order-1"}`}>
+          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_50%,hsl(42_78%_80%/0.4),transparent_70%)]" />
+        </div>
 
-      {page?.text && (
-        <div
-          className={`absolute inset-y-0 ${storyTextOnLeft ? "left-0" : "right-0"} w-1/2 flex items-center justify-center p-4 sm:p-6`}
-        >
-          <div
-            className="max-w-full shadow-soft-md"
-            style={{
-              fontFamily: BOOK_TEXT_STYLE.fontFamily,
-              fontSize: `${BOOK_TEXT_STYLE.fontSizePx}px`,
-              color: BOOK_TEXT_STYLE.color,
-              lineHeight: BOOK_TEXT_STYLE.lineHeight,
-              padding: `${BOOK_TEXT_STYLE.padding}px`,
-              background: BOOK_TEXT_STYLE.bgColor,
-              borderRadius: `${BOOK_TEXT_STYLE.borderRadius}px`,
-              backdropFilter: "blur(6px)",
-            }}
-          >
-            {page.text}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderQuestionsSpread = () => (
-    <div className="absolute inset-0">
-      {page?.image ? (
-        <img src={page.image} alt="Discussion" className="absolute inset-0 w-full h-full object-cover" />
-      ) : page?.imageLoading ? (
-        <BookLoadingSkeleton type="story" />
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-primary/10" />
-      )}
-      <div className="absolute inset-y-0 left-0 w-1/2 flex items-center justify-center p-4 sm:p-6">
-        <div
-          className="max-w-full shadow-soft-md space-y-2"
-          style={{
-            fontFamily: BOOK_TEXT_STYLE.fontFamily,
-            color: BOOK_TEXT_STYLE.color,
-            padding: `${BOOK_TEXT_STYLE.padding}px`,
-            background: BOOK_TEXT_STYLE.bgColor,
-            borderRadius: `${BOOK_TEXT_STYLE.borderRadius}px`,
-            backdropFilter: "blur(6px)",
-          }}
-        >
-          <p className="font-display font-bold text-sm text-primary mb-2">Discussion Questions</p>
-          {(page?.questions || []).map((q) => (
-            <p
-              key={q.number}
-              style={{ fontSize: `${BOOK_TEXT_STYLE.fontSizePx - 3}px`, lineHeight: BOOK_TEXT_STYLE.lineHeight }}
-            >
-              <span className="font-bold text-gold mr-1">{q.number}.</span>
-              {q.question}
-            </p>
-          ))}
-        </div>
+        {/* Draggable text on top of the whole spread */}
+        {page && (
+          <EditableTextBox
+            layout={layout}
+            text={page.text || ""}
+            containerRef={spreadRef}
+            onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
+            onTextChange={(t) => updatePage(page.id, { text: t })}
+            onReset={() => updatePage(page.id, { textLayout: makeDefaultLayout(storyTextOnLeft ? "left" : "right") })}
+          />
+        )}
       </div>
-    </div>
-  );
+    );
+  };
+
+  const renderQuestionsSpread = () => {
+    const layout = page?.textLayout || makeDefaultLayout("left");
+    const questionsText = (page?.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n");
+    const combinedText = page?.text || questionsText;
+    return (
+      <div className="absolute inset-0 grid grid-cols-2">
+        <div className="relative bg-[hsl(42_50%_96%)] order-1">
+          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_50%,hsl(42_78%_80%/0.4),transparent_70%)]" />
+        </div>
+        <div className="relative bg-muted order-2">
+          {page?.image ? (
+            <img src={page.image} alt="Discussion" className="absolute inset-0 w-full h-full object-cover" />
+          ) : page?.imageLoading ? (
+            <BookLoadingSkeleton type="story" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-primary/10" />
+          )}
+        </div>
+        {page && (
+          <EditableTextBox
+            layout={layout}
+            text={combinedText}
+            containerRef={spreadRef}
+            onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
+            onTextChange={(t) => updatePage(page.id, { text: t })}
+            onReset={() => updatePage(page.id, { textLayout: makeDefaultLayout("left") })}
+          />
+        )}
+      </div>
+    );
+  };
+
 
   return (
     <div className="space-y-4">

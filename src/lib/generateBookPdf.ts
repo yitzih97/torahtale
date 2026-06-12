@@ -1,17 +1,15 @@
 import jsPDF from "jspdf";
 import { BOOK_TEXT_STYLE, COVER_TAGLINE, COVER_URL, type BookPage } from "@/components/wizard/BookViewer";
+import { DEFAULT_TEXT_LAYOUT, makeDefaultLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import torahTaleIcon from "@/assets/brand/torah-tale-icon.png.asset.json";
 import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png.asset.json";
 
-/* ────────────────────────────────────────────────────────────────────────────
-   Spread-style PDF generator
-   Each printed sheet = one 2:1 landscape spread that matches the on-screen
-   BookViewer: full-bleed illustration, alternating text panel on one half,
-   single cover spread with back (logo + tagline) + front (title + art).
-   ──────────────────────────────────────────────────────────────────────────── */
+/* Spread = 2:1 landscape sheet. Image fills one half, text composited
+   per page from BookPage.textLayout. */
 
 const SPREAD_W = 2400;
 const SPREAD_H = 1200;
+const HALF_W = SPREAD_W / 2;
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -25,27 +23,19 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 
 async function safeLoad(src: string | null | undefined): Promise<HTMLImageElement | null> {
   if (!src) return null;
-  try {
-    return await loadImage(src);
-  } catch {
-    return null;
-  }
+  try { return await loadImage(src); } catch { return null; }
 }
 
 function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   for (const para of (text || "").split("\n")) {
-    if (!para.trim()) {
-      lines.push("");
-      continue;
-    }
+    if (!para.trim()) { lines.push(""); continue; }
     const words = para.split(/\s+/);
     let line = "";
     for (const word of words) {
       const test = line ? `${line} ${word}` : word;
       if (ctx.measureText(test).width > maxWidth && line) {
-        lines.push(line);
-        line = word;
+        lines.push(line); line = word;
       } else {
         line = test;
       }
@@ -55,246 +45,230 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number
   return lines;
 }
 
-function drawRoundedRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  r: number
-) {
+function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
 }
 
-/** Composite a text panel onto one half of the spread. */
-function drawTextPanel(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  side: "left" | "right",
-  options: { fontScale?: number } = {}
-) {
+/** Draw the cream "paper" half background. */
+function drawPaperHalf(ctx: CanvasRenderingContext2D, side: "left" | "right") {
+  const x = side === "left" ? 0 : HALF_W;
+  ctx.fillStyle = "#f6efdf";
+  ctx.fillRect(x, 0, HALF_W, SPREAD_H);
+  const glow = ctx.createRadialGradient(x + HALF_W / 2, SPREAD_H / 2, 40, x + HALF_W / 2, SPREAD_H / 2, HALF_W * 0.7);
+  glow.addColorStop(0, "rgba(232, 197, 117, 0.35)");
+  glow.addColorStop(1, "rgba(232, 197, 117, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(x, 0, HALF_W, SPREAD_H);
+}
+
+/** Composite a text overlay using the page's TextLayout. Coords are % of spread. */
+function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: TextLayout) {
   if (!text) return;
-  const fontScale = options.fontScale ?? 3.2; // px → canvas px
-  const halfW = SPREAD_W / 2;
-  const panelMargin = 80;
-  const panelW = halfW - panelMargin * 2;
-  const padding = BOOK_TEXT_STYLE.padding * 2.4;
-  const fontSize = BOOK_TEXT_STYLE.fontSizePx * fontScale;
-  ctx.font = `${fontSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
+  // Scale font size: layout.fontSize is px at the on-screen container width (~600px).
+  // Scale to canvas width (2400px) so print and screen match visually.
+  const scale = SPREAD_W / 600;
+  const fontSize = layout.fontSize * scale;
+  const weight = layout.bold ? "700" : "400";
+  const italic = layout.italic ? "italic " : "";
+  ctx.font = `${italic}${weight} ${fontSize}px ${layout.fontFamily}`;
   ctx.textBaseline = "top";
 
-  const maxTextW = panelW - padding * 2;
+  const boxX = (layout.x / 100) * SPREAD_W;
+  const boxY = (layout.y / 100) * SPREAD_H;
+  const boxW = (layout.width / 100) * SPREAD_W;
+  const hasPad = layout.background || layout.border;
+  const padX = hasPad ? 18 * scale * 0.6 : 6 * scale * 0.6;
+  const padY = hasPad ? 14 * scale * 0.6 : 4 * scale * 0.6;
+  const maxTextW = boxW - padX * 2;
   const lines = wrapLines(ctx, text, maxTextW);
-  const lineHeight = fontSize * BOOK_TEXT_STYLE.lineHeight;
+  const lineHeight = fontSize * 1.5;
   const textH = lines.length * lineHeight;
-  const panelH = textH + padding * 2;
+  const boxH = textH + padY * 2;
 
-  const panelX = side === "left" ? panelMargin : halfW + panelMargin;
-  const panelY = (SPREAD_H - panelH) / 2;
+  if (layout.background) {
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.14)";
+    ctx.shadowBlur = 28;
+    ctx.shadowOffsetY = 8;
+    ctx.fillStyle = "rgba(252, 247, 236, 0.94)";
+    roundedRect(ctx, boxX, boxY, boxW, boxH, 18);
+    ctx.fill();
+    ctx.restore();
+  }
+  if (layout.border) {
+    ctx.strokeStyle = "rgba(0,0,0,0.28)";
+    ctx.lineWidth = 2;
+    roundedRect(ctx, boxX, boxY, boxW, boxH, 18);
+    ctx.stroke();
+  }
 
-  // Shadow
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.18)";
-  ctx.shadowBlur = 40;
-  ctx.shadowOffsetY = 10;
-  ctx.fillStyle = BOOK_TEXT_STYLE.bgColor;
-  drawRoundedRect(ctx, panelX, panelY, panelW, panelH, BOOK_TEXT_STYLE.borderRadius * 2);
-  ctx.fill();
-  ctx.restore();
+  ctx.fillStyle = layout.color;
+  ctx.textAlign = layout.align;
+  let textAnchorX = boxX + padX;
+  if (layout.align === "center") textAnchorX = boxX + boxW / 2;
+  else if (layout.align === "right") textAnchorX = boxX + boxW - padX;
 
-  // Text
-  ctx.fillStyle = BOOK_TEXT_STYLE.color;
-  ctx.textAlign = "left";
   for (let i = 0; i < lines.length; i++) {
-    ctx.fillText(lines[i], panelX + padding, panelY + padding + i * lineHeight);
+    ctx.fillText(lines[i], textAnchorX, boxY + padY + i * lineHeight);
   }
 }
 
 function drawGutter(ctx: CanvasRenderingContext2D) {
-  const grad = ctx.createLinearGradient(SPREAD_W / 2 - 12, 0, SPREAD_W / 2 + 12, 0);
+  const grad = ctx.createLinearGradient(HALF_W - 12, 0, HALF_W + 12, 0);
   grad.addColorStop(0, "rgba(0,0,0,0)");
   grad.addColorStop(0.5, "rgba(0,0,0,0.32)");
   grad.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = grad;
-  ctx.fillRect(SPREAD_W / 2 - 12, 0, 24, SPREAD_H);
+  ctx.fillRect(HALF_W - 12, 0, 24, SPREAD_H);
 }
 
-async function renderStorySpread(page: BookPage, side: "left" | "right"): Promise<string> {
+async function renderStorySpread(page: BookPage, storyIdx: number): Promise<string> {
+  // Same alternating side rule as BookViewer: text-on-left for even story idx
+  const textOnLeft = storyIdx % 2 === 0;
+  const imageOnLeft = !textOnLeft;
+  const layout = page.textLayout || makeDefaultLayout(textOnLeft ? "left" : "right");
+
   const canvas = document.createElement("canvas");
-  canvas.width = SPREAD_W;
-  canvas.height = SPREAD_H;
+  canvas.width = SPREAD_W; canvas.height = SPREAD_H;
   const ctx = canvas.getContext("2d")!;
 
+  // Paper half (text side)
+  drawPaperHalf(ctx, textOnLeft ? "left" : "right");
+
+  // Image half (1:1 square fills the half exactly)
   const img = await safeLoad(page.image);
+  const halfX = imageOnLeft ? 0 : HALF_W;
   if (img) {
-    // Cover-fit across the full spread
-    const ratio = Math.max(SPREAD_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
+    const ratio = Math.max(HALF_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
     const dw = img.naturalWidth * ratio;
     const dh = img.naturalHeight * ratio;
-    ctx.drawImage(img, (SPREAD_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
+    ctx.drawImage(img, halfX + (HALF_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
   } else {
-    ctx.fillStyle = "#efeae0";
-    ctx.fillRect(0, 0, SPREAD_W, SPREAD_H);
+    ctx.fillStyle = "#dcd2bd";
+    ctx.fillRect(halfX, 0, HALF_W, SPREAD_H);
   }
 
-  drawTextPanel(ctx, page.text || "", side);
   drawGutter(ctx);
+  drawTextOverlay(ctx, page.text || "", layout);
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
 async function renderQuestionsSpread(page: BookPage): Promise<string> {
+  const layout = page.textLayout || makeDefaultLayout("left");
   const canvas = document.createElement("canvas");
-  canvas.width = SPREAD_W;
-  canvas.height = SPREAD_H;
+  canvas.width = SPREAD_W; canvas.height = SPREAD_H;
   const ctx = canvas.getContext("2d")!;
-
+  // Image on right
+  drawPaperHalf(ctx, "left");
   const img = await safeLoad(page.image);
   if (img) {
-    const ratio = Math.max(SPREAD_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
+    const ratio = Math.max(HALF_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
     const dw = img.naturalWidth * ratio;
     const dh = img.naturalHeight * ratio;
-    ctx.drawImage(img, (SPREAD_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
+    ctx.drawImage(img, HALF_W + (HALF_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
   } else {
-    ctx.fillStyle = "#efeae0";
-    ctx.fillRect(0, 0, SPREAD_W, SPREAD_H);
+    ctx.fillStyle = "#dcd2bd";
+    ctx.fillRect(HALF_W, 0, HALF_W, SPREAD_H);
   }
-
-  // Build question text block on left half
-  const questions = page.questions || [];
-  const formatted = questions.map((q) => `${q.number}. ${q.question}`).join("\n");
-  drawTextPanel(ctx, formatted, "left", { fontScale: 2.8 });
   drawGutter(ctx);
+  const questions = page.questions || [];
+  const formatted = page.text || questions.map((q) => `${q.number}. ${q.question}`).join("\n\n");
+  drawTextOverlay(ctx, formatted, layout);
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
 async function renderCoverSpread(page: BookPage, childName: string): Promise<string> {
   const canvas = document.createElement("canvas");
-  canvas.width = SPREAD_W;
-  canvas.height = SPREAD_H;
+  canvas.width = SPREAD_W; canvas.height = SPREAD_H;
   const ctx = canvas.getContext("2d")!;
-  const halfW = SPREAD_W / 2;
+  drawPaperHalf(ctx, "left");
 
-  /* ── LEFT: back cover ── */
-  // Cream background w/ subtle radial glow
-  ctx.fillStyle = "#f6efdf";
-  ctx.fillRect(0, 0, halfW, SPREAD_H);
-  const glow = ctx.createRadialGradient(halfW / 2, SPREAD_H * 0.32, 20, halfW / 2, SPREAD_H * 0.32, halfW * 0.7);
-  glow.addColorStop(0, "rgba(232, 197, 117, 0.45)");
-  glow.addColorStop(1, "rgba(232, 197, 117, 0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, halfW, SPREAD_H);
-
-  // Logo (icon + wordmark)
   const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon.url), safeLoad(torahTaleWordmark.url)]);
   const logoTopY = SPREAD_H * 0.16;
   if (icon) {
     const iconH = 180;
     const iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
-    ctx.drawImage(icon, halfW / 2 - iconW / 2, logoTopY, iconW, iconH);
+    ctx.drawImage(icon, HALF_W / 2 - iconW / 2, logoTopY, iconW, iconH);
   }
   if (wordmark) {
     const wmH = 110;
     const wmW = (wordmark.naturalWidth / wordmark.naturalHeight) * wmH;
-    ctx.drawImage(wordmark, halfW / 2 - wmW / 2, logoTopY + 200, wmW, wmH);
+    ctx.drawImage(wordmark, HALF_W / 2 - wmW / 2, logoTopY + 200, wmW, wmH);
   }
-
-  // Tagline
   ctx.fillStyle = "#5a4a32";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const taglineSize = 56;
-  ctx.font = `italic ${taglineSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  const taglineCenterY = SPREAD_H * 0.62;
+  const tSize = 56;
+  ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
+  const cy = SPREAD_H * 0.62;
   COVER_TAGLINE.forEach((line, i) => {
-    ctx.fillText(line, halfW / 2, taglineCenterY + (i - (COVER_TAGLINE.length - 1) / 2) * (taglineSize * 1.35));
+    ctx.fillText(line, HALF_W / 2, cy + (i - (COVER_TAGLINE.length - 1) / 2) * (tSize * 1.35));
   });
-
-  // URL
   ctx.fillStyle = "#b88a2a";
   ctx.font = `600 36px 'Inter', sans-serif`;
-  ctx.fillText(COVER_URL.toUpperCase(), halfW / 2, SPREAD_H * 0.9);
+  ctx.fillText(COVER_URL.toUpperCase(), HALF_W / 2, SPREAD_H * 0.9);
 
-  /* ── RIGHT: front cover ── */
   const img = await safeLoad(page.image);
   if (img) {
-    const ratio = Math.max(halfW / img.naturalWidth, SPREAD_H / img.naturalHeight);
+    const ratio = Math.max(HALF_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
     const dw = img.naturalWidth * ratio;
     const dh = img.naturalHeight * ratio;
-    ctx.drawImage(img, halfW + (halfW - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
+    ctx.drawImage(img, HALF_W + (HALF_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
   } else {
     ctx.fillStyle = "#dcd2bd";
-    ctx.fillRect(halfW, 0, halfW, SPREAD_H);
+    ctx.fillRect(HALF_W, 0, HALF_W, SPREAD_H);
   }
-
-  // Title overlay band
   const bandH = SPREAD_H * 0.28;
-  const bandGrad = ctx.createLinearGradient(halfW, 0, halfW, bandH);
+  const bandGrad = ctx.createLinearGradient(HALF_W, 0, HALF_W, bandH);
   bandGrad.addColorStop(0, "rgba(255,255,255,0.94)");
   bandGrad.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = bandGrad;
-  ctx.fillRect(halfW, 0, halfW, bandH);
+  ctx.fillRect(HALF_W, 0, HALF_W, bandH);
 
   const title = page.coverTitle || `${childName}'s Torah Tale`;
   ctx.fillStyle = "#2b2418";
   ctx.font = `bold 78px 'Playfair Display', serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  const titleLines = wrapLines(ctx, title, halfW - 120);
-  titleLines.forEach((line, i) => {
-    ctx.fillText(line, halfW + halfW / 2, 70 + i * 90);
-  });
+  const titleLines = wrapLines(ctx, title, HALF_W - 120);
+  titleLines.forEach((line, i) => ctx.fillText(line, HALF_W + HALF_W / 2, 70 + i * 90));
   if (page.coverSubtitle) {
     ctx.fillStyle = "#b88a2a";
     ctx.font = `italic 42px ${BOOK_TEXT_STYLE.fontFamily}`;
-    ctx.fillText(page.coverSubtitle, halfW + halfW / 2, 70 + titleLines.length * 90 + 18);
+    ctx.fillText(page.coverSubtitle, HALF_W + HALF_W / 2, 70 + titleLines.length * 90 + 18);
   }
-
   drawGutter(ctx);
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-/**
- * Generates a printable PDF: one landscape spread per sheet.
- */
 export async function generateBookPdf(
   pages: BookPage[],
   childName: string,
   _torahPortion: string
 ): Promise<Blob> {
-  // Filter out any legacy back-cover entries — cover spread handles both sides.
   const renderable = pages.filter((p) => p.type !== "back-cover");
-
-  // 2:1 landscape sheet. Use ~14"×7" so print suppliers can scale to spread trim.
   const pageW = 356; // mm (14")
   const pageH = 178; // mm (7")
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: [pageW, pageH] });
 
-  // Track story page index for alternating side
   let storyIdx = 0;
-
   for (let i = 0; i < renderable.length; i++) {
     const page = renderable[i];
     if (i > 0) pdf.addPage([pageW, pageH], "landscape");
-
     let dataUrl: string;
     if (page.type === "cover") {
       dataUrl = await renderCoverSpread(page, childName);
     } else if (page.type === "questions") {
       dataUrl = await renderQuestionsSpread(page);
     } else {
-      const side: "left" | "right" = storyIdx % 2 === 0 ? "left" : "right";
+      dataUrl = await renderStorySpread(page, storyIdx);
       storyIdx += 1;
-      dataUrl = await renderStorySpread(page, side);
     }
     try {
       pdf.addImage(dataUrl, "JPEG", 0, 0, pageW, pageH);
@@ -303,6 +277,7 @@ export async function generateBookPdf(
       pdf.rect(0, 0, pageW, pageH, "F");
     }
   }
-
+  // expose default for any callers that need it
+  void DEFAULT_TEXT_LAYOUT;
   return pdf.output("blob");
 }
