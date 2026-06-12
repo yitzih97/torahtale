@@ -250,9 +250,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
 
   
-  const [portionFilter, setPortionFilter] = useState<TorahOption["category"] | "all">("all");
+  const [portionFilter, setPortionFilter] = useState<TorahOption["category"]>("torah");
   const [portionSearch, setPortionSearch] = useState("");
-  const [expandedBook, setExpandedBook] = useState<string | null>(null);
+  const [expandedBook, setExpandedBook] = useState<string | null>("Bereishit");
   const [portionMode, setPortionMode] = useState<"choose" | "manual" | null>(null);
   const [styleSubStep, setStyleSubStep] = useState<"art" | "format">("art");
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
