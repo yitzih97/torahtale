@@ -259,7 +259,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [bookOptionsChosenEarly, setBookOptionsChosenEarly] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"weekly" | "monthly" | "yearly" | "once">("monthly");
+  const [selectedPlan, setSelectedPlan] = useState<"weekly" | "monthly" | "yearly" | "once">("once");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
