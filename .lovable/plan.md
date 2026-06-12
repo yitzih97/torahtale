@@ -1,57 +1,87 @@
-# Book spread redesign + auto-save
+# Half-page illustrations + draggable text editor
 
-## 1. Auto-save in Admin generation modal
+## 1. Layout change — image on one half, text on the other
 
-In `src/components/admin/AdminBookGenerationModal.tsx`:
+Each story/questions spread becomes a true two-page composition with no overlap by default:
 
-- After the generation loop sets `phase = "done"`, immediately persist the result to the `books` row (same payload as the current `handleSave`: `pages_data`, `story_data`, `cover_image_url`, `status: "ordered"`).
-- Add a debounced auto-save (~800ms) whenever `pages` changes after `phase === "done"`, so any text edit / image regen the admin makes inside `BookViewer` is persisted without clicking Save.
-- Keep the manual Save / Approve buttons; they remain the explicit approve-to-Printify trigger.
+- LEFT (or RIGHT, alternating) half: the 1:1 illustration rendered at full half-page size (`object-cover`, square, fills the half edge-to-edge).
+- The opposite half: a clean cream "paper" background that holds the text block.
+- Cover spread is unchanged.
 
-## 2. New spread-style page layout
+Image generation stays at `1024x1024` in `supabase/functions/generate-image/index.ts` — no model/size change needed.
 
-Update `src/components/wizard/BookViewer.tsx` to render each non-cover page as a two-page spread:
+```text
+┌──────────────┬──────────────┐
+│              │   Once upon  │
+│  [1:1 art]   │   a time…    │
+│              │              │
+└──────────────┴──────────────┘
+   image half      text half
+```
 
-- Container becomes a 2:1 landscape spread (`aspect-[2/1]`) with a soft center gutter shadow.
-- The story illustration bleeds across BOTH pages (full-width `object-cover`).
-- Text sits over ONE half only, alternating sides based on story-page index:
-  - odd story page → text panel on the LEFT half
-  - even story page → text panel on the RIGHT half
-- Text uses a fixed, book-wide style (no per-page font/size/color drift). A single shared constant `BOOK_TEXT_STYLE` (Cormorant Garamond, fixed pt size, fixed dark color, soft cream backdrop card with subtle shadow) replaces the per-page `textStyle`.
-- `DraggableText` is removed from story pages; text is shown via a static styled block inside the chosen half. The "drag/double-click to edit" hint is removed; text editing keeps the existing Pencil → textarea flow.
-- The Discussion-Questions page keeps its current layout but is rendered inside the same spread frame.
+## 2. Draggable + editable text overlay (per page)
 
-The shared style lives in a new export from `BookViewer.tsx` (also imported by the print pipeline) so the on-screen preview and the printed book stay identical.
+Replace the static text block with a Canva-style draggable text component on every story page (and the discussion-questions page):
 
-## 3. Cover spread (shown once at start)
+- **Drag** anywhere within the spread (snaps to bounds, can sit fully on the text half OR cross over onto the illustration if the user prefers).
+- **Resize** via a corner handle (changes the text box width; height grows with content).
+- **Inline edit** by double-clicking — opens in-place editable text.
+- **Floating toolbar** appears when the text box is selected:
+  - Font family (Cormorant Garamond, Playfair Display, Inter, Frank Ruhl Libre for HE, plus 1–2 display fonts)
+  - Font size (slider 12–48)
+  - Color picker (preset swatches: ink, gold, white, cream + custom)
+  - Text align (left / center / right)
+  - **Background toggle** (on/off — removes the cream card)
+  - **Border toggle** (on/off)
+  - Bold / italic
+- Position, size, and style are stored per page on `BookPage.textLayout` (x, y, width, font, size, color, align, bg on/off, border on/off, bold, italic) and persisted with the book through the existing `pages_data` JSON — no schema migration needed.
+- A **"Reset to default"** button restores the shared default style + auto-side position.
 
-- The wizard generates only ONE cover page (no separate "back cover" page in the pages array). Drop generation/regen logic for the `back-cover` type from `BookViewer`, `AdminBookGenerationModal`, and any page-builder helpers; existing back-cover entries on legacy books are ignored at render time.
-- Render the cover as a single 2:1 spread:
-  - RIGHT half = front: illustration full-bleed with the book title (e.g. "Parashat Noach – with {childName(s)}") set in Playfair Display at the top in champagne gold, matching the inspiration.
-  - LEFT half = back: cream background, Torah Tale logo centered top, the standard tagline ("Stories that inspire. / Values that last. / A love that grows.") in Cormorant Garamond, and `torahtale.com` at the bottom — Hebrew/Yiddish variants pulled from existing i18n strings.
-- Page navigation: cover spread is index 0 and only appears once; story spreads follow.
+Default layout: text box pre-positioned on the empty (non-image) half so users don't have to move it unless they want to.
 
-## 4. Print PDF parity
+## 3. PDF export bakes the exact on-screen layout
 
-Update `src/lib/generateBookPdf.ts` so the exported book mirrors the new layout:
+`src/lib/generateBookPdf.ts` is updated so every page renders the illustration on its half and composites each page's text overlay using that page's saved `textLayout` (position, size, font, color, background/border toggles). The output mirrors the viewer 1:1.
 
-- Page size switches to a landscape spread per sheet matching the on-screen 2:1 aspect.
-- Cover sheet renders the back/front composition described above (logo + tagline on left, title + illustration on right).
-- Story sheets composite the illustration full-bleed and draw the text block on the alternating half using the shared `BOOK_TEXT_STYLE` constants for font family, size, color, and padding.
-- Discussion-questions sheet keeps its existing content but inside the spread frame.
+The same composite is used by `src/lib/generateBookZip.ts` (JPEG/PNG export).
+
+## 4. Auto-save
+
+The wizard already writes `pages_data` to the `books` row. The new `textLayout` field rides along automatically — no extra wiring beyond making sure `onPagesChange` is called whenever a text box is moved, resized, or restyled.
 
 ## Technical notes
 
-- New shared constant `BOOK_TEXT_STYLE` exported from `BookViewer.tsx` (font family, font size in px and pt, color, background, padding, max width %) used by both the viewer and `generateBookPdf.ts`.
-- `BookPage.textStyle` becomes optional/ignored for story pages going forward; existing data isn't migrated, just visually overridden.
-- Cover deduplication: when loading legacy `pages_data` that contains a `back-cover` entry, the viewer filters it out so old books render with the new single cover spread.
-- Auto-save uses the existing `supabase.from("books").update(...)` call; no schema changes.
-- No copy changes outside the cover tagline/URL, which already exist in i18n.
+- New file `src/components/wizard/EditableTextBox.tsx` — handles drag (pointer events), resize, inline edit, and renders the floating toolbar (shadcn `Popover` + `Slider` + color swatches).
+- New shape on `BookPage`:
+  ```ts
+  textLayout?: {
+    x: number; y: number;       // % of spread (0–100)
+    width: number;              // % of spread width
+    fontFamily?: string;
+    fontSize?: number;          // px at 1024 reference
+    color?: string;
+    align?: "left" | "center" | "right";
+    bold?: boolean; italic?: boolean;
+    background?: boolean;       // default true
+    border?: boolean;           // default false
+  }
+  ```
+- `BookViewer.tsx` renders `EditableTextBox` instead of the current static div. Default `textLayout` computed from existing alternating-side logic so old books still look right.
+- `generateBookPdf.ts` `drawTextPanel` is rewritten to accept a `textLayout` and draw at the saved x/y/width with the saved font/size/color and conditional background/border. Coordinates scale from % → canvas px.
+- Fonts used in the toolbar are already loaded by `index.css`; add any new display fonts there.
+- RTL: when book language is Hebrew/Yiddish, default `align` is `right` and default x flips to the opposite half.
 
 ## Files touched
 
-- `src/components/admin/AdminBookGenerationModal.tsx` — auto-save on done + debounced auto-save on edits; stop generating back-cover page.
-- `src/components/wizard/BookViewer.tsx` — spread layout, alternating text side, fixed text style, single cover spread, export `BOOK_TEXT_STYLE`.
-- `src/components/wizard/BookViewerModal.tsx` — container sizing for 2:1 spread.
-- `src/lib/generateBookPdf.ts` — landscape spread output, cover composition, alternating text side using shared style.
-- (If a separate cover/back-cover generator exists in the page-builder helper, it is updated to emit one cover page only.)
+- `src/components/wizard/BookViewer.tsx` — half/half layout, drop in `EditableTextBox`, default-layout helper.
+- `src/components/wizard/EditableTextBox.tsx` — new component (drag/resize/edit/toolbar).
+- `src/lib/generateBookPdf.ts` — new half-image layout + per-page text composite from `textLayout`.
+- `src/lib/generateBookZip.ts` — same composite logic for JPEG/PNG export.
+- `src/components/wizard/BookViewerModal.tsx` — minor sizing if needed.
+- `src/index.css` — extra font imports if a new display font is added.
+
+## Out of scope
+
+- No change to image generation size (stays 1024×1024 as you confirmed).
+- No change to cover spread layout.
+- No DB schema migration (`textLayout` lives inside existing `pages_data` JSON).
