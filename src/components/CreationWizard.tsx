@@ -671,11 +671,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (allChildrenHaveGenderAge()) {
       if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
     }
-    // Subscription skipped step 6, so jump back to 5.
-    if (step === 7 && planType === "subscription") prevStep = 5;
     if (step === 12) prevStep = 11;
     if (step === 13) prevStep = 11;
-    setStep(Math.max(prevStep, 0));
+    setStep(Math.max(prevStep, 1));
   };
 
   const resetWizard = useCallback(() => {
