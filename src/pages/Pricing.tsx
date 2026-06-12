@@ -78,7 +78,7 @@ const Pricing = () => {
                 <p className={`text-sm mt-1 ${selected === "single" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{t.pricing.singleSubtitle}</p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
-              <Button variant={selected === "single" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("single"); }} className="w-full">
+              <Button variant={selected === "single" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate(); }} className="w-full">
                 {t.pricing.singleCta}
               </Button>
             </div>
@@ -112,7 +112,7 @@ const Pricing = () => {
                 </p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
-              <Button variant={selected === "torah" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("subscription"); }} className="w-full">
+              <Button variant={selected === "torah" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate(); }} className="w-full">
                 {t.pricing.torahCta}
               </Button>
             </div>
@@ -143,7 +143,7 @@ const Pricing = () => {
                 </p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
-              <Button variant={selected === "tanach" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate("subscription"); }} className="w-full">
+              <Button variant={selected === "tanach" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate(); }} className="w-full">
                 {t.pricing.tanachCta}
               </Button>
             </div>
