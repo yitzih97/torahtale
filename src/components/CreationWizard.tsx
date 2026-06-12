@@ -353,7 +353,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       try {
         const parsed = JSON.parse(saved);
         // Don't restore terminal/transient steps (success or generation animation)
-        const restoredStep = typeof parsed.step === "number" && parsed.step < 16 ? parsed.step : 0;
+        const rawStep = typeof parsed.step === "number" && parsed.step < 16 ? parsed.step : 1;
+        const restoredStep = rawStep < 1 ? 1 : rawStep;
         setStep(restoredStep);
         if (parsed.planType === "single" || parsed.planType === "subscription") {
           setPlanType(parsed.planType);
