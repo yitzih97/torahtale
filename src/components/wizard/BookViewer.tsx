@@ -1,11 +1,12 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Pencil, RefreshCw, X, Wand2, Sparkles, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, RefreshCw, X, Wand2, Sparkles, BookOpen, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import type { TextStyle } from "./DraggableText";
+import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, type TextLayout } from "./EditableTextBox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
@@ -22,16 +23,19 @@ export interface BookPage {
   dedication?: string;
   questions?: { number: number; question: string }[];
   textStyle?: TextStyle;
+  textLayout?: TextLayout;
 }
 
+export type { TextLayout } from "./EditableTextBox";
+
 /**
- * Single shared text style for the entire book — used by the on-screen
- * spread viewer AND the print PDF so every page reads identically.
+ * Legacy default text style — kept for backward-compatible code that
+ * predates the per-page `textLayout` field.
  */
 export const BOOK_TEXT_STYLE = {
-  fontFamily: "'Cormorant Garamond', 'Georgia', serif",
-  fontSizePx: 19,
-  color: "#2b2418",
+  fontFamily: DEFAULT_TEXT_LAYOUT.fontFamily,
+  fontSizePx: DEFAULT_TEXT_LAYOUT.fontSize,
+  color: DEFAULT_TEXT_LAYOUT.color,
   bgColor: "rgba(252, 247, 236, 0.94)",
   lineHeight: 1.5,
   padding: 22,
