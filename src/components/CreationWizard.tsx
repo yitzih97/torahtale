@@ -504,6 +504,25 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   };
 
   const [cropState, setCropState] = useState<{ childId: string; src: string; fileName: string } | null>(null);
+  const [familyDialogOpen, setFamilyDialogOpen] = useState(false);
+
+  const handleFamilyPhotoConfirm = (people: ReviewedPerson[]) => {
+    const newChildren: ChildProfile[] = people.map((p) => ({
+      id: crypto.randomUUID(),
+      name: p.name,
+      age: p.age,
+      gender: p.gender,
+      photo: p.photo,
+      photoPreview: p.photoPreview,
+      description: p.description,
+      characterPreview: null,
+      savedChildId: null,
+      existingPhotoUrl: null,
+      role: p.role,
+    }));
+    setData((prev) => ({ ...prev, children: newChildren, activeChildIdx: 0 }));
+    toast.success(`Added ${newChildren.length} ${newChildren.length === 1 ? "person" : "people"} from your photo`);
+  };
 
   const handlePhoto = (childId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
