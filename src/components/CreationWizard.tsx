@@ -1364,6 +1364,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 </motion.div>
 
                 <div className="max-w-md mx-auto space-y-4">
+                  <motion.button
+                    type="button"
+                    variants={staggerChild}
+                    onClick={() => setFamilyDialogOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/10 via-card/60 to-accent/10 backdrop-blur-sm px-4 py-3 text-sm font-semibold text-foreground hover:from-accent/20 hover:to-accent/20 transition"
+                  >
+                    <Users className="w-4 h-4 text-accent" />
+                    {t.wizard.uploadFamilyPhoto}
+                  </motion.button>
+
                   <motion.div variants={staggerChild}>
                     {child.photoPreview ? (
                       <div className="relative rounded-2xl overflow-hidden border-2 border-accent/40 bg-card/40 backdrop-blur-sm">
