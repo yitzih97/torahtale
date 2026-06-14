@@ -2253,6 +2253,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         setCropState(null);
       }}
     />
+
+    <FamilyPhotoDialog
+      open={familyDialogOpen}
+      onOpenChange={setFamilyDialogOpen}
+      t={t}
+      onConfirm={handleFamilyPhotoConfirm}
+    />
     </>
   );
 };
