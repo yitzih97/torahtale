@@ -20,10 +20,17 @@ async function verifySignature(secret: string, rawBody: string, signature: strin
     const computed = Array.from(new Uint8Array(sigBuf))
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
-    // Accept either bare hex, "sha256=<hex>", or base64 encodings
+    // Accept either bare hex, "sha256=<hex>", or base64 encodings, compared in
+    // constant time to avoid leaking the signature via timing.
     const provided = signature.replace(/^sha256=/i, "").trim().toLowerCase();
-    const computedB64 = btoa(String.fromCharCode(...new Uint8Array(sigBuf)));
-    return provided === computed || provided === computedB64.toLowerCase();
+    const computedB64 = btoa(String.fromCharCode(...new Uint8Array(sigBuf))).toLowerCase();
+    const safeEqual = (a: string, b: string): boolean => {
+      if (a.length !== b.length) return false;
+      let mismatch = 0;
+      for (let i = 0; i < a.length; i++) mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+      return mismatch === 0;
+    };
+    return safeEqual(provided, computed) || safeEqual(provided, computedB64);
   } catch (_e) {
     return false;
   }

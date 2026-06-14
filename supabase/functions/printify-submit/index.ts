@@ -93,6 +93,17 @@ serve(async (req) => {
         throw new Error("Book is not paid — refusing to submit to Printify.");
       }
 
+      // Idempotency: if this book already has a Printify order, don't place a
+      // second one (e.g. an admin double-clicking Approve). Return the existing.
+      if (book.printify_order_id) {
+        return new Response(JSON.stringify({
+          success: true,
+          productId: book.printify_product_id,
+          orderId: book.printify_order_id,
+          duplicate: true,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
       const pages = (book.pages_data as any[]) || [];
       if (!pages.length) throw new Error("Book has no pages");
 
@@ -110,13 +121,21 @@ serve(async (req) => {
           : opts.productType === "board"
           ? "board"
           : "softcover";
-      const fmt = (field: string, fallback: string) =>
-        getSetting(`printify-${field}-${formatKey}`) || getSetting(`printify-${field}`) || fallback;
+      const fmt = (field: string) =>
+        getSetting(`printify-${field}-${formatKey}`) || getSetting(`printify-${field}`) || "";
 
-      const blueprintId = parseInt(fmt("blueprint-id", "635"));
-      const printProviderId = parseInt(fmt("print-provider-id", "99"));
-      const variantId = parseInt(fmt("variant-id", "1"));
-      const price = parseInt(fmt("price", "3499"));
+      // Require explicit per-format config. The previous hardcoded fallbacks
+      // (blueprint 635) pointed at an unrelated catalog item (a coffee mug), so
+      // a missing setting would silently print the wrong product. Fail instead.
+      const blueprintId = parseInt(fmt("blueprint-id"));
+      const printProviderId = parseInt(fmt("print-provider-id"));
+      const variantId = parseInt(fmt("variant-id"));
+      const price = parseInt(fmt("price"));
+      if (!blueprintId || !printProviderId || !variantId || !price) {
+        throw new Error(
+          `Printify config missing for format "${formatKey}" — set printify-blueprint-id/print-provider-id/variant-id/price in site_settings before submitting.`,
+        );
+      }
 
       // Upload page images to Printify
       const imageIds: string[] = [];
@@ -138,6 +157,15 @@ serve(async (req) => {
           const img = await uploadRes.json();
           imageIds.push(img.id);
         }
+      }
+
+      // Abort if any page image failed to upload — placing an order with a
+      // partial/blank print area would print (and charge for) a broken book.
+      const pagesWithImages = pages.filter((p: any) => p.imageUrl || p.image);
+      if (imageIds.length < pagesWithImages.length) {
+        throw new Error(
+          `Only ${imageIds.length}/${pagesWithImages.length} page images uploaded to Printify — aborting to avoid printing an incomplete book.`,
+        );
       }
 
       // Reuse an existing Printify product if this book was submitted before;
