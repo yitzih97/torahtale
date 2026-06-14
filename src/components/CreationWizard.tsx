@@ -29,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useChildren } from "@/hooks/useChildren";
 import { ImageCropDialog } from "./ImageCropDialog";
+import { FamilyPhotoDialog, type ReviewedPerson } from "./wizard/FamilyPhotoDialog";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
 
 
@@ -67,6 +68,7 @@ export interface ChildProfile {
   characterPreview: string | null;
   savedChildId?: string | null;
   existingPhotoUrl?: string | null;
+  role?: "tatty" | "mommy" | "child";
 }
 
 const createChild = (): ChildProfile => ({
@@ -80,6 +82,7 @@ const createChild = (): ChildProfile => ({
   characterPreview: null,
   savedChildId: null,
   existingPhotoUrl: null,
+  role: "child",
 });
 
 interface WizardData {
@@ -501,6 +504,25 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   };
 
   const [cropState, setCropState] = useState<{ childId: string; src: string; fileName: string } | null>(null);
+  const [familyDialogOpen, setFamilyDialogOpen] = useState(false);
+
+  const handleFamilyPhotoConfirm = (people: ReviewedPerson[]) => {
+    const newChildren: ChildProfile[] = people.map((p) => ({
+      id: crypto.randomUUID(),
+      name: p.name,
+      age: p.age,
+      gender: p.gender,
+      photo: p.photo,
+      photoPreview: p.photoPreview,
+      description: p.description,
+      characterPreview: null,
+      savedChildId: null,
+      existingPhotoUrl: null,
+      role: p.role,
+    }));
+    setData((prev) => ({ ...prev, children: newChildren, activeChildIdx: 0 }));
+    toast.success(`Added ${newChildren.length} ${newChildren.length === 1 ? "person" : "people"} from your photo`);
+  };
 
   const handlePhoto = (childId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1342,6 +1364,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 </motion.div>
 
                 <div className="max-w-md mx-auto space-y-4">
+                  <motion.button
+                    type="button"
+                    variants={staggerChild}
+                    onClick={() => setFamilyDialogOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/10 via-card/60 to-accent/10 backdrop-blur-sm px-4 py-3 text-sm font-semibold text-foreground hover:from-accent/20 hover:to-accent/20 transition"
+                  >
+                    <Users className="w-4 h-4 text-accent" />
+                    {t.wizard.uploadFamilyPhoto}
+                  </motion.button>
+
                   <motion.div variants={staggerChild}>
                     {child.photoPreview ? (
                       <div className="relative rounded-2xl overflow-hidden border-2 border-accent/40 bg-card/40 backdrop-blur-sm">
@@ -2230,6 +2262,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         if (cropState) updateChild(cropState.childId, { photo: file, photoPreview: dataUrl });
         setCropState(null);
       }}
+    />
+
+    <FamilyPhotoDialog
+      open={familyDialogOpen}
+      onOpenChange={setFamilyDialogOpen}
+      t={t}
+      onConfirm={handleFamilyPhotoConfirm}
     />
     </>
   );
