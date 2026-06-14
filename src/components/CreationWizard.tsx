@@ -29,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useChildren } from "@/hooks/useChildren";
 import { ImageCropDialog } from "./ImageCropDialog";
+import { FamilyPhotoDialog, type ReviewedPerson } from "./wizard/FamilyPhotoDialog";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
 
 
