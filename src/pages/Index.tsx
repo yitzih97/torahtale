@@ -30,7 +30,10 @@ const Index = () => {
     return () => clearTimeout(t);
   }, [location.hash]);
 
-  const goToCreate = () => navigate("/pricing");
+  const goToCreate = () => {
+    try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
+    navigate("/create");
+  };
 
   return (
     <div className="min-h-screen">
