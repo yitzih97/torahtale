@@ -67,6 +67,7 @@ export interface ChildProfile {
   characterPreview: string | null;
   savedChildId?: string | null;
   existingPhotoUrl?: string | null;
+  role?: "tatty" | "mommy" | "child";
 }
 
 const createChild = (): ChildProfile => ({
@@ -80,6 +81,7 @@ const createChild = (): ChildProfile => ({
   characterPreview: null,
   savedChildId: null,
   existingPhotoUrl: null,
+  role: "child",
 });
 
 interface WizardData {
