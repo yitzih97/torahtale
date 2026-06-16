@@ -70,9 +70,12 @@ function drawPaperHalf(ctx: CanvasRenderingContext2D, side: "left" | "right") {
 /** Composite a text overlay using the page's TextLayout. Coords are % of spread. */
 function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: TextLayout) {
   if (!text) return;
-  // Scale font size: layout.fontSize is px at the on-screen container width (~600px).
-  // Scale to canvas width (2400px) so print and screen match visually.
-  const scale = SPREAD_W / 600;
+  // layout.fontSize and padding are absolute px defined against a 1024px-wide
+  // reference container (see EditableTextBox / TextLayout). Scale them by the
+  // same factor to the 2400px canvas so the PDF matches the on-screen preview
+  // 1:1. (Previously this used a 600px reference, which made PDF text ~1.7x too
+  // large.)
+  const scale = SPREAD_W / 1024;
   const fontSize = layout.fontSize * scale;
   const weight = layout.bold ? "700" : "400";
   const italic = layout.italic ? "italic " : "";
@@ -83,8 +86,8 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   const boxY = (layout.y / 100) * SPREAD_H;
   const boxW = (layout.width / 100) * SPREAD_W;
   const hasPad = layout.background || layout.border;
-  const padX = hasPad ? 18 * scale * 0.6 : 6 * scale * 0.6;
-  const padY = hasPad ? 14 * scale * 0.6 : 4 * scale * 0.6;
+  const padX = (hasPad ? 18 : 6) * scale;
+  const padY = (hasPad ? 14 : 4) * scale;
   const maxTextW = boxW - padX * 2;
   const lines = wrapLines(ctx, text, maxTextW);
   const lineHeight = fontSize * 1.5;
@@ -128,6 +131,21 @@ function drawGutter(ctx: CanvasRenderingContext2D) {
   ctx.fillRect(HALF_W - 12, 0, 24, SPREAD_H);
 }
 
+/** Cover-fit an image onto one half, CLIPPED to that half so a non-square
+ *  image (e.g. a wide cover) can never bleed across the gutter onto the other
+ *  page. Mirrors CSS object-cover, which the on-screen preview uses. */
+function drawHalfImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, halfX: number) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(halfX, 0, HALF_W, SPREAD_H);
+  ctx.clip();
+  const ratio = Math.max(HALF_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
+  const dw = img.naturalWidth * ratio;
+  const dh = img.naturalHeight * ratio;
+  ctx.drawImage(img, halfX + (HALF_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
+  ctx.restore();
+}
+
 async function renderStorySpread(page: BookPage, storyIdx: number): Promise<string> {
   // Same alternating side rule as BookViewer: text-on-left for even story idx
   const textOnLeft = storyIdx % 2 === 0;
@@ -145,10 +163,7 @@ async function renderStorySpread(page: BookPage, storyIdx: number): Promise<stri
   const img = await safeLoad(page.image);
   const halfX = imageOnLeft ? 0 : HALF_W;
   if (img) {
-    const ratio = Math.max(HALF_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
-    const dw = img.naturalWidth * ratio;
-    const dh = img.naturalHeight * ratio;
-    ctx.drawImage(img, halfX + (HALF_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
+    drawHalfImage(ctx, img, halfX);
   } else {
     ctx.fillStyle = "#dcd2bd";
     ctx.fillRect(halfX, 0, HALF_W, SPREAD_H);
@@ -168,10 +183,7 @@ async function renderQuestionsSpread(page: BookPage): Promise<string> {
   drawPaperHalf(ctx, "left");
   const img = await safeLoad(page.image);
   if (img) {
-    const ratio = Math.max(HALF_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
-    const dw = img.naturalWidth * ratio;
-    const dh = img.naturalHeight * ratio;
-    ctx.drawImage(img, HALF_W + (HALF_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
+    drawHalfImage(ctx, img, HALF_W);
   } else {
     ctx.fillStyle = "#dcd2bd";
     ctx.fillRect(HALF_W, 0, HALF_W, SPREAD_H);
@@ -216,10 +228,7 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
 
   const img = await safeLoad(page.image);
   if (img) {
-    const ratio = Math.max(HALF_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
-    const dw = img.naturalWidth * ratio;
-    const dh = img.naturalHeight * ratio;
-    ctx.drawImage(img, HALF_W + (HALF_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
+    drawHalfImage(ctx, img, HALF_W);
   } else {
     ctx.fillStyle = "#dcd2bd";
     ctx.fillRect(HALF_W, 0, HALF_W, SPREAD_H);
