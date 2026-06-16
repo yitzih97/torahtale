@@ -6,9 +6,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import heroSceneDesktop from "@/assets/hero-scene-desktop.jpg";
 import heroMobileAsset from "@/assets/hero-mobile.png.asset.json";
 import heroTabletAsset from "@/assets/hero-tablet.png.asset.json";
-import kid1 from "@/assets/avatars/kid1.jpg";
-import kid2 from "@/assets/avatars/kid2.jpg";
-import kid3 from "@/assets/avatars/kid3.jpg";
+import reviewer1 from "@/assets/avatars/reviewer1.jpg";
+import reviewer2 from "@/assets/avatars/reviewer2.jpg";
+import reviewer3 from "@/assets/avatars/reviewer3.jpg";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -38,9 +38,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         trustHeading: "אהוב ע״י משפחות. נבחר ברחבי העולם.",
         rating: "4.9/5 מתוך 500+ ביקורות",
         testimonials: [
-          { quote: "הדרך הכי יפה לחבר את הילדים שלנו לתורה. הם מבקשים את הספר שלהם בכל לילה!", name: "רבקי ומשה ש.", location: "ברוקלין, ניו יורק", avatar: kid1 },
-          { quote: "האיכות מדהימה וההתאמה האישית מיוחדת מאוד. מתנה שילדינו יוקירו לנצח.", name: "חנה פ.", location: "לוס אנג׳לס", avatar: kid2 },
-          { quote: "הבן שלנו מרגיש כמו הגיבור של הסיפור — וזה מביא את ערכי התורה לחיים בצורה כל כך יפה.", name: "אבי מ.", location: "טורונטו, קנדה", avatar: kid3 },
+          { quote: "הדרך הכי יפה לחבר את הילדים שלנו לתורה. הם מבקשים את הספר שלהם בכל לילה!", name: "רבקי ומשה ש.", location: "ברוקלין, ניו יורק", avatar: reviewer1 },
+          { quote: "האיכות מדהימה וההתאמה האישית מיוחדת מאוד. מתנה שילדינו יוקירו לנצח.", name: "חנה פ.", location: "לוס אנג׳לס", avatar: reviewer2 },
+          { quote: "הבן שלנו מרגיש כמו הגיבור של הסיפור — וזה מביא את ערכי התורה לחיים בצורה כל כך יפה.", name: "אבי מ.", location: "טורונטו, קנדה", avatar: reviewer3 },
         ],
         trustBar: [
           { icon: ShieldCheck, label: "בטוח ומתאים לגיל" },
@@ -64,9 +64,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         trustHeading: "Loved by families. Trusted worldwide.",
         rating: "4.9/5 from 500+ reviews",
         testimonials: [
-          { quote: "The most beautiful way to connect our kids to Torah. They ask for their book every night!", name: "Rivky & Moshe S.", location: "Brooklyn, NY", avatar: kid1 },
-          { quote: "The quality is amazing and the personalization is beyond special. It's a gift our children will cherish forever.", name: "Chana F.", location: "Los Angeles, CA", avatar: kid2 },
-          { quote: "Our son feels like the hero of the story—and it brings Torah values to life in such a beautiful way.", name: "Avi M.", location: "Toronto, Canada", avatar: kid3 },
+          { quote: "The most beautiful way to connect our kids to Torah. They ask for their book every night!", name: "Rivky & Moshe S.", location: "Brooklyn, NY", avatar: reviewer1 },
+          { quote: "The quality is amazing and the personalization is beyond special. It's a gift our children will cherish forever.", name: "Chana F.", location: "Los Angeles, CA", avatar: reviewer2 },
+          { quote: "Our son feels like the hero of the story—and it brings Torah values to life in such a beautiful way.", name: "Avi M.", location: "Toronto, Canada", avatar: reviewer3 },
         ],
         trustBar: [
           { icon: ShieldCheck, label: "Safe & Age Appropriate" },
