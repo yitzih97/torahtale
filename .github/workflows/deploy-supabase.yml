@@ -1,0 +1,70 @@
+name: Deploy to Supabase (gabrobnkelgxazjibbrm)
+
+# Lovable's native Supabase integration is bound to a defunct, inaccessible
+# project (qfcuzhjtdqbjgawqgcvk). This workflow keeps the REAL backend
+# (gabrobnkelgxazjibbrm) in sync on every push to main — deploying edge
+# functions, applying new migrations, and re-pinning the client if Lovable
+# regenerates it with the old project. It is the substitute for the broken
+# Lovable<->Supabase link.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - "supabase/migrations/**"
+      - "src/integrations/supabase/client.ts"
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-supabase
+  cancel-in-progress: false
+
+env:
+  PROJECT_REF: gabrobnkelgxazjibbrm
+  NEW_SUPABASE_URL: https://gabrobnkelgxazjibbrm.supabase.co
+  NEW_PUBLISHABLE_KEY: sb_publishable_9YwM5OE70SQBgDYCV26n8g_unnkgxNH
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy all edge functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy --project-ref "$PROJECT_REF"
+
+      - name: Apply new migrations (token-only, via Management API)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: bash scripts/apply-migrations.sh
+
+      - name: Re-pin Supabase client if Lovable reverted it
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          f=src/integrations/supabase/client.ts
+          if grep -q "gabrobnkelgxazjibbrm" "$f"; then
+            echo "client.ts already pinned to the current project — nothing to do."
+            exit 0
+          fi
+          echo "client.ts points at the wrong project — re-pinning."
+          sed -i -E "s#const SUPABASE_URL = \".*\"#const SUPABASE_URL = \"$NEW_SUPABASE_URL\"#" "$f"
+          sed -i -E "s#const SUPABASE_PUBLISHABLE_KEY = \".*\"#const SUPABASE_PUBLISHABLE_KEY = \"$NEW_PUBLISHABLE_KEY\"#" "$f"
+          git config user.name "torahtale-ci"
+          git config user.email "ci@torahtale.local"
+          git add "$f"
+          git commit -m "ci: re-pin Supabase client to current project [skip ci]"
+          git push
