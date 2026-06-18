@@ -58,8 +58,8 @@ serve(async (req) => {
   if (authErr) return authErr;
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY not configured");
 
     const { imageBase64, mimeType } = await req.json();
     if (!imageBase64 || typeof imageBase64 !== "string") {
@@ -68,46 +68,57 @@ serve(async (req) => {
       });
     }
 
-    const dataUrl = imageBase64.startsWith("data:")
-      ? imageBase64
-      : `data:${mimeType || "image/jpeg"};base64,${imageBase64}`;
+    // Accept either a raw base64 string or a full data: URL.
+    let b64 = imageBase64;
+    let mime = mimeType || "image/jpeg";
+    const dataMatch = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
+    if (dataMatch) { mime = dataMatch[1]; b64 = dataMatch[2]; }
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": LOVABLE_API_KEY,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Detect every person in this family photo and return the JSON." },
-              { type: "image_url", image_url: { url: dataUrl } },
-            ],
-          },
-        ],
-      }),
-    });
+    // Call Gemini directly. (The previous Lovable AI gateway + LOVABLE_API_KEY
+    // is not available on this self-hosted project.) 45s timeout so the client
+    // never spins forever on a stalled upstream request.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 45000);
+    let aiRes: Response;
+    try {
+      aiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents: [{
+              role: "user",
+              parts: [
+                { text: "Detect every person in this family photo and return the JSON." },
+                { inline_data: { mime_type: mime, data: b64 } },
+              ],
+            }],
+            generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
+          }),
+        },
+      );
+    } finally {
+      clearTimeout(timer);
+    }
 
     if (!aiRes.ok) {
       const errText = await aiRes.text();
-      console.error("AI gateway error", aiRes.status, errText);
-      return new Response(JSON.stringify({ error: "AI request failed", status: aiRes.status, detail: errText }), {
-        status: aiRes.status === 402 || aiRes.status === 429 ? aiRes.status : 502,
+      console.error("Gemini error", aiRes.status, errText);
+      return new Response(JSON.stringify({ error: "AI request failed", status: aiRes.status, detail: errText.slice(0, 300) }), {
+        status: aiRes.status === 429 ? 429 : 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const payload = await aiRes.json();
-    const raw = payload?.choices?.[0]?.message?.content ?? "{}";
+    const raw = (payload?.candidates?.[0]?.content?.parts ?? [])
+      .map((p: any) => p?.text).filter(Boolean).join("") || "{}";
     let parsed: any = {};
     try {
-      parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      parsed = JSON.parse(raw);
     } catch {
       const m = String(raw).match(/\{[\s\S]*\}/);
       parsed = m ? JSON.parse(m[0]) : { people: [] };
