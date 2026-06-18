@@ -32,7 +32,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      // getSession() only reads localStorage; it does not validate the token
+      // against the server. A session left over from a previous Supabase project
+      // (different JWT signing key) parses fine locally but is rejected
+      // server-side as "bad_jwt". Validate once and purge a stale/foreign token
+      // so the user lands logged-out and can sign in cleanly.
+      if (session) {
+        const { error } = await supabase.auth.getUser();
+        if (error) {
+          await supabase.auth.signOut({ scope: "local" });
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+      }
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
