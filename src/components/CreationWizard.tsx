@@ -1806,20 +1806,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 </motion.ul>
 
 
-                {/* Large centered Generate button — hidden if not signed in */}
-                {user && (
-                  <motion.div variants={staggerChild} className="flex justify-center pt-4">
-                    <motion.button
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={next}
-                      className="flex items-center gap-3 px-12 sm:px-16 h-16 sm:h-20 rounded-full font-bold text-lg sm:text-xl shadow-2xl shadow-accent/25 transition-all text-accent-foreground"
-                      style={{ background: "linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8))" }}
-                    >
-                      <Sparkles className="w-6 h-6 sm:w-7 sm:h-7" /> {t.wizard.generateBook}
-                    </motion.button>
-                  </motion.div>
-                )}
+                {/* Single CTA only: the sticky black "Generate" button at the
+                    bottom (calls startGeneration). The old in-content button was
+                    a confusing duplicate that just advanced the step. */}
 
                 {/* Inline auth gate — always shown at step 8 when not logged in */}
                 {!user && !authLoading && (
@@ -2091,7 +2080,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   }
                   return null;
                 })()}
-                <ShippingForm data={shipping} onChange={setShipping} isSubscription={planType === "subscription"} section="payment" />
+                {/* No website card/address forms — Shopify's hosted checkout
+                    collects payment + shipping, and the orders/paid webhook
+                    captures the real address. Go straight to checkout. */}
                 <CheckoutStep
                   mode="summary"
                   childName={childNames}
@@ -2101,9 +2092,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   bookOptions={bookOptions}
                   selectedPlan={selectedPlan}
                   onSelectPlan={setSelectedPlan}
-                  onPlaceOrder={() => { setDir(1); setStep(12); }}
-                  ctaLabel={t.common.continue}
-                  ctaIcon={null}
+                  onPlaceOrder={(plan) => { void handlePlaceOrder(plan); }}
+                  ctaLabel={planType === "subscription" ? t.checkout.subscribeOrderShort : t.checkout.placeOrderShort}
                 />
               </motion.div>
             )}
