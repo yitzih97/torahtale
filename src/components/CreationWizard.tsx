@@ -1387,9 +1387,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         </button>
                       </div>
                     ) : (
-                      <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border/60 bg-card/40 backdrop-blur-sm p-8 cursor-pointer hover:border-accent/50 hover:bg-card/60 transition">
-                        <Camera className="w-8 h-8 text-accent" />
-                        <span className="font-display text-sm font-semibold text-foreground">{t.wizard.uploadPhoto}</span>
+                      <label className="group flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-accent/30 bg-gradient-to-b from-accent/5 to-transparent backdrop-blur-sm p-10 cursor-pointer hover:border-accent/60 hover:from-accent/10 transition-all duration-300">
+                        <div className="w-14 h-14 rounded-2xl bg-accent/15 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                          <Camera className="w-7 h-7 text-accent" />
+                        </div>
+                        <span className="font-display text-base font-semibold text-foreground">{t.wizard.uploadPhoto}</span>
                         <input
                           type="file"
                           accept="image/*"

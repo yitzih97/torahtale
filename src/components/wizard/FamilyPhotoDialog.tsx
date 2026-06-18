@@ -120,23 +120,34 @@ export const FamilyPhotoDialog = ({ open, onOpenChange, t, onConfirm }: Props) =
         onOpenChange(v);
       }}
     >
-      <DialogContent className="max-w-lg p-0 overflow-hidden rounded-2xl max-h-[90vh] flex flex-col">
-        <div className="p-5 border-b border-border/40">
-          <DialogTitle className="font-display text-lg font-bold text-primary flex items-center gap-2">
-            <Users className="w-5 h-5 text-accent" />
-            {people.length ? t.wizard.reviewFamily : t.wizard.uploadFamilyPhoto}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
-            {t.wizard.familyPhotoHint}
-          </DialogDescription>
+      <DialogContent className="max-w-lg p-0 overflow-hidden rounded-3xl max-h-[90vh] flex flex-col border-border/40 shadow-2xl">
+        <div className="relative p-6 bg-gradient-to-br from-accent/15 via-accent/5 to-transparent border-b border-border/40">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-accent to-[hsl(var(--gold-dark))] flex items-center justify-center shadow-lg shadow-accent/20 shrink-0">
+              <Users className="w-5 h-5 text-accent-foreground" />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="font-display text-xl font-bold text-foreground">
+                {people.length ? t.wizard.reviewFamily : t.wizard.uploadFamilyPhoto}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                {t.wizard.familyPhotoHint}
+              </DialogDescription>
+            </div>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5">
           {!sourceDataUrl && !detecting && (
-            <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border/60 bg-card/40 p-10 cursor-pointer hover:border-accent/50 transition">
-              <Camera className="w-8 h-8 text-accent" />
-              <span className="font-display text-sm font-semibold text-foreground">
+            <label className="group flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-accent/30 bg-gradient-to-b from-accent/5 to-transparent p-12 cursor-pointer hover:border-accent/60 hover:from-accent/10 transition-all duration-300">
+              <div className="w-14 h-14 rounded-2xl bg-accent/15 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                <Camera className="w-7 h-7 text-accent" />
+              </div>
+              <span className="font-display text-base font-semibold text-foreground">
                 {t.wizard.uploadFamilyPhoto}
+              </span>
+              <span className="text-xs text-muted-foreground text-center max-w-[15rem]">
+                {t.wizard.familyPhotoHint}
               </span>
               <input
                 type="file"
@@ -152,9 +163,11 @@ export const FamilyPhotoDialog = ({ open, onOpenChange, t, onConfirm }: Props) =
           )}
 
           {detecting && (
-            <div className="flex flex-col items-center justify-center gap-3 py-12">
-              <Loader2 className="w-8 h-8 text-accent animate-spin" />
-              <p className="text-sm text-muted-foreground">{t.wizard.detectingFamily}</p>
+            <div className="flex flex-col items-center justify-center gap-4 py-16">
+              <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center">
+                <Loader2 className="w-7 h-7 text-accent animate-spin" />
+              </div>
+              <p className="text-sm font-medium text-foreground">{t.wizard.detectingFamily}</p>
             </div>
           )}
 

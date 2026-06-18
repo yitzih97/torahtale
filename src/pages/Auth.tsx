@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,11 +102,8 @@ export default function Auth() {
         className="w-full max-w-md relative z-10"
       >
         <div className="text-center mb-8">
-          <a href="/" className="inline-flex items-center gap-2.5 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-accent-foreground" />
-            </div>
-            <span className="font-display text-2xl font-bold text-foreground">Torah Tale</span>
+          <a href="/" className="inline-flex mx-auto mb-6">
+            <BrandMark stacked iconClassName="h-16 w-16" wordmarkClassName="h-9 w-auto" />
           </a>
           <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground tracking-tight">
             {mode === "login" ? t.auth.welcomeBack : mode === "signup" ? t.auth.createAccount : t.auth.resetPassword}
