@@ -1,11 +1,10 @@
-name: Deploy to Supabase (gabrobnkelgxazjibbrm)
+name: Deploy to Supabase (cjgqpusyxvltglcbnpvg)
 
 # Lovable's native Supabase integration is bound to a defunct, inaccessible
-# project (qfcuzhjtdqbjgawqgcvk). This workflow keeps the REAL backend
-# (gabrobnkelgxazjibbrm) in sync on every push to main — deploying edge
-# functions, applying new migrations, and re-pinning the client if Lovable
-# regenerates it with the old project. It is the substitute for the broken
-# Lovable<->Supabase link.
+# project. This workflow keeps the REAL backend (cjgqpusyxvltglcbnpvg) in sync
+# on every push to main — deploying edge functions, applying new migrations, and
+# re-pinning the client if Lovable regenerates it with the old project. It is the
+# substitute for the broken Lovable<->Supabase link.
 
 on:
   push:
@@ -21,9 +20,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PROJECT_REF: gabrobnkelgxazjibbrm
-  NEW_SUPABASE_URL: https://gabrobnkelgxazjibbrm.supabase.co
-  NEW_PUBLISHABLE_KEY: sb_publishable_9YwM5OE70SQBgDYCV26n8g_unnkgxNH
+  PROJECT_REF: cjgqpusyxvltglcbnpvg
+  NEW_SUPABASE_URL: https://cjgqpusyxvltglcbnpvg.supabase.co
+  NEW_PUBLISHABLE_KEY: sb_publishable_Ic9uQiC0ATzTyMRzOXyWQA_7hnU8a2X
 
 jobs:
   sync:
@@ -56,7 +55,7 @@ jobs:
         run: |
           set -euo pipefail
           f=src/integrations/supabase/client.ts
-          if grep -q "gabrobnkelgxazjibbrm" "$f"; then
+          if grep -q "cjgqpusyxvltglcbnpvg" "$f"; then
             echo "client.ts already pinned to the current project — nothing to do."
             exit 0
           fi
