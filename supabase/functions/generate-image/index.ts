@@ -73,7 +73,11 @@ serve(async (req) => {
     };
     const specs = bookFormat ? PRINT_SPECS[bookFormat] : null;
     const isCover = pageType === "cover" || pageType === "back-cover";
-    const dims = specs ? (isCover ? specs.cover : specs.page) : null;
+    // The front cover is displayed and printed inside a SQUARE half-slot (the
+    // spread is 2:1, each half 1:1). Render the cover image square — not the full
+    // wide wrap — otherwise a wide image gets center-cropped into the square slot
+    // and edge characters get cut off. Use the cover height for both sides.
+    const dims = specs ? (isCover ? [specs.cover[1], specs.cover[1]] : specs.page) : null;
 
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
@@ -174,6 +178,11 @@ serve(async (req) => {
     // Inject child description into prompt if available
     if (childDescription && !prompt) {
       imagePrompt += ` The child character has these features: ${childDescription}.`;
+    }
+
+    // Front-cover composition: every child centered, full-bodied, never cropped.
+    if (pageType === "cover" && !prompt) {
+      imagePrompt += ` COVER COMPOSITION (CRITICAL): This is the FRONT COVER — compose a SQUARE image. Feature ALL of the book's child characters together as the central subject, posed close together and CENTERED in the frame, each child's FULL body visible (head, hands, and feet all inside the frame). Leave generous empty margin/padding on all four sides around the whole group so that NO character and no part of any character is cropped, cut off, or touching any edge of the image. If there are multiple children, balance them symmetrically around the center — do not push any child to the edge. Keep the upper area a little clearer so the title can sit over the top without covering faces.`;
     }
 
     // Inject per-child descriptions for multi-child books

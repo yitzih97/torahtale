@@ -464,6 +464,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 artStyle={book?.art_style || "cartoon"}
                 pages={pages}
                 onPagesChange={setPages}
+                editable
                 generationContext={{
                   childDescription: (book.story_data?.childDescriptions || [])[0]?.description || "",
                   referenceImage: (book.story_data?.childDescriptions || [])[0]?.photoUrl || null,
