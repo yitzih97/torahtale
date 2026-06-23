@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import torahTaleIcon from "@/assets/brand/torah-tale-icon.png.asset.json";
-import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png.asset.json";
+import torahTaleIcon from "@/assets/brand/torah-tale-icon.png";
+import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png";
 
 interface BrandMarkProps {
   className?: string;
@@ -13,13 +13,13 @@ export const BrandMark = ({ className, iconClassName, wordmarkClassName, stacked
   return (
     <div className={cn("flex items-center", stacked ? "flex-col gap-3" : "gap-3", className)}>
       <img
-        src={torahTaleIcon.url}
+        src={torahTaleIcon}
         alt="Torah Tale icon"
         className={cn("object-contain", stacked ? "h-14 w-14" : "h-10 w-10", iconClassName)}
         loading="eager"
       />
       <img
-        src={torahTaleWordmark.url}
+        src={torahTaleWordmark}
         alt="Torah Tale"
         className={cn("object-contain", stacked ? "h-10 w-auto" : "h-8 w-auto", wordmarkClassName)}
         loading="eager"

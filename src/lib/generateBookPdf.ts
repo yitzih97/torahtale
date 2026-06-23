@@ -1,8 +1,8 @@
 import jsPDF from "jspdf";
 import { BOOK_TEXT_STYLE, COVER_TAGLINE, COVER_URL, type BookPage } from "@/components/wizard/BookViewer";
 import { DEFAULT_TEXT_LAYOUT, makeDefaultLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
-import torahTaleIcon from "@/assets/brand/torah-tale-icon.png.asset.json";
-import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png.asset.json";
+import torahTaleIcon from "@/assets/brand/torah-tale-icon.png";
+import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png";
 
 /* Spread = 2:1 landscape sheet. Image fills one half, text composited
    per page from BookPage.textLayout. */
@@ -201,7 +201,7 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
   const ctx = canvas.getContext("2d")!;
   drawPaperHalf(ctx, "left");
 
-  const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon.url), safeLoad(torahTaleWordmark.url)]);
+  const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon), safeLoad(torahTaleWordmark)]);
   const logoTopY = SPREAD_H * 0.16;
   if (icon) {
     const iconH = 180;

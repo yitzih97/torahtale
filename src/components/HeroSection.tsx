@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import heroSceneDesktop from "@/assets/hero-scene-desktop.jpg";
-import heroMobileAsset from "@/assets/hero-mobile.png.asset.json";
-import heroTabletAsset from "@/assets/hero-tablet.png.asset.json";
+import heroMobileAsset from "@/assets/hero-mobile.png";
+import heroTabletAsset from "@/assets/hero-tablet.png";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
 import reviewer3 from "@/assets/avatars/reviewer3.jpg";
@@ -105,9 +105,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
       {/* Mobile/tablet hero background — full image with kids + book */}
       <picture>
-        <source media="(min-width: 640px) and (max-width: 1023px)" srcSet={heroTabletAsset.url} />
+        <source media="(min-width: 640px) and (max-width: 1023px)" srcSet={heroTabletAsset} />
         <img
-          src={heroMobileAsset.url}
+          src={heroMobileAsset}
           alt=""
           aria-hidden="true"
           className="lg:hidden pointer-events-none select-none absolute inset-x-0 top-0 w-full h-auto"
