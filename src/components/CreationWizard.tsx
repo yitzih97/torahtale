@@ -334,6 +334,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       step,
       planType,
       bookOptionsChosenEarly,
+      savedBookId,
       data: {
         ...data,
         children: data.children.map(c => ({ ...c, photo: null })), // can't serialize File
@@ -347,7 +348,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     try {
       localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
     } catch { /* ignore quota */ }
-  }, [step, planType, bookOptionsChosenEarly, data, shipping, bookOptions, portionFilter, quantity]);
+  }, [step, planType, bookOptionsChosenEarly, savedBookId, data, shipping, bookOptions, portionFilter, quantity]);
 
   // Restore wizard state on mount (whether logged in or not)
   useEffect(() => {
@@ -365,6 +366,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         }
         if (typeof parsed.bookOptionsChosenEarly === "boolean") {
           setBookOptionsChosenEarly(parsed.bookOptionsChosenEarly);
+        }
+        // Restore the already-created book id so checkout works after a
+        // refresh/close/login. Without this, savedBookId is null on return and
+        // handlePlaceOrder wrongly reports the book "isn't ready yet".
+        if (typeof parsed.savedBookId === "string" && parsed.savedBookId) {
+          setSavedBookId(parsed.savedBookId);
         }
         const restoredData = parsed.data || initialData;
         if (!restoredData.language || restoredData.language === "english") {
@@ -406,6 +413,29 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       saveWizardState();
     }
   }, [saveWizardState, step, data]);
+
+  // Self-heal: if we're logged in but lost the book id (e.g. localStorage was
+  // cleared, or the book was created in a prior session before savedBookId was
+  // persisted), adopt the user's most recent unpaid book so checkout isn't
+  // wrongly blocked with "your book isn't ready yet".
+  useEffect(() => {
+    if (!user || savedBookId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: book, error } = await supabase
+        .from("books")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "awaiting_payment")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled && !error && book?.id) {
+        setSavedBookId(book.id);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, savedBookId]);
 
   // Cleanup auto-advance timer
   useEffect(() => {
