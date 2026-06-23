@@ -23,6 +23,8 @@ import presetToddlerBoy from "@/assets/presets/toddler-boy-cartoon.jpg";
 import presetToddlerGirl from "@/assets/presets/toddler-girl-cartoon.jpg";
 import presetPreschoolBoy from "@/assets/presets/preschool-boy-cartoon.jpg";
 import presetPreschoolGirl from "@/assets/presets/preschool-girl-cartoon.jpg";
+import presetEarlyReaderBoy from "@/assets/presets/early-reader-boy-cartoon.jpg";
+import presetEarlyReaderGirl from "@/assets/presets/early-reader-girl-cartoon.jpg";
 import presetExplorerBoy from "@/assets/presets/explorer-boy-cartoon.jpg";
 import presetExplorerGirl from "@/assets/presets/explorer-girl-cartoon.jpg";
 import presetPreteenBoy from "@/assets/presets/preteen-boy-cartoon.jpg";
@@ -74,8 +76,8 @@ const getStylePreset = (gender: string, style: string): string => {
 const getAgePreset = (gender: string, ageLabel: string): string => {
   const g = gender || "boy";
   const map: Record<string, Record<string, string>> = {
-    boy: { "2-3": presetToddlerBoy, "4-5": presetPreschoolBoy, "6-7": presetBoyCartoon, "8-9": presetExplorerBoy, "10-12": presetPreteenBoy },
-    girl: { "2-3": presetToddlerGirl, "4-5": presetPreschoolGirl, "6-7": presetGirlCartoon, "8-9": presetExplorerGirl, "10-12": presetPreteenGirl },
+    boy: { "2-3": presetToddlerBoy, "4-5": presetPreschoolBoy, "6-7": presetEarlyReaderBoy, "8-9": presetExplorerBoy, "10-12": presetPreteenBoy },
+    girl: { "2-3": presetToddlerGirl, "4-5": presetPreschoolGirl, "6-7": presetEarlyReaderGirl, "8-9": presetExplorerGirl, "10-12": presetPreteenGirl },
   };
   return map[g]?.[ageLabel] || (g === "girl" ? presetGirlCartoon : presetBoyCartoon);
 };
@@ -384,8 +386,23 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                       <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
                         <Calendar className="w-6 h-6 text-accent" /> How old is {name || "your child"}?
                       </h2>
-                      <p className="text-muted-foreground text-sm mt-1">We'll match the character's look to their age.</p>
+                      <p className="text-muted-foreground text-sm mt-1">Type their age, or tap an age group below.</p>
                     </div>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={15}
+                      placeholder="Age"
+                      value={age}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "" || (parseInt(val) >= 0 && parseInt(val) <= 15)) {
+                          setAge(val);
+                        }
+                      }}
+                      className="rounded-2xl h-20 text-4xl text-center font-bold border-2 border-border/40 bg-card/60 backdrop-blur-sm focus:border-accent/50 focus:ring-accent/20 placeholder:text-muted-foreground/30"
+                      autoFocus
+                    />
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                       {AGE_BRACKETS.map((bracket) => {
                         const isSelected = age && parseInt(age) >= bracket.min && parseInt(age) <= bracket.max;

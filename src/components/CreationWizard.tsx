@@ -44,6 +44,8 @@ import presetToddlerBoy from "@/assets/presets/toddler-boy-cartoon.jpg";
 import presetToddlerGirl from "@/assets/presets/toddler-girl-cartoon.jpg";
 import presetPreschoolBoy from "@/assets/presets/preschool-boy-cartoon.jpg";
 import presetPreschoolGirl from "@/assets/presets/preschool-girl-cartoon.jpg";
+import presetEarlyReaderBoy from "@/assets/presets/early-reader-boy-cartoon.jpg";
+import presetEarlyReaderGirl from "@/assets/presets/early-reader-girl-cartoon.jpg";
 import presetExplorerBoy from "@/assets/presets/explorer-boy-cartoon.jpg";
 import presetExplorerGirl from "@/assets/presets/explorer-girl-cartoon.jpg";
 import presetPreteenBoy from "@/assets/presets/preteen-boy-cartoon.jpg";
@@ -145,8 +147,8 @@ const getStylePreset = (gender: string, style: string): string => {
 const getAgePreset = (gender: string, ageLabel: string): string => {
   const g = gender || "boy";
   const map: Record<string, Record<string, string>> = {
-    boy: { "2-3": presetToddlerBoy, "4-5": presetPreschoolBoy, "6-7": presetBoyCartoon, "8-9": presetExplorerBoy, "10-12": presetPreteenBoy },
-    girl: { "2-3": presetToddlerGirl, "4-5": presetPreschoolGirl, "6-7": presetGirlCartoon, "8-9": presetExplorerGirl, "10-12": presetPreteenGirl },
+    boy: { "2-3": presetToddlerBoy, "4-5": presetPreschoolBoy, "6-7": presetEarlyReaderBoy, "8-9": presetExplorerBoy, "10-12": presetPreteenBoy },
+    girl: { "2-3": presetToddlerGirl, "4-5": presetPreschoolGirl, "6-7": presetEarlyReaderGirl, "8-9": presetExplorerGirl, "10-12": presetPreteenGirl },
   };
   return map[g]?.[ageLabel] || (g === "girl" ? presetGirlCartoon : presetBoyCartoon);
 };
