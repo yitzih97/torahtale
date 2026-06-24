@@ -44,6 +44,31 @@ export async function cropFromDataUrl(
   return { file, dataUrl };
 }
 
+/**
+ * Downscale a data URL to a max dimension and re-encode as JPEG. Keeps the
+ * payload sent to the detection edge function small so it can't time out / OOM
+ * on a full-resolution phone photo. Detection bboxes are normalized 0..1, so a
+ * smaller image still maps back onto the original for cropping.
+ */
+export async function downscaleDataUrl(src: string, maxDim = 1024, quality = 0.82): Promise<string> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const i = new window.Image();
+    i.onload = () => resolve(i);
+    i.onerror = reject;
+    i.src = src;
+  });
+  const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+  if (scale >= 1) return src; // already small enough
+  const w = Math.round(img.naturalWidth * scale);
+  const h = Math.round(img.naturalHeight * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
 export async function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const r = new FileReader();

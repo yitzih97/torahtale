@@ -22,6 +22,7 @@ import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, g
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getUpcomingParsha, stripSeferPrefix, type TorahOption } from "./wizard/TorahPortions";
+import { PortionIcon } from "./wizard/portionIcons";
 import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -1213,8 +1214,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {[
-                    { key: "boy", label: t.wizard.boy, emoji: "👦", tile: "from-sky-100 to-sky-50" },
-                    { key: "girl", label: t.wizard.girl, emoji: "👧", tile: "from-rose-100 to-rose-50" },
+                    { key: "boy", label: t.wizard.boy, Icon: User, tile: "from-sky-100 to-sky-50", color: "text-sky-600" },
+                    { key: "girl", label: t.wizard.girl, Icon: User, tile: "from-rose-100 to-rose-50", color: "text-rose-500" },
                   ].map((g) => {
                     const selected = child.gender === g.key;
                     return (
@@ -1230,8 +1231,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         className={glassCard(selected)}
                       >
                         <div className="flex flex-col items-center justify-center gap-3.5 px-4 py-7 sm:py-8">
-                          <span className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${g.tile} flex items-center justify-center text-[2.75rem] sm:text-5xl shadow-inner ring-1 ring-foreground/5`}>
-                            {g.emoji}
+                          <span className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${g.tile} flex items-center justify-center shadow-inner ring-1 ring-foreground/5`}>
+                            <g.Icon className={`w-9 h-9 sm:w-11 sm:h-11 ${g.color}`} strokeWidth={1.75} />
                           </span>
                           <span className="text-base sm:text-lg font-semibold text-foreground">{g.label}</span>
                         </div>
@@ -1521,9 +1522,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         : "border-border/40 bg-card/70 hover:border-accent/40 hover:bg-accent/5 hover:shadow-sm backdrop-blur-sm"
                     }`}
                   >
-                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg transition-colors ${selected ? "bg-accent/15" : "bg-muted/50 group-hover:bg-accent/10"}`}>{p.emoji || "📖"}</span>
+                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${selected ? "bg-accent/15 text-accent" : "bg-muted/50 text-foreground/70 group-hover:bg-accent/10 group-hover:text-accent"}`}><PortionIcon name={p.icon} className="w-[18px] h-[18px]" /></span>
                     <span className="font-display text-sm font-semibold text-foreground leading-snug pe-5">{short ? stripSeferPrefix(title) : title}</span>
-                    <span className="text-[11px] text-muted-foreground font-medium leading-snug">{short ? stripSeferPrefix(subtitle) : subtitle}</span>
+                    {!isHe && (
+                      <span className="text-[11px] text-muted-foreground font-medium leading-snug">{short ? stripSeferPrefix(subtitle) : subtitle}</span>
+                    )}
                     {selected && (
                       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 20 }} className="absolute top-2.5 end-2.5 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
                         <Check className="w-3 h-3 text-accent-foreground" />
@@ -1574,7 +1577,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       ? t.wizard.chooseParsha
                       : portionView === "category"
                         ? t.wizard.chooseCategory
-                        : catMeta.label}
+                        : (isHe ? catMeta.labelHe : catMeta.label)}
                   </h2>
                 </motion.div>
 
@@ -1594,8 +1597,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         }`}
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0">
-                            <span className="text-2xl">{upcoming.emoji || "📜"}</span>
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0 text-accent">
+                            <PortionIcon name={upcoming.icon} className="w-6 h-6" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-[10px] text-accent font-semibold uppercase tracking-wide flex items-center gap-1">
@@ -1622,8 +1625,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       className="w-full relative p-5 rounded-2xl border-2 border-border/50 bg-card/60 text-start transition-all duration-300 hover:border-accent/50 hover:shadow-md backdrop-blur-sm"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center flex-shrink-0">
-                          <span className="text-2xl">📚</span>
+                        <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center flex-shrink-0 text-foreground/70">
+                          <PortionIcon name="BookOpen" className="w-6 h-6" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="font-display text-base sm:text-lg font-bold text-foreground leading-tight">{t.wizard.chooseDifferentStory}</p>
@@ -1654,8 +1657,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                           }}
                           className="relative p-5 rounded-2xl border-2 border-border/50 bg-card/60 hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 backdrop-blur-sm flex flex-col items-center gap-2 text-center"
                         >
-                          <span className="text-3xl">{meta.emoji}</span>
-                          <span className="font-display text-sm font-semibold text-foreground">{meta.label}</span>
+                          <span className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent"><PortionIcon name={meta.icon} className="w-6 h-6" /></span>
+                          <span className="font-display text-sm font-semibold text-foreground">{isHe ? meta.labelHe : meta.label}</span>
                         </motion.button>
                       );
                     })}
@@ -1693,10 +1696,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                               onClick={() => setExpandedBook(isExpanded ? null : book)}
                               className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-accent/5 transition-colors"
                             >
-                              <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 transition-colors ${isExpanded || hasSelected ? "bg-accent/15" : "bg-muted/50"}`}>📖</span>
+                              <span className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${isExpanded || hasSelected ? "bg-accent/15 text-accent" : "bg-muted/50 text-foreground/70"}`}><PortionIcon name="Book" className="w-[18px] h-[18px]" /></span>
                               <span className="min-w-0 flex-1 text-start">
                                 <span className="font-display text-sm font-semibold text-foreground block leading-tight truncate">{isHe ? seferLabel.he : seferLabel.en}</span>
-                                <span className="text-muted-foreground/70 text-[11px] font-normal block truncate">{isHe ? seferLabel.en : seferLabel.he}</span>
+                                {!isHe && (
+                                  <span className="text-muted-foreground/70 text-[11px] font-normal block truncate">{seferLabel.he}</span>
+                                )}
                               </span>
                               {hasSelected && <Check className="w-4 h-4 text-accent flex-shrink-0" />}
                               <span className="text-[10px] font-semibold text-muted-foreground bg-muted/60 rounded-full px-2 py-0.5 flex-shrink-0">{bookPortions.length}</span>
