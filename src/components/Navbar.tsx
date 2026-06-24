@@ -68,7 +68,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
           <span className="sr-only">{brandName}</span>
         </a>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
               key={link.href}
@@ -97,23 +97,23 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
 
           {user ? (
             <>
-              <a href="/dashboard" className={`text-sm font-medium transition-colors duration-500 hidden sm:flex items-center gap-1.5 ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>
+              <a href="/dashboard" className={`text-sm font-medium transition-colors duration-500 hidden lg:flex items-center gap-1.5 ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>
                 <User className="w-4 h-4" /> {t.nav.dashboard}
               </a>
-              <button onClick={signOut} className={`p-2 rounded-full transition-colors hidden sm:block ${solid ? "text-muted-foreground hover:text-destructive hover:bg-muted" : "text-white/70 hover:text-white hover:bg-white/10"}`} aria-label={t.nav.signOut}>
+              <button onClick={signOut} className={`p-2 rounded-full transition-colors hidden lg:block ${solid ? "text-muted-foreground hover:text-destructive hover:bg-muted" : "text-white/70 hover:text-white hover:bg-white/10"}`} aria-label={t.nav.signOut}>
                 <LogOut className="w-4 h-4" />
               </button>
             </>
           ) : (
-            <a href="/auth" className={`text-sm font-medium transition-colors duration-500 hidden sm:block ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>{t.nav.login}</a>
+            <a href="/auth" className={`text-sm font-medium transition-colors duration-500 hidden lg:block ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>{t.nav.login}</a>
           )}
 
           {onStart && (
-            <Button variant="gold" size="sm" onClick={onStart} className="rounded-full px-5 hidden sm:inline-flex">{t.nav.createSefer}</Button>
+            <Button variant="gold" size="sm" onClick={onStart} className="rounded-full px-5 hidden lg:inline-flex">{t.nav.createSefer}</Button>
           )}
 
           {/* Mobile hamburger */}
-          <button onClick={() => setMobileOpen(true)} className={`md:hidden p-2 rounded-lg transition-colors ${solid ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`} aria-label="Open menu">
+          <button onClick={() => setMobileOpen(true)} className={`lg:hidden p-2 rounded-lg transition-colors ${solid ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`} aria-label="Open menu">
             <Menu className="w-5 h-5" />
           </button>
         </div>
