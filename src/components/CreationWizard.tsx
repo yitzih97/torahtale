@@ -828,7 +828,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       case 2: return !!child.gender;
       case 3: return !!child.age && parseInt(child.age) >= 1 && parseInt(child.age) <= 15;
       case 4: return !!data.artStyle;
-      case 5: return true;
+      // Photo step: every child needs either an image OR a description of 3+ words.
+      case 5: return data.children.every((c) =>
+        !!c.photoPreview || !!c.existingPhotoUrl ||
+        (c.description || "").trim().split(/\s+/).filter(Boolean).length >= 3);
       case 6: return !!data.torahPortion;
       case 7: return selectedLanguages.length >= 1;
       case 8: return true;
@@ -1452,6 +1455,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       onChange={(e) => updateChild(child.id, { description: e.target.value })}
                       className="rounded-xl min-h-[120px] text-sm border-border/40 bg-background/50"
                     />
+                    {!child.photoPreview && !child.existingPhotoUrl &&
+                      (child.description || "").trim().split(/\s+/).filter(Boolean).length < 3 && (
+                        <p className="mt-2 text-[11px] text-muted-foreground">
+                          {t.wizard.photoOrDescHint || "Add a photo, or describe your child in at least 3 words, to continue."}
+                        </p>
+                    )}
                   </motion.div>
                 </div>
 

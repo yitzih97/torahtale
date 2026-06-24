@@ -53,9 +53,14 @@ export const FamilyPhotoDialog = ({ open, onOpenChange, t, onConfirm }: Props) =
       const dataUrl = await fileToDataUrl(file);
       setSourceDataUrl(dataUrl);
       const base64 = dataUrl.split(",")[1];
-      const { data, error } = await supabase.functions.invoke("detect-family-photo", {
+      // Hard client-side timeout so the spinner can never hang indefinitely.
+      const timeout = new Promise<never>((_, rej) =>
+        setTimeout(() => rej(new Error(t.wizard.detectTimeout || "This is taking too long. Please try again, or skip and describe your child instead.")), 35000),
+      );
+      const invoke = supabase.functions.invoke("detect-family-photo", {
         body: { imageBase64: base64, mimeType: file.type || "image/jpeg" },
       });
+      const { data, error } = await Promise.race([invoke, timeout]);
       if (error) throw error;
       const detected: DetectedPerson[] = data?.people || [];
       if (!detected.length) {
@@ -120,10 +125,10 @@ export const FamilyPhotoDialog = ({ open, onOpenChange, t, onConfirm }: Props) =
         onOpenChange(v);
       }}
     >
-      <DialogContent className="max-w-lg p-0 overflow-hidden rounded-3xl max-h-[90vh] flex flex-col border-border/40 shadow-2xl">
+      <DialogContent className="wizard-glass max-w-lg p-0 overflow-hidden rounded-3xl max-h-[90vh] flex flex-col border-border/40 shadow-2xl">
         <div className="relative p-6 bg-gradient-to-br from-accent/15 via-accent/5 to-transparent border-b border-border/40">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-accent to-[hsl(var(--gold-dark))] flex items-center justify-center shadow-lg shadow-accent/20 shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20 shrink-0">
               <Users className="w-5 h-5 text-accent-foreground" />
             </div>
             <div className="min-w-0">
@@ -238,10 +243,10 @@ export const FamilyPhotoDialog = ({ open, onOpenChange, t, onConfirm }: Props) =
 
         {people.length > 0 && (
           <div className="px-5 py-4 border-t border-border/40 flex gap-2 justify-end">
-            <Button variant="outline" onClick={reset}>
+            <Button variant="outline" onClick={reset} className="rounded-full">
               {t.wizard.tryAgain || "Try Again"}
             </Button>
-            <Button variant="gold" onClick={handleConfirm}>
+            <Button onClick={handleConfirm} className="rounded-full bg-foreground text-background hover:bg-foreground/90">
               {t.wizard.addToBook}
             </Button>
           </div>
