@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Pencil, Download, Loader2 } from "lucide-react";
 import { generateBookPdf } from "@/lib/generateBookPdf";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   open: boolean;
@@ -19,11 +20,12 @@ interface Props {
 
 export const BookViewerModal = ({ open, onClose, childName, torahPortion, artStyle, pages, onEdit, onReorder }: Props) => {
   const [downloading, setDownloading] = useState(false);
+  const { dir } = useLanguage();
 
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
-      const blob = await generateBookPdf(pages, childName, torahPortion);
+      const blob = await generateBookPdf(pages, childName, torahPortion, dir === "rtl");
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

@@ -21,16 +21,19 @@ export interface TextLayout {
 export const DEFAULT_FONT_FAMILY = "'Cormorant Garamond', 'Georgia', serif";
 
 export const DEFAULT_TEXT_LAYOUT: TextLayout = {
-  x: 52,
-  y: 12,
-  width: 44,
+  x: 6,
+  y: 9,
+  width: 42,
   fontFamily: DEFAULT_FONT_FAMILY,
-  fontSize: 19,
+  fontSize: 20,
   color: "#2b2418",
   align: "left",
   bold: false,
   italic: false,
-  background: true,
+  // The illustration now fills the whole spread with an open sky/negative-space
+  // area for text (hero-style), so the text sits directly on the art by default
+  // — no cream box, no border. Both remain toggleable from the toolbar.
+  background: false,
   border: false,
 };
 
@@ -45,12 +48,14 @@ export const FONT_OPTIONS = [
 export const COLOR_SWATCHES = ["#2b2418", "#ffffff", "#fcf7ec", "#b88a2a", "#1a1a1a", "#7a1818"];
 
 export function makeDefaultLayout(side: "left" | "right", rtl = false): TextLayout {
-  // Image fills the opposite half; text sits centered on this side.
+  // The illustration spans the full spread; text rests over the open sky on the
+  // chosen side (left for LTR, right for RTL), near the top like the hero.
   const onLeft = side === "left";
   return {
     ...DEFAULT_TEXT_LAYOUT,
-    x: onLeft ? 4 : 52,
-    width: 44,
+    x: onLeft ? 6 : 52,
+    y: 9,
+    width: 42,
     align: rtl ? "right" : "left",
   };
 }
