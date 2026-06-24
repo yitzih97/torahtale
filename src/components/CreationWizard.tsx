@@ -6,7 +6,7 @@ import {
   Users, BookOpen, Palette, Package, Check,
   Camera, Sun, User, Type, Calendar, Heart, Image, PenLine,
   Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, getColoringBookAddonPrice, getStoryPageCount, type BookOptions } from "./wizard/BookOptionsStep";
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
-import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getUpcomingParsha, type TorahOption } from "./wizard/TorahPortions";
+import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getUpcomingParsha, stripSeferPrefix, type TorahOption } from "./wizard/TorahPortions";
 import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -1491,28 +1491,35 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 ? filteredPortions
                 : TORAH_PORTIONS.filter((p) => p.category === portionFilter);
               const catMeta = CATEGORY_META[portionFilter];
-              const renderStoryCard = (p: TorahOption) => (
-                <motion.button
-                  key={p.value}
-                  whileHover={{ y: -2, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => { update({ torahPortion: p.value }); autoAdvance(); }}
-                  className={`relative p-3 rounded-xl border-2 text-start transition-all duration-200 ${
-                    data.torahPortion === p.value
-                      ? "border-accent bg-accent/8 shadow-md shadow-accent/10"
-                      : "border-transparent bg-muted/30 hover:border-accent/30 hover:bg-muted/50 backdrop-blur-sm"
-                  }`}
-                >
-                  <span className="text-lg block mb-1.5">{p.emoji || "📖"}</span>
-                  <span className="font-display text-xs sm:text-sm font-semibold text-foreground block leading-tight">{isHe ? p.sub : p.label}</span>
-                  <span className="text-[10px] text-muted-foreground mt-1 block font-medium">{isHe ? p.label : p.sub}</span>
-                  {data.torahPortion === p.value && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 20 }} className="absolute top-2 end-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
-                      <Check className="w-3 h-3 text-accent-foreground" />
-                    </motion.div>
-                  )}
-                </motion.button>
-              );
+              // `short` strips the "Sefer X – " prefix (used inside a sefer accordion,
+              // where the header already names the sefer).
+              const renderStoryCard = (p: TorahOption, short = false) => {
+                const selected = data.torahPortion === p.value;
+                const title = isHe ? p.sub : p.label;
+                const subtitle = isHe ? p.label : p.sub;
+                return (
+                  <motion.button
+                    key={p.value}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => { update({ torahPortion: p.value }); autoAdvance(); }}
+                    className={`group relative flex flex-col items-start gap-2 p-3.5 rounded-2xl border text-start transition-all duration-200 ${
+                      selected
+                        ? "border-accent bg-accent/10 shadow-md shadow-accent/15 ring-1 ring-accent/40"
+                        : "border-border/40 bg-card/70 hover:border-accent/40 hover:bg-accent/5 hover:shadow-sm backdrop-blur-sm"
+                    }`}
+                  >
+                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg transition-colors ${selected ? "bg-accent/15" : "bg-muted/50 group-hover:bg-accent/10"}`}>{p.emoji || "📖"}</span>
+                    <span className="font-display text-sm font-semibold text-foreground leading-snug pe-5">{short ? stripSeferPrefix(title) : title}</span>
+                    <span className="text-[11px] text-muted-foreground font-medium leading-snug">{short ? stripSeferPrefix(subtitle) : subtitle}</span>
+                    {selected && (
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 20 }} className="absolute top-2.5 end-2.5 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                        <Check className="w-3 h-3 text-accent-foreground" />
+                      </motion.div>
+                    )}
+                  </motion.button>
+                );
+              };
 
               return (
               <section
@@ -1653,32 +1660,38 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         onChange={(e) => setPortionSearch(e.target.value)}
                         className="rounded-2xl h-11 text-sm ps-10 bg-card/60 border-border/40 focus:border-accent/50 shadow-sm backdrop-blur-sm"
                       />
-                      <BookOpen className="w-4 h-4 text-muted-foreground/50 absolute start-3.5 top-1/2 -translate-y-1/2" />
+                      <Search className="w-4 h-4 text-muted-foreground/50 absolute start-3.5 top-1/2 -translate-y-1/2" />
                     </motion.div>
 
-                    <motion.div variants={staggerChild} className="max-h-[42vh] overflow-y-auto pe-1 scrollbar-thin space-y-3">
+                    <motion.div variants={staggerChild} className="max-h-[44vh] overflow-y-auto pe-1 scrollbar-thin space-y-2.5">
                       {showAccordion && catBooks!.map((book) => {
                         const bookPortions = TORAH_PORTIONS.filter((p) => p.category === portionFilter && p.book === book);
                         if (bookPortions.length === 0) return null;
                         const isExpanded = expandedBook === book;
                         const seferLabel = BOOK_LABELS[book] || { en: book, he: book };
+                        const hasSelected = bookPortions.some((p) => p.value === data.torahPortion);
                         return (
-                          <div key={book} className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden">
+                          <div
+                            key={book}
+                            className={`rounded-2xl border bg-card/60 backdrop-blur-sm overflow-hidden transition-colors ${
+                              isExpanded || hasSelected ? "border-accent/40 shadow-sm" : "border-border/40"
+                            }`}
+                          >
                             <button
                               onClick={() => setExpandedBook(isExpanded ? null : book)}
-                              className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
+                              className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-accent/5 transition-colors"
                             >
-                              <span className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
-                                <span className="text-base">📖</span>
-                                <span>{isHe ? seferLabel.he : seferLabel.en}</span>
-                                <span className="text-muted-foreground/70 text-xs font-normal">
-                                  {isHe ? `/ ${seferLabel.en}` : `/ ${seferLabel.he}`}
-                                </span>
+                              <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 transition-colors ${isExpanded || hasSelected ? "bg-accent/15" : "bg-muted/50"}`}>📖</span>
+                              <span className="min-w-0 flex-1 text-start">
+                                <span className="font-display text-sm font-semibold text-foreground block leading-tight truncate">{isHe ? seferLabel.he : seferLabel.en}</span>
+                                <span className="text-muted-foreground/70 text-[11px] font-normal block truncate">{isHe ? seferLabel.en : seferLabel.he}</span>
                               </span>
+                              {hasSelected && <Check className="w-4 h-4 text-accent flex-shrink-0" />}
+                              <span className="text-[10px] font-semibold text-muted-foreground bg-muted/60 rounded-full px-2 py-0.5 flex-shrink-0">{bookPortions.length}</span>
                               <motion.span
                                 animate={{ rotate: isExpanded ? 180 : 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="text-xs text-muted-foreground"
+                                className="text-[10px] text-muted-foreground flex-shrink-0"
                               >▼</motion.span>
                             </button>
                             <AnimatePresence>
@@ -1690,8 +1703,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                                   transition={{ duration: 0.25 }}
                                   className="overflow-hidden"
                                 >
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 pt-0">
-                                    {bookPortions.map(renderStoryCard)}
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 pt-1">
+                                    {bookPortions.map((p) => renderStoryCard(p, true))}
                                   </div>
                                 </motion.div>
                               )}
@@ -1701,8 +1714,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       })}
 
                       {!showAccordion && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {flatList.map(renderStoryCard)}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                          {flatList.map((p) => renderStoryCard(p))}
                           {flatList.length === 0 && (
                             <p className="col-span-full text-center text-sm text-muted-foreground py-8">{t.wizard.noStories}</p>
                           )}
