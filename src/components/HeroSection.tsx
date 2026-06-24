@@ -6,6 +6,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import heroSceneDesktop from "@/assets/hero-scene-desktop.jpg";
 import heroMobileAsset from "@/assets/hero-mobile.png";
 import heroTabletAsset from "@/assets/hero-tablet.png";
+import heroSceneDesktopHe from "@/assets/hero-scene-desktop-he.jpg";
+import heroMobileHe from "@/assets/hero-mobile-he.png";
+import heroTabletHe from "@/assets/hero-tablet-he.png";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
 import reviewer3 from "@/assets/avatars/reviewer3.jpg";
@@ -19,6 +22,13 @@ interface HeroSectionProps {
 export const HeroSection = ({ onStart }: HeroSectionProps) => {
   const { t, dir, lang } = useLanguage();
   const isRtl = dir === "rtl";
+  const isHebrew = lang === "he" || lang === "yi";
+
+  // Hebrew gets its own hero artwork (already composed for RTL — kids on the
+  // left, copy space on the right), so no mirror-flip is needed for it.
+  const heroDesktopSrc = isHebrew ? heroSceneDesktopHe : heroSceneDesktop;
+  const heroMobileSrc = isHebrew ? heroMobileHe : heroMobileAsset;
+  const heroTabletSrc = isHebrew ? heroTabletHe : heroTabletAsset;
 
   const copy = lang === "he" || lang === "yi"
     ? {
@@ -86,12 +96,14 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
     >
       {/* Hero scene image as background — desktop only; kids anchored to the side, text on cream */}
       <img
-        src={heroSceneDesktop}
+        src={heroDesktopSrc}
         alt="Two Jewish children with their personalized Torah storybook"
         className="hidden lg:block pointer-events-none select-none absolute inset-0 w-full h-full object-cover"
         style={{
           objectPosition: isRtl ? "left top" : "right top",
-          transform: isRtl ? "scaleX(-1)" : undefined,
+          // English art has the kids on the right and is mirrored for RTL; the
+          // Hebrew art is already drawn for RTL, so leave it un-flipped.
+          transform: isRtl && !isHebrew ? "scaleX(-1)" : undefined,
         }}
         width={1536}
         height={1024}
@@ -104,9 +116,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
       {/* Mobile/tablet hero background — full image with kids + book */}
       <picture>
-        <source media="(min-width: 640px) and (max-width: 1023px)" srcSet={heroTabletAsset} />
+        <source media="(min-width: 640px) and (max-width: 1023px)" srcSet={heroTabletSrc} />
         <img
-          src={heroMobileAsset}
+          src={heroMobileSrc}
           alt=""
           aria-hidden="true"
           className="lg:hidden pointer-events-none select-none absolute inset-x-0 top-0 w-full h-auto"
