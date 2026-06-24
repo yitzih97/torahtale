@@ -62,6 +62,9 @@ CREATE POLICY "Admins can update all subscriptions"
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin'));
 
--- Assign admin role to existing user
+-- Assign admin role to existing user (only if that auth user exists — guards
+-- fresh deploys to a new project where this legacy user id is absent).
 INSERT INTO public.user_roles (user_id, role)
-VALUES ('bdf484de-ba8d-404a-bd21-915da41543d6', 'admin');
+SELECT 'bdf484de-ba8d-404a-bd21-915da41543d6', 'admin'
+WHERE EXISTS (SELECT 1 FROM auth.users WHERE id = 'bdf484de-ba8d-404a-bd21-915da41543d6')
+ON CONFLICT DO NOTHING;

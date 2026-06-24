@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, RefreshCw, X, Wand2, Sparkles, BookOpen, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import type { TextStyle } from "./DraggableText";
@@ -19,6 +20,8 @@ export interface BookPage {
   type?: "cover" | "story" | "back-cover" | "questions";
   coverTitle?: string;
   coverSubtitle?: string;
+  /** Editable back-cover blurb (one line per row). Falls back to COVER_TAGLINE. */
+  backCoverText?: string;
   synopsis?: string;
   dedication?: string;
   questions?: { number: number; question: string }[];
@@ -51,6 +54,8 @@ interface Props {
   artStyle: string;
   pages: BookPage[];
   onPagesChange: (pages: BookPage[]) => void;
+  /** When true (admin), shows editing/regen controls. Customer views are read-only. */
+  editable?: boolean;
   generationContext?: {
     childDescription?: string;
     referenceImage?: string | null;
@@ -68,7 +73,7 @@ interface Props {
   };
 }
 
-export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesChange, generationContext }: Props) => {
+export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesChange, editable = false, generationContext }: Props) => {
   // Hide any legacy "back-cover" pages — the cover spread renders both sides.
   const displayPages = pages.filter((p) => p.type !== "back-cover");
 
@@ -78,6 +83,11 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   const [regeneratingId, setRegeneratingId] = useState<number | null>(null);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
+  // Cover text editor (front title/subtitle + back-cover blurb)
+  const [coverEditOpen, setCoverEditOpen] = useState(false);
+  const [coverTitleDraft, setCoverTitleDraft] = useState("");
+  const [coverSubtitleDraft, setCoverSubtitleDraft] = useState("");
+  const [backTextDraft, setBackTextDraft] = useState("");
   const spreadRef = useRef<HTMLDivElement>(null);
 
   const safeIndex = Math.min(currentPage, Math.max(displayPages.length - 1, 0));
@@ -99,6 +109,29 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
     updatePage(editingId, { text: editText });
     setEditingId(null);
     toast.success("Text updated");
+  };
+
+  const startCoverEdit = () => {
+    if (!page) return;
+    setCoverTitleDraft(page.coverTitle || "");
+    setCoverSubtitleDraft(page.coverSubtitle || "");
+    setBackTextDraft(
+      page.backCoverText && page.backCoverText.trim() ? page.backCoverText : COVER_TAGLINE.join("\n"),
+    );
+    setCoverEditOpen(true);
+  };
+
+  const saveCoverEdit = () => {
+    if (!page) return;
+    updatePage(page.id, {
+      coverTitle: coverTitleDraft,
+      coverSubtitle: coverSubtitleDraft,
+      // Keep title/text in sync — the cover page's `text` mirrors the title elsewhere.
+      text: coverTitleDraft,
+      backCoverText: backTextDraft,
+    });
+    setCoverEditOpen(false);
+    toast.success("Cover text updated");
   };
 
   const openPromptEditor = () => {
@@ -185,8 +218,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         <div className="relative">
           <BrandMark stacked iconClassName="h-12 w-12" wordmarkClassName="h-7" />
         </div>
-        <div className="relative font-body italic text-primary/80 leading-relaxed space-y-1 text-sm sm:text-base">
-          {COVER_TAGLINE.map((line, i) => (
+        <div className="relative font-body italic text-primary/80 leading-relaxed space-y-1 text-sm sm:text-base whitespace-pre-line">
+          {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : COVER_TAGLINE)).map((line, i) => (
             <p key={i}>{line}</p>
           ))}
         </div>
@@ -365,10 +398,16 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         ))}
       </div>
 
-      {/* Action buttons */}
+      {/* Action buttons (admin only) */}
+      {editable && (
       <div className="grid grid-cols-3 gap-2">
         {pageType === "story" && (
           <Button variant="outline" size="sm" onClick={startEdit} disabled={regeneratingId !== null} className="text-xs">
+            <Pencil className="w-3.5 h-3.5" /> Edit Text
+          </Button>
+        )}
+        {pageType === "cover" && (
+          <Button variant="outline" size="sm" onClick={startCoverEdit} disabled={regeneratingId !== null} className="text-xs">
             <Pencil className="w-3.5 h-3.5" /> Edit Text
           </Button>
         )}
@@ -377,7 +416,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           size="sm"
           onClick={() => regenImage()}
           disabled={regeneratingId !== null}
-          className={`text-xs ${pageType !== "story" ? "col-span-2" : ""}`}
+          className={`text-xs ${pageType !== "story" && pageType !== "cover" ? "col-span-2" : ""}`}
         >
           <RefreshCw className="w-3.5 h-3.5" /> Quick Regen
         </Button>
@@ -391,6 +430,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           <Wand2 className="w-3.5 h-3.5" /> Custom Prompt
         </Button>
       </div>
+      )}
 
       {/* Text editor */}
       {editingId !== null && (
@@ -419,6 +459,45 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
               <X className="w-3.5 h-3.5" /> Cancel
             </Button>
             <Button variant="gold" size="sm" onClick={saveEdit}>
+              <Sparkles className="w-3.5 h-3.5" /> Save text
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Cover text editor */}
+      {coverEditOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-3 rounded-book border border-accent/30 bg-accent/5 p-4"
+        >
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-semibold text-primary flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-accent" /> Edit cover text
+            </Label>
+            <button onClick={() => setCoverEditOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Front cover title</Label>
+            <Input value={coverTitleDraft} onChange={(e) => setCoverTitleDraft(e.target.value)} className="text-sm bg-card" placeholder="Book title…" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Front cover subtitle</Label>
+            <Input value={coverSubtitleDraft} onChange={(e) => setCoverSubtitleDraft(e.target.value)} className="text-sm bg-card" placeholder="Subtitle / tagline…" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Back cover text (one line per row)</Label>
+            <Textarea value={backTextDraft} onChange={(e) => setBackTextDraft(e.target.value)} rows={3} className="text-sm bg-card" placeholder={COVER_TAGLINE.join("\n")} />
+            <p className="text-[11px] text-muted-foreground">The Torah Tale logo and website are kept automatically.</p>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={() => setCoverEditOpen(false)}>
+              <X className="w-3.5 h-3.5" /> Cancel
+            </Button>
+            <Button variant="gold" size="sm" onClick={saveCoverEdit}>
               <Sparkles className="w-3.5 h-3.5" /> Save text
             </Button>
           </div>

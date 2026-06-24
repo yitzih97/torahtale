@@ -219,8 +219,11 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
   const tSize = 56;
   ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
   const cy = SPREAD_H * 0.62;
-  COVER_TAGLINE.forEach((line, i) => {
-    ctx.fillText(line, HALF_W / 2, cy + (i - (COVER_TAGLINE.length - 1) / 2) * (tSize * 1.35));
+  const taglineLines = page.backCoverText && page.backCoverText.trim()
+    ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
+    : COVER_TAGLINE;
+  taglineLines.forEach((line, i) => {
+    ctx.fillText(line, HALF_W / 2, cy + (i - (taglineLines.length - 1) / 2) * (tSize * 1.35));
   });
   ctx.fillStyle = "#b88a2a";
   ctx.font = `600 36px 'Inter', sans-serif`;

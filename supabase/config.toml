@@ -1,4 +1,4 @@
-project_id = "qfcuzhjtdqbjgawqgcvk"
+project_id = "cjgqpusyxvltglcbnpvg"
 
 # Inbound webhooks are called by Shopify/Printify without a Supabase JWT, so the
 # platform must not reject them before our own HMAC signature check runs.

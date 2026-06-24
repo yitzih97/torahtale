@@ -2,13 +2,12 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Pinned to the current Supabase project (gabrobnkelgxazjibbrm). Lovable
-// repeatedly regenerates this file pointing at the defunct qfcuzhjtdqbjgawqgcvk
-// project; until Lovable's Supabase integration is truly reconnected to the new
-// project, this pin must be restored after every Lovable push. Both values are
-// public/publishable.
-const SUPABASE_URL = "https://gabrobnkelgxazjibbrm.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_9YwM5OE70SQBgDYCV26n8g_unnkgxNH";
+// Pinned to the current Supabase project (cjgqpusyxvltglcbnpvg). Lovable
+// repeatedly regenerates this file pointing at a defunct project; until Lovable's
+// Supabase integration is truly reconnected to the new project, this pin must be
+// restored after every Lovable push. Both values are public/publishable.
+const SUPABASE_URL = "https://cjgqpusyxvltglcbnpvg.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Ic9uQiC0ATzTyMRzOXyWQA_7hnU8a2X";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
