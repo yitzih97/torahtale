@@ -73,11 +73,14 @@ serve(async (req) => {
     };
     const specs = bookFormat ? PRINT_SPECS[bookFormat] : null;
     const isCover = pageType === "cover" || pageType === "back-cover";
-    // The front cover is displayed and printed inside a SQUARE half-slot (the
-    // spread is 2:1, each half 1:1). Render the cover image square — not the full
-    // wide wrap — otherwise a wide image gets center-cropped into the square slot
-    // and edge characters get cut off. Use the cover height for both sides.
-    const dims = specs ? (isCover ? [specs.cover[1], specs.cover[1]] : specs.page) : null;
+    // The front cover is displayed and printed inside a SQUARE half-slot — render
+    // it square so a wide image isn't center-cropped and edge characters cut off.
+    // Story/interior pages now fill the FULL 2:1 spread (one illustration spans
+    // both pages, hero-style, with an open-sky area for text), so render them at a
+    // 2:1 aspect derived from the format's page height.
+    const dims = specs
+      ? (isCover ? [specs.cover[1], specs.cover[1]] : [specs.page[1] * 2, specs.page[1]])
+      : null;
 
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
@@ -168,6 +171,16 @@ serve(async (req) => {
     // Append dimension instructions for Printify print-ready output
     if (dims) {
       imagePrompt += ` The output image MUST be exactly ${dims[0]}x${dims[1]} pixels.`;
+    }
+
+    // Story/interior pages are one illustration spanning a full 2:1 two-page
+    // spread. Compose them cinematically with a generous open, low-detail area
+    // (sky / soft out-of-focus background) toward the top and one side so a
+    // paragraph of story text can rest legibly over the artwork — like a hero
+    // banner. Keep the main characters in the lower / opposite portion of the
+    // frame and never place important detail where the text sits.
+    if (!isCover && !prompt) {
+      imagePrompt += ` COMPOSITION: This is a wide 2:1 two-page spread illustration. Arrange it as a cinematic scene with the main character(s) placed toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and remain easy to read. Do NOT center the subject so tightly that there is no breathing room. Absolutely NO text, letters, or words in the image.`;
     }
 
     // Inject scene text (story page narrative) so the illustration depicts the right moment

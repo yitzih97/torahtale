@@ -146,27 +146,29 @@ function drawHalfImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, hal
   ctx.restore();
 }
 
-async function renderStorySpread(page: BookPage, storyIdx: number): Promise<string> {
-  // Same alternating side rule as BookViewer: text-on-left for even story idx
-  const textOnLeft = storyIdx % 2 === 0;
-  const imageOnLeft = !textOnLeft;
-  const layout = page.textLayout || makeDefaultLayout(textOnLeft ? "left" : "right");
+/** Cover-fit an image across the FULL 2:1 spread (mirrors CSS object-cover on
+ *  the whole spread, which the on-screen preview now uses for story pages). */
+function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement) {
+  const ratio = Math.max(SPREAD_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
+  const dw = img.naturalWidth * ratio;
+  const dh = img.naturalHeight * ratio;
+  ctx.drawImage(img, (SPREAD_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
+}
+
+async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean): Promise<string> {
+  // One illustration fills the whole spread; text floats over the open sky.
+  const layout = page.textLayout || makeDefaultLayout(rtl ? "right" : "left", rtl);
 
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W; canvas.height = SPREAD_H;
   const ctx = canvas.getContext("2d")!;
 
-  // Paper half (text side)
-  drawPaperHalf(ctx, textOnLeft ? "left" : "right");
-
-  // Image half (1:1 square fills the half exactly)
   const img = await safeLoad(page.image);
-  const halfX = imageOnLeft ? 0 : HALF_W;
   if (img) {
-    drawHalfImage(ctx, img, halfX);
+    drawFullImage(ctx, img);
   } else {
     ctx.fillStyle = "#dcd2bd";
-    ctx.fillRect(halfX, 0, HALF_W, SPREAD_H);
+    ctx.fillRect(0, 0, SPREAD_W, SPREAD_H);
   }
 
   drawGutter(ctx);
@@ -174,19 +176,17 @@ async function renderStorySpread(page: BookPage, storyIdx: number): Promise<stri
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-async function renderQuestionsSpread(page: BookPage): Promise<string> {
-  const layout = page.textLayout || makeDefaultLayout("left");
+async function renderQuestionsSpread(page: BookPage, rtl: boolean): Promise<string> {
+  const layout = page.textLayout || makeDefaultLayout(rtl ? "right" : "left", rtl);
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W; canvas.height = SPREAD_H;
   const ctx = canvas.getContext("2d")!;
-  // Image on right
-  drawPaperHalf(ctx, "left");
   const img = await safeLoad(page.image);
   if (img) {
-    drawHalfImage(ctx, img, HALF_W);
+    drawFullImage(ctx, img);
   } else {
     ctx.fillStyle = "#dcd2bd";
-    ctx.fillRect(HALF_W, 0, HALF_W, SPREAD_H);
+    ctx.fillRect(0, 0, SPREAD_W, SPREAD_H);
   }
   drawGutter(ctx);
   const questions = page.questions || [];
@@ -256,13 +256,38 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
     ctx.fillText(page.coverSubtitle, HALF_W + HALF_W / 2, 70 + titleLines.length * 90 + 18);
   }
   drawGutter(ctx);
+
+  // Spine — story title + kids' names down the center fold (mirrors the cover).
+  const spineW = SPREAD_W * 0.05;
+  const spineX = HALF_W - spineW / 2;
+  ctx.fillStyle = "#efe7d3";
+  ctx.fillRect(spineX, 0, spineW, SPREAD_H);
+  const spineShade = ctx.createLinearGradient(spineX, 0, spineX + spineW, 0);
+  spineShade.addColorStop(0, "rgba(0,0,0,0.16)");
+  spineShade.addColorStop(0.5, "rgba(0,0,0,0)");
+  spineShade.addColorStop(1, "rgba(0,0,0,0.16)");
+  ctx.fillStyle = spineShade;
+  ctx.fillRect(spineX, 0, spineW, SPREAD_H);
+  const spineText = [page.coverTitle?.trim(), page.coverSubtitle?.trim()].filter(Boolean).join("  ")
+    || `${childName}'s Torah Tale`;
+  ctx.save();
+  ctx.translate(HALF_W, SPREAD_H / 2);
+  ctx.rotate(Math.PI / 2);
+  ctx.fillStyle = "#2b2418";
+  ctx.font = `600 40px 'Playfair Display', serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(spineText, 0, 0);
+  ctx.restore();
+
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
 export async function generateBookPdf(
   pages: BookPage[],
   childName: string,
-  _torahPortion: string
+  _torahPortion: string,
+  rtl = false
 ): Promise<Blob> {
   const renderable = pages.filter((p) => p.type !== "back-cover");
   const pageW = 356; // mm (14")
@@ -277,9 +302,9 @@ export async function generateBookPdf(
     if (page.type === "cover") {
       dataUrl = await renderCoverSpread(page, childName);
     } else if (page.type === "questions") {
-      dataUrl = await renderQuestionsSpread(page);
+      dataUrl = await renderQuestionsSpread(page, rtl);
     } else {
-      dataUrl = await renderStorySpread(page, storyIdx);
+      dataUrl = await renderStorySpread(page, storyIdx, rtl);
       storyIdx += 1;
     }
     try {

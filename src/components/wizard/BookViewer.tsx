@@ -11,6 +11,7 @@ import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, type TextLayou
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface BookPage {
   id: number;
@@ -74,6 +75,11 @@ interface Props {
 }
 
 export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesChange, editable = false, generationContext }: Props) => {
+  const { dir } = useLanguage();
+  const isRtl = dir === "rtl";
+  // Default text side: over the open sky on the reading-start side.
+  const defaultTextSide: "left" | "right" = isRtl ? "right" : "left";
+
   // Hide any legacy "back-cover" pages — the cover spread renders both sides.
   const displayPages = pages.filter((p) => p.type !== "back-cover");
 
@@ -197,18 +203,18 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
     return `Spread ${storyIdx + 1} of ${storyPages.length}`;
   };
 
-  // Which half of the spread does the story-page text sit on?
-  // First story spread → LEFT, then alternates.
-  const storyTextOnLeft = (() => {
-    if (pageType !== "story") return true;
-    const storyPages = displayPages.filter((p) => p.type === "story");
-    const storyIdx = storyPages.findIndex((p) => p.id === page?.id);
-    return storyIdx % 2 === 0;
-  })();
-
   const isRegenThis = page && regeneratingId === page.id;
 
   /* ── Renderers ───────────────────────────────────────────────────── */
+
+  // Spine label — the Parasha/story title + kids' names, printed down the book's
+  // edge (mirrors the front cover). Falls back to portion + child name.
+  const spineLabel = (() => {
+    const title = page?.coverTitle?.trim();
+    const sub = page?.coverSubtitle?.trim();
+    if (title) return sub ? `${title}  ${sub}` : title;
+    return `${torahPortion || "Torah Tale"}${childName ? ` — ${childName}` : ""}`;
+  })();
 
   const renderCoverSpread = () => (
     <div className="absolute inset-0 grid grid-cols-2">
@@ -246,40 +252,48 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           )}
         </div>
       </div>
+
+      {/* Spine — story title + kids' names down the center fold */}
+      <div
+        className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center bg-[hsl(42_46%_89%)] shadow-[inset_3px_0_7px_rgba(0,0,0,0.14),inset_-3px_0_7px_rgba(0,0,0,0.14)]"
+        style={{ width: "5%" }}
+      >
+        <span
+          dir={dir}
+          className="font-display font-semibold tracking-wide text-primary/85 whitespace-nowrap text-[9px] sm:text-[11px] px-0.5"
+          style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+        >
+          {spineLabel}
+        </span>
+      </div>
     </div>
   );
 
   const renderStorySpread = () => {
-    const imageOnLeft = !storyTextOnLeft;
-    const layout = page?.textLayout || makeDefaultLayout(storyTextOnLeft ? "left" : "right");
+    // One illustration spans the whole 2:1 spread; the story text floats over the
+    // open sky area (hero-style), defaulting to the reading-start side.
+    const layout = page?.textLayout || makeDefaultLayout(defaultTextSide, isRtl);
     return (
-      <div className="absolute inset-0 grid grid-cols-2">
-        {/* Image half */}
-        <div className={`relative bg-muted ${imageOnLeft ? "order-1" : "order-2"}`}>
-          {page?.image ? (
-            <motion.img
-              key={`${page.id}-${page.image?.slice(-20)}`}
-              src={page.image}
-              alt={getPageLabel()}
-              className={`absolute inset-0 w-full h-full object-cover ${isRegenThis ? "animate-pulse opacity-50" : ""}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: isRegenThis ? 0.5 : 1 }}
-              transition={{ duration: 0.3 }}
-            />
-          ) : page?.imageLoading ? (
-            <BookLoadingSkeleton type="story" />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted">
-              <p className="text-muted-foreground text-sm">Generating illustration…</p>
-            </div>
-          )}
-        </div>
-        {/* Text-paper half */}
-        <div className={`relative bg-[hsl(42_50%_96%)] ${imageOnLeft ? "order-2" : "order-1"}`}>
-          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_50%,hsl(42_78%_80%/0.4),transparent_70%)]" />
-        </div>
+      <div className="absolute inset-0 bg-muted">
+        {page?.image ? (
+          <motion.img
+            key={`${page.id}-${page.image?.slice(-20)}`}
+            src={page.image}
+            alt={getPageLabel()}
+            className={`absolute inset-0 w-full h-full object-cover ${isRegenThis ? "animate-pulse opacity-50" : ""}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isRegenThis ? 0.5 : 1 }}
+            transition={{ duration: 0.3 }}
+          />
+        ) : page?.imageLoading ? (
+          <BookLoadingSkeleton type="story" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <p className="text-muted-foreground text-sm">Generating illustration…</p>
+          </div>
+        )}
 
-        {/* Draggable text on top of the whole spread */}
+        {/* Draggable text on top of the spread */}
         {page && (
           <EditableTextBox
             layout={layout}
@@ -287,7 +301,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             containerRef={spreadRef}
             onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
             onTextChange={(t) => updatePage(page.id, { text: t })}
-            onReset={() => updatePage(page.id, { textLayout: makeDefaultLayout(storyTextOnLeft ? "left" : "right") })}
+            onReset={() => updatePage(page.id, { textLayout: makeDefaultLayout(defaultTextSide, isRtl) })}
           />
         )}
       </div>
@@ -295,23 +309,18 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   };
 
   const renderQuestionsSpread = () => {
-    const layout = page?.textLayout || makeDefaultLayout("left");
+    const layout = page?.textLayout || makeDefaultLayout(defaultTextSide, isRtl);
     const questionsText = (page?.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n");
     const combinedText = page?.text || questionsText;
     return (
-      <div className="absolute inset-0 grid grid-cols-2">
-        <div className="relative bg-[hsl(42_50%_96%)] order-1">
-          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_50%,hsl(42_78%_80%/0.4),transparent_70%)]" />
-        </div>
-        <div className="relative bg-muted order-2">
-          {page?.image ? (
-            <img src={page.image} alt="Discussion" className="absolute inset-0 w-full h-full object-cover" />
-          ) : page?.imageLoading ? (
-            <BookLoadingSkeleton type="story" />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-primary/10" />
-          )}
-        </div>
+      <div className="absolute inset-0 bg-muted">
+        {page?.image ? (
+          <img src={page.image} alt="Discussion" className="absolute inset-0 w-full h-full object-cover" />
+        ) : page?.imageLoading ? (
+          <BookLoadingSkeleton type="story" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-primary/10" />
+        )}
         {page && (
           <EditableTextBox
             layout={layout}
@@ -319,7 +328,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             containerRef={spreadRef}
             onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
             onTextChange={(t) => updatePage(page.id, { text: t })}
-            onReset={() => updatePage(page.id, { textLayout: makeDefaultLayout("left") })}
+            onReset={() => updatePage(page.id, { textLayout: makeDefaultLayout(defaultTextSide, isRtl) })}
           />
         )}
       </div>
