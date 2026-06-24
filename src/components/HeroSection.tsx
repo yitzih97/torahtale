@@ -155,7 +155,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 variant="gold"
                 size="xl"
                 onClick={onStart}
-                className="group gold-glow rounded-xl w-full sm:w-auto px-7"
+                className="group gold-glow rounded-xl w-full sm:w-auto px-7 max-sm:bg-accent/75 max-sm:backdrop-blur-md max-sm:shadow-[0_4px_20px_hsl(43_64%_52%/0.25)]"
               >
                 {copy.primaryCta}
                 <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
@@ -165,7 +165,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 variant="outline"
                 size="xl"
                 onClick={scrollToHow}
-                className="rounded-xl w-full sm:w-auto px-6 bg-background/80 backdrop-blur border-foreground/15 hover:border-gold hover:text-gold-dark"
+                className="rounded-xl w-full sm:w-auto px-6 bg-background/80 max-sm:bg-background/55 backdrop-blur border-foreground/15 hover:border-gold hover:text-gold-dark"
               >
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--gold)/0.15)] text-gold">
                   <Play className="w-3 h-3 fill-current" />

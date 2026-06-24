@@ -1210,38 +1210,41 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {[
-                    { key: "boy", label: t.wizard.boy, img: presetBoy3dPixar },
-                    { key: "girl", label: t.wizard.girl, img: presetGirl3dPixar },
-                  ].map((g) => (
-                    <motion.button
-                      key={g.key}
-                      variants={staggerChild}
-                      onClick={() => {
-                        updateChild(child.id, { gender: g.key });
-                        autoAdvance();
-                      }}
-                      whileHover={{ y: -4 }}
-                      whileTap={{ scale: 0.97 }}
-                      className={glassCard(child.gender === g.key)}
-                    >
-                      <div className="w-full aspect-square bg-muted/20">
-                        <img src={g.img} alt={g.label} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
-                      </div>
-                      <div className="p-3 sm:p-4">
-                        <span className="text-base sm:text-lg font-semibold text-foreground block">{g.label}</span>
-                      </div>
-                      {child.gender === g.key && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                          className="absolute top-2 end-2 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
-                        >
-                          <Check className="w-4 h-4 text-accent-foreground" />
-                        </motion.div>
-                      )}
-                    </motion.button>
-                  ))}
+                    { key: "boy", label: t.wizard.boy, emoji: "👦", tile: "from-sky-100 to-sky-50" },
+                    { key: "girl", label: t.wizard.girl, emoji: "👧", tile: "from-rose-100 to-rose-50" },
+                  ].map((g) => {
+                    const selected = child.gender === g.key;
+                    return (
+                      <motion.button
+                        key={g.key}
+                        variants={staggerChild}
+                        onClick={() => {
+                          updateChild(child.id, { gender: g.key });
+                          autoAdvance();
+                        }}
+                        whileHover={{ y: -4 }}
+                        whileTap={{ scale: 0.97 }}
+                        className={glassCard(selected)}
+                      >
+                        <div className="flex flex-col items-center justify-center gap-3.5 px-4 py-7 sm:py-8">
+                          <span className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${g.tile} flex items-center justify-center text-[2.75rem] sm:text-5xl shadow-inner ring-1 ring-foreground/5`}>
+                            {g.emoji}
+                          </span>
+                          <span className="text-base sm:text-lg font-semibold text-foreground">{g.label}</span>
+                        </div>
+                        {selected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                            className="absolute top-2.5 end-2.5 w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md"
+                          >
+                            <Check className="w-4 h-4 text-accent-foreground" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </motion.div>
               </section>
