@@ -1040,14 +1040,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   <motion.div variants={staggerChild} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-                        {lang === "he" ? "בחר ילדים שמורים" : lang === "yi" ? "קלייַבן געראטעוועטע קינדער" : "Pick saved kids"}
+                        {lang === "he" ? "בחרו מילדים שמורים" : lang === "yi" ? "קלייַבן געראטעוועטע קינדער" : "Pick saved kids"}
                       </p>
                       <button
                         type="button"
                         onClick={() => navigate("/dashboard")}
                         className="text-xs text-accent hover:underline font-medium"
                       >
-                        {lang === "he" ? "נהל ילדים" : lang === "yi" ? "פירן קינדער" : "Manage kids"}
+                        {lang === "he" ? "ניהול הילדים" : lang === "yi" ? "פירן קינדער" : "Manage kids"}
                       </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -1132,7 +1132,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     const activeIsSaved = !!child.savedChildId;
                     const inputValue = activeIsSaved ? "" : child.name;
                     const placeholder = activeIsSaved
-                      ? (lang === "he" ? "הוסף ילד נוסף" : lang === "yi" ? "לייג צו אן אנדער קינד" : "Add another child")
+                      ? (lang === "he" ? "להוספת ילד נוסף" : lang === "yi" ? "לייג צו אן אנדער קינד" : "Add another child")
                       : t.wizard.enterChildName;
                     const handleChange = (val: string) => {
                       if (activeIsSaved) {
