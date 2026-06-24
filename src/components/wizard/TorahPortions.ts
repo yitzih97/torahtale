@@ -75,30 +75,32 @@ export const TORAH_PORTIONS: TorahOption[] = [
   { value: "vezot-habracha", label: "Parashas V'Zos Habracha", sub: "פרשת וזאת הברכה", category: "torah", book: "Devarim", emoji: "🌅" },
 
   // ──── NEVI'IM (Prophets) ────
-  { value: "yehoshua-jordan", label: "Sefer Yehoshua – Crossing the Yarden", sub: "ספר יהושע – חציית הירדן", category: "neviim", emoji: "🏞️" },
-  { value: "yehoshua-jericho", label: "Sefer Yehoshua – Walls of Yericho", sub: "ספר יהושע – חומות יריחו", category: "neviim", emoji: "🎺" },
-  { value: "devorah", label: "Sefer Shoftim – Devorah", sub: "ספר שופטים – דבורה", category: "neviim", emoji: "⚔️" },
-  { value: "shimshon", label: "Sefer Shoftim – Shimshon", sub: "ספר שופטים – שמשון", category: "neviim", emoji: "💪" },
-  { value: "shmuel-birth", label: "Sefer Shmuel – Birth of Shmuel", sub: "ספר שמואל – לידת שמואל", category: "neviim", emoji: "🏛️" },
-  { value: "david-goliath", label: "Sefer Shmuel – Dovid & Golias", sub: "ספר שמואל – דוד וגוליית", category: "neviim", emoji: "🪨" },
-  { value: "david-yonatan", label: "Sefer Shmuel – Dovid & Yonasan", sub: "ספר שמואל – דוד ויונתן", category: "neviim", emoji: "🤝" },
-  { value: "shlomo-wisdom", label: "Sefer Melachim – Shlomo's Wisdom", sub: "ספר מלכים – חכמת שלמה", category: "neviim", emoji: "👑" },
-  { value: "eliyahu-carmel", label: "Sefer Melachim – Eliyahu on Carmel", sub: "ספר מלכים – אליהו בכרמל", category: "neviim", emoji: "🔥" },
-  { value: "eliyahu-chariot", label: "Sefer Melachim – Eliyahu's Chariot", sub: "ספר מלכים – מרכבת אליהו", category: "neviim", emoji: "🐴" },
-  { value: "elisha-miracles", label: "Sefer Melachim – Elisha's Miracles", sub: "ספר מלכים – ניסי אלישע", category: "neviim", emoji: "✨" },
-  { value: "yonah", label: "Sefer Yonah", sub: "ספר יונה", category: "neviim", emoji: "🐋" },
-  { value: "yeshayahu-peace", label: "Sefer Yeshayahu – Vision of Peace", sub: "ספר ישעיהו – חזון השלום", category: "neviim", emoji: "🕊️" },
+  { value: "yehoshua-jordan", label: "Sefer Yehoshua – Crossing the Yarden", sub: "ספר יהושע – חציית הירדן", category: "neviim", book: "Yehoshua", emoji: "🏞️" },
+  { value: "yehoshua-jericho", label: "Sefer Yehoshua – Walls of Yericho", sub: "ספר יהושע – חומות יריחו", category: "neviim", book: "Yehoshua", emoji: "🎺" },
+  { value: "devorah", label: "Sefer Shoftim – Devorah", sub: "ספר שופטים – דבורה", category: "neviim", book: "Shoftim", emoji: "⚔️" },
+  { value: "shimshon", label: "Sefer Shoftim – Shimshon", sub: "ספר שופטים – שמשון", category: "neviim", book: "Shoftim", emoji: "💪" },
+  { value: "shmuel-birth", label: "Sefer Shmuel – Birth of Shmuel", sub: "ספר שמואל – לידת שמואל", category: "neviim", book: "Shmuel", emoji: "🏛️" },
+  { value: "david-goliath", label: "Sefer Shmuel – Dovid & Golias", sub: "ספר שמואל – דוד וגוליית", category: "neviim", book: "Shmuel", emoji: "🪨" },
+  { value: "david-yonatan", label: "Sefer Shmuel – Dovid & Yonasan", sub: "ספר שמואל – דוד ויונתן", category: "neviim", book: "Shmuel", emoji: "🤝" },
+  { value: "shlomo-wisdom", label: "Sefer Melachim – Shlomo's Wisdom", sub: "ספר מלכים – חכמת שלמה", category: "neviim", book: "Melachim", emoji: "👑" },
+  { value: "eliyahu-carmel", label: "Sefer Melachim – Eliyahu on Carmel", sub: "ספר מלכים – אליהו בכרמל", category: "neviim", book: "Melachim", emoji: "🔥" },
+  { value: "eliyahu-chariot", label: "Sefer Melachim – Eliyahu's Chariot", sub: "ספר מלכים – מרכבת אליהו", category: "neviim", book: "Melachim", emoji: "🐴" },
+  { value: "elisha-miracles", label: "Sefer Melachim – Elisha's Miracles", sub: "ספר מלכים – ניסי אלישע", category: "neviim", book: "Melachim", emoji: "✨" },
+  { value: "yeshayahu-peace", label: "Sefer Yeshayahu – Vision of Peace", sub: "ספר ישעיהו – חזון השלום", category: "neviim", book: "Yeshayahu", emoji: "🕊️" },
+  { value: "yirmiyahu-call", label: "Sefer Yirmiyahu – The Navi's Call", sub: "ספר ירמיהו – קריאת הנביא", category: "neviim", book: "Yirmiyahu", emoji: "📜" },
+  { value: "yechezkel-bones", label: "Sefer Yechezkel – The Valley of Dry Bones", sub: "ספר יחזקאל – בקעת העצמות היבשות", category: "neviim", book: "Yechezkel", emoji: "🦴" },
+  { value: "yonah", label: "Sefer Yonah", sub: "ספר יונה", category: "neviim", book: "Trei Asar", emoji: "🐋" },
 
   // ──── KETUVIM (Writings) ────
-  { value: "tehillim-shepherd", label: "Tehillim – Hashem Is My Shepherd", sub: "תהלים – ה׳ רועי", category: "ketuvim", emoji: "🐑" },
-  { value: "tehillim-creation", label: "Tehillim – Praising Creation", sub: "תהלים – הלל הבריאה", category: "ketuvim", emoji: "🌸" },
-  { value: "mishlei-wisdom", label: "Sefer Mishlei – Wisdom", sub: "ספר משלי – חכמה", category: "ketuvim", emoji: "📚" },
-  { value: "iyov", label: "Sefer Iyov", sub: "ספר איוב", category: "ketuvim", emoji: "🙏" },
-  { value: "daniel-lions", label: "Sefer Daniel – The Lion's Den", sub: "ספר דניאל – גוב האריות", category: "ketuvim", emoji: "🦁" },
-  { value: "daniel-furnace", label: "Sefer Daniel – The Fiery Furnace", sub: "ספר דניאל – כבשן האש", category: "ketuvim", emoji: "🔥" },
-  { value: "ezra-return", label: "Sefer Ezra – Return to Yerushalayim", sub: "ספר עזרא – שיבת ירושלים", category: "ketuvim", emoji: "🏙️" },
-  { value: "nechemia-walls", label: "Sefer Nechemia – Rebuilding the Walls", sub: "ספר נחמיה – בניית החומות", category: "ketuvim", emoji: "🧱" },
-  { value: "divrei-hayamim", label: "Sefer Divrei HaYamim", sub: "ספר דברי הימים", category: "ketuvim", emoji: "📜" },
+  { value: "tehillim-shepherd", label: "Tehillim – Hashem Is My Shepherd", sub: "תהלים – ה׳ רועי", category: "ketuvim", book: "Tehillim", emoji: "🐑" },
+  { value: "tehillim-creation", label: "Tehillim – Praising Creation", sub: "תהלים – הלל הבריאה", category: "ketuvim", book: "Tehillim", emoji: "🌸" },
+  { value: "mishlei-wisdom", label: "Sefer Mishlei – Wisdom", sub: "ספר משלי – חכמה", category: "ketuvim", book: "Mishlei", emoji: "📚" },
+  { value: "iyov", label: "Sefer Iyov", sub: "ספר איוב", category: "ketuvim", book: "Iyov", emoji: "🙏" },
+  { value: "daniel-lions", label: "Sefer Daniel – The Lion's Den", sub: "ספר דניאל – גוב האריות", category: "ketuvim", book: "Daniel", emoji: "🦁" },
+  { value: "daniel-furnace", label: "Sefer Daniel – The Fiery Furnace", sub: "ספר דניאל – כבשן האש", category: "ketuvim", book: "Daniel", emoji: "🔥" },
+  { value: "ezra-return", label: "Sefer Ezra – Return to Yerushalayim", sub: "ספר עזרא – שיבת ירושלים", category: "ketuvim", book: "Ezra", emoji: "🏙️" },
+  { value: "nechemia-walls", label: "Sefer Nechemia – Rebuilding the Walls", sub: "ספר נחמיה – בניית החומות", category: "ketuvim", book: "Nechemia", emoji: "🧱" },
+  { value: "divrei-hayamim", label: "Sefer Divrei HaYamim", sub: "ספר דברי הימים", category: "ketuvim", book: "Divrei HaYamim", emoji: "📜" },
 
   // ──── MEGILLOS ────
   { value: "esther", label: "Megillas Esther", sub: "מגילת אסתר", category: "megillot", emoji: "👸" },
@@ -129,6 +131,49 @@ export const TORAH_BOOK_LABELS: Record<string, { en: string; he: string }> = {
   Vayikra: { en: "Sefer Vayikra", he: "ספר ויקרא" },
   Bamidbar: { en: "Sefer Bamidbar", he: "ספר במדבר" },
   Devarim: { en: "Sefer Devarim", he: "ספר דברים" },
+};
+
+/** Sifrei Nevi'im, in order — used to group the Nevi'im list into accordions. */
+export const NEVIIM_BOOKS = ["Yehoshua", "Shoftim", "Shmuel", "Melachim", "Yeshayahu", "Yirmiyahu", "Yechezkel", "Trei Asar"] as const;
+
+/** Sifrei Kesuvim (excluding the Megillos, which are their own category). */
+export const KETUVIM_BOOKS = ["Tehillim", "Mishlei", "Iyov", "Daniel", "Ezra", "Nechemia", "Divrei HaYamim"] as const;
+
+/** Bilingual sefer titles for Nevi'im + Kesuvim accordion headers. */
+const NEVIIM_KETUVIM_BOOK_LABELS: Record<string, { en: string; he: string }> = {
+  Yehoshua: { en: "Sefer Yehoshua", he: "ספר יהושע" },
+  Shoftim: { en: "Sefer Shoftim", he: "ספר שופטים" },
+  Shmuel: { en: "Sefer Shmuel", he: "ספר שמואל" },
+  Melachim: { en: "Sefer Melachim", he: "ספר מלכים" },
+  Yeshayahu: { en: "Sefer Yeshayahu", he: "ספר ישעיהו" },
+  Yirmiyahu: { en: "Sefer Yirmiyahu", he: "ספר ירמיהו" },
+  Yechezkel: { en: "Sefer Yechezkel", he: "ספר יחזקאל" },
+  "Trei Asar": { en: "Trei Asar", he: "תרי עשר" },
+  Tehillim: { en: "Sefer Tehillim", he: "ספר תהלים" },
+  Mishlei: { en: "Sefer Mishlei", he: "ספר משלי" },
+  Iyov: { en: "Sefer Iyov", he: "ספר איוב" },
+  Daniel: { en: "Sefer Daniel", he: "ספר דניאל" },
+  Ezra: { en: "Sefer Ezra", he: "ספר עזרא" },
+  Nechemia: { en: "Sefer Nechemia", he: "ספר נחמיה" },
+  "Divrei HaYamim": { en: "Sefer Divrei HaYamim", he: "ספר דברי הימים" },
+};
+
+/** All sefer labels (Torah + Nevi'im + Kesuvim) keyed by `book`. */
+export const BOOK_LABELS: Record<string, { en: string; he: string }> = {
+  ...TORAH_BOOK_LABELS,
+  ...NEVIIM_KETUVIM_BOOK_LABELS,
+};
+
+/**
+ * Which categories drill down into per-sefer accordions, and in what order.
+ * Categories mapped to `null` render as a flat grid of stories.
+ */
+export const CATEGORY_BOOKS: Record<TorahOption["category"], readonly string[] | null> = {
+  torah: TORAH_BOOKS,
+  neviim: NEVIIM_BOOKS,
+  ketuvim: KETUVIM_BOOKS,
+  megillot: null,
+  holiday: null,
 };
 
 export const CATEGORY_META: Record<TorahOption["category"], { label: string; emoji: string }> = {
