@@ -316,6 +316,8 @@ export const en = {
     familyPhotoHint: "We'll detect everyone automatically — just confirm names & ages",
     detectingFamily: "Finding everyone in the photo…",
     noPeopleFound: "We couldn't find anyone in that photo. Please try another.",
+    detectTimeout: "This is taking too long. Please try again, or skip and describe your child instead.",
+    photoOrDescHint: "Add a photo, or describe your child in at least 3 words, to continue.",
     reviewFamily: "Who's in the photo?",
     addToBook: "Add to Book",
     roleTatty: "Tatty",

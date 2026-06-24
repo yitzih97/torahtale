@@ -78,7 +78,7 @@ serve(async (req) => {
     // is not available on this self-hosted project.) 45s timeout so the client
     // never spins forever on a stalled upstream request.
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 45000);
+    const timer = setTimeout(() => controller.abort(), 30000);
     let aiRes: Response;
     try {
       aiRes = await fetch(
@@ -96,7 +96,9 @@ serve(async (req) => {
                 { inline_data: { mime_type: mime, data: b64 } },
               ],
             }],
-            generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
+            // thinkingBudget: 0 disables gemini-2.5-flash's "thinking" phase, which
+            // otherwise makes vision calls slow enough to look like an endless spinner.
+            generationConfig: { responseMimeType: "application/json", temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } },
           }),
         },
       );
