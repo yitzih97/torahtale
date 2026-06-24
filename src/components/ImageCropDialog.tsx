@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   open: boolean;
@@ -37,6 +38,7 @@ async function getCroppedBlob(imageSrc: string, area: Area, fileName: string): P
 }
 
 export const ImageCropDialog = ({ open, imageSrc, fileName = "photo.jpg", aspect = 1, onCancel, onCropped }: Props) => {
+  const { t, dir } = useLanguage();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [area, setArea] = useState<Area | null>(null);
@@ -59,11 +61,11 @@ export const ImageCropDialog = ({ open, imageSrc, fileName = "photo.jpg", aspect
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onCancel()}>
-      <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl">
+      <DialogContent dir={dir} className="wizard-glass max-w-md p-0 overflow-hidden rounded-2xl">
         <div className="p-5 pb-2">
-          <DialogTitle className="font-display text-lg font-bold text-primary">Crop Photo</DialogTitle>
+          <DialogTitle className="font-display text-lg font-bold text-foreground">{t.wizard.cropTitle}</DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Drag to reposition, pinch or use the slider to zoom.
+            {t.wizard.cropHint}
           </DialogDescription>
         </div>
 
@@ -85,13 +87,13 @@ export const ImageCropDialog = ({ open, imageSrc, fileName = "photo.jpg", aspect
 
         <div className="px-5 py-4 space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">Zoom</label>
+            <label className="text-xs font-medium text-muted-foreground">{t.wizard.cropZoom}</label>
             <Slider value={[zoom]} min={1} max={4} step={0.05} onValueChange={(v) => setZoom(v[0])} />
           </div>
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={onCancel} disabled={saving}>Cancel</Button>
-            <Button variant="gold" onClick={handleConfirm} disabled={saving || !area}>
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Use Photo"}
+            <Button variant="outline" onClick={onCancel} disabled={saving} className="rounded-full">{t.wizard.cropCancel}</Button>
+            <Button onClick={handleConfirm} disabled={saving || !area} className="rounded-full bg-foreground text-background hover:bg-foreground/90">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t.wizard.cropUse}
             </Button>
           </div>
         </div>
