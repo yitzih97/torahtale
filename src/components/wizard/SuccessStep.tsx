@@ -37,14 +37,14 @@ export const SuccessStep = ({
     frame();
   }, []);
 
-  const title = isHe ? "הספר תורה שלך הולך להדפסה" : "Your Torah Tale Is Going to Print";
+  const title = isHe ? "הספר שלכם יוצא לדרך" : "Your Torah Tale Is Going to Print";
   const tagline = isHe
-    ? `הספר התורה המותאם של ${childName || "הילד שלכם"} בדרך אליכם.`
+    ? `הספר האישי של ${childName || "הילד שלכם"} כבר בדרך אליכם הביתה.`
     : `${childName || "Your child"}'s personalized Torah book is on its way.`;
   const orderLabel = isHe ? "מספר הזמנה" : "Order number";
-  const dashCta = isHe ? "ללוח הבקרה שלי" : "Go to My Dashboard";
-  const anotherCta = isHe ? "צור עוד ספר" : "Create Another Book";
-  const grandCta = isHe ? "שלחו אחד לסבא וסבתא" : "Send One to Grandparents";
+  const dashCta = isHe ? "לאזור האישי שלי" : "Go to My Dashboard";
+  const anotherCta = isHe ? "ליצור עוד ספר" : "Create Another Book";
+  const grandCta = isHe ? "לשלוח אחד לסבא וסבתא" : "Send One to Grandparents";
 
   return (
     <div className="py-10 text-center space-y-6 max-w-md mx-auto">
@@ -96,19 +96,19 @@ export const SuccessStep = ({
         <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mx-auto mb-2">
           <Mail className="w-5 h-5 text-accent" />
         </div>
-        <p className="font-semibold text-primary">{isHe ? "מה הלאה?" : "What happens next?"}</p>
+        <p className="font-semibold text-primary">{isHe ? "מה קורה עכשיו?" : "What happens next?"}</p>
         <ul className="text-muted-foreground text-xs space-y-1.5 text-start">
           <li className="flex items-start gap-2">
             <span className="text-accent font-bold">1.</span>
-            {isHe ? "אנו מסיימים את ההפקה והדפסה" : "We finalize production and send your book to print"}
+            {isHe ? "אנחנו משלימים את ההפקה ושולחים את הספר להדפסה" : "We finalize production and send your book to print"}
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent font-bold">2.</span>
-            {isHe ? "תקבלו אישור משלוח באימייל" : "You'll receive a shipping confirmation by email"}
+            {isHe ? "ישלח אליכם אישור משלוח למייל" : "You'll receive a shipping confirmation by email"}
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent font-bold">3.</span>
-            {isHe ? "הספר מגיע לפתח דלתכם" : "Your book arrives at your door"}
+            {isHe ? "הספר מגיע עד דלת הבית" : "Your book arrives at your door"}
           </li>
         </ul>
       </motion.div>

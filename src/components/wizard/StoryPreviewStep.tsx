@@ -73,13 +73,13 @@ export const StoryPreviewStep = ({ bookId, childNames, onPrint, onEdit }: Props)
     .slice(0, 3);
 
   const isHe = lang === "he" || lang === "yi";
-  const title = isHe ? "הספר תורה שלך מוכן" : "Your Torah Tale Is Ready";
+  const title = isHe ? "הסיפור שלכם מוכן" : "Your Torah Tale Is Ready";
   const sub = isHe
-    ? "הספר המלא יודפס בקפידה ויישלח אליך הביתה."
+    ? "הספר המלא יודפס באיכות מוקפדת ויישלח עד דלת הבית."
     : "Your full book will be professionally printed and delivered to your door.";
-  const printCta = isHe ? "הדפיסו את הספר שלי" : "Print My Book";
-  const editCta = isHe ? "ערוך פרטי סיפור" : "Edit Story Details";
-  const forLabel = isHe ? "סיפור עבור" : "A story for";
+  const printCta = isHe ? "להדפיס את הספר" : "Print My Book";
+  const editCta = isHe ? "לעריכת פרטי הסיפור" : "Edit Story Details";
+  const forLabel = isHe ? "סיפור במיוחד עבור" : "A story for";
 
   return (
     <div className="space-y-6">

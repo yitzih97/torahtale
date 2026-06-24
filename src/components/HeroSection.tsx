@@ -22,28 +22,28 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
   const copy = lang === "he" || lang === "yi"
     ? {
-        badge: "ספרי תורה מותאמים אישית לילדכם",
+        badge: "ספרי תורה אישיים — בכיכוב הילד שלכם",
         title1: "המסע שלהם.",
         title2: "הסיפור שלהם.",
-        titleAccent: "מושרשים בתורה.",
-        description: "אנו יוצרים ספרים מותאמים אישית שמחיים סיפורי תורה — עם ילדכם בתפקיד הראשי, ומנחילים ערכים לכל החיים.",
-        primaryCta: "צרו את הספר של ילדכם",
-        watchCta: "צפו איך זה עובד",
+        titleAccent: "מושרש בתורה.",
+        description: "אנחנו יוצרים ספרים אישיים שמחזירים את סיפורי התורה לחיים — כשהילד שלכם הוא גיבור הסיפור, וכל עמוד מנחיל ערכים שנשארים לכל החיים.",
+        primaryCta: "צרו את הסיפור של ילדכם",
+        watchCta: "ככה זה עובד",
         features: [
-          { icon: BookOpen, label: "תוכן יהודי 100%" },
+          { icon: BookOpen, label: "תוכן יהודי טהור" },
           { icon: Heart, label: "נעשה באהבה" },
-          { icon: Gift, label: "מתנה שיוקירו לתמיד" },
+          { icon: Gift, label: "מתנה ששומרים לכל החיים" },
         ],
-        trustHeading: "אהוב ע״י משפחות. נבחר ברחבי העולם.",
+        trustHeading: "משפחות מתאהבות. נבחר בכל העולם.",
         rating: "4.9/5 מתוך 500+ ביקורות",
         testimonials: [
-          { quote: "הדרך הכי יפה לחבר את הילדים שלנו לתורה. הם מבקשים את הספר שלהם בכל לילה!", name: "רבקי ומשה ש.", location: "ברוקלין, ניו יורק", avatar: reviewer1 },
-          { quote: "האיכות מדהימה וההתאמה האישית מיוחדת מאוד. מתנה שילדינו יוקירו לנצח.", name: "חנה פ.", location: "לוס אנג׳לס", avatar: reviewer2 },
-          { quote: "הבן שלנו מרגיש כמו הגיבור של הסיפור — וזה מביא את ערכי התורה לחיים בצורה כל כך יפה.", name: "אבי מ.", location: "טורונטו, קנדה", avatar: reviewer3 },
+          { quote: "הדרך הכי יפה לחבר את הילדים שלנו לתורה. הם מבקשים את הספר שלהם כל ערב מחדש!", name: "רבקי ומשה ש.", location: "ברוקלין, ניו יורק", avatar: reviewer1 },
+          { quote: "האיכות פשוט מדהימה, וההתאמה האישית עושה את כל ההבדל. מתנה שתישאר איתנו שנים.", name: "חנה פ.", location: "לוס אנג׳לס", avatar: reviewer2 },
+          { quote: "הבן שלנו מרגיש שהוא ממש גיבור הסיפור — וזה מחבר אותו לערכים של התורה בצורה הכי טבעית.", name: "אבי מ.", location: "טורונטו, קנדה", avatar: reviewer3 },
         ],
         trustBar: [
-          { icon: ShieldCheck, label: "בטוח ומתאים לגיל" },
-          { icon: Award, label: "מהימן ע״י משפחות בעולם" },
+          { icon: ShieldCheck, label: "בטוח ומותאם לגיל" },
+          { icon: Award, label: "משפחות מכל העולם סומכות עלינו" },
           { icon: Lock, label: "מאובטח ופרטי" },
         ],
       }
@@ -53,7 +53,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         title2: "Their story.",
         titleAccent: "Rooted in Torah.",
         description: "We create personalized books that bring Torah stories to life—starring your child, instilling values that inspire a lifetime.",
-        primaryCta: "Start Your Child's Book",
+        primaryCta: "Start Your Child's Story",
         watchCta: "Watch How It Works",
         features: [
           { icon: BookOpen, label: "100% Jewish Content" },
