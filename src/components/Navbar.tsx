@@ -52,9 +52,9 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
     { label: t.nav.contact, href: "/contact" },
   ];
 
-  const cycleLang = () => setLang(lang === "en" ? "he" : lang === "he" ? "yi" : "en");
-  const langLabelShort = lang === "en" ? "עב" : lang === "he" ? "יי" : "EN";
-  const langLabelLong = lang === "en" ? "עברית" : lang === "he" ? "יידיש" : "English";
+  // Toggle only between English and Hebrew; the flag shown is the language you'll switch TO.
+  const cycleLang = () => setLang(lang === "en" ? "he" : "en");
+  const langFlag = lang === "en" ? "🇮🇱" : "🇺🇸";
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/92 backdrop-blur-xl border-b border-[hsl(var(--gold)/0.18)] shadow-sm" : "bg-transparent"}`} data-scrolled={scrolled}>
@@ -85,14 +85,14 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
           {/* Language toggle */}
           <button
             onClick={cycleLang}
-            className={`px-2.5 py-1 rounded-full text-xs font-bold border transition-colors duration-300 bg-background/60 backdrop-blur-sm ${
+            className={`w-9 h-9 rounded-full text-lg leading-none flex items-center justify-center border transition-colors duration-300 bg-background/60 backdrop-blur-sm ${
               solid
-                ? "border-border text-muted-foreground hover:text-accent hover:border-accent"
-                : "border-white/20 text-white/80 hover:text-white hover:border-white/40"
+                ? "border-border hover:border-accent"
+                : "border-white/20 hover:border-white/40"
             }`}
-            aria-label="Toggle language"
+            aria-label={lang === "en" ? "Switch to Hebrew" : "Switch to English"}
           >
-            {langLabelShort}
+            {langFlag}
           </button>
 
           {user ? (
@@ -140,9 +140,10 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
             {/* Mobile language toggle */}
             <button
               onClick={() => { cycleLang(); setMobileOpen(false); }}
-              className="text-base font-medium text-foreground hover:text-accent transition-colors py-2 border-b border-border text-start"
+              className="text-2xl leading-none transition-transform hover:scale-110 py-2 border-b border-border text-start"
+              aria-label={lang === "en" ? "Switch to Hebrew" : "Switch to English"}
             >
-              {langLabelLong}
+              {langFlag}
             </button>
 
             {user ? (

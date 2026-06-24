@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight, Play, BookOpen, Heart, Gift, Star, ShieldCheck, Award, Lock } from "lucide-react";
+import { Sparkles, ArrowRight, BookOpen, Heart, Gift, Star, ShieldCheck, Award, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -18,7 +18,6 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ onStart }: HeroSectionProps) => {
   const { t, dir, lang } = useLanguage();
-  const scrollToHow = () => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const isRtl = dir === "rtl";
 
   const copy = lang === "he" || lang === "yi"
@@ -117,7 +116,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       </picture>
 
 
-      <div className="container relative z-10 pt-20 sm:pt-24 lg:pt-32 pb-8 lg:pb-16">
+      <div className="container relative z-10 pt-28 sm:pt-28 lg:pt-32 pb-8 lg:pb-16">
         <div className="relative grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-start lg:items-center min-h-[178vw] sm:min-h-[132vw] lg:min-h-[640px]">
 
           {/* (Mobile/tablet hero illustration is rendered below the copy — see picture element after copy block) */}
@@ -155,22 +154,10 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 variant="gold"
                 size="xl"
                 onClick={onStart}
-                className="group gold-glow rounded-xl w-full sm:w-auto px-7 max-sm:bg-accent/75 max-sm:backdrop-blur-md max-sm:shadow-[0_4px_20px_hsl(43_64%_52%/0.25)]"
+                className="group gold-glow rounded-xl w-full sm:w-auto px-7 max-sm:bg-accent/55 max-sm:backdrop-blur-md max-sm:shadow-[0_4px_20px_hsl(43_64%_52%/0.2)]"
               >
                 {copy.primaryCta}
                 <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
-              </Button>
-
-              <Button
-                variant="outline"
-                size="xl"
-                onClick={scrollToHow}
-                className="rounded-xl w-full sm:w-auto px-6 bg-background/80 max-sm:bg-background/55 backdrop-blur border-foreground/15 hover:border-gold hover:text-gold-dark"
-              >
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--gold)/0.15)] text-gold">
-                  <Play className="w-3 h-3 fill-current" />
-                </span>
-                {copy.watchCta}
               </Button>
             </motion.div>
           </div>
