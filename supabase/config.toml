@@ -7,3 +7,8 @@ verify_jwt = false
 
 [functions.printify-webhook]
 verify_jwt = false
+
+# The family-photo detector runs in the wizard BEFORE the login gate, so it must
+# accept the anon/publishable key (no user JWT yet). It only does vision detection.
+[functions.detect-family-photo]
+verify_jwt = false

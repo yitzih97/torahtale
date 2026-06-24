@@ -390,7 +390,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         setShipping(parsed.shipping || DEFAULT_SHIPPING);
         setBookOptions(parsed.bookOptions || DEFAULT_BOOK_OPTIONS);
         if (typeof parsed.quantity === "number" && parsed.quantity >= 1) setQuantity(parsed.quantity);
-        if (parsed.portionFilter && ["torah","neviim","ketuvim","megillot","holiday"].includes(parsed.portionFilter)) setPortionFilter(parsed.portionFilter);
+        if (parsed.portionFilter && ["torah","neviim","ketuvim","megillot","holiday","educational"].includes(parsed.portionFilter)) setPortionFilter(parsed.portionFilter);
 
         // Restore to the active section anchor. Stagger the attempts to win
         // against late layout (images, fonts, motion).
@@ -1641,7 +1641,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 {/* ── LEVEL 2: pick a category ── */}
                 {portionView === "category" && (
                   <motion.div variants={staggerChild} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {(["torah", "neviim", "ketuvim", "megillot", "holiday"] as const).map((cat) => {
+                    {(["torah", "neviim", "ketuvim", "megillot", "holiday", "educational"] as const).map((cat) => {
                       const meta = CATEGORY_META[cat];
                       return (
                         <motion.button

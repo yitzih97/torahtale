@@ -2,7 +2,7 @@ export interface TorahOption {
   value: string;
   label: string;
   sub: string;
-  category: "torah" | "neviim" | "ketuvim" | "megillot" | "holiday";
+  category: "torah" | "neviim" | "ketuvim" | "megillot" | "holiday" | "educational";
   book?: string;
   emoji?: string;
   /** Lucide icon name (from the wizard icon registry) shown instead of an emoji. */
@@ -159,6 +159,18 @@ export const TORAH_PORTIONS: TorahOption[] = [
   { value: "simchat-torah", label: "Simchas Torah", sub: "שמחת תורה", category: "holiday", emoji: "🎉", icon: "Scroll" },
   { value: "tu-bishvat", label: "Tu B'Shvat", sub: "ט״ו בשבט", category: "holiday", emoji: "🌳", icon: "TreePine" },
   { value: "lag-baomer", label: "Lag B'Omer", sub: "ל״ג בעומר", category: "holiday", emoji: "🔥", icon: "Flame" },
+
+  // ──── EDUCATIONAL STORIES (good middos in daily life) ────
+  { value: "edu-hakaras-hatov", label: "Saying Thank You", sub: "אומרים תודה", category: "educational", emoji: "🙏", icon: "Sun" },
+  { value: "edu-chesed", label: "A Helping Hand", sub: "יד עוזרת", category: "educational", emoji: "🤝", icon: "HeartHandshake" },
+  { value: "edu-emes", label: "Always Telling the Truth", sub: "תמיד אומרים אמת", category: "educational", emoji: "💬", icon: "ShieldCheck" },
+  { value: "edu-kibud", label: "Honoring Abba & Imma", sub: "כיבוד אבא ואמא", category: "educational", emoji: "❤️", icon: "Heart" },
+  { value: "edu-savlanus", label: "Waiting Patiently", sub: "מחכים בסבלנות", category: "educational", emoji: "⏳", icon: "Hourglass" },
+  { value: "edu-shalom", label: "Making Peace with Friends", sub: "עושים שלום", category: "educational", emoji: "🕊️", icon: "Handshake" },
+  { value: "edu-tzedakah", label: "Giving Tzedakah", sub: "נתינת צדקה", category: "educational", emoji: "🪙", icon: "Coins" },
+  { value: "edu-sharing", label: "Learning to Share", sub: "לומדים לחלוק", category: "educational", emoji: "🎁", icon: "Gift" },
+  { value: "edu-slichah", label: "Saying I'm Sorry", sub: "אומרים סליחה", category: "educational", emoji: "🌱", icon: "Sprout" },
+  { value: "edu-derech-eretz", label: "Good Middos & Manners", sub: "מידות טובות ודרך ארץ", category: "educational", emoji: "⭐", icon: "Medal" },
 ];
 
 export const TORAH_BOOKS = ["Bereishit", "Shemot", "Vayikra", "Bamidbar", "Devarim"] as const;
@@ -213,6 +225,7 @@ export const CATEGORY_BOOKS: Record<TorahOption["category"], readonly string[] |
   ketuvim: KETUVIM_BOOKS,
   megillot: null,
   holiday: null,
+  educational: null,
 };
 
 export const CATEGORY_META: Record<TorahOption["category"], { label: string; labelHe: string; emoji: string; icon: string }> = {
@@ -221,6 +234,7 @@ export const CATEGORY_META: Record<TorahOption["category"], { label: string; lab
   ketuvim: { label: "Kesuvim", labelHe: "כתובים", emoji: "✍️", icon: "PenLine" },
   megillot: { label: "Megillos", labelHe: "מגילות", emoji: "📖", icon: "ScrollText" },
   holiday: { label: "Yamim Tovim", labelHe: "ימים טובים", emoji: "🕯️", icon: "Sparkles" },
+  educational: { label: "Educational Stories", labelHe: "סיפורים חינוכיים", emoji: "🌟", icon: "Lightbulb" },
 };
 
 /**
