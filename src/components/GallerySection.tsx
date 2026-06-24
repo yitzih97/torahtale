@@ -9,7 +9,7 @@ const ease = [0.16, 1, 0.3, 1];
 const books = [
   {
     title: "Noach's Incredible Teivah",
-    portion: "Parashas Noach",
+    portion: "Parshas Noach",
     style: "3D Pixar",
     image: storyNoach,
     assetKey: "story-noach",
@@ -17,7 +17,7 @@ const books = [
   },
   {
     title: "Krias Yam Suf",
-    portion: "Parashas Beshalach",
+    portion: "Parshas Beshalach",
     style: "3D Pixar",
     image: storyBeshalach,
     assetKey: "story-beshalach",
@@ -25,7 +25,7 @@ const books = [
   },
   {
     title: "The Wonders of Gan Eden",
-    portion: "Parashas Bereishis",
+    portion: "Parshas Bereishis",
     style: "3D Pixar",
     image: storyBereishit,
     assetKey: "story-bereishit",
