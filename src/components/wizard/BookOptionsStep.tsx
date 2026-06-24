@@ -7,7 +7,8 @@ import boardImg from "@/assets/books/mockup-board.jpg";
 
 export interface BookOptions {
   productType: "softcover" | "hardcover" | "board";
-  hardcoverSize?: "8x8" | "11x8.5";
+  // Hardcover is offered in 8×8 only (the 11×8.5 size was retired).
+  hardcoverSize?: "8x8";
   coloringBook?: boolean;
 }
 

@@ -275,14 +275,15 @@ export type OrderPlan = "once" | "weekly" | "monthly" | "yearly";
 
 interface OrderBookOptions {
   productType: "softcover" | "hardcover" | "board";
-  hardcoverSize?: "8x8" | "11x8.5";
+  // Hardcover is offered in 8×8 only (the 11×8.5 size was retired).
+  hardcoverSize?: "8x8";
   coloringBook?: boolean;
 }
 
 export function getBookVariantId(options: OrderBookOptions): string {
   const pair =
     options.productType === "hardcover"
-      ? (options.hardcoverSize === "11x8.5" ? SHOPIFY_VARIANT_IDS.bookHardcover11x85 : SHOPIFY_VARIANT_IDS.bookHardcover8x8)
+      ? SHOPIFY_VARIANT_IDS.bookHardcover8x8
       : options.productType === "board"
       ? SHOPIFY_VARIANT_IDS.bookBoardBook6x6
       : SHOPIFY_VARIANT_IDS.bookSoftcover8x8;

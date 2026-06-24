@@ -117,7 +117,7 @@ serve(async (req) => {
       // the historical hardcoded values.
       const formatKey =
         opts.productType === "hardcover"
-          ? (opts.hardcoverSize === "11x8.5" ? "hardcover-11x85" : "hardcover-8x8")
+          ? "hardcover-8x8" // hardcover is 8×8 only (11×8.5 retired)
           : opts.productType === "board"
           ? "board"
           : "softcover";
