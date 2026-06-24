@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Users, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { cropFromDataUrl, fileToDataUrl } from "@/lib/cropFromBbox";
+import { cropFromDataUrl, fileToDataUrl, downscaleDataUrl } from "@/lib/cropFromBbox";
 import { toast } from "sonner";
 
 export type DetectedRole = "tatty" | "mommy" | "child";
@@ -52,13 +52,17 @@ export const FamilyPhotoDialog = ({ open, onOpenChange, t, onConfirm }: Props) =
     try {
       const dataUrl = await fileToDataUrl(file);
       setSourceDataUrl(dataUrl);
-      const base64 = dataUrl.split(",")[1];
+      // Send a downscaled copy to the detector (full-res photos make the edge
+      // function time out / crash → "Failed to send a request"). Crops below
+      // still use the full-res original for quality.
+      const small = await downscaleDataUrl(dataUrl, 1024, 0.82);
+      const base64 = small.split(",")[1];
       // Hard client-side timeout so the spinner can never hang indefinitely.
       const timeout = new Promise<never>((_, rej) =>
         setTimeout(() => rej(new Error(t.wizard.detectTimeout || "This is taking too long. Please try again, or skip and describe your child instead.")), 35000),
       );
       const invoke = supabase.functions.invoke("detect-family-photo", {
-        body: { imageBase64: base64, mimeType: file.type || "image/jpeg" },
+        body: { imageBase64: base64, mimeType: "image/jpeg" },
       });
       const { data, error } = await Promise.race([invoke, timeout]);
       if (error) throw error;

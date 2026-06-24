@@ -13,9 +13,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/SEO";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Create = () => {
   const navigate = useNavigate();
+  const { t, dir } = useLanguage();
   const [open, setOpen] = useState(false);
 
   const handleClose = () => setOpen(true);
@@ -44,19 +46,19 @@ const Create = () => {
       />
       <CreationWizard onClose={handleClose} />
       <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent dir={dir} className={dir === "rtl" ? "text-right" : undefined}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Leave book creation?</AlertDialogTitle>
+            <AlertDialogTitle>{t.wizard.exitTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              Your progress will be saved automatically. You can pick up right where you left off when you return.
+              {t.wizard.exitDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-2">
-            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogCancel>{t.wizard.exitKeep}</AlertDialogCancel>
             <Button variant="ghost" onClick={discardAndExit}>
-              Discard Progress
+              {t.wizard.exitDiscard}
             </Button>
-            <AlertDialogAction onClick={saveAndExit}>Save & exit</AlertDialogAction>
+            <AlertDialogAction onClick={saveAndExit}>{t.wizard.exitSave}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
