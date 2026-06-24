@@ -334,7 +334,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                       <p className="text-muted-foreground text-sm mt-1">This will be used for their profile and all future books.</p>
                     </div>
                     <Input
-                      placeholder="e.g., Chaya Mushka"
+                      placeholder="e.g., Avi"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="rounded-xl h-14 text-lg px-5"

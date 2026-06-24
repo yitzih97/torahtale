@@ -208,7 +208,7 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., Chaya Mushka"
+                  placeholder="e.g., Avi"
                   className="rounded-xl h-11"
                 />
               </div>
