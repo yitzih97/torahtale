@@ -281,7 +281,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [animPhaseIdx, setAnimPhaseIdx] = useState(0);
   const [animDone, setAnimDone] = useState(false);
 
-  const pendingGenerationRef = useRef(false);
+  const persistingBookRef = useRef(false);
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Refs for stacked-step scrolling — each section uses a stable DOM id
@@ -492,25 +492,19 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (authLoading) return;
     if (!user) return;
 
-    // Sign-in just happened (inline form) OR returned from OAuth redirect.
-    const persistedPending = (() => {
-      try { return localStorage.getItem("torahtale_pending_generation") === "1"; }
-      catch { return false; }
-    })();
+    if (showLoginPrompt) setShowLoginPrompt(false);
 
-    if (showLoginPrompt) {
-      setShowLoginPrompt(false);
+    // The login/sign-up gate now lives at step 10 (after the generation skeletons
+    // begin). When the user signs in there — inline OR returning from an OAuth
+    // redirect — create the pending book and let the flow continue to book-type
+    // selection + checkout.
+    if (step >= 9 && !savedBookId) {
+      void persistGeneratedBook().then(() => {
+        if (step === 9) return; // animation will auto-advance to step 10
+        toast.success("Signed in! Continue choosing your book.");
+      });
     }
-
-    if (step === 8 && (pendingGenerationRef.current || persistedPending)) {
-      pendingGenerationRef.current = false;
-      try { localStorage.removeItem("torahtale_pending_generation"); } catch { /* ignore */ }
-      toast.success("Signed in! Starting your sefer...");
-      startGeneration();
-    } else if (showLoginPrompt) {
-      toast.success("Signed in!");
-    }
-  }, [user, authLoading, showLoginPrompt, step]);
+  }, [user, authLoading, showLoginPrompt, step, savedBookId]);
 
   const handleWizardLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -578,15 +572,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   /* ───── book generation (fire-and-forget → 10s animation) ───── */
 
-  const startGeneration = async () => {
-    setDir(1);
-    setStep(9);
-    setAnimating(true);
-    setAnimPhaseIdx(0);
-    setAnimDone(false);
-
-    if (user) {
-      try {
+  // Persist the pending book record (photos + reusable characters + book row).
+  // Requires a signed-in user. Safe to call once — bails if a book already exists.
+  // Called from startGeneration (when already signed in) and from the post-auth
+  // effect (when the user signs in at the step-10 gate, after generation began).
+  const persistGeneratedBook = async () => {
+    if (!user || savedBookId || persistingBookRef.current) return;
+    persistingBookRef.current = true;
+    try {
         const portionLabel = getPortionLabel(data.torahPortion);
         const childrenInfo = data.children.map((c) => `${c.name} (${c.age} years old, ${c.gender})`).join(", ");
 
@@ -655,10 +648,23 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         if (!saveError && bookData) {
           setSavedBookId(bookData.id);
         }
-      } catch (err) {
-        console.error("Failed to save book:", err);
-      }
+    } catch (err) {
+      console.error("Failed to save book:", err);
+    } finally {
+      persistingBookRef.current = false;
     }
+  };
+
+  const startGeneration = async () => {
+    setDir(1);
+    setStep(9);
+    setAnimating(true);
+    setAnimPhaseIdx(0);
+    setAnimDone(false);
+
+    // Persist immediately if already signed in; otherwise the post-auth effect
+    // creates the book once the user signs in at the step-10 gate.
+    if (user) await persistGeneratedBook();
 
     for (let i = 0; i < GENERATION_PHASES.length; i++) {
       setAnimPhaseIdx(i);
@@ -685,22 +691,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     // Cancel any queued auto-advance so we don't double-step
     if (autoAdvanceTimerRef.current) { clearTimeout(autoAdvanceTimerRef.current); autoAdvanceTimerRef.current = null; }
     if (step === 8) {
-      if (authLoading) {
-        // Auth session still restoring after a redirect — wait silently;
-        // the auth-ready effect will auto-start generation if user is signed in.
-        toast.info("Checking your session...");
-        return;
-      }
-      if (!user) {
-        pendingGenerationRef.current = true;
-        try { localStorage.setItem("torahtale_pending_generation", "1"); } catch { /* ignore */ }
-        saveWizardState();
-        setShowLoginPrompt(true);
-        toast.info("Please sign in to generate your sefer.");
-        return;
-      }
-      // Free-preview limit is now checked AFTER book-type selection (step 10),
-      // so the upsell pricing can reflect the chosen book.
+      // Generation no longer requires sign-in. Anyone can generate; the
+      // login/sign-up gate moved to step 10 (after the skeletons begin), before
+      // book-type selection + checkout.
+      if (animating) return;
       await startGeneration();
       return;
     }
@@ -1881,66 +1875,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     bottom (calls startGeneration). The old in-content button was
                     a confusing duplicate that just advanced the step. */}
 
-                {/* Inline auth gate — always shown at step 8 when not logged in */}
-                {!user && !authLoading && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={springTransition}
-                    className="rounded-2xl border-2 border-accent/20 bg-accent/5 backdrop-blur-sm p-5 space-y-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
-                        <LogIn className="w-5 h-5 text-accent" />
-                      </div>
-                      <p className="font-display font-semibold text-sm text-foreground">{t.wizard.signInToGenerate}</p>
-                    </div>
-
-                    <form onSubmit={loginMode === "login" ? handleWizardLogin : handleWizardSignup} className="space-y-3">
-                      {loginMode === "signup" && (
-                        <div>
-                          <Label className="text-xs text-muted-foreground">{t.wizard.fullName}</Label>
-                          <Input value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} placeholder="Rachel Goldberg" className="rounded-xl h-10 mt-1 border-border/40 bg-card/60" />
-                        </div>
-                      )}
-                      <div>
-                        <Label className="text-xs text-muted-foreground">{t.wizard.email}</Label>
-                        <div className="relative mt-1">
-                          <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="you@email.com" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required />
-                          <Mail className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">{t.wizard.password}</Label>
-                        <div className="relative mt-1">
-                          <Input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="••••••••" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required minLength={6} />
-                          <Lock className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
-                        </div>
-                      </div>
-                      <Button type="submit" variant="gold" className="w-full rounded-xl h-10" disabled={loginLoading}>
-                        {loginLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : loginMode === "login" ? t.wizard.signIn : t.wizard.createAccount}
-                      </Button>
-                      <p className="text-center text-[11px] text-muted-foreground">
-                        {loginMode === "login" ? (
-                          <>{t.wizard.noAccount}{" "}<button type="button" onClick={() => setLoginMode("signup")} className="text-accent font-medium hover:underline">{t.wizard.signUp}</button></>
-                        ) : (
-                          <>{t.wizard.haveAccount}{" "}<button type="button" onClick={() => setLoginMode("login")} className="text-accent font-medium hover:underline">{t.wizard.signInLink}</button></>
-                        )}
-                      </p>
-                    </form>
-
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-px bg-border/50" />
-                      <span className="text-[10px] text-muted-foreground/60">{t.wizard.or}</span>
-                      <div className="flex-1 h-px bg-border/50" />
-                    </div>
-
-                    <Button type="button" variant="outline" className="w-full rounded-xl h-10 gap-2 border-border/40" onClick={handleWizardGoogleLogin} disabled={loginLoading}>
-                      <svg className="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                      {t.wizard.continueWithGoogle}
-                    </Button>
-                  </motion.div>
-                )}
+                {/* Auth moved to step 10 — anyone can generate; sign-in is asked
+                    after the skeletons begin, before book-type + checkout. */}
               </motion.div>
               </section>
             )}
@@ -2047,7 +1983,74 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 10: Book Options ── */}
             {step === 10 && (
               <motion.div key="s10" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                <BookOptionsStep options={bookOptions} onChange={setBookOptions} childAge={parseInt(child?.age || "0") || 0} />
+                {!user && !authLoading ? (
+                  /* Sign-in / sign-up gate — shown after the skeletons begin,
+                     before book-type selection + checkout. */
+                  <div className="space-y-6 max-w-md mx-auto">
+                    <div className="text-center">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle2 className="w-7 h-7 text-accent" />
+                      </div>
+                      <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
+                      <p className="mt-2 text-sm text-muted-foreground">{t.wizard.signInToContinue}</p>
+                    </div>
+
+                    <div className="rounded-2xl border-2 border-accent/20 bg-accent/5 backdrop-blur-sm p-5 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+                          <LogIn className="w-5 h-5 text-accent" />
+                        </div>
+                        <p className="font-display font-semibold text-sm text-foreground">{t.wizard.signInToContinue}</p>
+                      </div>
+
+                      <form onSubmit={loginMode === "login" ? handleWizardLogin : handleWizardSignup} className="space-y-3">
+                        {loginMode === "signup" && (
+                          <div>
+                            <Label className="text-xs text-muted-foreground">{t.wizard.fullName}</Label>
+                            <Input value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} placeholder="Rachel Goldberg" className="rounded-xl h-10 mt-1 border-border/40 bg-card/60" />
+                          </div>
+                        )}
+                        <div>
+                          <Label className="text-xs text-muted-foreground">{t.wizard.email}</Label>
+                          <div className="relative mt-1">
+                            <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="you@email.com" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required />
+                            <Mail className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground">{t.wizard.password}</Label>
+                          <div className="relative mt-1">
+                            <Input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="••••••••" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required minLength={6} />
+                            <Lock className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
+                          </div>
+                        </div>
+                        <Button type="submit" variant="gold" className="w-full rounded-xl h-10" disabled={loginLoading}>
+                          {loginLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : loginMode === "login" ? t.wizard.signIn : t.wizard.createAccount}
+                        </Button>
+                        <p className="text-center text-[11px] text-muted-foreground">
+                          {loginMode === "login" ? (
+                            <>{t.wizard.noAccount}{" "}<button type="button" onClick={() => setLoginMode("signup")} className="text-accent font-medium hover:underline">{t.wizard.signUp}</button></>
+                          ) : (
+                            <>{t.wizard.haveAccount}{" "}<button type="button" onClick={() => setLoginMode("login")} className="text-accent font-medium hover:underline">{t.wizard.signInLink}</button></>
+                          )}
+                        </p>
+                      </form>
+
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-border/50" />
+                        <span className="text-[10px] text-muted-foreground/60">{t.wizard.or}</span>
+                        <div className="flex-1 h-px bg-border/50" />
+                      </div>
+
+                      <Button type="button" variant="outline" className="w-full rounded-xl h-10 gap-2 border-border/40" onClick={handleWizardGoogleLogin} disabled={loginLoading}>
+                        <svg className="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                        {t.wizard.continueWithGoogle}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <BookOptionsStep options={bookOptions} onChange={setBookOptions} childAge={parseInt(child?.age || "0") || 0} />
+                )}
               </motion.div>
             )}
 
@@ -2242,34 +2245,20 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.button>
                 );
               }
-              if (step === 8 && user) {
+              if (step === 8) {
+                // Generation is open to everyone now — sign-in is asked at step 10.
                 return (
                   <motion.button
                     whileTap={{ scale: 0.98 }}
                     onClick={() => { void startGeneration(); }}
-                    disabled={authLoading || animating}
+                    disabled={animating}
                     className={baseBtn}
                   >
                     {t.hero.cta}
                   </motion.button>
                 );
               }
-              if (step === 8 && !user && !authLoading) {
-                return (
-                  <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      const el = document.getElementById(stepIdFor(8));
-                      el?.querySelector("input")?.focus();
-                      toast.info(t.wizard.signInToGenerate);
-                    }}
-                    className={baseBtn}
-                  >
-                    {t.wizard.signInToGenerate}
-                  </motion.button>
-                );
-              }
-              if (step === 10) {
+              if (step === 10 && user) {
                 return (
                   <motion.button
                     whileTap={{ scale: 0.98 }}
@@ -2281,6 +2270,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </motion.button>
                 );
               }
+              // step 10 while logged out: the inline auth gate has its own buttons.
               return null;
             })()}
           </div>
