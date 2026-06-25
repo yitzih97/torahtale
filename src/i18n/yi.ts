@@ -372,6 +372,7 @@ export const yi: typeof en = {
     pages: "עמודים",
     pagesCount: "10 עמודים",
     signInToGenerate: "התחברו כדי ליצור את הספר",
+    signInToContinue: "מעלדט אייך אן אדער רעגיסטרירט זיך צו פארזעצן צום בוך",
     fullName: "שם מלא",
     email: "אימייל",
     password: "סיסמה",

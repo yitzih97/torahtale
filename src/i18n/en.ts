@@ -367,6 +367,7 @@ export const en = {
     pages: "Pages",
     pagesCount: "10 pages",
     signInToGenerate: "Sign in to generate your book",
+    signInToContinue: "Sign in or sign up to continue to your book",
     fullName: "Full Name",
     email: "Email",
     password: "Password",

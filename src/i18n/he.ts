@@ -372,6 +372,7 @@ export const he: typeof en = {
     pages: "עמודים",
     pagesCount: "10 עמודים",
     signInToGenerate: "התחברו כדי ליצור את הסיפור",
+    signInToContinue: "התחברו או הירשמו כדי להמשיך לספר שלכם",
     fullName: "שם מלא",
     email: "אימייל",
     password: "סיסמה",
