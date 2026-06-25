@@ -44,7 +44,7 @@ export const ProductsSection = ({ onStart }: Props) => {
     { key: "softcover", icon: BookOpen, name: t.bookOptions.softcover, tagline: t.bookOptions.softcoverTagline, desc: t.productsShowcase.desc.softcover, image: mockupSoftcover, size: "8″×8″", priceUsd: 9, priceIls: 25 },
     { key: "hardcover", icon: Shield, name: t.bookOptions.hardcover, tagline: t.bookOptions.hardcoverTagline, desc: t.productsShowcase.desc.hardcover, image: mockupHardcover, size: "8″×8″", priceUsd: 17, priceIls: 50 },
     { key: "board", icon: Baby, name: t.bookOptions.boardBook, tagline: t.bookOptions.boardTagline, desc: t.productsShowcase.desc.board, image: mockupBoard, size: "6″×6″", priceUsd: 24, priceIls: 70 },
-    { key: "coloring", icon: Palette, name: t.productsShowcase.coloring, tagline: t.productsShowcase.coloringTagline, desc: t.productsShowcase.desc.coloring, image: mockupColoring, size: "8.5″×11″", priceUsd: 3, priceIls: 12, addOn: true },
+    { key: "coloring", icon: Palette, name: t.productsShowcase.coloring, tagline: t.productsShowcase.coloringTagline, desc: t.productsShowcase.desc.coloring, image: mockupColoring, size: "8.5″×11″", priceUsd: 12, priceIls: 35 },
   ];
 
   // Auto-rotate through the products (pauses on hover/focus).

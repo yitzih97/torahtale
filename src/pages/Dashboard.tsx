@@ -407,7 +407,7 @@ export default function Dashboard() {
           pages={bookPages}
           bookFormat={(() => {
             const pt = (viewingBook.shipping_data as any)?.bookOptions?.productType;
-            return pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : "softcover-8x8";
+            return pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : pt === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
           })()}
           onReorder={() => {
             setViewingBook(null);

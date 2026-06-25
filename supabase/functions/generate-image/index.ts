@@ -69,6 +69,7 @@ serve(async (req) => {
       "softcover-8x8":   { page: [2400, 2400], cover: [4790, 2400] }, // 8×8
       "hardcover-8x8":   { page: [2325, 2325], cover: [5370, 2850] }, // 8×8 (only hardcover size)
       "board-6x6":       { page: [3675, 1875], cover: [3863, 1875] }, // 6×6
+      "coloring-8.5x11": { page: [2550, 3300], cover: [2550, 3300] }, // 8.5×11 line-art coloring book
 
     };
     const specs = bookFormat ? PRINT_SPECS[bookFormat] : null;
@@ -144,7 +145,11 @@ serve(async (req) => {
       "graphic-novel": "graphic novel illustration with bold confident ink linework, dramatic dynamic composition with cinematic camera angles, rich flat color palette with halftone textures and cross-hatching details, high contrast lighting with deep shadows, premium print-quality detail",
     };
 
-    const styleDesc = styleMap[artStyle] || styleMap.cartoon;
+    // Standalone coloring book: render clean black-and-white line art instead of
+    // the full-color illustration style.
+    const isColoring = (bookFormat || "").startsWith("coloring");
+    const coloringStyle = "clean black-and-white line-art coloring-book page: bold, smooth, evenly-weighted black outlines on a pure white background, NO color, NO grayscale shading, NO fills, NO gradients, generous open white areas for a child to color in, simple and friendly shapes, thick clear contours";
+    const styleDesc = isColoring ? coloringStyle : (styleMap[artStyle] || styleMap.cartoon);
 
     let imagePrompt: string;
 
@@ -178,7 +183,9 @@ serve(async (req) => {
     // overlaid (hero-style). Board books are wide 2:1 spreads; 8×8 books are
     // single square pages — compose each accordingly.
     if (!isCover && !prompt) {
-      imagePrompt += isSpreadFormat
+      imagePrompt += isColoring
+        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Fill the page with a clear, friendly black-and-white line drawing of the scene for a child to color — bold clean outlines only, pure white background, NO color, NO shading, NO grey, NO fills. Keep details simple and the shapes large and open. Absolutely NO text, letters, or words in the image.`
+        : isSpreadFormat
         ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration. Arrange it as a cinematic scene with the main character(s) toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and stay easy to read. Do NOT center the subject so tightly that there is no breathing room. Absolutely NO text, letters, or words in the image.`
         : ` COMPOSITION: This is a single SQUARE page illustration. Arrange it with the main character(s) toward the lower/center of the frame, leaving a calm area of open sky or soft, uncluttered negative space across the top so a few lines of story text can be overlaid there and stay easy to read. Absolutely NO text, letters, or words in the image.`;
     }

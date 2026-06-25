@@ -232,6 +232,8 @@ export const SHOPIFY_VARIANT_IDS = {
   bookHardcover8x8: { standard: "gid://shopify/ProductVariant/53047693803744", coloring: "gid://shopify/ProductVariant/53047693836512" },
   bookHardcover11x85: { standard: "gid://shopify/ProductVariant/53047693869280", coloring: "gid://shopify/ProductVariant/53047693902048" },
   bookBoardBook6x6: { standard: "gid://shopify/ProductVariant/53047693967584", coloring: "gid://shopify/ProductVariant/53047694000352" },
+  // Standalone Coloring Book ($12) — its own product (no "+coloring" sub-variant).
+  coloringBook: { standard: "gid://shopify/ProductVariant/53221487444192", coloring: "gid://shopify/ProductVariant/53221487444192" },
 } as const;
 
 // Subscription variants: one per plan x book type x coloring add-on, so each of
@@ -274,7 +276,7 @@ export const SHOPIFY_SELLING_PLAN_IDS: Record<"weekly" | "monthly" | "yearly", s
 export type OrderPlan = "once" | "weekly" | "monthly" | "yearly";
 
 interface OrderBookOptions {
-  productType: "softcover" | "hardcover" | "board";
+  productType: "softcover" | "hardcover" | "board" | "coloring";
   // Hardcover is offered in 8×8 only (the 11×8.5 size was retired).
   hardcoverSize?: "8x8";
   coloringBook?: boolean;
@@ -282,12 +284,15 @@ interface OrderBookOptions {
 
 export function getBookVariantId(options: OrderBookOptions): string {
   const pair =
-    options.productType === "hardcover"
+    options.productType === "coloring"
+      ? SHOPIFY_VARIANT_IDS.coloringBook
+      : options.productType === "hardcover"
       ? SHOPIFY_VARIANT_IDS.bookHardcover8x8
       : options.productType === "board"
       ? SHOPIFY_VARIANT_IDS.bookBoardBook6x6
       : SHOPIFY_VARIANT_IDS.bookSoftcover8x8;
-  return options.coloringBook ? pair.coloring : pair.standard;
+  // A standalone coloring book has no separate "+coloring" add-on.
+  return options.coloringBook && options.productType !== "coloring" ? pair.coloring : pair.standard;
 }
 
 interface OrderLine {
