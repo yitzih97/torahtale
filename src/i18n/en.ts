@@ -434,6 +434,22 @@ export const en = {
     },
   },
 
+  // Homepage products showcase (tabbed section under the hero)
+  productsShowcase: {
+    badge: "Our Books",
+    heading: "One story. Four ways to treasure it.",
+    subtitle: "Every Torah Tale comes in the format that fits your child best — from sturdy board books for the littlest hands to a matching coloring book.",
+    cta: "Create your book",
+    coloring: "Coloring Book",
+    coloringTagline: "Color the story yourself",
+    desc: {
+      softcover: "Our classic 8″×8″ photo book on smooth semi-gloss paper — lightweight, vibrant, and perfect for everyday bedtime reading.",
+      hardcover: "A premium 8″×8″ case-wrapped hardcover with lay-flat pages — sturdy, gift-worthy, and made to last for years.",
+      board: "Chunky 6″×6″ board pages with rounded safety corners — built to survive the littlest, busiest hands.",
+      coloring: "A matching 8.5″×11″ coloring book — 24 black-and-white Torah scenes your child brings to life with their own colors.",
+    },
+  },
+
   // Shipping
   shipping: {
     whereShip: "Where Should We Ship?",

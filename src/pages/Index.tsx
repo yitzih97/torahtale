@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
+import { ProductsSection } from "@/components/ProductsSection";
 import { HowItWorks } from "@/components/HowItWorks";
 import { GalleryReviewsSection } from "@/components/GalleryReviewsSection";
 import { CTASection } from "@/components/CTASection";
@@ -44,6 +45,7 @@ const Index = () => {
       />
       <Navbar onStart={goToCreate} transparentHero={false} />
       <HeroSection onStart={goToCreate} />
+      <ProductsSection onStart={goToCreate} />
       <HowItWorks />
       <GalleryReviewsSection />
       <CTASection onStart={goToCreate} />
