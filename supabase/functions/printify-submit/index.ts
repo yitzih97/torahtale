@@ -168,6 +168,54 @@ serve(async (req) => {
         );
       }
 
+      // Map each uploaded image to its real print-area placeholder. These books
+      // print one image PER print area — a "Cover" plus "Page 1…N" (8×8) or
+      // "Spread 1…N" (board). `imageIds` are in page order (cover first, then the
+      // story pages), matching the blueprint's placeholder order. We discover the
+      // placeholder positions at runtime from the catalog so we never hardcode
+      // catalog slugs, and fall back to a single "front" placeholder if the lookup
+      // fails — so submission never breaks.
+      let printAreas: any[] = imageIds.length > 0
+        ? [{ variant_ids: [variantId], placeholders: [{ position: "front", images: imageIds.map((id) => ({ id, x: 0.5, y: 0.5, scale: 1, angle: 0 })) }] }]
+        : [];
+      try {
+        const variantsRes = await fetch(
+          `${PRINTIFY_BASE}/catalog/blueprints/${blueprintId}/print_providers/${printProviderId}/variants.json`,
+          { headers: { Authorization: `Bearer ${PRINTIFY_API_KEY}` } },
+        );
+        if (variantsRes.ok) {
+          const variantsJson = await variantsRes.json();
+          const variants = variantsJson?.variants || [];
+          const variant = variants.find((v: any) => v.id === variantId) || variants[0];
+          const positions: string[] = (variant?.placeholders || []).map((ph: any) => ph.position).filter(Boolean);
+          if (positions.length && imageIds.length) {
+            // One image per placeholder, in order (cover → page/spread 1 → …).
+            const placeholders = positions
+              .map((position, idx) => ({
+                position,
+                images: imageIds[idx] ? [{ id: imageIds[idx], x: 0.5, y: 0.5, scale: 1, angle: 0 }] : [],
+              }))
+              .filter((ph) => ph.images.length > 0);
+            if (imageIds.length > positions.length) {
+              console.warn(
+                `Book has ${imageIds.length} images but blueprint ${blueprintId} exposes only ${positions.length} print slots — extra images dropped: ${imageIds.length - positions.length}.`,
+              );
+            } else if (imageIds.length < positions.length) {
+              console.warn(
+                `Book has ${imageIds.length} images for a ${positions.length}-slot blueprint ${blueprintId} — ${positions.length - imageIds.length} slot(s) will print blank.`,
+              );
+            }
+            printAreas = [{ variant_ids: [variantId], placeholders }];
+          } else {
+            console.warn(`No placeholders found for variant ${variantId} on blueprint ${blueprintId}; using single "front" placeholder.`);
+          }
+        } else {
+          console.warn(`Placeholder lookup failed [${variantsRes.status}] for blueprint ${blueprintId}; using single "front" placeholder.`);
+        }
+      } catch (e) {
+        console.error("Print-area placeholder mapping error; using single 'front' fallback:", e);
+      }
+
       // Reuse an existing Printify product if this book was submitted before;
       // otherwise create one. (Approval can be retried without spawning duplicates.)
       let productId: string | null = book.printify_product_id || null;
@@ -184,10 +232,7 @@ serve(async (req) => {
             blueprint_id: blueprintId,
             print_provider_id: printProviderId,
             variants: [{ id: variantId, price, is_enabled: true }],
-            print_areas: imageIds.length > 0 ? [{
-              variant_ids: [variantId],
-              placeholders: [{ position: "front", images: imageIds.map((id) => ({ id, x: 0, y: 0, scale: 1, angle: 0 })) }],
-            }] : [],
+            print_areas: printAreas,
           }),
         });
         if (!productRes.ok) {
