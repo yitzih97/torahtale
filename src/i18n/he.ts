@@ -442,6 +442,7 @@ export const he: typeof en = {
   // Homepage products showcase (tabbed section under the hero)
   productsShowcase: {
     badge: "הספרים שלנו",
+    hoverHint: "העבירו את העכבר כדי לראות את המוצר הריק",
     heading: "סיפור אחד. ארבע דרכים לשמור אותו.",
     subtitle: "כל ספר תורה־טייל מגיע בפורמט שמתאים בדיוק לילד שלכם — מספרי קרטון חזקים לידיים הקטנות ועד חוברת צביעה תואמת.",
     cta: "צרו את הספר שלכם",
