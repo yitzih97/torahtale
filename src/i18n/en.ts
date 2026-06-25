@@ -440,6 +440,7 @@ export const en = {
     heading: "One story. Four ways to treasure it.",
     subtitle: "Every Torah Tale comes in the format that fits your child best — from sturdy board books for the littlest hands to a matching coloring book.",
     cta: "Create your book",
+    hoverHint: "Hover to see the blank product",
     coloring: "Coloring Book",
     coloringTagline: "Color the story yourself",
     desc: {
