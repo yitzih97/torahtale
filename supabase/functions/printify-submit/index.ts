@@ -120,6 +120,8 @@ serve(async (req) => {
           ? "hardcover-8x8" // hardcover is 8×8 only (11×8.5 retired)
           : opts.productType === "board"
           ? "board"
+          : opts.productType === "coloring"
+          ? "coloring" // standalone coloring book (blueprint 2721)
           : "softcover";
       const fmt = (field: string) =>
         getSetting(`printify-${field}-${formatKey}`) || getSetting(`printify-${field}`) || "";
@@ -129,11 +131,13 @@ serve(async (req) => {
       // a missing setting would silently print the wrong product. Fail instead.
       const blueprintId = parseInt(fmt("blueprint-id"));
       const printProviderId = parseInt(fmt("print-provider-id"));
-      const variantId = parseInt(fmt("variant-id"));
+      // variant-id is optional: if not configured, we auto-discover the first
+      // catalog variant from the same lookup used for print-area placeholders.
+      let variantId = parseInt(fmt("variant-id"));
       const price = parseInt(fmt("price"));
-      if (!blueprintId || !printProviderId || !variantId || !price) {
+      if (!blueprintId || !printProviderId || !price) {
         throw new Error(
-          `Printify config missing for format "${formatKey}" — set printify-blueprint-id/print-provider-id/variant-id/price in site_settings before submitting.`,
+          `Printify config missing for format "${formatKey}" — set printify-blueprint-id/print-provider-id/price in site_settings before submitting.`,
         );
       }
 
@@ -187,6 +191,8 @@ serve(async (req) => {
           const variantsJson = await variantsRes.json();
           const variants = variantsJson?.variants || [];
           const variant = variants.find((v: any) => v.id === variantId) || variants[0];
+          // Auto-discover the variant id when it wasn't configured (e.g. coloring).
+          if (!variantId && variant?.id) variantId = variant.id;
           const positions: string[] = (variant?.placeholders || []).map((ph: any) => ph.position).filter(Boolean);
           if (positions.length && imageIds.length) {
             // One image per placeholder, in order (cover → page/spread 1 → …).

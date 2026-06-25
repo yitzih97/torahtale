@@ -242,6 +242,8 @@ export const CheckoutStep = ({
                 ? `${t.bookOptions.hardcover} 8″×8″`
                 : bookOptions.productType === "board"
                 ? `${t.bookOptions.boardBook} 6″×6″`
+                : bookOptions.productType === "coloring"
+                ? `${t.productsShowcase.coloring} 8.5″×11″`
                 : `${t.bookOptions.softcover} 8″×8″`}
               {bookOptions.coloringBook ? ` + ${t.bookOptions.coloringBookAddon}` : ""}
             </span>

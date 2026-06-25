@@ -4,9 +4,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import softcoverImg from "@/assets/books/mockup-softcover.jpg";
 import hardcoverImg from "@/assets/books/mockup-hardcover.jpg";
 import boardImg from "@/assets/books/mockup-board.jpg";
+import coloringImg from "@/assets/books/mockup-coloring.jpg";
 
 export interface BookOptions {
-  productType: "softcover" | "hardcover" | "board";
+  productType: "softcover" | "hardcover" | "board" | "coloring";
   // Hardcover is offered in 8×8 only (the 11×8.5 size was retired).
   hardcoverSize?: "8x8";
   coloringBook?: boolean;
@@ -26,6 +27,7 @@ export const PAGES_BY_TYPE: Record<BookOptions["productType"], number> = {
   softcover: 20,
   hardcover: 24,
   board: 10,
+  coloring: 24, // standalone coloring book (bp 2721, 8.5×11, Cover + 24 pages)
 };
 
 const COLORING_BOOK_ADDON_PRICE_USD = 3;
@@ -58,6 +60,13 @@ const PRODUCT_INFO = {
     dims: '6″ × 6″',
     icon: Baby,
     image: boardImg,
+  },
+  coloring: {
+    price: 12,
+    priceIls: 35,
+    dims: '8.5″ × 11″',
+    icon: Palette,
+    image: coloringImg,
   },
 } as const;
 
@@ -106,6 +115,11 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
       onChange({ ...options, productType: "hardcover", hardcoverSize: "8x8" });
       return;
     }
+    // A standalone coloring book can't also carry the coloring add-on.
+    if (type === "coloring") {
+      onChange({ ...options, productType: "coloring", hardcoverSize: undefined, coloringBook: false });
+      return;
+    }
     onChange({ ...options, productType: type, hardcoverSize: undefined });
   };
 
@@ -117,12 +131,14 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
     softcover: t.bookOptions.softcover,
     hardcover: t.bookOptions.hardcover,
     board: t.bookOptions.boardBook,
+    coloring: t.productsShowcase.coloring,
   };
 
   const productTaglines: Record<BookOptions["productType"], string> = {
     softcover: t.bookOptions.softcoverTagline,
     hardcover: t.bookOptions.hardcoverTagline,
     board: t.bookOptions.boardTagline,
+    coloring: t.productsShowcase.coloringTagline,
   };
 
   return (
@@ -185,6 +201,9 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
         })}
       </div>
 
+      {/* Coloring-book add-on — not shown when the standalone coloring book is
+          already the chosen product. */}
+      {options.productType !== "coloring" && (
       <button
         onClick={toggleColoringBook}
         className={`w-full rounded-2xl border-2 p-5 text-start transition-all duration-300 active:scale-[0.98] ${
@@ -209,6 +228,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
           </div>
         </div>
       </button>
+      )}
     </div>
   );
 };

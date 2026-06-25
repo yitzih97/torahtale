@@ -221,7 +221,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       const hardcoverSize = bookOpts.hardcoverSize || "8x8";
       const bookFormat = productType === "hardcover"
         ? `hardcover-${hardcoverSize}`
-        : productType === "board" ? "board-6x6" : "softcover-8x8";
+        : productType === "board" ? "board-6x6"
+        : productType === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
 
       // Send ALL children's character sheets + photos + descriptions so every kid stays consistent
       const characterSheetsMap = { ...characterSheetsRef.current };
@@ -373,7 +374,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     setDownloadingPdf(true);
     try {
       const pt = (book as any)?.shipping_data?.bookOptions?.productType;
-      const fmt = pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : "softcover-8x8";
+      const fmt = pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : pt === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
       const blob = await generateBookPdf(pages as any, book.child_name || "book", book.torah_portion || "", false, fmt);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -478,7 +479,9 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                       ? `hardcover-${opts.hardcoverSize || "8x8"}`
                       : opts.productType === "board"
                         ? "board-6x6"
-                        : "softcover-8x8";
+                        : opts.productType === "coloring"
+                          ? "coloring-8.5x11"
+                          : "softcover-8x8";
                   })(),
                   childRefs: (book.story_data?.childDescriptions || []).map((c: any) => ({
                     name: c.name,
