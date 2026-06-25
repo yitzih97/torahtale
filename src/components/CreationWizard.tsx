@@ -248,7 +248,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
   const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
 
-  // Keep story pageCount in sync with the chosen book format (board=10, soft/hardcover=20)
+  // Keep story pageCount in sync with the chosen book format (board=10, softcover=20, hardcover=24)
   useEffect(() => {
     const target = getStoryPageCount(bookOptions);
     setData((d) => (d.pageCount === target ? d : { ...d, pageCount: target }));

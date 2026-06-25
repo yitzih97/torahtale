@@ -17,9 +17,14 @@ export const DEFAULT_BOOK_OPTIONS: BookOptions = {
   coloringBook: false,
 };
 
+// Story units generated per format, matching each Printify blueprint's interior
+// capacity (District Photo):
+//   • board (6×6, bp 2727)     → Cover + 10 SPREADS  → 10 (one wide image per spread)
+//   • softcover (8×8, bp 2733) → Cover + 20 PAGES    → 20 (one image per page)
+//   • hardcover (8×8, bp 2737) → Cover + 24 PAGES    → 24 (one image per page)
 export const PAGES_BY_TYPE: Record<BookOptions["productType"], number> = {
   softcover: 20,
-  hardcover: 20,
+  hardcover: 24,
   board: 10,
 };
 
