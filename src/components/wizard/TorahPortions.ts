@@ -378,12 +378,16 @@ const PARSHA_CALENDAR: Record<string, string> = {
   "2026-10-10": "nitzavim",
 };
 
-/** Returns the parashah read three weeks from now (production lead time). */
-export const getUpcomingParsha = (): string => {
-  const now = new Date();
-  const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
-  const targetSat = new Date(now);
-  targetSat.setDate(now.getDate() + daysUntilSat + 21);
+/**
+ * Returns the parashah read `leadWeeks` weeks after `from` (default: 3 weeks from
+ * now, the production lead time). Pass a future Monday to find the portion a
+ * subscription book released that day will cover — mirrors the server-side
+ * supabase/functions/_shared/parsha.ts used by the release job.
+ */
+export const getUpcomingParsha = (from: Date = new Date(), leadWeeks = 3): string => {
+  const daysUntilSat = (6 - from.getDay() + 7) % 7 || 7;
+  const targetSat = new Date(from);
+  targetSat.setDate(from.getDate() + daysUntilSat + leadWeeks * 7);
   const key = targetSat.toISOString().slice(0, 10);
 
   if (PARSHA_CALENDAR[key]) return PARSHA_CALENDAR[key];

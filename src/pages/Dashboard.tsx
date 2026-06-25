@@ -14,6 +14,7 @@ import { KidCard } from "@/components/dashboard/KidCard";
 import { BookCard } from "@/components/dashboard/BookCard";
 import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
 import { BookTimeline } from "@/components/dashboard/BookTimeline";
+import { UpcomingDeliveries } from "@/components/dashboard/UpcomingDeliveries";
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
 import { BookReviewDialog } from "@/components/dashboard/BookReviewDialog";
 import { generateBookZip } from "@/lib/generateBookZip";
@@ -315,7 +316,9 @@ export default function Dashboard() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid sm:grid-cols-2 gap-5">
+                  <>
+                    <UpcomingDeliveries subscriptions={subscriptions} />
+                    <div className="grid sm:grid-cols-2 gap-5">
                     {subscriptions.map((sub, i) => (
                       <SubscriptionCard
                         key={sub.id}
@@ -356,7 +359,8 @@ export default function Dashboard() {
                       </div>
                       <span className="text-sm font-medium">Subscribe Another Child</span>
                     </motion.button>
-                  </div>
+                    </div>
+                  </>
                 )}
               </TabsContent>
 

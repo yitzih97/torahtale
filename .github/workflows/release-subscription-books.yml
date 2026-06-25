@@ -1,0 +1,43 @@
+name: Release subscription books (Mondays 9am ET)
+
+# Drips one book per active, paid subscription into the admin every Monday at
+# 9am ET. Fires at both 13:00 and 14:00 UTC so one lands on 9am ET in either
+# DST state; the edge function self-guards on the ET hour and is idempotent, so
+# the off-hour firing is a harmless no-op. workflow_dispatch allows a manual run
+# (append ?force=1 effect via the input below to bypass the 9am gate when testing).
+
+on:
+  schedule:
+    - cron: "0 13 * * 1" # 09:00 America/New_York during EDT (summer)
+    - cron: "0 14 * * 1" # 09:00 America/New_York during EST (winter)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Bypass the 9am-ET gate (manual test release)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: release-subscription-books
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invoke release function
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          FORCE: ${{ github.event.inputs.force }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::CRON_SECRET repo secret is not set."; exit 1
+          fi
+          url="https://cjgqpusyxvltglcbnpvg.supabase.co/functions/v1/release-subscription-books"
+          [ "${FORCE:-false}" = "true" ] && url="${url}?force=1"
+          code=$(curl -s -o /tmp/out.json -w "%{http_code}" -X POST "$url" \
+            -H "x-cron-secret: ${CRON_SECRET}" \
+            -H "Content-Type: application/json")
+          echo "HTTP $code"; cat /tmp/out.json; echo
+          [ "$code" = "200" ] || { echo "::error::release returned HTTP $code"; exit 1; }

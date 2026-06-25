@@ -1,6 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getUpcomingParsha } from "../_shared/parsha.ts";
+import { booksPerPeriod, nextMondayISO, todayET } from "../_shared/subscription.ts";
+
+// Record a billing event exactly once. Returns true if this order is new (proceed
+// to credit), false if already processed (Shopify retry — skip). Throws on an
+// unexpected DB error so the handler 500s and Shopify retries later.
+async function recordCharge(
+  supabase: any, orderId: string, subscriptionId: string | null,
+): Promise<boolean> {
+  const { error } = await supabase.from("subscription_charges")
+    .insert({ shopify_order_id: orderId, subscription_id: subscriptionId });
+  if (!error) return true;
+  if ((error as { code?: string }).code === "23505") return false;
+  throw error;
+}
 
 // Shopify order/subscription webhook.
 //
@@ -173,14 +186,29 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         } as any).eq("id", bookId);
 
-        // If this order also started a subscription, stamp the customer id on the
-        // buyer's unlinked subscription rows so the contract-create webhook and
-        // future recurring orders can be correlated back to them.
+        // If this order also started a subscription, initialise its drip schedule.
+        // The custom book above is week 1 (already in admin), so the first charge
+        // credits booksPerPeriod-1 more, dripping on the coming Mondays. Guard with
+        // the charge ledger so a Shopify webhook retry can't double-credit.
         if (customerId && book.user_id) {
+          const fresh = await recordCharge(supabase, orderId, null);
           await supabase.from("subscriptions")
             .update({ shopify_customer_id: customerId, updated_at: new Date().toISOString() } as any)
             .eq("user_id", book.user_id)
             .is("shopify_customer_id", null);
+          if (fresh) {
+            const { data: userSubs } = await supabase.from("subscriptions")
+              .select("id, frequency").eq("user_id", book.user_id).eq("status", "active")
+              .is("next_release_date", null);
+            const firstMonday = nextMondayISO(todayET());
+            for (const s of userSubs || []) {
+              await supabase.from("subscriptions").update({
+                books_remaining: Math.max(0, booksPerPeriod((s as any).frequency) - 1),
+                next_release_date: firstMonday,
+                updated_at: new Date().toISOString(),
+              } as any).eq("id", (s as any).id);
+            }
+          }
         }
 
         return new Response(JSON.stringify({ received: true, action: "paid", bookId }), {
@@ -188,8 +216,10 @@ serve(async (req) => {
         });
       }
 
-      // No book_id: treat as a recurring subscription cycle. Mint a fresh book from the
-      // subscription config so the admin can generate + approve it like any other.
+      // No book_id: a recurring subscription charge. We DON'T mint a book here — that
+      // would dump a monthly subscriber's 4 books at once. Instead credit the
+      // subscription; the Monday 9am-ET release job drips one book per week while
+      // credit remains. "Only after billed" = credit only grows on this paid event.
       if (!customerId) {
         return new Response(JSON.stringify({ received: true, action: "ignored_no_book_or_customer" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -197,7 +227,7 @@ serve(async (req) => {
       }
       const { data: subs } = await supabase
         .from("subscriptions")
-        .select("*")
+        .select("id, frequency, books_remaining, next_release_date, status")
         .eq("shopify_customer_id", customerId)
         .eq("status", "active")
         .order("created_at", { ascending: false })
@@ -209,40 +239,20 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      // Stamp this cycle's parashah onto the minted book (3-week production lead, same
-      // logic the wizard uses) so it lands on the admin orders page ready to generate.
-      // null means the calendar has run dry and needs extending — mint anyway, but the
-      // admin must set the portion manually, so make it loud.
-      const upcomingParsha = getUpcomingParsha();
-      if (!upcomingParsha) {
-        console.error("PARSHA_CALENDAR exhausted — subscription book minted with no portion; extend the calendar.");
+      const credit = booksPerPeriod((sub as any).frequency);
+      const fresh = await recordCharge(supabase, orderId, (sub as any).id);
+      if (!fresh) {
+        return new Response(JSON.stringify({ received: true, action: "duplicate_charge" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-      // Carry the stored book "recipe" (childDescriptions incl. photo, page count,
-      // options) onto the minted book so the admin generation flow reproduces the
-      // child's likeness, exactly like the first book. Overlay the per-cycle parsha.
-      const bookConfig = (sub.book_config as Record<string, unknown>) || {};
-      const { data: newBook } = await supabase.from("books").insert({
-        user_id: sub.user_id,
-        child_id: sub.child_id,
-        child_name: sub.child_name,
-        torah_portion: upcomingParsha,
-        art_style: sub.art_style,
-        language: sub.language,
-        status: "paid",
-        shopify_order_id: orderId,
-        shopify_order_name: orderName,
-        paid_at: new Date().toISOString(),
-        shipping_data: { ...(sub.shipping_data as any || {}), ...shipping },
-        story_data: {
-          ...bookConfig,
-          source: "subscription",
-          subscriptionId: sub.id,
-          frequency: sub.frequency,
-          parsha: upcomingParsha,
-        },
-      } as any).select().single();
+      await supabase.from("subscriptions").update({
+        books_remaining: ((sub as any).books_remaining || 0) + credit,
+        next_release_date: (sub as any).next_release_date || nextMondayISO(todayET()),
+        updated_at: new Date().toISOString(),
+      } as any).eq("id", (sub as any).id);
 
-      return new Response(JSON.stringify({ received: true, action: "subscription_book_minted", bookId: newBook?.id }), {
+      return new Response(JSON.stringify({ received: true, action: "subscription_credited", credited: credit }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

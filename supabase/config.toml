@@ -12,3 +12,8 @@ verify_jwt = false
 # accept the anon/publishable key (no user JWT yet). It only does vision detection.
 [functions.detect-family-photo]
 verify_jwt = false
+
+# The Monday release job is invoked by the GitHub Actions cron with a custom
+# x-cron-secret header (not a Supabase JWT), so the platform must not pre-reject it.
+[functions.release-subscription-books]
+verify_jwt = false
