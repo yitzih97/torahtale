@@ -80,6 +80,10 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   // Default text side: over the open sky on the reading-start side.
   const defaultTextSide: "left" | "right" = isRtl ? "right" : "left";
 
+  // Board books (6×6) are spread-based: one wide illustration per open spread.
+  // Softcover/Hardcover (8×8) are page-based: one square illustration per page.
+  const spreadBased = (generationContext?.bookFormat || "").startsWith("board");
+
   // Hide any legacy "back-cover" pages — the cover spread renders both sides.
   const displayPages = pages.filter((p) => p.type !== "back-cover");
 
@@ -200,7 +204,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
     if (pageType === "questions") return "Discussion Page";
     const storyPages = displayPages.filter((p) => p.type === "story");
     const storyIdx = storyPages.findIndex((p) => p.id === page?.id);
-    return `Spread ${storyIdx + 1} of ${storyPages.length}`;
+    const unit = spreadBased ? "Spread" : "Page";
+    return `${unit} ${storyIdx + 1} of ${storyPages.length}`;
   };
 
   const isRegenThis = page && regeneratingId === page.id;
@@ -338,17 +343,22 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
   return (
     <div className="space-y-4">
-      {/* Spread frame */}
+      {/* Page/Spread frame — wide (2:1) for the cover wrap and board spreads;
+          square for page-based 8×8 single pages. */}
       <div
         ref={spreadRef}
-        className="relative aspect-[2/1] w-full rounded-book overflow-hidden bg-secondary shadow-soft-lg"
+        className={`relative w-full rounded-book overflow-hidden bg-secondary shadow-soft-lg ${
+          pageType === "cover" || spreadBased ? "aspect-[2/1]" : "aspect-square"
+        }`}
       >
         {pageType === "cover" && renderCoverSpread()}
         {pageType === "story" && renderStorySpread()}
         {pageType === "questions" && renderQuestionsSpread()}
 
-        {/* Center gutter */}
-        <div className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 w-2 bg-gradient-to-r from-black/0 via-black/40 to-black/0" />
+        {/* Center gutter — only on the cover wrap and board two-page spreads */}
+        {(pageType === "cover" || spreadBased) && (
+          <div className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 w-2 bg-gradient-to-r from-black/0 via-black/40 to-black/0" />
+        )}
 
         {isRegenThis && (
           <div className="absolute inset-0 flex items-center justify-center bg-primary/20">

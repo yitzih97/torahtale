@@ -67,24 +67,23 @@ function drawPaperHalf(ctx: CanvasRenderingContext2D, side: "left" | "right") {
   ctx.fillRect(x, 0, HALF_W, SPREAD_H);
 }
 
-/** Composite a text overlay using the page's TextLayout. Coords are % of spread. */
-function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: TextLayout) {
+/** Composite a text overlay using the page's TextLayout. Coords are % of the
+ *  canvas (W×H). */
+function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: TextLayout, W: number, H: number) {
   if (!text) return;
   // layout.fontSize and padding are absolute px defined against a 1024px-wide
   // reference container (see EditableTextBox / TextLayout). Scale them by the
-  // same factor to the 2400px canvas so the PDF matches the on-screen preview
-  // 1:1. (Previously this used a 600px reference, which made PDF text ~1.7x too
-  // large.)
-  const scale = SPREAD_W / 1024;
+  // canvas width so the PDF matches the on-screen preview 1:1.
+  const scale = W / 1024;
   const fontSize = layout.fontSize * scale;
   const weight = layout.bold ? "700" : "400";
   const italic = layout.italic ? "italic " : "";
   ctx.font = `${italic}${weight} ${fontSize}px ${layout.fontFamily}`;
   ctx.textBaseline = "top";
 
-  const boxX = (layout.x / 100) * SPREAD_W;
-  const boxY = (layout.y / 100) * SPREAD_H;
-  const boxW = (layout.width / 100) * SPREAD_W;
+  const boxX = (layout.x / 100) * W;
+  const boxY = (layout.y / 100) * H;
+  const boxW = (layout.width / 100) * W;
   const hasPad = layout.background || layout.border;
   const padX = (hasPad ? 18 : 6) * scale;
   const padY = (hasPad ? 14 : 4) * scale;
@@ -122,13 +121,14 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   }
 }
 
-function drawGutter(ctx: CanvasRenderingContext2D) {
-  const grad = ctx.createLinearGradient(HALF_W - 12, 0, HALF_W + 12, 0);
+function drawGutter(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  const midX = W / 2;
+  const grad = ctx.createLinearGradient(midX - 12, 0, midX + 12, 0);
   grad.addColorStop(0, "rgba(0,0,0,0)");
   grad.addColorStop(0.5, "rgba(0,0,0,0.32)");
   grad.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = grad;
-  ctx.fillRect(HALF_W - 12, 0, 24, SPREAD_H);
+  ctx.fillRect(midX - 12, 0, 24, H);
 }
 
 /** Cover-fit an image onto one half, CLIPPED to that half so a non-square
@@ -146,52 +146,57 @@ function drawHalfImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, hal
   ctx.restore();
 }
 
-/** Cover-fit an image across the FULL 2:1 spread (mirrors CSS object-cover on
- *  the whole spread, which the on-screen preview now uses for story pages). */
-function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement) {
-  const ratio = Math.max(SPREAD_W / img.naturalWidth, SPREAD_H / img.naturalHeight);
+/** Cover-fit an image across the full canvas (mirrors CSS object-cover, which
+ *  the on-screen preview uses for story pages — full spread for board, single
+ *  square page for 8×8). */
+function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: number, H: number) {
+  const ratio = Math.max(W / img.naturalWidth, H / img.naturalHeight);
   const dw = img.naturalWidth * ratio;
   const dh = img.naturalHeight * ratio;
-  ctx.drawImage(img, (SPREAD_W - dw) / 2, (SPREAD_H - dh) / 2, dw, dh);
+  ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
 }
 
-async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean): Promise<string> {
-  // One illustration fills the whole spread; text floats over the open sky.
+async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, spreadBased: boolean): Promise<string> {
+  // Board: one illustration fills the 2:1 spread. 8×8: one square page image.
   const layout = page.textLayout || makeDefaultLayout(rtl ? "right" : "left", rtl);
+  const W = spreadBased ? SPREAD_W : SPREAD_H; // square page = SPREAD_H × SPREAD_H
+  const H = SPREAD_H;
 
   const canvas = document.createElement("canvas");
-  canvas.width = SPREAD_W; canvas.height = SPREAD_H;
+  canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d")!;
 
   const img = await safeLoad(page.image);
   if (img) {
-    drawFullImage(ctx, img);
+    drawFullImage(ctx, img, W, H);
   } else {
     ctx.fillStyle = "#dcd2bd";
-    ctx.fillRect(0, 0, SPREAD_W, SPREAD_H);
+    ctx.fillRect(0, 0, W, H);
   }
 
-  drawGutter(ctx);
-  drawTextOverlay(ctx, page.text || "", layout);
+  if (spreadBased) drawGutter(ctx, W, H);
+  drawTextOverlay(ctx, page.text || "", layout, W, H);
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-async function renderQuestionsSpread(page: BookPage, rtl: boolean): Promise<string> {
+async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: boolean): Promise<string> {
   const layout = page.textLayout || makeDefaultLayout(rtl ? "right" : "left", rtl);
+  const W = spreadBased ? SPREAD_W : SPREAD_H;
+  const H = SPREAD_H;
   const canvas = document.createElement("canvas");
-  canvas.width = SPREAD_W; canvas.height = SPREAD_H;
+  canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d")!;
   const img = await safeLoad(page.image);
   if (img) {
-    drawFullImage(ctx, img);
+    drawFullImage(ctx, img, W, H);
   } else {
     ctx.fillStyle = "#dcd2bd";
-    ctx.fillRect(0, 0, SPREAD_W, SPREAD_H);
+    ctx.fillRect(0, 0, W, H);
   }
-  drawGutter(ctx);
+  if (spreadBased) drawGutter(ctx, W, H);
   const questions = page.questions || [];
   const formatted = page.text || questions.map((q) => `${q.number}. ${q.question}`).join("\n\n");
-  drawTextOverlay(ctx, formatted, layout);
+  drawTextOverlay(ctx, formatted, layout, W, H);
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
@@ -255,7 +260,7 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
     ctx.font = `italic 42px ${BOOK_TEXT_STYLE.fontFamily}`;
     ctx.fillText(page.coverSubtitle, HALF_W + HALF_W / 2, 70 + titleLines.length * 90 + 18);
   }
-  drawGutter(ctx);
+  drawGutter(ctx, SPREAD_W, SPREAD_H);
 
   // Spine — story title + kids' names down the center fold (mirrors the cover).
   const spineW = SPREAD_W * 0.05;
@@ -287,31 +292,39 @@ export async function generateBookPdf(
   pages: BookPage[],
   childName: string,
   _torahPortion: string,
-  rtl = false
+  rtl = false,
+  bookFormat = "",
 ): Promise<Blob> {
+  // Board (6×6) is spread-based → wide 2:1 interior pages. Softcover/Hardcover
+  // (8×8) are page-based → square interior pages. The cover wrap is always wide.
+  const spreadBased = bookFormat.startsWith("board");
   const renderable = pages.filter((p) => p.type !== "back-cover");
-  const pageW = 356; // mm (14")
-  const pageH = 178; // mm (7")
-  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: [pageW, pageH] });
+  const WIDE: [number, number] = [356, 178]; // mm — 2:1 cover/spread
+  const SQUARE: [number, number] = [178, 178]; // mm — single 8×8 page
+  const interior: [number, number] = spreadBased ? WIDE : SQUARE;
+
+  // First page (cover) is always wide; initialise the doc to it.
+  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: WIDE });
 
   let storyIdx = 0;
   for (let i = 0; i < renderable.length; i++) {
     const page = renderable[i];
-    if (i > 0) pdf.addPage([pageW, pageH], "landscape");
+    const fmt: [number, number] = page.type === "cover" ? WIDE : interior;
+    if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
     let dataUrl: string;
     if (page.type === "cover") {
       dataUrl = await renderCoverSpread(page, childName);
     } else if (page.type === "questions") {
-      dataUrl = await renderQuestionsSpread(page, rtl);
+      dataUrl = await renderQuestionsSpread(page, rtl, spreadBased);
     } else {
-      dataUrl = await renderStorySpread(page, storyIdx, rtl);
+      dataUrl = await renderStorySpread(page, storyIdx, rtl, spreadBased);
       storyIdx += 1;
     }
     try {
-      pdf.addImage(dataUrl, "JPEG", 0, 0, pageW, pageH);
+      pdf.addImage(dataUrl, "JPEG", 0, 0, fmt[0], fmt[1]);
     } catch {
       pdf.setFillColor(240, 240, 240);
-      pdf.rect(0, 0, pageW, pageH, "F");
+      pdf.rect(0, 0, fmt[0], fmt[1], "F");
     }
   }
   // expose default for any callers that need it

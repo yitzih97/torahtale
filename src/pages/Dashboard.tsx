@@ -405,6 +405,10 @@ export default function Dashboard() {
           torahPortion={viewingBook.torah_portion || ""}
           artStyle={viewingBook.art_style || "cartoon"}
           pages={bookPages}
+          bookFormat={(() => {
+            const pt = (viewingBook.shipping_data as any)?.bookOptions?.productType;
+            return pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : "softcover-8x8";
+          })()}
           onReorder={() => {
             setViewingBook(null);
             navigate("/?start=1");
