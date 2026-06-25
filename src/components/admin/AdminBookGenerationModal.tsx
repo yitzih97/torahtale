@@ -372,7 +372,9 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     if (!pages.length) return;
     setDownloadingPdf(true);
     try {
-      const blob = await generateBookPdf(pages as any, book.child_name || "book", book.torah_portion || "");
+      const pt = (book as any)?.shipping_data?.bookOptions?.productType;
+      const fmt = pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : "softcover-8x8";
+      const blob = await generateBookPdf(pages as any, book.child_name || "book", book.torah_portion || "", false, fmt);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

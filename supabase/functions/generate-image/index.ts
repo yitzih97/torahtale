@@ -73,13 +73,14 @@ serve(async (req) => {
     };
     const specs = bookFormat ? PRINT_SPECS[bookFormat] : null;
     const isCover = pageType === "cover" || pageType === "back-cover";
-    // The front cover is displayed and printed inside a SQUARE half-slot — render
-    // it square so a wide image isn't center-cropped and edge characters cut off.
-    // Story/interior pages now fill the FULL 2:1 spread (one illustration spans
-    // both pages, hero-style, with an open-sky area for text), so render them at a
-    // 2:1 aspect derived from the format's page height.
+    // Board books (6×6) are SPREAD-based — one wide illustration per open spread
+    // (board-6x6 page spec is already ~2:1). Softcover/Hardcover (8×8) are
+    // PAGE-based — one square illustration per single page. The front cover is a
+    // square front-cover image either way (the back cover is composited
+    // separately). So just use the format's own page/cover spec.
+    const isSpreadFormat = (bookFormat || "").startsWith("board");
     const dims = specs
-      ? (isCover ? [specs.cover[1], specs.cover[1]] : [specs.page[1] * 2, specs.page[1]])
+      ? (isCover ? [specs.cover[1], specs.cover[1]] : specs.page)
       : null;
 
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
@@ -173,14 +174,13 @@ serve(async (req) => {
       imagePrompt += ` The output image MUST be exactly ${dims[0]}x${dims[1]} pixels.`;
     }
 
-    // Story/interior pages are one illustration spanning a full 2:1 two-page
-    // spread. Compose them cinematically with a generous open, low-detail area
-    // (sky / soft out-of-focus background) toward the top and one side so a
-    // paragraph of story text can rest legibly over the artwork — like a hero
-    // banner. Keep the main characters in the lower / opposite portion of the
-    // frame and never place important detail where the text sits.
+    // Interior illustrations leave a calm, low-detail area for story text to be
+    // overlaid (hero-style). Board books are wide 2:1 spreads; 8×8 books are
+    // single square pages — compose each accordingly.
     if (!isCover && !prompt) {
-      imagePrompt += ` COMPOSITION: This is a wide 2:1 two-page spread illustration. Arrange it as a cinematic scene with the main character(s) placed toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and remain easy to read. Do NOT center the subject so tightly that there is no breathing room. Absolutely NO text, letters, or words in the image.`;
+      imagePrompt += isSpreadFormat
+        ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration. Arrange it as a cinematic scene with the main character(s) toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and stay easy to read. Do NOT center the subject so tightly that there is no breathing room. Absolutely NO text, letters, or words in the image.`
+        : ` COMPOSITION: This is a single SQUARE page illustration. Arrange it with the main character(s) toward the lower/center of the frame, leaving a calm area of open sky or soft, uncluttered negative space across the top so a few lines of story text can be overlaid there and stay easy to read. Absolutely NO text, letters, or words in the image.`;
     }
 
     // Inject scene text (story page narrative) so the illustration depicts the right moment
