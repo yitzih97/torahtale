@@ -1,4 +1,4 @@
-import { BookOpen, Check, Shield, Baby, Palette } from "lucide-react";
+import { BookOpen, Shield, Baby, Palette } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import softcoverImg from "@/assets/books/mockup-softcover.jpg";
@@ -123,10 +123,6 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
     onChange({ ...options, productType: type, hardcoverSize: undefined });
   };
 
-  const toggleColoringBook = () => {
-    onChange({ ...options, coloringBook: !options.coloringBook });
-  };
-
   const productLabels: Record<BookOptions["productType"], string> = {
     softcover: t.bookOptions.softcover,
     hardcover: t.bookOptions.hardcover,
@@ -201,34 +197,8 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
         })}
       </div>
 
-      {/* Coloring-book add-on — not shown when the standalone coloring book is
-          already the chosen product. */}
-      {options.productType !== "coloring" && (
-      <button
-        onClick={toggleColoringBook}
-        className={`w-full rounded-2xl border-2 p-5 text-start transition-all duration-300 active:scale-[0.98] ${
-          options.coloringBook
-            ? "border-accent bg-accent/5 shadow-lg shadow-accent/10 ring-1 ring-accent/20"
-            : "border-border hover:border-accent/30 hover:shadow-sm"
-        }`}
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className={`mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl ${options.coloringBook ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"}`}>
-              {options.coloringBook ? <Check className="w-5 h-5" /> : <Palette className="w-5 h-5" />}
-            </div>
-            <div>
-              <div className="font-display text-lg font-bold text-primary">{t.bookOptions.coloringBookAddon}</div>
-              <p className="mt-1 text-sm text-muted-foreground">{t.bookOptions.coloringBookAddonDesc}</p>
-            </div>
-          </div>
-          <div className="text-right shrink-0">
-            <div className="text-lg font-bold text-accent">+{formatPrice(COLORING_BOOK_ADDON_PRICE_USD, COLORING_BOOK_ADDON_PRICE_ILS)}</div>
-            <div className="text-xs text-muted-foreground">{t.bookOptions.optionalAddOn}</div>
-          </div>
-        </div>
-      </button>
-      )}
+      {/* The coloring book is sold only as a standalone product (above), not as a
+          +$3 add-on. */}
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { GoogleOneTap } from "@/components/GoogleOneTap";
 import { useCartSync } from "@/hooks/useCartSync";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
@@ -32,6 +33,7 @@ const AppInner = () => {
   useScrollReveal();
   return (
     <BrowserRouter>
+      <GoogleOneTap />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/create" element={<Create />} />
