@@ -49,6 +49,18 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: bash scripts/apply-migrations.sh
 
+      - name: Sync function secrets (CRON_SECRET for the release job)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -n "$CRON_SECRET" ]; then
+            supabase secrets set CRON_SECRET="$CRON_SECRET" --project-ref "$PROJECT_REF"
+            echo "CRON_SECRET synced to Supabase."
+          else
+            echo "::warning::CRON_SECRET repo secret not set — the Monday release job will 401 until it is."
+          fi
+
       - name: Re-pin Supabase client if Lovable reverted it
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

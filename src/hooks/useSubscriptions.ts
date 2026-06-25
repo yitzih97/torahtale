@@ -14,6 +14,8 @@ export interface SubscriptionRecord {
   price_per_week: number;
   shipping_data: any;
   next_delivery_date: string | null;
+  next_release_date?: string | null;
+  books_remaining?: number | null;
   created_at: string;
   updated_at: string;
   canceled_at: string | null;
