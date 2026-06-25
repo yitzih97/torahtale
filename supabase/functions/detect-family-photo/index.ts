@@ -34,6 +34,32 @@ Rules:
 - If no people are detected, return { "people": [] }.
 - Output JSON only, no prose, no markdown fences.`;
 
+// This endpoint is intentionally unauthenticated (it runs before the wizard login
+// gate), so it is a soft target for cost-abuse: each call forwards an image to a
+// paid vision API. Guard rails: a hard payload cap, a mime allowlist, and a
+// best-effort per-IP rate limit. The limiter is in-memory (edge instances are
+// ephemeral/distributed, so it is not a hard quota) but cheaply blunts a single
+// client hammering one instance.
+const MAX_B64_LEN = 12_000_000; // ~9 MB decoded image
+const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 15;
+const ipHits = new Map<string, number[]>();
+
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const recent = (ipHits.get(ip) || []).filter((t) => now - t < RATE_WINDOW_MS);
+  recent.push(now);
+  ipHits.set(ip, recent);
+  // Opportunistic cleanup so the map cannot grow unbounded on a long-lived instance.
+  if (ipHits.size > 5000) {
+    for (const [k, v] of ipHits) {
+      if (v.every((t) => now - t >= RATE_WINDOW_MS)) ipHits.delete(k);
+    }
+  }
+  return recent.length > RATE_MAX;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -41,10 +67,22 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY not configured");
 
+    const clientIp = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+    if (rateLimited(clientIp)) {
+      return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "60" },
+      });
+    }
+
     const { imageBase64, mimeType } = await req.json();
     if (!imageBase64 || typeof imageBase64 !== "string") {
       return new Response(JSON.stringify({ error: "imageBase64 required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (imageBase64.length > MAX_B64_LEN) {
+      return new Response(JSON.stringify({ error: "Image too large." }), {
+        status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -53,6 +91,12 @@ serve(async (req) => {
     let mime = mimeType || "image/jpeg";
     const dataMatch = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
     if (dataMatch) { mime = dataMatch[1]; b64 = dataMatch[2]; }
+
+    if (!ALLOWED_MIME.has(mime)) {
+      return new Response(JSON.stringify({ error: "Unsupported image type." }), {
+        status: 415, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Call Gemini directly. (The previous Lovable AI gateway + LOVABLE_API_KEY
     // is not available on this self-hosted project.) 45s timeout so the client
