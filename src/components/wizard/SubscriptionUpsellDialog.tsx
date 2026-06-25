@@ -68,9 +68,12 @@ interface Props {
   bookPriceUsd?: number;
   /** Optional book label (e.g. "Hardcover Book") shown for context */
   bookLabel?: string;
+  /** The just-made book id; its child_id + story_data seed the subscription so
+   *  recurring books keep the child's likeness, not just their name. */
+  sourceBookId?: string | null;
 }
 
-export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context = "limit-reached", bookPriceUsd, bookLabel }: Props) => {
+export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context = "limit-reached", bookPriceUsd, bookLabel, sourceBookId }: Props) => {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
   const [step, setStep] = useState<DialogStep>("plan");
   const [isLoading, setIsLoading] = useState(false);
@@ -132,12 +135,31 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
 
     setIsLoading(true);
     try {
+      // Seed the subscription with the just-made book's child + recipe so the
+      // webhook can mint recurring books that keep the child's likeness.
+      let child_id: string | null = null;
+      let book_config: unknown = null;
+      let child_name: string | null = null;
+      if (sourceBookId) {
+        const { data: srcBook } = await supabase
+          .from("books")
+          .select("child_id, child_name, story_data")
+          .eq("id", sourceBookId)
+          .maybeSingle();
+        child_id = (srcBook as any)?.child_id ?? null;
+        child_name = (srcBook as any)?.child_name ?? null;
+        book_config = (srcBook as any)?.story_data ?? null;
+      }
+
       const { error } = await supabase.from("subscriptions").insert({
         user_id: user.id,
+        child_id,
+        child_name,
         frequency: activePlan.frequency,
         price_per_week: activePlan.perWeekUsd,
         status: "active",
-      });
+        book_config,
+      } as any);
 
       if (error) throw error;
 

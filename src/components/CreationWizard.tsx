@@ -780,16 +780,28 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       if (bookErr) console.error("Checkout: book update failed", bookErr);
 
       // For subscriptions, create the row now so the webhook can correlate the
-      // Shopify customer/contract back to it once payment completes.
+      // Shopify customer/contract back to it once payment completes. Carry the child
+      // id + the book "recipe" (childDescriptions incl. photo, page count, options)
+      // from this first book so every recurring book the webhook mints keeps the
+      // child's likeness — not just their name.
       if (isSubscription) {
+        const { data: srcBook } = await supabase
+          .from("books")
+          .select("story_data, child_id")
+          .eq("id", savedBookId)
+          .maybeSingle();
+        const subChildId =
+          (srcBook as any)?.child_id ?? data.children.find((c) => c.savedChildId)?.savedChildId ?? null;
         const { error: subErr } = await supabase.from("subscriptions").insert({
           user_id: user.id,
+          child_id: subChildId,
           child_name: childNames,
           art_style: data.artStyle || "cartoon",
           language: data.language || "english",
           status: "active",
           frequency: orderPlan,
           shipping_data: shipping as any,
+          book_config: (srcBook as any)?.story_data ?? null,
         } as any);
         if (subErr) console.error("Checkout: subscription insert failed", subErr);
       }
@@ -2289,6 +2301,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         setStep(11);
       }}
       context="limit-reached"
+      sourceBookId={savedBookId}
       bookPriceUsd={(() => {
         const pt = bookOptions.productType;
         const isIls = t.currency.code === "ILS";

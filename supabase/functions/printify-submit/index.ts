@@ -38,10 +38,11 @@ serve(async (req) => {
     // Load Printify settings
     const PRINTIFY_API_KEY = Deno.env.get("PRINTIFY_API_KEY");
     
-    // Load integration settings
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || serviceKey;
+    // Load integration settings. Service-role key: the 'integrations' category is
+    // admin-only under RLS, so an anon-key read returns [] and the Printify shop id
+    // would never load (submit-order would always fail "Shop ID not configured").
     const settingsRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=eq.integrations`, {
-      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
     });
     const settings = settingsRes.ok ? await settingsRes.json() : [];
     const getSetting = (key: string) => settings.find((s: any) => s.key === key)?.value || "";

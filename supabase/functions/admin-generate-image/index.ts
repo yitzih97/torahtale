@@ -39,9 +39,10 @@ serve(async (req) => {
     // Load preferred site image model from settings
     let customSiteImageModel: string | null = null;
     try {
-      const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || serviceKey;
+      // Service-role key: the 'ai' category is admin-only under RLS, so an anon-key
+      // read returns [] and the configured model would silently never load.
       const sRes = await fetch(`${supabaseUrl}/rest/v1/site_settings?category=eq.ai&key=eq.site-image-model`, {
-        headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
       });
       if (sRes.ok) {
         const ss = await sRes.json();
