@@ -217,6 +217,10 @@ serve(async (req) => {
       if (!upcomingParsha) {
         console.error("PARSHA_CALENDAR exhausted — subscription book minted with no portion; extend the calendar.");
       }
+      // Carry the stored book "recipe" (childDescriptions incl. photo, page count,
+      // options) onto the minted book so the admin generation flow reproduces the
+      // child's likeness, exactly like the first book. Overlay the per-cycle parsha.
+      const bookConfig = (sub.book_config as Record<string, unknown>) || {};
       const { data: newBook } = await supabase.from("books").insert({
         user_id: sub.user_id,
         child_id: sub.child_id,
@@ -229,7 +233,13 @@ serve(async (req) => {
         shopify_order_name: orderName,
         paid_at: new Date().toISOString(),
         shipping_data: { ...(sub.shipping_data as any || {}), ...shipping },
-        story_data: { source: "subscription", subscriptionId: sub.id, frequency: sub.frequency, parsha: upcomingParsha },
+        story_data: {
+          ...bookConfig,
+          source: "subscription",
+          subscriptionId: sub.id,
+          frequency: sub.frequency,
+          parsha: upcomingParsha,
+        },
       } as any).select().single();
 
       return new Response(JSON.stringify({ received: true, action: "subscription_book_minted", bookId: newBook?.id }), {
