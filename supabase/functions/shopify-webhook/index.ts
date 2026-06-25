@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getUpcomingParsha } from "../_shared/parsha.ts";
 
 // Shopify order/subscription webhook.
 //
@@ -208,10 +209,19 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      // Stamp this cycle's parashah onto the minted book (3-week production lead, same
+      // logic the wizard uses) so it lands on the admin orders page ready to generate.
+      // null means the calendar has run dry and needs extending — mint anyway, but the
+      // admin must set the portion manually, so make it loud.
+      const upcomingParsha = getUpcomingParsha();
+      if (!upcomingParsha) {
+        console.error("PARSHA_CALENDAR exhausted — subscription book minted with no portion; extend the calendar.");
+      }
       const { data: newBook } = await supabase.from("books").insert({
         user_id: sub.user_id,
         child_id: sub.child_id,
         child_name: sub.child_name,
+        torah_portion: upcomingParsha,
         art_style: sub.art_style,
         language: sub.language,
         status: "paid",
@@ -219,7 +229,7 @@ serve(async (req) => {
         shopify_order_name: orderName,
         paid_at: new Date().toISOString(),
         shipping_data: { ...(sub.shipping_data as any || {}), ...shipping },
-        story_data: { source: "subscription", subscriptionId: sub.id, frequency: sub.frequency },
+        story_data: { source: "subscription", subscriptionId: sub.id, frequency: sub.frequency, parsha: upcomingParsha },
       } as any).select().single();
 
       return new Response(JSON.stringify({ received: true, action: "subscription_book_minted", bookId: newBook?.id }), {
