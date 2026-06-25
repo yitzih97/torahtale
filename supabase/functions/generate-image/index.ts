@@ -66,10 +66,10 @@ serve(async (req) => {
 
     /* ── Printify print-area dimensions by format ── */
     const PRINT_SPECS: Record<string, { page: [number, number]; cover: [number, number] }> = {
-      "softcover-8x8":   { page: [2400, 2400], cover: [4790, 2400] },
-      "hardcover-8x8":   { page: [2325, 2325], cover: [5370, 2850] },
-      "hardcover-11x8.5":{ page: [2325, 2325], cover: [5370, 2850] },
-      "board-6x6":       { page: [3675, 1875], cover: [3863, 1875] },
+      "softcover-8x8":   { page: [2400, 2400], cover: [4790, 2400] }, // 8×8
+      "hardcover-8x8":   { page: [2325, 2325], cover: [5370, 2850] }, // 8×8 (only hardcover size)
+      "board-6x6":       { page: [3675, 1875], cover: [3863, 1875] }, // 6×6
+
     };
     const specs = bookFormat ? PRINT_SPECS[bookFormat] : null;
     const isCover = pageType === "cover" || pageType === "back-cover";

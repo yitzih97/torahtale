@@ -239,7 +239,7 @@ export const CheckoutStep = ({
             <span className="text-muted-foreground">{t.checkout.format}</span>
             <span className="font-medium text-primary">
               {bookOptions.productType === "hardcover"
-                ? `${t.bookOptions.hardcover} ${bookOptions.hardcoverSize === "11x8.5" ? '11″×8.5″' : '8″×8″'}`
+                ? `${t.bookOptions.hardcover} 8″×8″`
                 : bookOptions.productType === "board"
                 ? `${t.bookOptions.boardBook} 6″×6″`
                 : `${t.bookOptions.softcover} 8″×8″`}
