@@ -22,6 +22,10 @@ const SLIDES = [
 ];
 const ROTATE_MS = 4000;
 
+// The open book's bounds as a % of the image (kids+book composed on the left).
+// Only this region animates on a slide change (the page turn).
+const BOOK_RECT = { top: 39, left: 0, width: 55, height: 53 };
+
 /** Types `text` out character-by-character whenever it changes, with a blinking caret. */
 function TypedText({ text }: { text: string }) {
   const [shown, setShown] = useState("");
@@ -118,32 +122,38 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   return (
     <>
       <section className="relative overflow-hidden bg-[hsl(42_60%_96%)]" dir={dir}>
-        {/* Rotating background — same children & scene, only the book's story changes,
-            revealed with a page-flip. Image is composed kids+book on one side, empty
-            copy space on the other; mirror for LTR so the copy sits opposite the kids. */}
-        <div className="absolute inset-0 overflow-hidden" style={{ perspective: "2200px" }}>
-          {/* previous frame stays beneath so the turning page reveals it cleanly */}
-          <img
-            src={SLIDES[prev].img}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ objectPosition: "center bottom", transform: isRtl ? undefined : "scaleX(-1)" }}
-          />
-          {/* current frame flips in like a turning storybook page */}
+        {/* Background — the children, the book and the meadow are identical in every
+            frame; ONLY the book's page art changes. The transition turns just the
+            book's pages: the previous frame, clipped to the book, rotates away on the
+            spine to reveal the new page beneath. Mirrored for LTR so the copy sits
+            opposite the book. BOOK_RECT is the book's bounds as % of the image. */}
+        <div className="absolute inset-0 overflow-hidden" style={{ perspective: "1700px" }}>
           <div
-            key={slide}
-            className="hero-page-flip absolute inset-0"
-            style={{ transformOrigin: isRtl ? "left center" : "right center" }}
+            className="absolute inset-0"
+            style={{ transform: isRtl ? undefined : "scaleX(-1)", transformStyle: "preserve-3d" }}
           >
+            {/* current page (and the static kids + meadow) */}
             <img
               src={SLIDES[slide].img}
               alt="Two children with their personalized Torah storybook"
-              className="w-full h-full object-cover"
-              style={{ objectPosition: "center bottom", transform: isRtl ? undefined : "scaleX(-1)" }}
-              width={1376}
-              height={768}
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ objectPosition: "center bottom" }}
+              width={1700}
+              height={962}
               loading={slide === 0 ? "eager" : "lazy"}
+            />
+            {/* previous page, clipped to just the book, turning away on its spine */}
+            <img
+              key={slide}
+              src={SLIDES[prev].img}
+              alt=""
+              aria-hidden
+              className="hero-page-turn absolute inset-0 w-full h-full object-cover"
+              style={{
+                objectPosition: "center bottom",
+                clipPath: `inset(${BOOK_RECT.top}% ${100 - BOOK_RECT.left - BOOK_RECT.width}% ${100 - BOOK_RECT.top - BOOK_RECT.height}% ${BOOK_RECT.left}%)`,
+                transformOrigin: `${BOOK_RECT.left + BOOK_RECT.width / 2}% ${BOOK_RECT.top + BOOK_RECT.height / 2}%`,
+              }}
             />
           </div>
         </div>
