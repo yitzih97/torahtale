@@ -231,21 +231,6 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
             <div className="hidden lg:block lg:min-h-[600px]" />
           </div>
-
-          {/* feature pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.45, ease }}
-            className="mt-8 lg:mt-12 rounded-2xl border border-foreground/8 bg-background/70 backdrop-blur px-4 sm:px-6 py-4 sm:py-5 flex flex-wrap items-center justify-around gap-x-6 gap-y-3"
-          >
-            {copy.features.map((f, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <f.icon className="w-6 h-6 sm:w-7 sm:h-7 text-gold flex-shrink-0" strokeWidth={1.5} />
-                <span className="text-xs sm:text-sm font-medium text-foreground/80 max-w-[8rem] leading-tight">{f.label}</span>
-              </div>
-            ))}
-          </motion.div>
         </div>
 
         {/* Trust bar */}
