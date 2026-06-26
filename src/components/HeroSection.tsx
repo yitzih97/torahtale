@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, Heart, Gift, Star, ShieldCheck, Award, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import heroFlip1 from "@/assets/hero-flip-1.jpg";
 import heroFlip2 from "@/assets/hero-flip-2.jpg";
 import heroFlip3 from "@/assets/hero-flip-3.jpg";
-import heroFlip4 from "@/assets/hero-flip-4.jpg";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
 import reviewer3 from "@/assets/avatars/reviewer3.jpg";
@@ -20,7 +19,6 @@ const SLIDES = [
   { img: heroFlip1, en: "aboard Noach’s ark.", he: "על תיבת נח." },
   { img: heroFlip2, en: "as the world is created.", he: "כשהעולם נברא." },
   { img: heroFlip3, en: "crossing the sea.", he: "כשהים נבקע." },
-  { img: heroFlip4, en: "deep in the sea with Yonah.", he: "במעמקים עם יונה." },
 ];
 const ROTATE_MS = 4000;
 
@@ -55,10 +53,15 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   const isHebrew = lang === "he" || lang === "yi";
 
   const [slide, setSlide] = useState(0);
+  const prevRef = useRef(0);
   useEffect(() => {
     const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), ROTATE_MS);
     return () => clearInterval(id);
   }, []);
+  const prev = prevRef.current;
+  useEffect(() => {
+    prevRef.current = slide;
+  }, [slide]);
 
   const copy = isHebrew
     ? {
@@ -115,28 +118,34 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   return (
     <>
       <section className="relative overflow-hidden bg-[hsl(42_60%_96%)]" dir={dir}>
-        {/* Rotating book-flip background — same kids, different parsha + book type. */}
-        <div className="absolute inset-0">
-          {SLIDES.map((s, i) => (
+        {/* Rotating background — same children & scene, only the book's story changes,
+            revealed with a page-flip. Image is composed kids+book on one side, empty
+            copy space on the other; mirror for LTR so the copy sits opposite the kids. */}
+        <div className="absolute inset-0 overflow-hidden" style={{ perspective: "2200px" }}>
+          {/* previous frame stays beneath so the turning page reveals it cleanly */}
+          <img
+            src={SLIDES[prev].img}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: "center bottom", transform: isRtl ? undefined : "scaleX(-1)" }}
+          />
+          {/* current frame flips in like a turning storybook page */}
+          <div
+            key={slide}
+            className="hero-page-flip absolute inset-0"
+            style={{ transformOrigin: isRtl ? "left center" : "right center" }}
+          >
             <img
-              key={i}
-              src={s.img}
-              alt={i === slide ? "Two children reading their personalized Torah storybook" : ""}
-              aria-hidden={i !== slide}
-              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ease-in-out"
-              style={{
-                opacity: i === slide ? 1 : 0,
-                objectPosition: "center bottom",
-                // Image is composed with kids+book on the left, empty copy space on
-                // the right. Copy sits on the start side (left LTR / right RTL), so
-                // mirror for LTR to move the kids opposite the copy.
-                transform: isRtl ? undefined : "scaleX(-1)",
-              }}
+              src={SLIDES[slide].img}
+              alt="Two children with their personalized Torah storybook"
+              className="w-full h-full object-cover"
+              style={{ objectPosition: "center bottom", transform: isRtl ? undefined : "scaleX(-1)" }}
               width={1376}
               height={768}
-              loading={i === 0 ? "eager" : "lazy"}
+              loading={slide === 0 ? "eager" : "lazy"}
             />
-          ))}
+          </div>
         </div>
 
         {/* Readability scrim: strong cream fade behind the copy side, plus a soft
