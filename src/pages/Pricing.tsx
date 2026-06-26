@@ -104,7 +104,7 @@ const Pricing = () => {
               <div className="mb-8">
                 <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "torah" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(50.97)}</span>
+                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(74.77)}</span>
                   <span className={selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}>{t.pricing.perMonth}</span>
                 </div>
                 <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
@@ -135,8 +135,8 @@ const Pricing = () => {
               <div className="mb-8">
                 <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "tanach" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(99.99)}</span>
-                  <span className={selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}>{t.pricing.perMonth}</span>
+                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(932.98)}</span>
+                  <span className={selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}>{t.pricing.perYear}</span>
                 </div>
                 <p className={`text-sm mt-1 ${selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
                   {t.pricing.tanachSubtitle}

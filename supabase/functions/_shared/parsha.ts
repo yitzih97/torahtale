@@ -45,10 +45,28 @@ const PARSHA_CALENDAR: Record<string, string> = {
   "2026-09-26": "ki-teitzei", "2026-10-03": "ki-tavo", "2026-10-10": "nitzavim",
 };
 
+import { fetchUpcomingParshaSlug } from "./hebcal.ts";
+
 /**
- * Returns the parashah read `leadWeeks` weeks from `from` (default 3 weeks, the
- * production+shipping lead time) so a minted book can be printed and arrive before
- * that Shabbat. `null` if the calendar has run out and needs extending.
+ * Live upcoming parashah: tries the Hebcal API first (auto-updating, never runs
+ * dry), then falls back to the hardcoded calendar below if Hebcal is unreachable.
+ * This is what the mint/release path should call.
+ */
+export async function getUpcomingParshaLive(from: Date = new Date(), leadWeeks = 3): Promise<string | null> {
+  try {
+    const live = await fetchUpcomingParshaSlug(from, leadWeeks);
+    if (live) return live;
+    console.warn("Hebcal returned no parsha; falling back to hardcoded calendar.");
+  } catch (e) {
+    console.error("Hebcal lookup failed; falling back to hardcoded calendar:", e);
+  }
+  return getUpcomingParsha(from, leadWeeks);
+}
+
+/**
+ * Hardcoded-calendar fallback. Returns the parashah read `leadWeeks` weeks from
+ * `from` (default 3 weeks, the production+shipping lead time). `null` if the
+ * calendar has run out — the live path above should normally prevent this.
  */
 export function getUpcomingParsha(from: Date = new Date(), leadWeeks = 3): string | null {
   const daysUntilSat = (6 - from.getDay() + 7) % 7 || 7;

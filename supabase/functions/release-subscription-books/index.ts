@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getUpcomingParsha } from "../_shared/parsha.ts";
+import { getUpcomingParshaLive } from "../_shared/parsha.ts";
 import { addDaysISO, hourET, todayET } from "../_shared/subscription.ts";
 
 // Monday 9am-ET drip release. Triggered by the release-subscription-books GitHub
@@ -63,7 +63,7 @@ serve(async (req) => {
 
     for (const sub of due || []) {
       const releaseDate: string = (sub as any).next_release_date;
-      const parsha = getUpcomingParsha(new Date(`${releaseDate}T12:00:00Z`));
+      const parsha = await getUpcomingParshaLive(new Date(`${releaseDate}T12:00:00Z`));
       if (!parsha) {
         console.error(`PARSHA_CALENDAR exhausted for release ${releaseDate} (sub ${(sub as any).id}) — book minted with no portion; extend the calendar.`);
       }

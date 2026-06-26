@@ -610,6 +610,7 @@ export const he: typeof en = {
     heroAccent: "שהילדים שלכם פשוט יאהבו",
     startingAt: "החל מ-",
     perMonth: "/חודש",
+    perYear: "/שנה",
     mostPopular: "הכי פופולרי",
     singleTitle: "סיפור בודד",
     singleSubtitle: "רכישה חד-פעמית",
