@@ -605,6 +605,7 @@ export const en = {
     heroAccent: "Your Kids Will Love",
     startingAt: "starting at",
     perMonth: "/month",
+    perYear: "/year",
     mostPopular: "MOST POPULAR",
     singleTitle: "Single Book",
     singleSubtitle: "One-time purchase",

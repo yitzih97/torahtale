@@ -610,6 +610,7 @@ export const yi: typeof en = {
     heroAccent: "וואָס אייערע קינדער וועלן ליב האָבן",
     startingAt: "אָנהייבנדיק פֿון",
     perMonth: "/חודש",
+    perYear: "/יאר",
     mostPopular: "אַם פּאָפּולערסטע",
     singleTitle: "איין בוך",
     singleSubtitle: "איין־מאָליקע קויף",

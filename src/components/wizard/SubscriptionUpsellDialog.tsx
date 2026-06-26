@@ -23,22 +23,29 @@ interface PlanData {
   frequency: string;
 }
 
-/* Default fallback pricing (used when no bookPriceUsd is provided) — softcover base. */
+/* Each subscription book ships separately, so shipping is bundled into the price
+   (every book the sub entitles carries one shipment's cost). Subscription orders
+   are therefore free-shipping at checkout. */
+const SHIP_PER_BOOK = 5.95;
+
+/* Default fallback pricing (used when no bookPriceUsd is provided) — softcover base,
+   shipping included. */
 const DEFAULT_PLANS: PlanData[] = [
-  { id: "weekly", priceUsd: 13.49, perWeekUsd: 13.49, savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
-  { id: "monthly", priceUsd: 50.97, perWeekUsd: 12.74, savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
-  { id: "yearly", priceUsd: 623.58, perWeekUsd: 11.99, savings: "20% off", savingsPct: 0.20, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+  { id: "weekly", priceUsd: 19.44, perWeekUsd: 19.44, savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
+  { id: "monthly", priceUsd: 74.77, perWeekUsd: 18.69, savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
+  { id: "yearly", priceUsd: 932.98, perWeekUsd: 17.94, savings: "20% off", savingsPct: 0.20, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
 ];
 
 /* Round to 2 decimals. NOTE: these MUST equal the live Shopify subscription variant
-   prices (perBook × books × (1 − discount)), or the customer sees one price and is
-   billed another. Discount ladder: weekly 10% / monthly 15% / yearly 20%. */
+   prices = (book × (1 − discount) + shipping) × books, or the customer sees one
+   price and is billed another. Discount ladder: weekly 10% / monthly 15% / yearly 20%. */
 const round2 = (n: number) => Math.round(n * 100) / 100;
+const perBook = (bookPriceUsd: number, disc: number) => bookPriceUsd * (1 - disc) + SHIP_PER_BOOK;
 
 function buildPlansForBook(bookPriceUsd: number): PlanData[] {
-  const weekly = round2(bookPriceUsd * 1 * (1 - 0.10));
-  const monthly = round2(bookPriceUsd * 4 * (1 - 0.15));
-  const yearly = round2(bookPriceUsd * 52 * (1 - 0.20));
+  const weekly = round2(perBook(bookPriceUsd, 0.10) * 1);
+  const monthly = round2(perBook(bookPriceUsd, 0.15) * 4);
+  const yearly = round2(perBook(bookPriceUsd, 0.20) * 52);
 
   return [
     { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
