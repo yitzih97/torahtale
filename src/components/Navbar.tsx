@@ -57,13 +57,13 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   const langFlag = lang === "en" ? "🇮🇱" : "🇺🇸";
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/92 backdrop-blur-xl border-b border-[hsl(var(--gold)/0.18)] shadow-sm" : "bg-transparent"}`} data-scrolled={scrolled}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/92 backdrop-blur-xl border-b border-[hsl(var(--gold)/0.18)] shadow-sm" : "bg-gradient-to-b from-background/95 via-background/72 to-transparent backdrop-blur-md"}`} data-scrolled={scrolled}>
       <div className="container flex items-center justify-between h-20 lg:h-24">
         <a href="/" className="group">
           <BrandMark
             className="transition-transform duration-300 group-hover:scale-[1.01]"
-            iconClassName="h-12 w-12 lg:h-14 lg:w-14"
-            wordmarkClassName="h-14 lg:h-16 w-auto"
+            iconClassName={`h-12 w-12 lg:h-14 lg:w-14 ${!solid ? "[filter:drop-shadow(0_1px_2px_hsl(36_60%_15%/0.5))]" : ""}`}
+            wordmarkClassName={`h-14 lg:h-16 w-auto ${!solid ? "[filter:drop-shadow(0_1px_2px_hsl(36_60%_15%/0.5))]" : ""}`}
           />
           <span className="sr-only">{brandName}</span>
         </a>
@@ -88,7 +88,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
             className={`w-9 h-9 rounded-full text-lg leading-none flex items-center justify-center border transition-colors duration-300 bg-background/60 backdrop-blur-sm ${
               solid
                 ? "border-border hover:border-accent"
-                : "border-white/20 hover:border-white/40"
+                : "border-foreground/25 hover:border-accent"
             }`}
             aria-label={lang === "en" ? "Switch to Hebrew" : "Switch to English"}
           >
@@ -97,15 +97,15 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
 
           {user ? (
             <>
-              <a href="/dashboard" className={`text-sm font-medium transition-colors duration-500 hidden lg:flex items-center gap-1.5 ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>
+              <a href="/dashboard" className={`text-sm font-medium transition-colors duration-500 hidden lg:flex items-center gap-1.5 ${solid ? "text-muted-foreground hover:text-accent" : "text-foreground/75 hover:text-accent"}`}>
                 <User className="w-4 h-4" /> {t.nav.dashboard}
               </a>
-              <button onClick={signOut} className={`p-2 rounded-full transition-colors hidden lg:block ${solid ? "text-muted-foreground hover:text-destructive hover:bg-muted" : "text-white/70 hover:text-white hover:bg-white/10"}`} aria-label={t.nav.signOut}>
+              <button onClick={signOut} className={`p-2 rounded-full transition-colors hidden lg:block ${solid ? "text-muted-foreground hover:text-destructive hover:bg-muted" : "text-muted-foreground hover:text-destructive hover:bg-muted"}`} aria-label={t.nav.signOut}>
                 <LogOut className="w-4 h-4" />
               </button>
             </>
           ) : (
-            <a href="/auth" className={`text-sm font-medium transition-colors duration-500 hidden lg:block ${solid ? "text-muted-foreground hover:text-accent" : "text-white/80 hover:text-white"}`}>{t.nav.login}</a>
+            <a href="/auth" className={`text-sm font-medium transition-colors duration-500 hidden lg:block ${solid ? "text-muted-foreground hover:text-accent" : "text-foreground/75 hover:text-accent"}`}>{t.nav.login}</a>
           )}
 
           {onStart && (
@@ -113,7 +113,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
           )}
 
           {/* Mobile hamburger */}
-          <button onClick={() => setMobileOpen(true)} className={`lg:hidden p-2 rounded-lg transition-colors ${solid ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`} aria-label="Open menu">
+          <button onClick={() => setMobileOpen(true)} className={`lg:hidden p-2 rounded-lg transition-colors ${solid ? "text-foreground hover:bg-muted" : "text-foreground hover:bg-foreground/10"}`} aria-label="Open menu">
             <Menu className="w-5 h-5" />
           </button>
         </div>

@@ -7,6 +7,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import heroFlip1 from "@/assets/hero-flip-1.jpg";
 import heroFlip2 from "@/assets/hero-flip-2.jpg";
 import heroFlip3 from "@/assets/hero-flip-3.jpg";
+import heroM1 from "@/assets/hero-m-1.jpg";
+import heroM2 from "@/assets/hero-m-2.jpg";
+import heroM3 from "@/assets/hero-m-3.jpg";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
 import reviewer3 from "@/assets/avatars/reviewer3.jpg";
@@ -16,11 +19,11 @@ const ease = [0.16, 1, 0.3, 1];
 // Rotating hero slides — same two children, a different parashah and book type on
 // each. The headline below types out the matching story line.
 const SLIDES = [
-  { img: heroFlip1, en: "aboard Noach’s ark.", he: "על תיבת נח." },
-  { img: heroFlip2, en: "as the world is created.", he: "כשהעולם נברא." },
-  { img: heroFlip3, en: "crossing the sea.", he: "כשהים נבקע." },
+  { img: heroFlip1, imgM: heroM1, en: "aboard Noach’s ark.", he: "על תיבת נח." },
+  { img: heroFlip2, imgM: heroM2, en: "as the world is created.", he: "כשהעולם נברא." },
+  { img: heroFlip3, imgM: heroM3, en: "crossing the sea.", he: "כשהים נבקע." },
 ];
-const ROTATE_MS = 4000;
+const ROTATE_MS = 5000;
 
 /** Types `text` out character-by-character whenever it changes, with a blinking caret. */
 function TypedText({ text }: { text: string }) {
@@ -117,7 +120,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             frame; ONLY the book's page art changes, so a soft crossfade reads as the
             page gently dissolving to the next story. Mirrored for LTR so the copy
             sits opposite the book. */}
-        <div className="absolute inset-0 overflow-hidden">
+        {/* Desktop: wide images (kids+book on one side, copy space the other), mirrored for LTR. */}
+        <div className="hidden lg:block absolute inset-0 overflow-hidden">
           <div className="absolute inset-0" style={{ transform: isRtl ? undefined : "scaleX(-1)" }}>
             {SLIDES.map((s, i) => (
               <img
@@ -134,16 +138,32 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             ))}
           </div>
         </div>
+        {/* Mobile/tablet: portrait images (kids+book at the bottom, copy space up top). */}
+        <div className="lg:hidden absolute inset-0 overflow-hidden">
+          {SLIDES.map((s, i) => (
+            <img
+              key={i}
+              src={s.imgM}
+              alt={i === slide ? "Two children with their personalized Torah storybook" : ""}
+              aria-hidden={i !== slide}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out"
+              style={{ opacity: i === slide ? 1 : 0, objectPosition: "center bottom" }}
+              width={845}
+              height={1500}
+              loading={i === 0 ? "eager" : "lazy"}
+            />
+          ))}
+        </div>
 
         {/* Readability scrim: strong cream fade behind the copy side, plus a soft
             top/bottom wash on mobile where the copy sits over the image. */}
         <div
-          className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[60%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)]/90 to-transparent z-[1]`}
+          className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[62%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)]/96 to-transparent z-[1]`}
         />
-        <div className="lg:hidden pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-[hsl(42_60%_96%)]/92 via-[hsl(42_60%_96%)]/55 to-[hsl(42_60%_96%)]/92" />
+        <div className="lg:hidden pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-[hsl(42_60%_96%)]/97 via-[hsl(42_60%_96%)]/80 to-transparent" />
 
         <div className="container relative z-10 pt-28 lg:pt-32 pb-8 lg:pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-center min-h-[88vw] sm:min-h-[60vw] lg:min-h-[600px]">
+          <div className="grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-start lg:items-center min-h-[132vw] sm:min-h-[92vw] lg:min-h-[600px]">
             {/* copy */}
             <div className={`relative z-10 ${isRtl ? "text-right" : "text-left"}`}>
               <motion.h1
@@ -154,8 +174,18 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               >
                 <span className="block">{copy.title1}</span>
                 <span className="block">{copy.title2}</span>
-                {/* Rotating, typed story line — reflects the book on screen. */}
-                <span className="block gold-text-gradient italic min-h-[1.2em]" aria-live="polite">
+                {/* Rotating, typed story line — a deep amber gold so it stays legible
+                    over the warm background. */}
+                <span
+                  className="block italic min-h-[1.2em] [filter:drop-shadow(0_1px_1px_hsl(36_70%_18%/0.4))]"
+                  aria-live="polite"
+                  style={{
+                    background: "linear-gradient(180deg, hsl(38 92% 46%), hsl(28 88% 34%))",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    color: "transparent",
+                  }}
+                >
                   <TypedText text={storyLine} />
                 </span>
               </motion.h1>
