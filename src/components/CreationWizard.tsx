@@ -2305,10 +2305,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       bookPriceUsd={(() => {
         const pt = bookOptions.productType;
         const isIls = t.currency.code === "ILS";
-        const addon = bookOptions.coloringBook ? getColoringBookAddonPrice(t.currency.code) : 0;
-        if (pt === "softcover") return (isIls ? 25 : 9) + addon;
-        if (pt === "hardcover") return (isIls ? 50 : 17) + addon;
-        if (pt === "board") return (isIls ? 70 : 24) + addon;
+        if (pt === "softcover") return isIls ? 55 : 14.99;
+        if (pt === "hardcover") return isIls ? 90 : 24.99;
+        if (pt === "board") return isIls ? 110 : 29.99;
         return undefined;
       })()}
       bookLabel={

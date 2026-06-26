@@ -23,28 +23,27 @@ interface PlanData {
   frequency: string;
 }
 
-/* Default fallback pricing (used when no bookPriceUsd is provided) */
+/* Default fallback pricing (used when no bookPriceUsd is provided) — softcover base. */
 const DEFAULT_PLANS: PlanData[] = [
-  { id: "weekly", priceUsd: 23.99, perWeekUsd: 23.99, savings: "20% off", savingsPct: 0.20, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
-  { id: "monthly", priceUsd: 79.99, perWeekUsd: 19.99, savings: "33% off", savingsPct: 0.33, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
-  { id: "yearly", priceUsd: 799.99, perWeekUsd: 15.38, savings: "49% off", savingsPct: 0.49, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+  { id: "weekly", priceUsd: 13.49, perWeekUsd: 13.49, savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
+  { id: "monthly", priceUsd: 50.97, perWeekUsd: 12.74, savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
+  { id: "yearly", priceUsd: 623.58, perWeekUsd: 11.99, savings: "20% off", savingsPct: 0.20, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
 ];
 
-/* Round to a friendly .99 price */
-const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
+/* Round to 2 decimals. NOTE: these MUST equal the live Shopify subscription variant
+   prices (perBook × books × (1 − discount)), or the customer sees one price and is
+   billed another. Discount ladder: weekly 10% / monthly 15% / yearly 20%. */
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 function buildPlansForBook(bookPriceUsd: number): PlanData[] {
-  // Weekly: 1 book × (1 - 20%)
-  // Monthly: 4 books × (1 - 33%)
-  // Yearly: 52 books × (1 - 49%)
-  const weekly = friendly(bookPriceUsd * 1 * (1 - 0.20));
-  const monthly = friendly(bookPriceUsd * 4 * (1 - 0.33));
-  const yearly = friendly(bookPriceUsd * 52 * (1 - 0.49));
+  const weekly = round2(bookPriceUsd * 1 * (1 - 0.10));
+  const monthly = round2(bookPriceUsd * 4 * (1 - 0.15));
+  const yearly = round2(bookPriceUsd * 52 * (1 - 0.20));
 
   return [
-    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "20% off", savingsPct: 0.20, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
-    { id: "monthly", priceUsd: monthly, perWeekUsd: monthly / 4, savings: "33% off", savingsPct: 0.33, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
-    { id: "yearly", priceUsd: yearly, perWeekUsd: yearly / 52, savings: "49% off", savingsPct: 0.49, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
+    { id: "monthly", priceUsd: monthly, perWeekUsd: round2(monthly / 4), savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
+    { id: "yearly", priceUsd: yearly, perWeekUsd: round2(yearly / 52), savings: "20% off", savingsPct: 0.20, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
   ];
 }
 

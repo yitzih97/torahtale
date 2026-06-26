@@ -41,36 +41,36 @@ export function getStoryPageCount(options: BookOptions): number {
 // variant price, so a mismatch here would show one price and bill another.
 const PRODUCT_INFO = {
   softcover: {
-    price: 9,
-    priceIls: 25,
+    price: 14.99,
+    priceIls: 55,
     dims: '8″ × 8″',
     icon: BookOpen,
     image: softcoverImg,
   },
   hardcover: {
-    price: 17,
-    priceIls: 50,
+    price: 24.99,
+    priceIls: 90,
     dims: '8″ × 8″',
     icon: Shield,
     image: hardcoverImg,
   },
   board: {
-    price: 24,
-    priceIls: 70,
+    price: 29.99,
+    priceIls: 110,
     dims: '6″ × 6″',
     icon: Baby,
     image: boardImg,
   },
   coloring: {
-    price: 12,
-    priceIls: 35,
+    price: 16.99,
+    priceIls: 60,
     dims: '8.5″ × 11″',
     icon: Palette,
     image: coloringImg,
   },
 } as const;
 
-export const BASE_BOOK_PRICE = 9;
+export const BASE_BOOK_PRICE = 14.99;
 
 export function getColoringBookAddonPrice(currencyCode: string): number {
   return currencyCode === "ILS" ? COLORING_BOOK_ADDON_PRICE_ILS : COLORING_BOOK_ADDON_PRICE_USD;
