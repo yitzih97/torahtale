@@ -243,22 +243,26 @@ export const SHOPIFY_VARIANT_IDS = {
 // option combinations.
 export const SUBSCRIPTION_VARIANT_IDS: Record<
   "weekly" | "monthly" | "yearly",
-  Record<"softcover" | "hardcover" | "board", { standard: string; coloring: string }>
+  Record<"softcover" | "hardcover" | "board" | "coloring", { standard: string; coloring: string }>
 > = {
   weekly: {
     softcover: { standard: "gid://shopify/ProductVariant/53047694033120", coloring: "gid://shopify/ProductVariant/53047694065888" },
     hardcover: { standard: "gid://shopify/ProductVariant/53047694098656", coloring: "gid://shopify/ProductVariant/53047694131424" },
     board: { standard: "gid://shopify/ProductVariant/53047694164192", coloring: "gid://shopify/ProductVariant/53047694196960" },
+    // Standalone coloring-book subscription product (one variant per cadence, no add-on).
+    coloring: { standard: "gid://shopify/ProductVariant/53229823492320", coloring: "gid://shopify/ProductVariant/53229823492320" },
   },
   monthly: {
     softcover: { standard: "gid://shopify/ProductVariant/53047694262496", coloring: "gid://shopify/ProductVariant/53047694295264" },
     hardcover: { standard: "gid://shopify/ProductVariant/53047694328032", coloring: "gid://shopify/ProductVariant/53047694360800" },
     board: { standard: "gid://shopify/ProductVariant/53047694393568", coloring: "gid://shopify/ProductVariant/53047694426336" },
+    coloring: { standard: "gid://shopify/ProductVariant/53229823525088", coloring: "gid://shopify/ProductVariant/53229823525088" },
   },
   yearly: {
     softcover: { standard: "gid://shopify/ProductVariant/53047694459104", coloring: "gid://shopify/ProductVariant/53047694491872" },
     hardcover: { standard: "gid://shopify/ProductVariant/53047694524640", coloring: "gid://shopify/ProductVariant/53047694557408" },
     board: { standard: "gid://shopify/ProductVariant/53047694590176", coloring: "gid://shopify/ProductVariant/53047694622944" },
+    coloring: { standard: "gid://shopify/ProductVariant/53229823557856", coloring: "gid://shopify/ProductVariant/53229823557856" },
   },
 };
 

@@ -2308,6 +2308,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         if (pt === "softcover") return isIls ? 55 : 14.99;
         if (pt === "hardcover") return isIls ? 90 : 24.99;
         if (pt === "board") return isIls ? 110 : 29.99;
+        if (pt === "coloring") return isIls ? 60 : 16.99;
         return undefined;
       })()}
       bookLabel={
