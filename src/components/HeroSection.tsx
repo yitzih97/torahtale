@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, Heart, Gift, Star, ShieldCheck, Award, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,6 @@ const SLIDES = [
   { img: heroFlip3, en: "crossing the sea.", he: "כשהים נבקע." },
 ];
 const ROTATE_MS = 4000;
-
-// The open book's bounds as a % of the image (kids+book composed on the left).
-// Only this region animates on a slide change (the page turn).
-const BOOK_RECT = { top: 39, left: 0, width: 55, height: 53 };
 
 /** Types `text` out character-by-character whenever it changes, with a blinking caret. */
 function TypedText({ text }: { text: string }) {
@@ -57,15 +53,10 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   const isHebrew = lang === "he" || lang === "yi";
 
   const [slide, setSlide] = useState(0);
-  const prevRef = useRef(0);
   useEffect(() => {
     const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), ROTATE_MS);
     return () => clearInterval(id);
   }, []);
-  const prev = prevRef.current;
-  useEffect(() => {
-    prevRef.current = slide;
-  }, [slide]);
 
   const copy = isHebrew
     ? {
@@ -123,38 +114,24 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
     <>
       <section className="relative overflow-hidden bg-[hsl(42_60%_96%)]" dir={dir}>
         {/* Background — the children, the book and the meadow are identical in every
-            frame; ONLY the book's page art changes. The transition turns just the
-            book's pages: the previous frame, clipped to the book, rotates away on the
-            spine to reveal the new page beneath. Mirrored for LTR so the copy sits
-            opposite the book. BOOK_RECT is the book's bounds as % of the image. */}
-        <div className="absolute inset-0 overflow-hidden" style={{ perspective: "1700px" }}>
-          <div
-            className="absolute inset-0"
-            style={{ transform: isRtl ? undefined : "scaleX(-1)", transformStyle: "preserve-3d" }}
-          >
-            {/* current page (and the static kids + meadow) */}
-            <img
-              src={SLIDES[slide].img}
-              alt="Two children with their personalized Torah storybook"
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ objectPosition: "center bottom" }}
-              width={1700}
-              height={962}
-              loading={slide === 0 ? "eager" : "lazy"}
-            />
-            {/* previous page, clipped to just the book, turning away on its spine */}
-            <img
-              key={slide}
-              src={SLIDES[prev].img}
-              alt=""
-              aria-hidden
-              className="hero-page-turn absolute inset-0 w-full h-full object-cover"
-              style={{
-                objectPosition: "center bottom",
-                clipPath: `inset(${BOOK_RECT.top}% ${100 - BOOK_RECT.left - BOOK_RECT.width}% ${100 - BOOK_RECT.top - BOOK_RECT.height}% ${BOOK_RECT.left}%)`,
-                transformOrigin: `${BOOK_RECT.left + BOOK_RECT.width / 2}% ${BOOK_RECT.top + BOOK_RECT.height / 2}%`,
-              }}
-            />
+            frame; ONLY the book's page art changes, so a soft crossfade reads as the
+            page gently dissolving to the next story. Mirrored for LTR so the copy
+            sits opposite the book. */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0" style={{ transform: isRtl ? undefined : "scaleX(-1)" }}>
+            {SLIDES.map((s, i) => (
+              <img
+                key={i}
+                src={s.img}
+                alt={i === slide ? "Two children with their personalized Torah storybook" : ""}
+                aria-hidden={i !== slide}
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out"
+                style={{ opacity: i === slide ? 1 : 0, objectPosition: "center bottom" }}
+                width={1700}
+                height={962}
+                loading={i === 0 ? "eager" : "lazy"}
+              />
+            ))}
           </div>
         </div>
 
