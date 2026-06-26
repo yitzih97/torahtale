@@ -60,6 +60,19 @@ export function makeDefaultLayout(side: "left" | "right", rtl = false): TextLayo
   };
 }
 
+// The discussion-questions page renders on a clean, empty parchment background
+// (no illustration), so the text gets the whole page: a wide, centered block
+// that is comfortably readable rather than crammed into a corner of the art.
+export function makeQuestionsLayout(rtl = false): TextLayout {
+  return {
+    ...DEFAULT_TEXT_LAYOUT,
+    x: 10,
+    y: 10,
+    width: 80,
+    align: rtl ? "right" : "left",
+  };
+}
+
 interface Props {
   layout: TextLayout;
   text: string;

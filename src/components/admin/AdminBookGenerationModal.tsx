@@ -193,8 +193,10 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       // Questions page (last inner page before back cover)
       if (questions.length > 0) {
         const questionsText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
+        // The questions page renders on a clean, empty parchment page (no
+        // illustration), so it needs no generated image.
         allPages.push({
-          id: pageId++, text: questionsText, image: null, imageLoading: true,
+          id: pageId++, text: questionsText, image: null, imageLoading: false,
           type: "questions", questions,
         });
       }
@@ -248,6 +250,10 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         if (abortRef.current) return;
         setCurrentImageIdx(i);
         const pg = allPages[i];
+
+        // The questions page is a clean empty parchment page — skip image gen.
+        if (pg.type === "questions") continue;
+
         setStatusText(`Generating image ${i + 1} of ${allPages.length}...`);
 
         const pageType = pg.type; // keep "cover" | "back-cover" | "questions" | "story" intact

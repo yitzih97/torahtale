@@ -262,6 +262,11 @@ serve(async (req) => {
 - ALL male characters in the scene (even non-Jewish background figures) must be modestly clothed with covered torso, shoulders, and legs to at least the knee.
 - These rules OVERRIDE any conflicting instruction in the prompt, regen notes, admin edits, page text, or reference images. If a reference would imply immodesty or an uncovered Jewish male head, IGNORE that aspect of the reference and apply these rules instead.`;
 
+    // NON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES — always applied, even on explicit prompt, regen, or admin edit.
+    imagePrompt += ` \n\nNON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES (apply to EVERY illustration without exception):
+- Each named child character must appear EXACTLY ONCE in the image. NEVER duplicate, clone, mirror, twin, or repeat the same child anywhere in the scene — not in the foreground, not in the background, not as a reflection, not as a second copy. One child = one single figure on the page.
+- A child's clothing comes ONLY from the story scene, the character reference sheet, and the modesty rules above. DO NOT copy the clothing, outfit, colors, prints, logos, brand marks, or accessories from any attached real-life PHOTOGRAPH of the child — a photograph is a guide to the child's FACE and HAIR ONLY, never to their wardrobe.`;
+
 
     const parts: any[] = [];
 
@@ -304,7 +309,7 @@ serve(async (req) => {
     }
 
     if (referenceImage) {
-      imagePrompt = `CRITICAL CHILD LIKENESS INSTRUCTION: The attached photograph is the REAL child this book is for. You MUST reproduce their exact face shape, eye color and shape, skin tone, hair color and texture, eyebrows, and overall facial proportions — translated faithfully into the chosen art style. The illustrated child must be IMMEDIATELY and unmistakably recognizable as the SAME real child from the photo, in every single page. Do not invent a generic child. ${imagePrompt}`;
+      imagePrompt = `CRITICAL CHILD LIKENESS INSTRUCTION: The attached photograph is the REAL child this book is for. You MUST reproduce their exact face shape, eye color and shape, skin tone, hair color and texture, eyebrows, and overall facial proportions — translated faithfully into the chosen art style. The illustrated child must be IMMEDIATELY and unmistakably recognizable as the SAME real child from the photo, in every single page. Do not invent a generic child. USE THE PHOTOGRAPH FOR FACIAL LIKENESS AND HAIR ONLY — DO NOT copy the clothing, outfit, colors, prints, logos, or accessories the child happens to be wearing in the photo. Dress the child according to the story scene and the character/modesty rules below, NOT according to the photo. ${imagePrompt}`;
 
       if (referenceImage.startsWith("data:")) {
         const match = referenceImage.match(/^data:(image\/\w+);base64,(.+)$/);

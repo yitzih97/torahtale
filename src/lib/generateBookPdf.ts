@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import { BOOK_TEXT_STYLE, COVER_TAGLINE, COVER_URL, type BookPage } from "@/components/wizard/BookViewer";
-import { DEFAULT_TEXT_LAYOUT, makeDefaultLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
+import { DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import torahTaleIcon from "@/assets/brand/torah-tale-icon.png";
 import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png";
 
@@ -65,6 +65,19 @@ function drawPaperHalf(ctx: CanvasRenderingContext2D, side: "left" | "right") {
   glow.addColorStop(1, "rgba(232, 197, 117, 0)");
   ctx.fillStyle = glow;
   ctx.fillRect(x, 0, HALF_W, SPREAD_H);
+}
+
+/** Fill the whole canvas with the cream "paper" background + soft center glow.
+ *  Used for the discussion-questions page so the questions sit on a clean,
+ *  empty page and stay easy to read. */
+function drawPaperFull(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  ctx.fillStyle = "#f6efdf";
+  ctx.fillRect(0, 0, W, H);
+  const glow = ctx.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, Math.max(W, H) * 0.6);
+  glow.addColorStop(0, "rgba(232, 197, 117, 0.30)");
+  glow.addColorStop(1, "rgba(232, 197, 117, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
 }
 
 /** Composite a text overlay using the page's TextLayout. Coords are % of the
@@ -180,19 +193,15 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
 }
 
 async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: boolean): Promise<string> {
-  const layout = page.textLayout || makeDefaultLayout(rtl ? "right" : "left", rtl);
+  // The questions page sits on a clean, empty parchment page (no illustration)
+  // so the discussion text is always easy to read.
+  const layout = page.textLayout || makeQuestionsLayout(rtl);
   const W = spreadBased ? SPREAD_W : SPREAD_H;
   const H = SPREAD_H;
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d")!;
-  const img = await safeLoad(page.image);
-  if (img) {
-    drawFullImage(ctx, img, W, H);
-  } else {
-    ctx.fillStyle = "#dcd2bd";
-    ctx.fillRect(0, 0, W, H);
-  }
+  drawPaperFull(ctx, W, H);
   if (spreadBased) drawGutter(ctx, W, H);
   const questions = page.questions || [];
   const formatted = page.text || questions.map((q) => `${q.number}. ${q.question}`).join("\n\n");

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import type { TextStyle } from "./DraggableText";
-import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, type TextLayout } from "./EditableTextBox";
+import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, type TextLayout } from "./EditableTextBox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
@@ -314,18 +314,13 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   };
 
   const renderQuestionsSpread = () => {
-    const layout = page?.textLayout || makeDefaultLayout(defaultTextSide, isRtl);
+    // Clean, empty parchment page (no illustration) so the discussion questions
+    // are always easy to read, with a wide centered text block by default.
+    const layout = page?.textLayout || makeQuestionsLayout(isRtl);
     const questionsText = (page?.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n");
     const combinedText = page?.text || questionsText;
     return (
-      <div className="absolute inset-0 bg-muted">
-        {page?.image ? (
-          <img src={page.image} alt="Discussion" className="absolute inset-0 w-full h-full object-cover" />
-        ) : page?.imageLoading ? (
-          <BookLoadingSkeleton type="story" />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-primary/10" />
-        )}
+      <div className="absolute inset-0" style={{ background: "radial-gradient(circle at center, rgba(232,197,117,0.30), rgba(232,197,117,0) 70%), #f6efdf" }}>
         {page && (
           <EditableTextBox
             layout={layout}
@@ -333,7 +328,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             containerRef={spreadRef}
             onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
             onTextChange={(t) => updatePage(page.id, { text: t })}
-            onReset={() => updatePage(page.id, { textLayout: makeDefaultLayout(defaultTextSide, isRtl) })}
+            onReset={() => updatePage(page.id, { textLayout: makeQuestionsLayout(isRtl) })}
           />
         )}
       </div>
