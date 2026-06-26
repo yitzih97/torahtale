@@ -8,8 +8,6 @@ import heroFlip1 from "@/assets/hero-flip-1.jpg";
 import heroFlip2 from "@/assets/hero-flip-2.jpg";
 import heroFlip3 from "@/assets/hero-flip-3.jpg";
 import heroFlip4 from "@/assets/hero-flip-4.jpg";
-import heroFlip5 from "@/assets/hero-flip-5.jpg";
-import heroFlip6 from "@/assets/hero-flip-6.jpg";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
 import reviewer3 from "@/assets/avatars/reviewer3.jpg";
@@ -21,10 +19,8 @@ const ease = [0.16, 1, 0.3, 1];
 const SLIDES = [
   { img: heroFlip1, en: "aboard Noach’s ark.", he: "על תיבת נח." },
   { img: heroFlip2, en: "as the world is created.", he: "כשהעולם נברא." },
-  { img: heroFlip3, en: "splitting the sea.", he: "כשהים נבקע." },
-  { img: heroFlip4, en: "coloring Avraham’s journey.", he: "בצביעת מסע אברהם." },
-  { img: heroFlip5, en: "deep in the sea with Yonah.", he: "במעמקים עם יונה." },
-  { img: heroFlip6, en: "at the Purim miracle.", he: "בנס פורים." },
+  { img: heroFlip3, en: "crossing the sea.", he: "כשהים נבקע." },
+  { img: heroFlip4, en: "deep in the sea with Yonah.", he: "במעמקים עם יונה." },
 ];
 const ROTATE_MS = 4000;
 
@@ -127,8 +123,15 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               src={s.img}
               alt={i === slide ? "Two children reading their personalized Torah storybook" : ""}
               aria-hidden={i !== slide}
-              className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-[1200ms] ease-in-out"
-              style={{ opacity: i === slide ? 1 : 0 }}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ease-in-out"
+              style={{
+                opacity: i === slide ? 1 : 0,
+                objectPosition: "center bottom",
+                // Image is composed with kids+book on the left, empty copy space on
+                // the right. Copy sits on the start side (left LTR / right RTL), so
+                // mirror for LTR to move the kids opposite the copy.
+                transform: isRtl ? undefined : "scaleX(-1)",
+              }}
               width={1376}
               height={768}
               loading={i === 0 ? "eager" : "lazy"}
