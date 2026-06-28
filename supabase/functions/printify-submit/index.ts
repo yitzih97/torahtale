@@ -142,25 +142,33 @@ serve(async (req) => {
         );
       }
 
-      // Upload page images to Printify
+      // Upload page images to Printify. Generated page images are stored as
+      // base64 data URLs (data:image/png;base64,…); Printify's /uploads/images
+      // endpoint only accepts a real http(s) URL via `url`, so for data URLs we
+      // must send the raw base64 via `contents` instead. Hosted https images
+      // still go through `url`.
       const imageIds: string[] = [];
       for (const page of pages) {
-        const url = page.imageUrl || page.image;
-        if (!url) continue;
+        const src = page.imageUrl || page.image;
+        if (!src) continue;
+        const fileName = `page-${page.page || imageIds.length + 1}.png`;
+        const dataUrlMatch = /^data:image\/\w+;base64,(.+)$/.exec(src);
+        const payload = dataUrlMatch
+          ? { file_name: fileName, contents: dataUrlMatch[1] }
+          : { file_name: fileName, url: src };
         const uploadRes = await fetch(`${PRINTIFY_BASE}/uploads/images.json`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${PRINTIFY_API_KEY}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            file_name: `page-${page.page || imageIds.length + 1}.png`,
-            url,
-          }),
+          body: JSON.stringify(payload),
         });
         if (uploadRes.ok) {
           const img = await uploadRes.json();
           imageIds.push(img.id);
+        } else {
+          console.error(`Printify image upload failed for ${fileName}:`, uploadRes.status, (await uploadRes.text()).slice(0, 200));
         }
       }
 
