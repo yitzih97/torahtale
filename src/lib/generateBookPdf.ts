@@ -215,17 +215,20 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
   const ctx = canvas.getContext("2d")!;
   drawPaperHalf(ctx, "left");
 
+  // Render the icon + wordmark as ONE horizontal logo lockup (the real brand
+  // logo), bigger and centered — not two separate stacked components.
   const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon), safeLoad(torahTaleWordmark)]);
-  const logoTopY = SPREAD_H * 0.16;
-  if (icon) {
-    const iconH = 180;
+  if (icon && wordmark) {
+    const iconH = 240;
     const iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
-    ctx.drawImage(icon, HALF_W / 2 - iconW / 2, logoTopY, iconW, iconH);
-  }
-  if (wordmark) {
-    const wmH = 110;
+    const wmH = 150;
     const wmW = (wordmark.naturalWidth / wordmark.naturalHeight) * wmH;
-    ctx.drawImage(wordmark, HALF_W / 2 - wmW / 2, logoTopY + 200, wmW, wmH);
+    const gap = 28;
+    const groupW = iconW + gap + wmW;
+    const startX = HALF_W / 2 - groupW / 2;
+    const centerY = SPREAD_H * 0.26;
+    ctx.drawImage(icon, startX, centerY - iconH / 2, iconW, iconH);
+    ctx.drawImage(wordmark, startX + iconW + gap, centerY - wmH / 2, wmW, wmH);
   }
   ctx.fillStyle = "#5a4a32";
   ctx.textAlign = "center";
