@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, Heart, Gift, Star, ShieldCheck, Award, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,35 +16,13 @@ import reviewer3 from "@/assets/avatars/reviewer3.jpg";
 
 const ease = [0.16, 1, 0.3, 1];
 
-// Rotating hero slides — same two children, a different parashah and book type on
-// each. The headline below types out the matching story line.
+// Hero slides — same two children, a different parashah and book type on each.
+// One is picked at random per page load and stays put (no rotation/transition).
 const SLIDES = [
   { img: heroFlip1, imgM: heroM1, en: "aboard Noach’s ark.", he: "על תיבת נח." },
   { img: heroFlip2, imgM: heroM2, en: "as the world is created.", he: "כשהעולם נברא." },
   { img: heroFlip3, imgM: heroM3, en: "crossing the sea.", he: "כשהים נבקע." },
 ];
-const ROTATE_MS = 5000;
-
-/** Types `text` out character-by-character whenever it changes, with a blinking caret. */
-function TypedText({ text }: { text: string }) {
-  const [shown, setShown] = useState("");
-  useEffect(() => {
-    setShown("");
-    let i = 0;
-    const id = setInterval(() => {
-      i += 1;
-      setShown(text.slice(0, i));
-      if (i >= text.length) clearInterval(id);
-    }, 42);
-    return () => clearInterval(id);
-  }, [text]);
-  return (
-    <>
-      {shown}
-      <span className="inline-block w-[2px] -mb-1 h-[0.9em] bg-current ml-0.5 animate-pulse align-baseline" />
-    </>
-  );
-}
 
 interface HeroSectionProps {
   onStart: () => void;
@@ -55,16 +33,13 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   const isRtl = dir === "rtl";
   const isHebrew = lang === "he" || lang === "yi";
 
-  const [slide, setSlide] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), ROTATE_MS);
-    return () => clearInterval(id);
-  }, []);
+  // Pick one slide at random on mount and keep it for this page load.
+  const [slide] = useState(() => Math.floor(Math.random() * SLIDES.length));
 
   const copy = isHebrew
     ? {
         title1: "המסע שלהם.",
-        title2: "הסיפור שלהם —",
+        title2: "הסיפור שלהם -",
         description:
           "אנחנו יוצרים ספרים אישיים שמחזירים את סיפורי התורה לחיים — כשהילד שלכם הוא גיבור הסיפור, וכל עמוד מנחיל ערכים לכל החיים.",
         primaryCta: "צרו את הסיפור של ילדכם",
@@ -88,7 +63,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
       }
     : {
         title1: "Their journey.",
-        title2: "Their story —",
+        title2: "Their story -",
         description:
           "We create personalized books that bring Torah stories to life—starring your child, instilling values that inspire a lifetime.",
         primaryCta: "Start Your Child's Story",
@@ -120,39 +95,31 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             frame; ONLY the book's page art changes, so a soft crossfade reads as the
             page gently dissolving to the next story. Mirrored for LTR so the copy
             sits opposite the book. */}
-        {/* Desktop: wide images (kids+book on one side, copy space the other), mirrored for LTR. */}
+        {/* Desktop: wide image (kids+book on one side, copy space the other), mirrored for LTR. */}
         <div className="hidden lg:block absolute inset-0 overflow-hidden">
           <div className="absolute inset-0" style={{ transform: isRtl ? undefined : "scaleX(-1)" }}>
-            {SLIDES.map((s, i) => (
-              <img
-                key={i}
-                src={s.img}
-                alt={i === slide ? "Two children with their personalized Torah storybook" : ""}
-                aria-hidden={i !== slide}
-                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out"
-                style={{ opacity: i === slide ? 1 : 0, objectPosition: "center bottom" }}
-                width={1700}
-                height={962}
-                loading={i === 0 ? "eager" : "lazy"}
-              />
-            ))}
+            <img
+              src={SLIDES[slide].img}
+              alt="Two children with their personalized Torah storybook"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ objectPosition: "center bottom" }}
+              width={1700}
+              height={962}
+              loading="eager"
+            />
           </div>
         </div>
-        {/* Mobile/tablet: portrait images that crossfade in sync with the headline. */}
+        {/* Mobile/tablet: a single portrait image (same random slide as desktop). */}
         <div className="lg:hidden absolute inset-0 overflow-hidden">
-          {SLIDES.map((s, i) => (
-            <img
-              key={i}
-              src={s.imgM}
-              alt={i === slide ? "Two children with their personalized Torah storybook" : ""}
-              aria-hidden={i !== slide}
-              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out"
-              style={{ opacity: i === slide ? 1 : 0, objectPosition: "center bottom" }}
-              width={1200}
-              height={2122}
-              loading={i === 0 ? "eager" : "lazy"}
-            />
-          ))}
+          <img
+            src={SLIDES[slide].imgM}
+            alt="Two children with their personalized Torah storybook"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: "center bottom" }}
+            width={1200}
+            height={2122}
+            loading="eager"
+          />
         </div>
 
         {/* Readability scrim: strong cream fade behind the copy side, plus a soft
@@ -174,11 +141,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               >
                 <span className="block">{copy.title1}</span>
                 <span className="block">{copy.title2}</span>
-                {/* Rotating, typed story line — a deep amber gold so it stays legible
-                    over the warm background. */}
+                {/* Story line — a deep amber gold so it stays legible over the warm background. */}
                 <span
-                  className="block italic min-h-[1.2em] [filter:drop-shadow(0_1px_1px_hsl(36_70%_18%/0.4))]"
-                  aria-live="polite"
+                  className="block italic [filter:drop-shadow(0_1px_1px_hsl(36_70%_18%/0.4))]"
                   style={{
                     background: "linear-gradient(180deg, hsl(38 92% 46%), hsl(28 88% 34%))",
                     WebkitBackgroundClip: "text",
@@ -186,7 +151,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                     color: "transparent",
                   }}
                 >
-                  <TypedText text={storyLine} />
+                  {storyLine}
                 </span>
               </motion.h1>
 
@@ -215,18 +180,6 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                   <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
                 </Button>
               </motion.div>
-
-              {/* Slide dots */}
-              <div className={`mt-6 flex gap-2 ${isRtl ? "justify-end lg:justify-end" : "justify-start"}`}>
-                {SLIDES.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setSlide(i)}
-                    aria-label={`Show slide ${i + 1}`}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${i === slide ? "w-6 bg-gold" : "w-1.5 bg-foreground/25 hover:bg-foreground/40"}`}
-                  />
-                ))}
-              </div>
             </div>
 
             <div className="hidden lg:block lg:min-h-[600px]" />
