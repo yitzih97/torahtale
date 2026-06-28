@@ -17,12 +17,17 @@ async function requireUser(req: Request): Promise<Response | null> {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+  const token = authHeader.replace("Bearer ", "");
+  // Internal server-to-server calls (the generate-book orchestrator) authenticate
+  // with the service-role key instead of a user JWT — accept it as authorized.
+  const svcKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (svcKey && token === svcKey) return null;
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authHeader } } },
   );
-  const { data, error } = await supabase.auth.getClaims(authHeader.replace("Bearer ", ""));
+  const { data, error } = await supabase.auth.getClaims(token);
   if (error || !data?.claims) {
     return new Response(JSON.stringify({ error: "Not authenticated" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },

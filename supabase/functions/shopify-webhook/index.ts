@@ -32,6 +32,30 @@ async function findSubscriptionByContract(supabase: any, contractId: string) {
   return data?.[0] || null;
 }
 
+// Kick off automatic server-side book generation. generate-book returns 202
+// immediately and generates in its own background task, so this resolves fast.
+// Best-effort: a failure here never fails the webhook (the admin can still
+// generate manually via the Play button).
+async function triggerGeneration(bookId: string) {
+  try {
+    const url = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const res = await fetch(`${url}/functions/v1/generate-book`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        "x-cron-secret": Deno.env.get("CRON_SECRET") || "",
+      },
+      body: JSON.stringify({ bookId }),
+    });
+    console.log("triggerGeneration:", bookId, "->", res.status);
+  } catch (e) {
+    console.error("triggerGeneration failed for", bookId, e);
+  }
+}
+
 // Shopify order/subscription webhook.
 //
 // Flow this supports (see project plan):
@@ -264,6 +288,10 @@ serve(async (req) => {
           shipping_data: { ...(book.shipping_data as any || {}), ...shipping },
           updated_at: new Date().toISOString(),
         } as any).eq("id", bookId);
+
+        // Payment confirmed → auto-start generation (no admin "Play" needed).
+        // Lands the book at pending_review for admin approval.
+        await triggerGeneration(bookId);
 
         // If this order also started a subscription, initialise its drip schedule.
         // The custom book above is week 1 (already in admin), so the first charge

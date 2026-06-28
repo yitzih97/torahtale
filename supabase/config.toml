@@ -17,3 +17,9 @@ verify_jwt = false
 # x-cron-secret header (not a Supabase JWT), so the platform must not pre-reject it.
 [functions.release-subscription-books]
 verify_jwt = false
+
+# The book generator is invoked server-to-server by the orders/paid webhook (and
+# the release job) with an x-cron-secret header — not a user JWT — so the platform
+# must not pre-reject it. The function authorizes the secret (or an admin JWT) itself.
+[functions.generate-book]
+verify_jwt = false

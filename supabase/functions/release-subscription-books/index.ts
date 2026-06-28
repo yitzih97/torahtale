@@ -93,6 +93,25 @@ serve(async (req) => {
         continue; // leave credit + date untouched so the next run retries
       }
 
+      // Auto-start server-side generation for the freshly minted book (no admin
+      // "Play" needed). Best-effort — generate-book returns 202 immediately.
+      if (newBook?.id) {
+        try {
+          await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-book`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}`,
+              "x-cron-secret": Deno.env.get("CRON_SECRET") || "",
+            },
+            body: JSON.stringify({ bookId: newBook.id }),
+          });
+        } catch (e) {
+          console.error("auto-generate trigger failed for", newBook.id, e);
+        }
+      }
+
       const nextDate = addDaysISO(releaseDate, 7);
       await supabase.from("subscriptions").update({
         books_remaining: Math.max(0, ((sub as any).books_remaining || 1) - 1),
