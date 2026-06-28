@@ -15,12 +15,32 @@ async function recordCharge(
   throw error;
 }
 
+// Find the subscription row linked to a Shopify subscription contract id. The
+// create webhook stores whatever id Shopify sends (numeric REST id or gid), so
+// match the exact value first and fall back to the numeric tail.
+async function findSubscriptionByContract(supabase: any, contractId: string) {
+  if (!contractId) return null;
+  let { data } = await supabase.from("subscriptions")
+    .select("id, status").eq("shopify_contract_id", contractId).limit(1);
+  if (!data || data.length === 0) {
+    const numeric = contractId.replace(/\D/g, "");
+    if (numeric && numeric !== contractId) {
+      ({ data } = await supabase.from("subscriptions")
+        .select("id, status").eq("shopify_contract_id", numeric).limit(1));
+    }
+  }
+  return data?.[0] || null;
+}
+
 // Shopify order/subscription webhook.
 //
 // Flow this supports (see project plan):
 //   orders/paid  +  book_id attribute   -> mark that book "paid" (one-time OR first subscription order)
 //   orders/paid  without book_id        -> recurring subscription cycle: mint a fresh book for that customer
 //   subscription_contracts/create       -> store the contract id on the subscription row
+//   subscription_billing_attempts/failure -> pause the subscription (failed recurring charge)
+//   subscription_contracts/update       -> mirror Shopify status onto the row (cancel/pause/resume)
+//   orders/cancelled                     -> mark the linked book order canceled
 //
 // External setup required for this to receive traffic:
 //   - Register these webhook topics in the Shopify admin / app, pointing at this function URL.
@@ -138,6 +158,65 @@ serve(async (req) => {
         }
       }
       return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── subscription_billing_attempts/failure ────────────────────────
+    // A failed recurring charge (declined/expired card, insufficient funds)
+    // pauses the subscription so the Monday release job stops shipping until
+    // the customer fixes billing in the Shopify portal.
+    if (topic === "subscription_billing_attempts/failure") {
+      const contractId = String(payload?.subscription_contract_id ?? payload?.admin_graphql_api_id ?? "");
+      const sub = await findSubscriptionByContract(supabase, contractId);
+      if (sub && sub.status !== "canceled") {
+        await supabase.from("subscriptions")
+          .update({ status: "paused", updated_at: new Date().toISOString() } as any)
+          .eq("id", sub.id);
+        console.log("Paused subscription after failed charge:", sub.id, payload?.error_code || "");
+      } else if (!sub) {
+        console.warn("billing failure: no subscription matched contract", contractId);
+      }
+      return new Response(JSON.stringify({ received: true, action: "billing_failure" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── subscription_contracts/update ─────────────────────────────────
+    // Mirror cancel/pause/resume done in Shopify (or by Shopify's dunning)
+    // onto our row so the dashboard and release job stay in sync.
+    if (topic === "subscription_contracts/update") {
+      const contractId = String(payload?.id ?? payload?.admin_graphql_api_id ?? "");
+      const shopStatus = String(payload?.status ?? "").toUpperCase();
+      const statusMap: Record<string, string> = {
+        ACTIVE: "active", PAUSED: "paused",
+        CANCELLED: "canceled", CANCELED: "canceled", EXPIRED: "canceled", FAILED: "paused",
+      };
+      const next = statusMap[shopStatus];
+      const sub = await findSubscriptionByContract(supabase, contractId);
+      if (sub && next && sub.status !== next) {
+        const patch: Record<string, unknown> = { status: next, updated_at: new Date().toISOString() };
+        if (next === "canceled") patch.canceled_at = new Date().toISOString();
+        await supabase.from("subscriptions").update(patch as any).eq("id", sub.id);
+        console.log("Synced subscription status from Shopify:", sub.id, shopStatus, "->", next);
+      }
+      return new Response(JSON.stringify({ received: true, action: "contract_update" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── orders/cancelled ──────────────────────────────────────────────
+    // A canceled Shopify order marks the linked book canceled so it drops out
+    // of the fulfillment/printing queue.
+    if (topic === "orders/cancelled") {
+      const orderId = String(payload?.id ?? "");
+      if (orderId) {
+        await supabase.from("books")
+          .update({ status: "canceled", updated_at: new Date().toISOString() } as any)
+          .eq("shopify_order_id", orderId);
+        console.log("Marked book canceled for Shopify order", orderId);
+      }
+      return new Response(JSON.stringify({ received: true, action: "order_cancelled" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
