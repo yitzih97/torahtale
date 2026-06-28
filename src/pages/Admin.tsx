@@ -15,6 +15,7 @@ import {
   Clock, Loader2, AlertTriangle, CheckCircle2, Play, Maximize2,
 } from "lucide-react";
 import { AdminOrderDetailDialog } from "@/components/admin/AdminOrderDetailDialog";
+import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData } from "@/hooks/useAdminData";
 import { generateBookZip } from "@/lib/generateBookZip";
@@ -221,7 +222,7 @@ export default function Admin() {
             transition={{ duration: 0.6, delay: 0.1, ease }}
           >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full grid grid-cols-4 mb-6 bg-secondary rounded-2xl h-12">
+              <TabsList className="w-full grid grid-cols-5 mb-6 bg-secondary rounded-2xl h-12">
                 <TabsTrigger value="orders" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm text-xs sm:text-sm">
                   <Package className="w-4 h-4" /> Orders
                 </TabsTrigger>
@@ -230,6 +231,9 @@ export default function Admin() {
                 </TabsTrigger>
                 <TabsTrigger value="subs" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm text-xs sm:text-sm">
                   <CalendarHeart className="w-4 h-4" /> Subs
+                </TabsTrigger>
+                <TabsTrigger value="messages" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm text-xs sm:text-sm">
+                  <Mail className="w-4 h-4" /> Messages
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm text-xs sm:text-sm">
                   <Settings className="w-4 h-4" /> Settings
@@ -471,6 +475,11 @@ export default function Admin() {
                     </div>
                   </div>
                 )}
+              </TabsContent>
+
+              {/* ═══ TAB: MESSAGES ═══ */}
+              <TabsContent value="messages">
+                <AdminMessagesTab />
               </TabsContent>
 
               {/* ═══ TAB: SETTINGS ═══ */}
