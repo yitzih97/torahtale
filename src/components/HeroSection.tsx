@@ -103,8 +103,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
               alt="Two children with their personalized Torah storybook"
               className="absolute inset-0 w-full h-full object-cover"
               style={{ objectPosition: "center bottom" }}
-              width={3840}
-              height={2160}
+              width={4096}
+              height={2294}
               loading="eager"
             />
           </div>
@@ -116,8 +116,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             alt="Two children with their personalized Torah storybook"
             className="absolute inset-0 w-full h-full object-cover"
             style={{ objectPosition: "center bottom" }}
-            width={2160}
-            height={3840}
+            width={2294}
+            height={4096}
             loading="eager"
           />
         </div>
