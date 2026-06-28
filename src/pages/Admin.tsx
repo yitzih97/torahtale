@@ -12,8 +12,9 @@ import { Input } from "@/components/ui/input";
 import {
   Package, Truck, Wand2, Users, BookOpen, CalendarHeart,
   Settings, Eye, Download, Search, ShieldCheck, Mail, MapPin,
-  Clock, Loader2, AlertTriangle, CheckCircle2, Play,
+  Clock, Loader2, AlertTriangle, CheckCircle2, Play, Maximize2,
 } from "lucide-react";
+import { AdminOrderDetailDialog } from "@/components/admin/AdminOrderDetailDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData } from "@/hooks/useAdminData";
 import { generateBookZip } from "@/lib/generateBookZip";
@@ -66,6 +67,8 @@ export default function Admin() {
   const [searchQuery, setSearchQuery] = useState("");
   const [downloadingZip, setDownloadingZip] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("orders");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
@@ -119,6 +122,37 @@ export default function Admin() {
 
   const handleTriggerGeneration = (book: any) => {
     setGeneratingBook(book);
+  };
+
+  // Whether the "Generate" action applies to this order's current state.
+  const canGenerate = (book: any) =>
+    book.status === "paid" || book.status === "generating" || book.status === "draft" ||
+    ((book.status === "ordered" || book.status === "pending_review") && !book.pages_data);
+
+  // Approve a reviewed book and auto-submit it to Printify.
+  const approveAndSubmit = async (book: any) => {
+    updateBookStatus.mutate({ id: book.id, status: "approved" });
+    try {
+      const { data: pfResult, error: pfErr } = await supabase.functions.invoke("printify-submit", {
+        body: { action: "submit-order", bookId: book.id },
+      });
+      if (pfErr) throw pfErr;
+      if (pfResult?.success) {
+        toast.success("Approved & sent to Printify!");
+      } else {
+        toast.warning(`Approved but Printify failed: ${pfResult?.error || "Unknown"}`);
+      }
+    } catch (e: any) {
+      console.error("Printify error:", e);
+      toast.warning("Approved but Printify auto-submit failed.");
+    }
+  };
+
+  // Open the customer's full card from an order (switches to the Users tab).
+  const openCustomerFromOrder = (userId: string) => {
+    setSelectedUserId(userId);
+    setActiveTab("users");
+    setSelectedOrder(null);
   };
 
   // Stats
@@ -186,7 +220,7 @@ export default function Admin() {
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.6, delay: 0.1, ease }}
           >
-            <Tabs defaultValue="orders" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full grid grid-cols-4 mb-6 bg-secondary rounded-2xl h-12">
                 <TabsTrigger value="orders" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm text-xs sm:text-sm">
                   <Package className="w-4 h-4" /> Orders
@@ -225,7 +259,7 @@ export default function Admin() {
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-border bg-secondary/50">
-                              {["Order", "Customer", "Child", "Portion", "Style", "Date", "Status", "Actions"].map((h) => (
+                              {["Order", "Customer", "Child", "Portion", "Style", "Placed", "Status", "Actions"].map((h) => (
                                 <th key={h} className="text-left p-3 font-mono text-[10px] tracking-widest uppercase text-muted-foreground">{h}</th>
                               ))}
                             </tr>
@@ -253,7 +287,9 @@ export default function Admin() {
                                   <td className="p-3 text-xs font-medium text-foreground">{book.child_name || "—"}</td>
                                   <td className="p-3 text-xs text-muted-foreground">{book.torah_portion || "—"}</td>
                                   <td className="p-3 text-xs text-muted-foreground capitalize">{book.art_style || "—"}</td>
-                                  <td className="p-3 text-xs text-muted-foreground">{format(new Date(book.created_at), "MMM d, yy")}</td>
+                                  <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
+                                    {format(new Date(book.paid_at || book.created_at), "MMM d, yy · h:mm a")}
+                                  </td>
                                   <td className="p-3">
                                     <Select
                                       value={book.status}
@@ -283,7 +319,16 @@ export default function Admin() {
                                   </td>
                                   <td className="p-3">
                                     <div className="flex gap-1">
-                                      {(book.status === "paid" || book.status === "generating" || book.status === "draft" || ((book.status === "ordered" || book.status === "pending_review") && !book.pages_data)) && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-[11px] h-7 px-2 text-accent"
+                                        onClick={() => setSelectedOrder(book)}
+                                        title="Open order details"
+                                      >
+                                        <Maximize2 className="w-3 h-3" />
+                                      </Button>
+                                      {canGenerate(book) && (
                                         <Button
                                           variant="ghost"
                                           size="sm"
@@ -316,23 +361,7 @@ export default function Admin() {
                                           variant="ghost"
                                           size="sm"
                                           className="text-[11px] h-7 px-2 text-green-600"
-                                          onClick={async () => {
-                                            updateBookStatus.mutate({ id: book.id, status: "approved" });
-                                            try {
-                                              const { data: pfResult, error: pfErr } = await supabase.functions.invoke("printify-submit", {
-                                                body: { action: "submit-order", bookId: book.id },
-                                              });
-                                              if (pfErr) throw pfErr;
-                                              if (pfResult?.success) {
-                                                toast.success("Approved & sent to Printify!");
-                                              } else {
-                                                toast.warning(`Approved but Printify failed: ${pfResult?.error || "Unknown"}`);
-                                              }
-                                            } catch (e: any) {
-                                              console.error("Printify error:", e);
-                                              toast.warning("Approved but Printify auto-submit failed.");
-                                            }
-                                          }}
+                                          onClick={() => approveAndSubmit(book)}
                                           title="Approve for printing"
                                         >
                                           <CheckCircle2 className="w-3 h-3" />
@@ -453,6 +482,24 @@ export default function Admin() {
         </div>
       </main>
       <Footer />
+
+      {/* Order detail dialog */}
+      {selectedOrder && (
+        <AdminOrderDetailDialog
+          book={selectedOrder}
+          open={!!selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          profile={profiles.find((p: any) => p.id === selectedOrder.user_id) || null}
+          kids={children.filter((c: any) => c.user_id === selectedOrder.user_id)}
+          canGenerate={canGenerate(selectedOrder)}
+          downloading={downloadingZip === selectedOrder.id}
+          onGenerate={() => { handleTriggerGeneration(selectedOrder); setSelectedOrder(null); }}
+          onViewEdit={() => { setGeneratingBook(selectedOrder); setSelectedOrder(null); }}
+          onDownload={() => handleDownloadZip(selectedOrder)}
+          onApprove={() => approveAndSubmit(selectedOrder)}
+          onViewCustomer={() => openCustomerFromOrder(selectedOrder.user_id)}
+        />
+      )}
 
       {/* Admin Book Generation & Editing Modal */}
       {generatingBook && (

@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Receipt, Package, ExternalLink, FileText, Loader2 } from "lucide-react";
+import { Receipt, Package, ExternalLink, FileText, Loader2, CreditCard, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
 import { useBooks } from "@/hooks/useBooks";
+import { SHOPIFY_ACCOUNT_URL } from "@/lib/shopify";
+import { fetchUserOrdersSummary, formatMoney, type OrderSummaryRow } from "@/lib/shopifyAdmin";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -14,9 +17,26 @@ const statusPill = (s: string) => {
   return "bg-amber-50 text-amber-700 border-amber-200/60";
 };
 
+const openBilling = () => window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener,noreferrer");
+
 export function OrdersHistoryPanel() {
   const { books, isLoading } = useBooks();
   const orders = books.filter((b) => !!b.order_number);
+
+  // Real per-order totals / payment method / status, live from Shopify.
+  const [finByBook, setFinByBook] = useState<Record<string, OrderSummaryRow>>({});
+  useEffect(() => {
+    let cancelled = false;
+    fetchUserOrdersSummary()
+      .then((s) => {
+        if (cancelled) return;
+        const map: Record<string, OrderSummaryRow> = {};
+        for (const o of s.orders) map[o.bookId] = o;
+        setFinByBook(map);
+      })
+      .catch(() => { /* read-only enrichment; ignore failures */ });
+    return () => { cancelled = true; };
+  }, [books.length]);
 
   return (
     <motion.section
@@ -40,13 +60,8 @@ export function OrdersHistoryPanel() {
           <h3 className="font-display text-lg font-semibold text-foreground">Orders & Invoices</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Your past book orders and receipts</p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="rounded-2xl gap-1.5 text-xs"
-          onClick={() => window.open("https://cnhtj8-x9.myshopify.com/account", "_blank", "noopener,noreferrer")}
-        >
-          <ExternalLink className="w-3.5 h-3.5" /> Shopify
+        <Button variant="ghost" size="sm" className="rounded-2xl gap-1.5 text-xs" onClick={openBilling}>
+          <CreditCard className="w-3.5 h-3.5" /> Manage billing
         </Button>
       </div>
 
@@ -63,50 +78,60 @@ export function OrdersHistoryPanel() {
           </div>
         ) : (
           <div className="space-y-2">
-            {orders.map((o) => (
-              <div
-                key={o.id}
-                className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-white/55 backdrop-blur-md border border-white/70 ring-1 ring-black/5"
-              >
-                {o.cover_image_url ? (
-                  <img
-                    src={o.cover_image_url}
-                    alt={o.child_name || "Book"}
-                    className="w-12 h-12 rounded-xl object-cover border border-white/70 flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-xl bg-white/70 border border-white/70 flex items-center justify-center flex-shrink-0">
-                    <Package className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      #{o.order_number}
-                    </p>
-                    <span
-                      className={`inline-flex items-center text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${statusPill(o.status)}`}
-                    >
-                      {o.status}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">
-                    {o.child_name || "—"} · {o.torah_portion || "Book"} ·{" "}
-                    {format(new Date(o.created_at), "MMM d, yyyy")}
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-2xl gap-1.5 text-xs flex-shrink-0"
-                  onClick={() =>
-                    window.open("https://cnhtj8-x9.myshopify.com/account", "_blank", "noopener,noreferrer")
-                  }
+            {orders.map((o) => {
+              const fin = finByBook[o.id];
+              return (
+                <div
+                  key={o.id}
+                  className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-white/55 backdrop-blur-md border border-white/70 ring-1 ring-black/5"
                 >
-                  <FileText className="w-3.5 h-3.5" /> Invoice
-                </Button>
-              </div>
-            ))}
+                  {o.cover_image_url ? (
+                    <img
+                      src={o.cover_image_url}
+                      alt={o.child_name || "Book"}
+                      className="w-12 h-12 rounded-xl object-cover border border-white/70 flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-white/70 border border-white/70 flex items-center justify-center flex-shrink-0">
+                      <Package className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {fin?.orderName || `#${o.order_number}`}
+                      </p>
+                      {fin?.total && (
+                        <span className="text-xs font-semibold text-foreground">{formatMoney(fin.total)}</span>
+                      )}
+                      <span
+                        className={`inline-flex items-center text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${statusPill(o.status)}`}
+                      >
+                        {o.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      {o.child_name || "—"} · {o.torah_portion || "Book"} ·{" "}
+                      {format(new Date(fin?.placedAt || o.created_at), "MMM d, yyyy")}
+                    </p>
+                    {fin && (fin.payment || fin.fulfillmentStatus) && (
+                      <p className="text-[11px] text-muted-foreground/90 truncate mt-0.5 flex items-center gap-2">
+                        {fin.payment && <span className="inline-flex items-center gap-1 capitalize"><CreditCard className="w-3 h-3" />{fin.payment}</span>}
+                        {fin.fulfillmentStatus && <span className="inline-flex items-center gap-1 capitalize"><Truck className="w-3 h-3" />{fin.fulfillmentStatus.toLowerCase().replace(/_/g, " ")}</span>}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-2xl gap-1.5 text-xs flex-shrink-0"
+                    onClick={openBilling}
+                  >
+                    <FileText className="w-3.5 h-3.5" /> Invoice
+                  </Button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { fetchUserOrdersSummary, formatMoney, type UserOrdersSummary } from "@/lib/shopifyAdmin";
+import { getCogs, getProfit } from "@/lib/bookCosts";
 
 type Props = {
   profiles: any[];
@@ -72,8 +74,22 @@ export function AdminUsersTab({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Real Shopify order totals for the currently-open user card (live, on demand).
+  const [orderSummary, setOrderSummary] = useState<UserOrdersSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   useEffect(() => { setPage(1); }, [query, sort, subFilter, orderFilter, joinedFilter, pageSize]);
+
+  useEffect(() => {
+    if (!selectedUserId) { setOrderSummary(null); return; }
+    let cancelled = false;
+    setSummaryLoading(true); setOrderSummary(null);
+    fetchUserOrdersSummary(selectedUserId)
+      .then((s) => { if (!cancelled) setOrderSummary(s); })
+      .catch(() => { if (!cancelled) setOrderSummary(null); })
+      .finally(() => { if (!cancelled) setSummaryLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedUserId]);
 
   const toggleVip = (id: string) => {
     setVip((prev) => {
@@ -209,6 +225,8 @@ export function AdminUsersTab({
       .map((b: any) => b.shipping_data)
       .filter((a: any, i: number, arr: any[]) => i === arr.findIndex((x: any) => x.street === a.street && x.city === a.city));
     const payments = ub.filter((b: any) => b.order_number || bookTotal(b) > 0);
+    const bookById = new Map<string, any>(ub.map((b: any) => [b.id, b]));
+    const realOrders = orderSummary?.orders || [];
     const activity = [
       ...ub.map((b: any) => ({ ts: b.created_at, type: "order", label: `Order ${b.order_number || b.id.slice(0, 6)} · ${b.status}`, icon: BookOpen })),
       ...us.map((s: any) => ({ ts: s.created_at, type: "sub", label: `Subscription ${s.status} · ${s.child_name || ""}`, icon: CalendarHeart })),
@@ -270,7 +288,7 @@ export function AdminUsersTab({
               { label: "Books", value: ub.length, icon: BookOpen },
               { label: "Subs", value: us.length, icon: CalendarHeart },
               { label: "Children", value: uk.length, icon: Users },
-              { label: "Spend", value: `$${spend.toFixed(2)}`, icon: CreditCard },
+              { label: "Spend", value: summaryLoading ? "…" : (orderSummary ? formatMoney({ amount: orderSummary.totalSpent, currency: orderSummary.currency || "USD" }) : `$${spend.toFixed(2)}`), icon: CreditCard },
               { label: "Last Order", value: lastOrder ? formatDistanceToNow(new Date(lastOrder.created_at)) : "—", icon: Clock },
             ].map((s) => (
               <div key={s.label} className="rounded-xl bg-muted/30 border border-border p-3">
@@ -288,7 +306,7 @@ export function AdminUsersTab({
             <TabsTrigger value="children">Children ({uk.length})</TabsTrigger>
             <TabsTrigger value="orders">Orders ({ub.length})</TabsTrigger>
             <TabsTrigger value="subs">Subs ({us.length})</TabsTrigger>
-            <TabsTrigger value="payments">Payments ({payments.length})</TabsTrigger>
+            <TabsTrigger value="payments">Payments ({orderSummary ? realOrders.length : payments.length})</TabsTrigger>
             <TabsTrigger value="addresses">Addresses ({addresses.length})</TabsTrigger>
           </TabsList>
 
@@ -395,35 +413,50 @@ export function AdminUsersTab({
           </TabsContent>
 
           <TabsContent value="payments" className="glass rounded-2xl border border-border p-5">
-            {payments.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No payment records. Charges are processed by Shopify — totals shown when stored on the order.</p>
+            {summaryLoading ? (
+              <p className="text-xs text-muted-foreground flex items-center gap-2"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Loading live Shopify orders…</p>
+            ) : !orderSummary ? (
+              <p className="text-xs text-muted-foreground">Couldn't load live Shopify data right now.</p>
+            ) : realOrders.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No paid Shopify orders for this customer yet.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-border text-[10px] uppercase tracking-widest text-muted-foreground">
-                      <th className="text-left p-2">Date</th><th className="text-left p-2">Order</th><th className="text-left p-2">Amount</th><th className="text-left p-2">Method</th><th className="text-left p-2">Status</th><th></th>
+                      <th className="text-left p-2">Placed</th><th className="text-left p-2">Order</th><th className="text-left p-2">Paid</th>
+                      <th className="text-left p-2">Est. COGS</th><th className="text-left p-2">Est. profit</th>
+                      <th className="text-left p-2">Method</th><th className="text-left p-2">Payment</th><th className="text-left p-2">Fulfillment</th><th></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {payments.map((p: any) => (
-                      <tr key={p.id} className="border-b border-border last:border-0">
-                        <td className="p-2 text-muted-foreground">{format(new Date(p.created_at), "MMM d, yyyy")}</td>
-                        <td className="p-2 font-mono">{p.order_number || "—"}</td>
-                        <td className="p-2 font-semibold text-primary">${bookTotal(p).toFixed(2)}</td>
-                        <td className="p-2 text-muted-foreground">Shopify</td>
-                        <td className="p-2"><span className={`px-2 py-0.5 rounded-full text-[10px] capitalize ${orderStatusColor(p.status)}`}>{p.status}</span></td>
-                        <td className="p-2">
-                          {p.order_number && (
-                            <a href={`https://admin.shopify.com/orders?query=${encodeURIComponent(p.order_number)}`} target="_blank" rel="noopener" className="text-accent hover:underline inline-flex items-center gap-1">
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {realOrders.map((o) => {
+                      const bk = bookById.get(o.bookId);
+                      const cogs = bk ? getCogs(bk) : null;
+                      const profit = (bk && o.subtotal) ? getProfit(o.subtotal.amount, bk) : null;
+                      return (
+                        <tr key={o.bookId} className="border-b border-border last:border-0">
+                          <td className="p-2 text-muted-foreground whitespace-nowrap">{o.placedAt ? format(new Date(o.placedAt), "MMM d, yyyy") : "—"}</td>
+                          <td className="p-2 font-mono">{o.orderName || "—"}</td>
+                          <td className="p-2 font-semibold text-primary">{formatMoney(o.total)}{o.refunded && o.refunded.amount > 0 ? <span className="text-destructive font-normal"> (−{formatMoney(o.refunded)})</span> : null}</td>
+                          <td className="p-2 text-muted-foreground">{cogs != null ? `$${cogs.toFixed(2)}` : "—"}</td>
+                          <td className={`p-2 font-medium ${profit != null && profit < 0 ? "text-destructive" : "text-emerald-600"}`}>{profit != null ? `$${profit.toFixed(2)}` : "—"}</td>
+                          <td className="p-2 text-muted-foreground capitalize">{o.payment || "Shopify"}</td>
+                          <td className="p-2"><span className="px-2 py-0.5 rounded-full text-[10px] capitalize bg-muted text-muted-foreground">{(o.financialStatus || "—").toLowerCase().replace(/_/g, " ")}</span></td>
+                          <td className="p-2 text-muted-foreground capitalize">{(o.fulfillmentStatus || "—").toLowerCase().replace(/_/g, " ")}</td>
+                          <td className="p-2">
+                            {o.orderName && (
+                              <a href={`https://admin.shopify.com/orders?query=${encodeURIComponent(o.orderName)}`} target="_blank" rel="noopener" className="text-accent hover:underline inline-flex items-center gap-1">
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+                <p className="text-[10px] text-muted-foreground mt-2">Paid totals, payment method &amp; status are live from Shopify. COGS/profit are estimates from production + AI costs.</p>
               </div>
             )}
           </TabsContent>

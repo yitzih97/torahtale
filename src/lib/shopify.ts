@@ -7,6 +7,13 @@ const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${
 // required for subscription (selling plan) checkout lines.
 const SHOPIFY_STOREFRONT_TOKEN = '370f86bdf115e6b0593f7248f5cfb4b0';
 
+/**
+ * Shopify's hosted customer-account portal. Card/payment-method editing is
+ * PCI-owned by Shopify and only available here — we deep-link to it rather than
+ * editing payments in-app. Used by every "Manage payment & billing" entry point.
+ */
+export const SHOPIFY_ACCOUNT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/account`;
+
 export interface ShopifyProduct {
   node: {
     id: string;

@@ -13,6 +13,7 @@ import {
   Loader2, Mail, Lock, Trash2,
 } from "lucide-react";
 import { OrdersHistoryPanel } from "./OrdersHistoryPanel";
+import { SHOPIFY_ACCOUNT_URL } from "@/lib/shopify";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -165,7 +166,7 @@ export function DashboardSettings({ user }: Props) {
             variant="gold"
             size="sm"
             className="rounded-2xl gap-2 flex-shrink-0"
-            onClick={() => window.open("https://cnhtj8-x9.myshopify.com/account", "_blank", "noopener,noreferrer")}
+            onClick={() => window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener,noreferrer")}
           >
             <CreditCard className="w-4 h-4" /> Manage
           </Button>

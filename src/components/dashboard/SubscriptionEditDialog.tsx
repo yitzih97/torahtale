@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, CreditCard, ExternalLink } from "lucide-react";
 import type { SubscriptionRecord } from "@/hooks/useSubscriptions";
 import type { ChildRecord } from "@/hooks/useChildren";
-
-const SHOPIFY_ACCOUNT_URL = "https://cnhtj8-x9.myshopify.com/account";
+import { SHOPIFY_ACCOUNT_URL } from "@/lib/shopify";
 
 interface Props {
   open: boolean;

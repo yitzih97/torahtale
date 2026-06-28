@@ -30,6 +30,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useBooks, type BookRecord } from "@/hooks/useBooks";
 import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
+import { SHOPIFY_ACCOUNT_URL } from "@/lib/shopify";
 import { toast } from "sonner";
 
 const ease = [0.22, 1, 0.36, 1];
@@ -325,7 +326,7 @@ export default function Dashboard() {
                         sub={sub}
                         index={i}
                         onEdit={() => setEditingSub(sub)}
-                        onPayment={() => window.open("https://cnhtj8-x9.myshopify.com/account", "_blank", "noopener,noreferrer")}
+                        onPayment={() => window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener,noreferrer")}
                         onToggle={async () => {
                           if (sub.status === "canceled") return;
                           const next = sub.status === "active" ? "paused" : "active";
