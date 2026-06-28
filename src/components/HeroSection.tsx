@@ -10,7 +10,6 @@ import heroFlip3 from "@/assets/hero-flip-3.jpg";
 import heroM1 from "@/assets/hero-m-1.jpg";
 import heroM2 from "@/assets/hero-m-2.jpg";
 import heroM3 from "@/assets/hero-m-3.jpg";
-import heroMStatic from "@/assets/hero-m-static.jpg";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
 import reviewer3 from "@/assets/avatars/reviewer3.jpg";
@@ -57,24 +56,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   const isHebrew = lang === "he" || lang === "yi";
 
   const [slide, setSlide] = useState(0);
-  // Rotate the slides only on desktop (lg+). On mobile/tablet the hero shows a
-  // single static image, so we pin to the first slide and freeze the rotation —
-  // that keeps the static image and the typed headline in sync, and guarantees
-  // the kids/book never shift position or size.
   useEffect(() => {
-    const mql = window.matchMedia("(min-width: 1024px)");
-    let id: ReturnType<typeof setInterval> | undefined;
-    const sync = () => {
-      clearInterval(id);
-      if (mql.matches) {
-        id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), ROTATE_MS);
-      } else {
-        setSlide(0);
-      }
-    };
-    sync();
-    mql.addEventListener("change", sync);
-    return () => { clearInterval(id); mql.removeEventListener("change", sync); };
+    const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), ROTATE_MS);
+    return () => clearInterval(id);
   }, []);
 
   const copy = isHebrew
@@ -154,18 +138,21 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
             ))}
           </div>
         </div>
-        {/* Mobile/tablet: a SINGLE static portrait image (no rotation/crossfade) so
-            the children and book never shift position or size between slides. */}
+        {/* Mobile/tablet: portrait images that crossfade in sync with the headline. */}
         <div className="lg:hidden absolute inset-0 overflow-hidden">
-          <img
-            src={heroMStatic}
-            alt="Two children with their personalized Torah storybook"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ objectPosition: "center bottom" }}
-            width={1696}
-            height={3000}
-            loading="eager"
-          />
+          {SLIDES.map((s, i) => (
+            <img
+              key={i}
+              src={s.imgM}
+              alt={i === slide ? "Two children with their personalized Torah storybook" : ""}
+              aria-hidden={i !== slide}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out"
+              style={{ opacity: i === slide ? 1 : 0, objectPosition: "center bottom" }}
+              width={1200}
+              height={2122}
+              loading={i === 0 ? "eager" : "lazy"}
+            />
+          ))}
         </div>
 
         {/* Readability scrim: strong cream fade behind the copy side, plus a soft
@@ -229,8 +216,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 </Button>
               </motion.div>
 
-              {/* Slide dots — desktop only; the mobile hero is a single static image. */}
-              <div className={`mt-6 hidden lg:flex gap-2 ${isRtl ? "justify-end lg:justify-end" : "justify-start"}`}>
+              {/* Slide dots */}
+              <div className={`mt-6 flex gap-2 ${isRtl ? "justify-end lg:justify-end" : "justify-start"}`}>
                 {SLIDES.map((_, i) => (
                   <button
                     key={i}
