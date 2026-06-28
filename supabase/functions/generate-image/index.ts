@@ -148,7 +148,7 @@ serve(async (req) => {
     const styleMap: Record<string, string> = {
       cartoon: "high-resolution cinematic cartoon illustration, rich hand-painted textures with soft watercolor washes, volumetric golden-hour lighting with warm amber highlights and cool blue shadows, depth-of-field bokeh background, intricate environmental details — foliage, fabric folds, atmospheric particles — studio-quality children's book art with painterly brushstrokes visible",
       "3d-pixar": "ultra high-resolution 3D Pixar/DreamWorks-quality CGI render, subsurface skin scattering, physically-based materials with fabric weave detail, cinematic volumetric lighting with dramatic rim-light and warm key light, shallow depth of field, film-grain texture, ray-traced reflections and ambient occlusion, expressive stylized characters with lifelike eyes and micro-expressions",
-      realistic: "photorealistic digital painting at 8K resolution, natural cinematic lighting with golden-hour warmth, hyper-detailed textures on skin, hair, and fabrics, atmospheric haze and dust motes, shallow depth of field with creamy bokeh, color-graded in warm amber and teal tones like a feature film still, lifelike proportions with painterly softness",
+      realistic: "a REAL photograph — photorealistic, indistinguishable from a real photo taken on a full-frame DSLR with an 85mm lens; true-to-life skin texture, pores and hair detail, natural soft lighting, realistic depth of field and bokeh, lifelike proportions and natural colors. NOT a painting, NOT an illustration, NOT cartoon, NOT 3D-rendered, NOT stylized — an actual photograph.",
       "graphic-novel": "graphic novel illustration with bold confident ink linework, dramatic dynamic composition with cinematic camera angles, rich flat color palette with halftone textures and cross-hatching details, high contrast lighting with deep shadows, premium print-quality detail",
     };
 
@@ -350,72 +350,92 @@ serve(async (req) => {
 
     parts.push({ text: imagePrompt });
 
-    // ============= OPENAI BRANCH (gpt-image-* / dall-e-*) =============
-    // Default to gpt-image-2 (newest) when admin hasn't picked a model.
-    const requestedImageModel = customImageModel || "gpt-image-2";
-    const hasRealReferencePhoto = Boolean(referenceImage);
-    const shouldForceGemini = hasRealReferencePhoto;
-    const effectiveImageModel = shouldForceGemini ? "gemini-3.1-flash-image-preview" : requestedImageModel;
-    const isOpenAI = /^(gpt-image|dall-e)/i.test(effectiveImageModel);
+    // Upscale a base64 PNG toward print resolution. Fully guarded (dynamic
+    // import + try/catch) so generation never breaks if it fails.
+    const upscaleForPrint = async (b64: string): Promise<string> => {
+      const targetMax = dims ? Math.max(dims[0], dims[1]) : null;
+      if (!targetMax) return b64;
+      try {
+        const { Image } = await import("https://deno.land/x/imagescript@1.2.17/mod.ts");
+        const img = await Image.decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
+        const curMax = Math.max(img.width, img.height);
+        if (curMax >= targetMax) return b64;
+        const scale = targetMax / curMax;
+        img.resize(Math.round(img.width * scale), Math.round(img.height * scale));
+        const out = await img.encode();
+        return bufferToBase64(out.buffer);
+      } catch (e) {
+        console.error("upscaleForPrint failed (returning original):", e);
+        return b64;
+      }
+    };
+
+    // ============= OPENAI GPT IMAGE (primary) =============
+    // GPT Image is the primary generator now — including when a child photo is
+    // attached (it goes through images/edits for likeness). "medium" quality so
+    // a full 20-page auto-generation still fits the edge time budget. Falls back
+    // to Gemini below if OpenAI is unavailable or errors.
+    const requestedImageModel = customImageModel || "gpt-image-1";
+    const isOpenAI = /^(gpt-image|dall-e)/i.test(requestedImageModel);
     if (isOpenAI) {
       const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-      if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured");
-
-      const imageBlobs: { blob: Blob; name: string }[] = [];
-      for (const p of parts) {
-        if (p.inlineData) {
-          const bin = Uint8Array.from(atob(p.inlineData.data), (c) => c.charCodeAt(0));
-          const ext = (p.inlineData.mimeType || "image/png").split("/")[1] || "png";
-          imageBlobs.push({ blob: new Blob([bin], { type: p.inlineData.mimeType }), name: `ref-${imageBlobs.length}.${ext}` });
+      if (OPENAI_API_KEY) {
+        try {
+          const imageBlobs: { blob: Blob; name: string }[] = [];
+          for (const p of parts) {
+            if (p.inlineData) {
+              const bin = Uint8Array.from(atob(p.inlineData.data), (c) => c.charCodeAt(0));
+              const ext = (p.inlineData.mimeType || "image/png").split("/")[1] || "png";
+              imageBlobs.push({ blob: new Blob([bin], { type: p.inlineData.mimeType }), name: `ref-${imageBlobs.length}.${ext}` });
+            }
+          }
+          const size = "1024x1024"; // square pages; upscaled for print after
+          let openaiResp: Response;
+          if (imageBlobs.length > 0) {
+            const fd = new FormData();
+            fd.append("model", requestedImageModel);
+            fd.append("prompt", imagePrompt);
+            fd.append("size", size);
+            fd.append("quality", "medium");
+            fd.append("n", "1");
+            for (const ib of imageBlobs) fd.append("image[]", ib.blob, ib.name);
+            openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/edits", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+              body: fd,
+            }, 90_000);
+          } else {
+            openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/generations", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ model: requestedImageModel, prompt: imagePrompt, size, quality: "medium", n: 1 }),
+            }, 90_000);
+          }
+          if (openaiResp.ok) {
+            const oData = await openaiResp.json();
+            const b64 = oData.data?.[0]?.b64_json;
+            if (b64) {
+              console.log(`OpenAI image generation using model: ${requestedImageModel}`);
+              const up = await upscaleForPrint(b64);
+              return new Response(JSON.stringify({ imageUrl: `data:image/png;base64,${up}` }), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              });
+            }
+            console.error("OpenAI returned no image — falling back to Gemini.");
+          } else {
+            const errTxt = await openaiResp.text();
+            console.error(`OpenAI ${requestedImageModel} error ${openaiResp.status}: ${errTxt.slice(0, 200)} — falling back to Gemini.`);
+          }
+        } catch (e) {
+          console.error("OpenAI image generation threw — falling back to Gemini:", e);
         }
-      }
-
-      // Always generate 1:1 square pages (covers + interior).
-      const size = "1024x1024";
-      let openaiResp: Response;
-      if (imageBlobs.length > 0) {
-        const fd = new FormData();
-        fd.append("model", effectiveImageModel);
-        fd.append("prompt", imagePrompt);
-        fd.append("size", size);
-        fd.append("n", "1");
-        for (const ib of imageBlobs) fd.append("image[]", ib.blob, ib.name);
-        openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/edits", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
-          body: fd,
-        });
       } else {
-        openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/generations", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model: effectiveImageModel, prompt: imagePrompt, size, n: 1 }),
-        });
+        console.warn("OPENAI_API_KEY not configured — falling back to Gemini.");
       }
-
-      if (!openaiResp.ok) {
-        const errTxt = await openaiResp.text();
-        console.error(`OpenAI ${effectiveImageModel} error:`, openaiResp.status, errTxt);
-        if (openaiResp.status === 429) {
-          return new Response(JSON.stringify({ error: "OpenAI rate limit — please try again." }), {
-            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        throw new Error(`OpenAI image error [${openaiResp.status}]: ${errTxt.slice(0, 300)}`);
-      }
-      const oData = await openaiResp.json();
-      const b64 = oData.data?.[0]?.b64_json;
-      if (!b64) throw new Error("No image returned from OpenAI");
-      console.log(`OpenAI image generation using model: ${effectiveImageModel}`);
-      return new Response(JSON.stringify({ imageUrl: `data:image/png;base64,${b64}` }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
-    // ============= END OPENAI BRANCH =============
+    // ============= END OPENAI; fall through to Gemini fallback =============
 
-    const imageModels = shouldForceGemini
-      ? ["gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
-      : customImageModel
+    const imageModels = (customImageModel && !isOpenAI)
       ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
       : [
           "gemini-3.1-flash-image-preview",
