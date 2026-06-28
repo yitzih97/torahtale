@@ -111,10 +111,14 @@ function normalizeOrder(o: any) {
         gateway: t.gateway,
         kind: t.kind,
         status: t.status,
+        // Shopify's Admin API does NOT expose the card last-4; `company` is the
+        // brand (e.g. "American Express") and `wallet` covers Apple/Shop Pay.
         cardCompany: t.paymentDetails?.company ?? null,
-        cardLast4: t.paymentDetails?.last4 ?? null,
+        cardLast4: null,
+        wallet: t.paymentDetails?.wallet ?? null,
+        methodName: t.paymentDetails?.paymentMethodName ?? null,
       }))
-      .find((t: any) => t.cardCompany || t.gateway) || null,
+      .find((t: any) => t.cardCompany || t.wallet || t.gateway) || null,
     fulfillments: (o.fulfillments || []).map((f: any) => ({
       status: f.status,
       tracking: (f.trackingInfo || []).map((ti: any) => ({
@@ -157,7 +161,7 @@ serve(async (req) => {
           ${ORDER_FIELDS}
           lineItems(first: 30) { nodes { title quantity sku originalUnitPriceSet { shopMoney { amount currencyCode } } } }
           shippingAddress { name address1 address2 city province zip country phone }
-          transactions(first: 10) { gateway kind status paymentDetails { ... on CardPaymentDetails { company last4 } } }
+          transactions(first: 10) { gateway kind status paymentDetails { ... on CardPaymentDetails { company name wallet paymentMethodName } } }
           fulfillments(first: 10) { status trackingInfo { company number url } }
         }
       }`;

@@ -169,6 +169,7 @@ export default function Admin() {
       (b.child_name || "").toLowerCase().includes(q) ||
       (b.torah_portion || "").toLowerCase().includes(q) ||
       (b.order_number || "").toLowerCase().includes(q) ||
+      (b.shopify_order_name || "").toLowerCase().includes(q) ||
       (b.status || "").toLowerCase().includes(q)
     );
   });
@@ -279,7 +280,7 @@ export default function Admin() {
                                   transition={{ delay: i * 0.03 }}
                                   className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors"
                                 >
-                                  <td className="p-3 font-mono text-xs text-primary">{book.order_number || "—"}</td>
+                                  <td className="p-3 font-mono text-xs text-primary">{book.order_number || book.shopify_order_name || "—"}</td>
                                   <td className="p-3">
                                     <button
                                       onClick={() => setSelectedUserId(book.user_id)}

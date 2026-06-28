@@ -21,7 +21,7 @@ export interface OrderDetails {
   refunded: ShopMoney | null;
   lineItems: { title: string; quantity: number; sku: string | null; unitPrice: ShopMoney | null }[];
   shippingAddress: Record<string, string | null> | null;
-  payment: { gateway: string; kind: string; status: string; cardCompany: string | null; cardLast4: string | null } | null;
+  payment: { gateway: string; kind: string; status: string; cardCompany: string | null; cardLast4: string | null; wallet?: string | null; methodName?: string | null } | null;
   fulfillments: { status: string; tracking: { company: string | null; number: string | null; url: string | null }[] }[];
 }
 

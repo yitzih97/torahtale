@@ -162,7 +162,13 @@ export function AdminOrderDetailDialog({
                   <Row Icon={ReceiptText} label="Tax" value={formatMoney(fin.tax)} />
                   <Row Icon={Truck} label="Shipping" value={formatMoney(fin.shipping)} />
                   {fin.refunded && fin.refunded.amount > 0 && <Row Icon={ReceiptText} label="Refunded" value={formatMoney(fin.refunded)} />}
-                  <Row Icon={CreditCard} label="Method" value={fin.payment?.cardCompany ? `${fin.payment.cardCompany}${fin.payment.cardLast4 ? ` ••${fin.payment.cardLast4}` : ""}` : (fin.paymentGateways[0] || "—")} />
+                  <Row Icon={CreditCard} label="Method" value={
+                    fin.payment?.wallet
+                      ? fin.payment.wallet
+                      : fin.payment?.cardCompany
+                        ? `${fin.payment.cardCompany}${fin.payment.cardLast4 ? ` ••${fin.payment.cardLast4}` : ""}`
+                        : (fin.paymentGateways[0] || "—")
+                  } />
                   <Row Icon={CheckCircle2} label="Status" value={<span className="capitalize">{(fin.financialStatus || "—").toLowerCase().replace(/_/g, " ")}</span>} />
                   <Row Icon={Truck} label="Fulfillment" value={<span className="capitalize">{(fin.fulfillmentStatus || "—").toLowerCase().replace(/_/g, " ")}</span>} />
                 </div>

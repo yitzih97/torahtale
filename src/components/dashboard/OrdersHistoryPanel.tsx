@@ -21,7 +21,9 @@ const openBilling = () => window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener,n
 
 export function OrdersHistoryPanel() {
   const { books, isLoading } = useBooks();
-  const orders = books.filter((b) => !!b.order_number);
+  // A book is a real "order" once it has either our pre-checkout order_number
+  // or a Shopify order linked by the webhook (shopify_order_name, e.g. "#1001").
+  const orders = books.filter((b) => !!b.order_number || !!(b as any).shopify_order_name);
 
   // Real per-order totals / payment method / status, live from Shopify.
   const [finByBook, setFinByBook] = useState<Record<string, OrderSummaryRow>>({});
@@ -99,7 +101,7 @@ export function OrdersHistoryPanel() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-semibold text-foreground truncate">
-                        {fin?.orderName || `#${o.order_number}`}
+                        {fin?.orderName || (o as any).shopify_order_name || (o.order_number ? `#${o.order_number}` : "Order")}
                       </p>
                       {fin?.total && (
                         <span className="text-xs font-semibold text-foreground">{formatMoney(fin.total)}</span>
