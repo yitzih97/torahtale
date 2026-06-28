@@ -18,6 +18,8 @@ export default {
         display: ["Cormorant Garamond", "Georgia", "serif"],
         body: ["Manrope", "system-ui", "sans-serif"],
         brand: ["Cormorant Garamond", "Georgia", "serif"],
+        // Matches the bold display serif of the Torah Tale logo wordmark.
+        heading: ["Playfair Display", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",

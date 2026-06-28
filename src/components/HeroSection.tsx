@@ -183,7 +183,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease }}
-                className="font-display font-bold leading-[1.05] tracking-tight text-foreground text-[2.25rem] sm:text-5xl lg:text-[4.25rem]"
+                className="font-heading font-bold leading-[1.05] tracking-tight text-foreground text-[2.25rem] sm:text-5xl lg:text-[4.25rem]"
               >
                 <span className="block">{copy.title1}</span>
                 <span className="block">{copy.title2}</span>
@@ -271,7 +271,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           >
             <div className="grid lg:grid-cols-[1fr_2.4fr] gap-6 lg:gap-10 items-center">
               <div className={`${isRtl ? "lg:text-right" : "lg:text-left"} text-center`}>
-                <h3 className="font-display text-2xl sm:text-3xl font-semibold text-foreground leading-tight">{copy.trustHeading}</h3>
+                <h3 className="font-heading text-2xl sm:text-3xl font-semibold text-foreground leading-tight">{copy.trustHeading}</h3>
                 <div className={`mt-3 flex items-center gap-2 ${isRtl ? "lg:justify-end" : "lg:justify-start"} justify-center`}>
                   <div className="flex">
                     {[1, 2, 3, 4, 5].map((i) => (

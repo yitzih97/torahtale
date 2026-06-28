@@ -57,13 +57,13 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
   const langFlag = lang === "en" ? "🇮🇱" : "🇺🇸";
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/92 backdrop-blur-xl border-b border-[hsl(var(--gold)/0.18)] shadow-sm" : "bg-gradient-to-b from-background/95 via-background/72 to-transparent backdrop-blur-md"}`} data-scrolled={scrolled}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/92 backdrop-blur-xl border-b border-[hsl(var(--gold)/0.18)] shadow-sm" : "bg-gradient-to-b from-background/95 via-background/72 to-transparent"}`} data-scrolled={scrolled}>
       <div className="container flex items-center justify-between h-20 lg:h-24">
         <a href="/" className="group">
           <BrandMark
-            className="transition-transform duration-300 group-hover:scale-[1.01]"
-            iconClassName={`h-12 w-12 lg:h-14 lg:w-14 ${!solid ? "[filter:drop-shadow(0_1px_2px_hsl(36_60%_15%/0.5))]" : ""}`}
-            wordmarkClassName={`h-14 lg:h-16 w-auto ${!solid ? "[filter:drop-shadow(0_1px_2px_hsl(36_60%_15%/0.5))]" : ""}`}
+            className="gap-1.5 transition-transform duration-300 group-hover:scale-[1.01]"
+            iconClassName={`h-14 w-14 lg:h-16 lg:w-16 ${!solid ? "[filter:drop-shadow(0_1px_2px_hsl(36_60%_15%/0.5))]" : ""}`}
+            wordmarkClassName={`h-16 lg:h-20 w-auto ${!solid ? "[filter:drop-shadow(0_1px_2px_hsl(36_60%_15%/0.5))]" : ""}`}
           />
           <span className="sr-only">{brandName}</span>
         </a>
