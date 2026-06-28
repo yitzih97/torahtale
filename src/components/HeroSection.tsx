@@ -137,13 +137,13 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease }}
-                className="font-heading font-bold leading-[1.05] tracking-tight text-foreground text-[2.25rem] sm:text-5xl lg:text-[4.25rem]"
+                className="font-heading font-medium leading-[1.12] tracking-[-0.01em] text-foreground text-[2.25rem] sm:text-5xl lg:text-[4.25rem]"
               >
                 <span className="block">{copy.title1}</span>
                 <span className="block">{copy.title2}</span>
                 {/* Story line — a deep amber gold so it stays legible over the warm background. */}
                 <span
-                  className="block italic [filter:drop-shadow(0_1px_1px_hsl(36_70%_18%/0.4))]"
+                  className="block italic font-semibold [filter:drop-shadow(0_1px_1px_hsl(36_70%_18%/0.4))]"
                   style={{
                     background: "linear-gradient(180deg, hsl(38 92% 46%), hsl(28 88% 34%))",
                     WebkitBackgroundClip: "text",
@@ -159,7 +159,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.15, ease }}
-                className="mt-4 sm:mt-6 text-sm sm:text-lg text-foreground/70 max-w-lg leading-relaxed"
+                className="mt-4 sm:mt-6 text-sm sm:text-lg text-foreground/70 max-w-lg leading-relaxed [text-shadow:0_1px_2px_rgba(60,45,15,0.18)]"
               >
                 {copy.description}
               </motion.p>
