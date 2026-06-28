@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import type { TextStyle } from "./DraggableText";
 import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, type TextLayout } from "./EditableTextBox";
+import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
@@ -98,6 +99,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   const [coverTitleDraft, setCoverTitleDraft] = useState("");
   const [coverSubtitleDraft, setCoverSubtitleDraft] = useState("");
   const [backTextDraft, setBackTextDraft] = useState("");
+  // Auto-computed text layout per page (from the illustration's clear space),
+  // used as the default when the admin hasn't manually positioned the text.
+  const [autoLayouts, setAutoLayouts] = useState<Record<number, TextLayout>>({});
   const spreadRef = useRef<HTMLDivElement>(null);
 
   const safeIndex = Math.min(currentPage, Math.max(displayPages.length - 1, 0));
@@ -275,9 +279,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   );
 
   const renderStorySpread = () => {
-    // One illustration spans the whole 2:1 spread; the story text floats over the
-    // open sky area (hero-style), defaulting to the reading-start side.
-    const layout = page?.textLayout || makeDefaultLayout(defaultTextSide, isRtl);
+    // Text precedence: the admin's manual placement wins; otherwise the layout
+    // auto-computed from the illustration's clear space; otherwise the default.
+    const layout = page?.textLayout || (page ? autoLayouts[page.id] : undefined) || makeDefaultLayout(defaultTextSide, isRtl);
     return (
       <div className="absolute inset-0 bg-muted">
         {page?.image ? (
@@ -285,6 +289,13 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             key={`${page.id}-${page.image?.slice(-20)}`}
             src={page.image}
             alt={getPageLabel()}
+            crossOrigin="anonymous"
+            onLoad={(e) => {
+              if (page && !page.textLayout && autoLayouts[page.id] === undefined) {
+                const al = computeAutoTextLayout(e.currentTarget, isRtl);
+                if (al) setAutoLayouts((prev) => ({ ...prev, [page.id]: al }));
+              }
+            }}
             className={`absolute inset-0 w-full h-full object-cover ${isRegenThis ? "animate-pulse opacity-50" : ""}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: isRegenThis ? 0.5 : 1 }}
@@ -306,7 +317,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             containerRef={spreadRef}
             onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
             onTextChange={(t) => updatePage(page.id, { text: t })}
-            onReset={() => updatePage(page.id, { textLayout: makeDefaultLayout(defaultTextSide, isRtl) })}
+            onReset={() => updatePage(page.id, { textLayout: autoLayouts[page.id] })}
           />
         )}
       </div>

@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import { BOOK_TEXT_STYLE, COVER_TAGLINE, COVER_URL, type BookPage } from "@/components/wizard/BookViewer";
 import { DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
+import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import torahTaleIcon from "@/assets/brand/torah-tale-icon.png";
 import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png";
 
@@ -171,7 +172,6 @@ function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: 
 
 async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, spreadBased: boolean): Promise<string> {
   // Board: one illustration fills the 2:1 spread. 8×8: one square page image.
-  const layout = page.textLayout || makeDefaultLayout(rtl ? "right" : "left", rtl);
   const W = spreadBased ? SPREAD_W : SPREAD_H; // square page = SPREAD_H × SPREAD_H
   const H = SPREAD_H;
 
@@ -180,12 +180,17 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   const ctx = canvas.getContext("2d")!;
 
   const img = await safeLoad(page.image);
+  // Layout precedence: an admin-adjusted layout wins; otherwise auto-place the
+  // text over the illustration's calmest area; otherwise the static default.
+  let layout = page.textLayout;
   if (img) {
     drawFullImage(ctx, img, W, H);
+    if (!layout) layout = computeAutoTextLayout(img, rtl) || undefined;
   } else {
     ctx.fillStyle = "#dcd2bd";
     ctx.fillRect(0, 0, W, H);
   }
+  if (!layout) layout = makeDefaultLayout(rtl ? "right" : "left", rtl);
 
   if (spreadBased) drawGutter(ctx, W, H);
   drawTextOverlay(ctx, page.text || "", layout, W, H);
