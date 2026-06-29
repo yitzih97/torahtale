@@ -67,19 +67,33 @@ export function GoogleOneTap() {
 
     let cancelled = false;
     loadGsi()
-      .then(() => {
+      .then(async () => {
         if (cancelled || initialized.current || !window.google?.accounts?.id) return;
         initialized.current = true;
+        // Google One Tap + Supabase require a MATCHING nonce, or sign-in fails
+        // with "Passed nonce and nonce in id_token should either both exist or
+        // not." Google embeds the value we pass to initialize() into the ID
+        // token's `nonce` claim; Supabase SHA-256-hashes the raw nonce we pass
+        // to signInWithIdToken and compares. So: hashed nonce → Google, raw
+        // nonce → Supabase.
+        const rawNonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+        const hashBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawNonce));
+        const hashedNonce = Array.from(new Uint8Array(hashBuf))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+        if (cancelled || !window.google?.accounts?.id) return;
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           auto_select: true, // silently re-sign returning users
           cancel_on_tap_outside: false,
           use_fedcm_for_prompt: true, // required by modern Chrome
+          nonce: hashedNonce,
           callback: async (response: { credential?: string }) => {
             if (!response?.credential) return;
             const { error } = await supabase.auth.signInWithIdToken({
               provider: "google",
               token: response.credential,
+              nonce: rawNonce,
             });
             if (error) {
               console.error("One Tap sign-in failed:", error);
