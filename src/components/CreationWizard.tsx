@@ -1415,23 +1415,19 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
                     {t.wizard.helpDraw(child.name)}
                   </h2>
+                  <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">{t.wizard.photoOrDescHint}</p>
                 </motion.div>
 
                 <div className="max-w-md mx-auto space-y-4">
-                  <motion.button
-                    type="button"
-                    variants={staggerChild}
-                    onClick={() => setFamilyDialogOpen(true)}
-                    className="w-full flex items-center justify-center gap-2 rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/10 via-card/60 to-accent/10 backdrop-blur-sm px-4 py-3 text-sm font-semibold text-foreground hover:from-accent/20 hover:to-accent/20 transition"
-                  >
-                    <Users className="w-4 h-4 text-accent" />
-                    {t.wizard.uploadFamilyPhoto}
-                  </motion.button>
-
-                  <motion.div variants={staggerChild}>
+                  {/* Option 1 — upload a photo */}
+                  <motion.div variants={staggerChild} className="rounded-3xl border border-border/50 bg-card/40 backdrop-blur-sm p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-xl bg-accent/15 flex items-center justify-center"><Camera className="w-4 h-4 text-accent" /></div>
+                      <p className="font-display font-semibold text-sm text-foreground">{t.wizard.uploadPhoto}</p>
+                    </div>
                     {child.photoPreview ? (
-                      <div className="relative rounded-2xl overflow-hidden border-2 border-accent/40 bg-card/40 backdrop-blur-sm">
-                        <img src={child.photoPreview} alt={child.name} className="w-full h-56 object-cover" />
+                      <div className="relative rounded-2xl overflow-hidden border-2 border-accent/40">
+                        <img src={child.photoPreview} alt={child.name} className="w-full h-52 object-cover" />
                         <button
                           type="button"
                           onClick={() => updateChild(child.id, { photo: null, photoPreview: null })}
@@ -1441,37 +1437,36 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         </button>
                       </div>
                     ) : (
-                      <label className="group flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-accent/30 bg-gradient-to-b from-accent/5 to-transparent backdrop-blur-sm p-10 cursor-pointer hover:border-accent/60 hover:from-accent/10 transition-all duration-300">
-                        <div className="w-14 h-14 rounded-2xl bg-accent/15 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                          <Camera className="w-7 h-7 text-accent" />
-                        </div>
-                        <span className="font-display text-base font-semibold text-foreground">{t.wizard.uploadPhoto}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handlePhoto(child.id, e)}
-                        />
+                      <label className="group flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-accent/30 bg-gradient-to-b from-accent/5 to-transparent p-8 cursor-pointer hover:border-accent/60 hover:from-accent/10 transition-all duration-300">
+                        <div className="w-12 h-12 rounded-2xl bg-accent/15 flex items-center justify-center group-hover:scale-105 transition-transform"><Camera className="w-6 h-6 text-accent" /></div>
+                        <span className="text-sm font-medium text-foreground">{t.wizard.uploadPhoto}</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhoto(child.id, e)} />
                       </label>
                     )}
+                    <button type="button" onClick={() => setFamilyDialogOpen(true)} className="mt-3 w-full inline-flex items-center justify-center gap-1.5 text-xs font-medium text-accent hover:underline">
+                      <Users className="w-3.5 h-3.5" /> {t.wizard.uploadFamilyPhoto}
+                    </button>
                   </motion.div>
 
-                  <motion.div
-                    variants={staggerChild}
-                    className="rounded-2xl border-2 border-border/50 p-5 sm:p-6 bg-card/40 backdrop-blur-sm"
-                  >
+                  {/* divider */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-border/50" />
+                    <span className="text-[11px] uppercase tracking-wider text-muted-foreground/60">{t.wizard.or}</span>
+                    <div className="flex-1 h-px bg-border/50" />
+                  </div>
+
+                  {/* Option 2 — describe in words */}
+                  <motion.div variants={staggerChild} className="rounded-3xl border border-border/50 bg-card/40 backdrop-blur-sm p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-xl bg-accent/15 flex items-center justify-center"><PenLine className="w-4 h-4 text-accent" /></div>
+                      <p className="font-display font-semibold text-sm text-foreground">{t.wizard.describeInstead}</p>
+                    </div>
                     <Textarea
                       placeholder={t.wizard.descPlaceholder}
                       value={child.description}
                       onChange={(e) => updateChild(child.id, { description: e.target.value })}
-                      className="rounded-xl min-h-[120px] text-sm border-border/40 bg-background/50"
+                      className="rounded-xl min-h-[110px] text-sm border-border/40 bg-background/50"
                     />
-                    {!child.photoPreview && !child.existingPhotoUrl &&
-                      (child.description || "").trim().split(/\s+/).filter(Boolean).length < 3 && (
-                        <p className="mt-2 text-[11px] text-muted-foreground">
-                          {t.wizard.photoOrDescHint || "Add a photo, or describe your child in at least 3 words, to continue."}
-                        </p>
-                    )}
                   </motion.div>
                 </div>
 
