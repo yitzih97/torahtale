@@ -375,7 +375,7 @@ serve(async (req) => {
     // attached (it goes through images/edits for likeness). "medium" quality so
     // a full 20-page auto-generation still fits the edge time budget. Falls back
     // to Gemini below if OpenAI is unavailable or errors.
-    const requestedImageModel = customImageModel || "gpt-image-1";
+    const requestedImageModel = customImageModel || "gpt-image-2";
     const isOpenAI = /^(gpt-image|dall-e)/i.test(requestedImageModel);
     if (isOpenAI) {
       const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
