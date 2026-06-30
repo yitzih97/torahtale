@@ -173,6 +173,7 @@ ${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial 
         fd.append("model", customImageModel);
         fd.append("prompt", promptText);
         fd.append("size", "1024x1024");
+        fd.append("quality", "medium"); // gpt-image-2 defaults to high (slow); a reference sheet doesn't need it
         fd.append("n", "1");
         for (const ib of imageBlobs) fd.append("image[]", ib.blob, ib.name);
         oResp = await fetch("https://api.openai.com/v1/images/edits", {
@@ -184,7 +185,7 @@ ${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial 
         oResp = await fetch("https://api.openai.com/v1/images/generations", {
           method: "POST",
           headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model: customImageModel, prompt: promptText, size: "1024x1024", n: 1 }),
+          body: JSON.stringify({ model: customImageModel, prompt: promptText, size: "1024x1024", quality: "medium", n: 1 }),
         });
       }
       if (!oResp.ok) {
