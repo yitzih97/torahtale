@@ -397,6 +397,8 @@ serve(async (req) => {
             fd.append("prompt", imagePrompt);
             fd.append("size", size);
             fd.append("quality", "medium");
+            fd.append("output_format", "jpeg"); // small JPEG straight from the model — no in-edge re-encoding
+            fd.append("output_compression", "80");
             fd.append("n", "1");
             for (const ib of imageBlobs) fd.append("image[]", ib.blob, ib.name);
             openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/edits", {
@@ -408,7 +410,7 @@ serve(async (req) => {
             openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/generations", {
               method: "POST",
               headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
-              body: JSON.stringify({ model: requestedImageModel, prompt: imagePrompt, size, quality: "medium", n: 1 }),
+              body: JSON.stringify({ model: requestedImageModel, prompt: imagePrompt, size, quality: "medium", output_format: "jpeg", output_compression: 80, n: 1 }),
             }, 90_000);
           }
           if (openaiResp.ok) {
@@ -422,7 +424,7 @@ serve(async (req) => {
               // worker with a 546 WORKER_RESOURCE_LIMIT (not a catchable error) —
               // which is what was leaving pages blank. Any print-resolution
               // upscaling must happen off-edge (client-side / at submit time).
-              return new Response(JSON.stringify({ imageUrl: `data:image/png;base64,${b64}` }), {
+              return new Response(JSON.stringify({ imageUrl: `data:image/jpeg;base64,${b64}` }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
               });
             }
