@@ -416,8 +416,13 @@ serve(async (req) => {
             const b64 = oData.data?.[0]?.b64_json;
             if (b64) {
               console.log(`OpenAI image generation using model: ${requestedImageModel}`);
-              const up = await upscaleForPrint(b64);
-              return new Response(JSON.stringify({ imageUrl: `data:image/png;base64,${up}` }), {
+              // Return the model image as-is. Do NOT upscale in-edge: decoding +
+              // resizing the image with ImageScript exceeds the edge CPU/memory
+              // budget on gpt-image-2's larger output, and the runtime kills the
+              // worker with a 546 WORKER_RESOURCE_LIMIT (not a catchable error) —
+              // which is what was leaving pages blank. Any print-resolution
+              // upscaling must happen off-edge (client-side / at submit time).
+              return new Response(JSON.stringify({ imageUrl: `data:image/png;base64,${b64}` }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
               });
             }
