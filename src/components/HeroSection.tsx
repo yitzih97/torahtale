@@ -1,45 +1,31 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, Heart, Gift, Star, ShieldCheck, Award, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-import heroFlip1 from "@/assets/hero-flip-1.jpg";
-import heroFlip2 from "@/assets/hero-flip-2.jpg";
-import heroFlip3 from "@/assets/hero-flip-3.jpg";
-import heroM1 from "@/assets/hero-m-1.jpg";
-import heroM2 from "@/assets/hero-m-2.jpg";
-import heroM3 from "@/assets/hero-m-3.jpg";
+// Single fixed hero image (the "as the world is created" scene) — no rotation,
+// no random per-load switch, so it caches and the title stays constant.
+import heroDesktop from "@/assets/hero-flip-2.jpg";
+import heroMobile from "@/assets/hero-m-2.jpg";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
 import reviewer3 from "@/assets/avatars/reviewer3.jpg";
 
 const ease = [0.16, 1, 0.3, 1];
 
-// Hero slides — same two children, a different parashah and book type on each.
-// One is picked at random per page load and stays put (no rotation/transition).
-const SLIDES = [
-  { img: heroFlip1, imgM: heroM1, en: "aboard Noach’s ark.", he: "על תיבת נח." },
-  { img: heroFlip2, imgM: heroM2, en: "as the world is created.", he: "כשהעולם נברא." },
-  { img: heroFlip3, imgM: heroM3, en: "crossing the sea.", he: "כשהים נבקע." },
-];
-
 interface HeroSectionProps {
   onStart: () => void;
 }
 
 export const HeroSection = ({ onStart }: HeroSectionProps) => {
-  const { t, dir, lang } = useLanguage();
+  const { dir, lang } = useLanguage();
   const isRtl = dir === "rtl";
   const isHebrew = lang === "he" || lang === "yi";
 
-  // Pick one slide at random on mount and keep it for this page load.
-  const [slide] = useState(() => Math.floor(Math.random() * SLIDES.length));
-
   const copy = isHebrew
     ? {
-        title1: "המסע שלהם.",
-        title2: "הסיפור שלהם -",
+        title1: "סיפורי תורה,",
+        title2: "בכיכוב הילדים שלכם",
         description:
           "אנחנו יוצרים ספרים אישיים שמחזירים את סיפורי התורה לחיים — כשהילד שלכם הוא גיבור הסיפור, וכל עמוד מנחיל ערכים לכל החיים.",
         primaryCta: "צרו את הסיפור של ילדכם",
@@ -62,8 +48,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         ],
       }
     : {
-        title1: "Their journey.",
-        title2: "Their story -",
+        title1: "Torah Stories,",
+        title2: "Starring Your Kids",
         description:
           "We create personalized books that bring Torah stories to life—starring your child, instilling values that inspire a lifetime.",
         primaryCta: "Start Your Child's Story",
@@ -86,39 +72,37 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         ],
       };
 
-  const storyLine = isHebrew ? SLIDES[slide].he : SLIDES[slide].en;
-
   return (
     <>
       <section className="relative overflow-hidden bg-[hsl(42_60%_96%)]" dir={dir}>
-        {/* Background — the children, the book and the meadow are identical in every
-            frame; ONLY the book's page art changes, so a soft crossfade reads as the
-            page gently dissolving to the next story. Mirrored for LTR so the copy
-            sits opposite the book. */}
         {/* Desktop: wide image (kids+book on one side, copy space the other), mirrored for LTR. */}
         <div className="hidden lg:block absolute inset-0 overflow-hidden">
           <div className="absolute inset-0" style={{ transform: isRtl ? undefined : "scaleX(-1)" }}>
             <img
-              src={SLIDES[slide].img}
+              src={heroDesktop}
               alt="Two children with their personalized Torah storybook"
               className="absolute inset-0 w-full h-full object-cover"
               style={{ objectPosition: "center bottom" }}
               width={4096}
               height={2294}
               loading="eager"
+              fetchPriority="high"
+              decoding="async"
             />
           </div>
         </div>
-        {/* Mobile/tablet: a single portrait image (same random slide as desktop). */}
+        {/* Mobile/tablet: a single portrait image. */}
         <div className="lg:hidden absolute inset-0 overflow-hidden">
           <img
-            src={SLIDES[slide].imgM}
+            src={heroMobile}
             alt="Two children with their personalized Torah storybook"
             className="absolute inset-0 w-full h-full object-cover"
             style={{ objectPosition: "center bottom" }}
             width={2294}
             height={4096}
             loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
         </div>
 
@@ -140,8 +124,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 className="font-heading font-medium leading-[1.12] tracking-[-0.01em] text-foreground text-[2.25rem] sm:text-5xl lg:text-[4.25rem]"
               >
                 <span className="block">{copy.title1}</span>
-                <span className="block">{copy.title2}</span>
-                {/* Story line — a deep amber gold so it stays legible over the warm background. */}
+                {/* Emphasis line — a deep amber gold so it stays legible over the warm background. */}
                 <span
                   className="block italic font-semibold [filter:drop-shadow(0_1px_1px_hsl(36_70%_18%/0.4))]"
                   style={{
@@ -151,7 +134,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                     color: "transparent",
                   }}
                 >
-                  {storyLine}
+                  {copy.title2}
                 </span>
               </motion.h1>
 
