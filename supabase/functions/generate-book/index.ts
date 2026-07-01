@@ -223,6 +223,10 @@ async function generate(bookId: string) {
       const sheets: Record<string, string> = sdState._characterSheets || {};
       await Promise.all(childDescriptions.map(async (child: any) => {
         if (sheets[child.name]) return; // already have this child's sheet
+        // The page generator now anchors likeness on each child's REAL PHOTO and
+        // only falls back to a sheet when there is no photo — so skip the (slow,
+        // costly) sheet generation entirely when the child has a photo.
+        if (child.photoUrl || child.hasPhoto) return;
         try {
           let photoUrl: string | null = child.photoUrl || null;
           if (!photoUrl && child.hasPhoto) {

@@ -8,6 +8,9 @@ import {
   Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw,
   ChevronLeft, ChevronRight, Search, Smile, UserRound
 } from "lucide-react";
+import photoGoodImg from "@/assets/wizard/photo-good.jpg";
+import photoBadFacingImg from "@/assets/wizard/photo-bad-facing.jpg";
+import photoBadGroupImg from "@/assets/wizard/photo-bad-group.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1439,9 +1442,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     <div className="grid grid-cols-3 gap-3">
                       {/* GOOD */}
                       <div className="flex flex-col items-center gap-1.5">
-                        <div className="relative w-full aspect-square rounded-2xl bg-accent/10 flex items-center justify-center">
-                          <Smile className="w-7 h-7 text-accent" />
-                          <span className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-card">
+                        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-accent/10">
+                          <img src={photoGoodImg} alt="" loading="lazy" className="w-full h-full object-cover" />
+                          <span className="absolute top-1 end-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-card">
                             <Check className="w-3 h-3 text-white" />
                           </span>
                         </div>
@@ -1449,9 +1452,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       </div>
                       {/* BAD — facing away */}
                       <div className="flex flex-col items-center gap-1.5">
-                        <div className="relative w-full aspect-square rounded-2xl bg-accent/10 flex items-center justify-center">
-                          <UserRound className="w-7 h-7 text-accent" />
-                          <span className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center ring-2 ring-card">
+                        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-accent/10">
+                          <img src={photoBadFacingImg} alt="" loading="lazy" className="w-full h-full object-cover" />
+                          <span className="absolute top-1 end-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center ring-2 ring-card">
                             <X className="w-3 h-3 text-white" />
                           </span>
                         </div>
@@ -1459,9 +1462,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       </div>
                       {/* BAD — group */}
                       <div className="flex flex-col items-center gap-1.5">
-                        <div className="relative w-full aspect-square rounded-2xl bg-accent/10 flex items-center justify-center">
-                          <Users className="w-7 h-7 text-accent" />
-                          <span className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center ring-2 ring-card">
+                        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-accent/10">
+                          <img src={photoBadGroupImg} alt="" loading="lazy" className="w-full h-full object-cover" />
+                          <span className="absolute top-1 end-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center ring-2 ring-card">
                             <X className="w-3 h-3 text-white" />
                           </span>
                         </div>

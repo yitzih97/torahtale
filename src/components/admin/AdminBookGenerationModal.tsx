@@ -106,6 +106,10 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       for (let i = 0; i < childDescriptions.length; i++) {
         if (abortRef.current) return;
         const child = childDescriptions[i];
+        // Page generation now anchors likeness on each child's real photo, so a
+        // character sheet is only needed when there is no photo — skip it (and its
+        // slow gpt-image call) whenever the child has one.
+        if (child.photoUrl || child.hasPhoto) continue;
         setStatusText(`Creating character sheet for ${child.name} (${i + 1}/${childDescriptions.length})...`);
 
         try {
