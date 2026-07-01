@@ -123,6 +123,7 @@ function buildPendingTasks(pages: any[], book: any, sdState: any, sheets: Record
   const primarySheet = sheets[primaryName] || null;
   const primaryDesc = childDescriptions[0]?.description || "";
   const primaryPhoto = childDescriptions[0]?.photoUrl || null;
+  const primaryAge = childDescriptions[0]?.age || null;
 
   let storyPageNumber = 0;
   const tasks: { idx: number; body: any }[] = [];
@@ -134,6 +135,7 @@ function buildPendingTasks(pages: any[], book: any, sdState: any, sheets: Record
       idx,
       body: {
         childName: book.child_name,
+        age: primaryAge,
         artStyle: book.art_style,
         torahPortion: book.torah_portion,
         bookFormat,

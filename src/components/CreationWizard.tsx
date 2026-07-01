@@ -6,7 +6,7 @@ import {
   Users, BookOpen, Palette, Package, Check,
   Camera, Sun, User, Type, Calendar, Heart, Image, PenLine,
   Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw,
-  ChevronLeft, ChevronRight, Search
+  ChevronLeft, ChevronRight, Search, Smile, UserRound
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -839,10 +839,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       case 2: return !!child.gender;
       case 3: return !!child.age && parseInt(child.age) >= 1 && parseInt(child.age) <= 15;
       case 4: return !!data.artStyle;
-      // Photo step: every child needs either an image OR a description of 3+ words.
+      // Photo step: every child needs an uploaded photo.
       case 5: return data.children.every((c) =>
-        !!c.photoPreview || !!c.existingPhotoUrl ||
-        (c.description || "").trim().split(/\s+/).filter(Boolean).length >= 3);
+        !!c.photoPreview || !!c.existingPhotoUrl);
       case 6: return !!data.torahPortion;
       case 7: return selectedLanguages.length >= 1;
       case 8: return true;
@@ -1415,10 +1414,47 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
                     {t.wizard.helpDraw(child.name)}
                   </h2>
-                  <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">{t.wizard.photoOrDescHint}</p>
+                  <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">{t.wizard.photoUploadHint}</p>
                 </motion.div>
 
                 <div className="max-w-md mx-auto space-y-4">
+                  {/* What works best guide */}
+                  <motion.div variants={staggerChild} className="rounded-2xl border border-border/50 bg-card/40 backdrop-blur-sm p-4">
+                    <p className="font-display font-semibold text-xs text-foreground mb-3 text-center">{t.wizard.photoGuideTitle}</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      {/* GOOD */}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div className="relative w-full aspect-square rounded-2xl bg-accent/10 flex items-center justify-center">
+                          <Smile className="w-7 h-7 text-accent" />
+                          <span className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-card">
+                            <Check className="w-3 h-3 text-white" />
+                          </span>
+                        </div>
+                        <span className="text-[11px] leading-tight text-center text-muted-foreground">{t.wizard.photoGood}</span>
+                      </div>
+                      {/* BAD — facing away */}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div className="relative w-full aspect-square rounded-2xl bg-accent/10 flex items-center justify-center">
+                          <UserRound className="w-7 h-7 text-accent" />
+                          <span className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center ring-2 ring-card">
+                            <X className="w-3 h-3 text-white" />
+                          </span>
+                        </div>
+                        <span className="text-[11px] leading-tight text-center text-muted-foreground">{t.wizard.photoBadFacing}</span>
+                      </div>
+                      {/* BAD — group */}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div className="relative w-full aspect-square rounded-2xl bg-accent/10 flex items-center justify-center">
+                          <Users className="w-7 h-7 text-accent" />
+                          <span className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center ring-2 ring-card">
+                            <X className="w-3 h-3 text-white" />
+                          </span>
+                        </div>
+                        <span className="text-[11px] leading-tight text-center text-muted-foreground">{t.wizard.photoBadGroup}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+
                   {/* Option 1 — upload a photo */}
                   <motion.div variants={staggerChild} className="rounded-3xl border border-border/50 bg-card/40 backdrop-blur-sm p-5">
                     <div className="flex items-center gap-2 mb-3">
@@ -1443,30 +1479,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhoto(child.id, e)} />
                       </label>
                     )}
-                    <button type="button" onClick={() => setFamilyDialogOpen(true)} className="mt-3 w-full inline-flex items-center justify-center gap-1.5 text-xs font-medium text-accent hover:underline">
-                      <Users className="w-3.5 h-3.5" /> {t.wizard.uploadFamilyPhoto}
-                    </button>
-                  </motion.div>
-
-                  {/* divider */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-border/50" />
-                    <span className="text-[11px] uppercase tracking-wider text-muted-foreground/60">{t.wizard.or}</span>
-                    <div className="flex-1 h-px bg-border/50" />
-                  </div>
-
-                  {/* Option 2 — describe in words */}
-                  <motion.div variants={staggerChild} className="rounded-3xl border border-border/50 bg-card/40 backdrop-blur-sm p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-xl bg-accent/15 flex items-center justify-center"><PenLine className="w-4 h-4 text-accent" /></div>
-                      <p className="font-display font-semibold text-sm text-foreground">{t.wizard.describeInstead}</p>
-                    </div>
-                    <Textarea
-                      placeholder={t.wizard.descPlaceholder}
-                      value={child.description}
-                      onChange={(e) => updateChild(child.id, { description: e.target.value })}
-                      className="rounded-xl min-h-[110px] text-sm border-border/40 bg-background/50"
-                    />
                   </motion.div>
                 </div>
 

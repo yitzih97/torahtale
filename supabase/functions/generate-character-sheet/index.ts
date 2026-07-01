@@ -92,6 +92,7 @@ serve(async (req) => {
 LAYOUT: A single image containing a grid with: FRONT VIEW (full body), 3/4 VIEW (full body), SIDE PROFILE (head and shoulders), and 2 FACIAL EXPRESSIONS (happy, surprised). All views arranged neatly on the same white sheet.
 
 CHARACTER DETAILS:
+- AGE — CRITICAL: ${childName || "The child"} is EXACTLY ${ageNum} years old (${ageDesc}). Render true ${ageNum}-year-old facial maturity, head-to-body ratio, facial structure, and height. Do NOT make them look younger or older than ${ageNum} — a ${ageNum}-year-old must clearly read as ${ageNum}, never as a generic small child.
 - ${genderDetails}
 - ${descPart}
 - Art style: ${style}

@@ -59,7 +59,7 @@ serve(async (req) => {
   if (authErr) return authErr;
 
   try {
-    const { prompt, promptAdditions, childName, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText } = await req.json();
+    const { prompt, promptAdditions, childName, age, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText } = await req.json();
 
     const childRefsList = Array.isArray(childRefs) ? childRefs : [];
     const descLower = String(childDescription || "").toLowerCase();
@@ -205,6 +205,19 @@ serve(async (req) => {
     // Inject child description into prompt if available
     if (childDescription && !prompt) {
       imagePrompt += ` The child character has these features: ${childDescription}.`;
+    }
+
+    // Forceful age accuracy — image models tend to render children too young, and
+    // the base prompt states no age at all, so state the EXACT age explicitly.
+    if (!prompt) {
+      const agedRefs = childRefsList.filter((c: any) => c?.name && c?.age);
+      const primaryAge = age ?? childRefsList[0]?.age ?? inferredAge;
+      const ageStatement = agedRefs.length > 0
+        ? agedRefs.map((c: any) => `${c.name} is EXACTLY ${c.age} years old`).join("; ")
+        : (primaryAge ? `${childName || "The child"} is EXACTLY ${primaryAge} years old` : "");
+      if (ageStatement) {
+        imagePrompt += ` CRITICAL AGE ACCURACY (do NOT ignore): ${ageStatement}. Render each child with the facial maturity, facial structure, head-to-body proportions, and height of their EXACT stated age — a 12–14 year old must look like a young teenager, a 7–9 year old like a child, a 3–5 year old like a small child. Do NOT default to a generic young child. The apparent age MUST match the stated age on every page.`;
+      }
     }
 
     // Front-cover composition: every child centered, full-bodied, never cropped.
