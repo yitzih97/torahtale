@@ -234,7 +234,7 @@ serve(async (req) => {
           return `- ${c.name}${bits ? `: ${bits}` : ""}`;
         });
       if (descLines.length > 0) {
-        imagePrompt += ` CHARACTERS IN THIS BOOK (must appear identical on EVERY page of this book — same face, exact same apparent age, same body size and height impression, same hair, same eyes, same skin tone, same outfit colors, same clothing style unless the story explicitly requires a change):\n${descLines.join("\n")}`;
+        imagePrompt += ` CHARACTERS IN THIS BOOK — each child below is a DISTINCT individual who must look like the SAME person on EVERY page (same face, hair, eyes, skin tone and outfit colours across pages), reproduced from their own reference image. CRITICAL RELATIVE SIZING: show the children at realistic sizes FOR THEIR AGES — a younger child is clearly SHORTER and SMALLER than an older child (a 1-year-old is much smaller than a 3-year-old; a toddler is much smaller than a 10-year-old). NEVER make a younger child the same size as, or bigger than, an older sibling. Match each child's facial maturity to their exact age:\n${descLines.join("\n")}`;
       }
     }
 
@@ -305,46 +305,34 @@ serve(async (req) => {
       } catch (e) { console.error("Failed to fetch image:", e); }
     };
 
-    // Multi-child character sheets (highest priority for consistency)
-    const sheetEntries: { name: string; sheet: string }[] = [];
-    if (characterSheets && typeof characterSheets === "object") {
-      for (const [name, sheet] of Object.entries(characterSheets)) {
-        if (typeof sheet === "string" && sheet) sheetEntries.push({ name, sheet });
+    // ── Attach ONE reference image PER CHILD. Prefer the child's REAL PHOTO (the
+    // best likeness anchor); fall back to their character sheet. Attaching each
+    // child's OWN photo — not just the primary's — keeps every sibling on-model
+    // (previously only the primary photo was sent, so secondary children drifted).
+    // The character sheet is a lossy gpt-image reinterpretation, so the real photo
+    // takes priority whenever both exist.
+    const refChildren: any[] = childRefsList.length > 0
+      ? childRefsList
+      : [{ name: childName, photoUrl: null, characterSheet }];
+    const sheetMap: Record<string, string> = (characterSheets && typeof characterSheets === "object")
+      ? (characterSheets as Record<string, string>) : {};
+    const refItems: { name: string; src: string; isPhoto: boolean }[] = [];
+    for (const c of refChildren) {
+      const isSingle = refChildren.length === 1;
+      const photo = c?.photoUrl || (isSingle && typeof referenceImage === "string" ? referenceImage : null);
+      const sheet = c?.characterSheet || sheetMap[c?.name] || (isSingle ? characterSheet : null);
+      const src = photo || sheet;
+      if (typeof src === "string" && src) {
+        refItems.push({ name: c?.name || childName || "the child", src, isPhoto: !!photo });
       }
     }
-
-    if (sheetEntries.length > 0) {
-      // Cap at 4 attachments to stay within model limits
-      const capped = sheetEntries.slice(0, 4);
-      const legend = capped.map((s, i) => `Reference Sheet ${i + 1} = ${s.name}`).join("; ");
-      imagePrompt = `CRITICAL MULTI-CHARACTER CONSISTENCY INSTRUCTION: The attached images are CHARACTER REFERENCE SHEETS, one per child appearing in this book. ${legend}. On EVERY page of this book each child MUST be reproduced IDENTICALLY to their own reference sheet — identical face shape, hair color and style, eye color, skin tone, exact same apparent age, exact same body size and proportions, identical clothing colors and style unless the story explicitly requires a change. The same child must look the same across every page. NEVER swap features between children. NEVER invent a new face. NEVER age the child up or down from page to page. The children must be immediately recognizable as the SAME characters from page to page. ${imagePrompt}`;
-      for (const s of capped) {
-        await pushImagePart(s.sheet);
-      }
-    } else if (characterSheet) {
-      imagePrompt = `CRITICAL CHARACTER CONSISTENCY INSTRUCTION: The attached image is a CHARACTER REFERENCE SHEET showing the child character from multiple angles. You MUST reproduce this EXACT same character IDENTICALLY on every single page of this book — identical face shape, identical hair color and style, identical eye color, identical skin tone, identical apparent age, identical body size and proportions, identical clothing colors and style unless the story explicitly requires a change. The child must be IMMEDIATELY RECOGNIZABLE as the same character across every page. Do NOT change any physical features. Do NOT age the child up or down across pages. ${imagePrompt}`;
-      await pushImagePart(characterSheet);
-    }
-
-    if (referenceImage) {
-      imagePrompt = `CRITICAL CHILD LIKENESS INSTRUCTION: The attached photograph is the REAL child this book is for. You MUST reproduce their exact face shape, eye color and shape, skin tone, hair color and texture, eyebrows, and overall facial proportions — translated faithfully into the chosen art style. The illustrated child must be IMMEDIATELY and unmistakably recognizable as the SAME real child from the photo, in every single page. Do not invent a generic child. USE THE PHOTOGRAPH FOR FACIAL LIKENESS AND HAIR ONLY — DO NOT copy the clothing, outfit, colors, prints, logos, or accessories the child happens to be wearing in the photo. Dress the child according to the story scene and the character/modesty rules below, NOT according to the photo. ${imagePrompt}`;
-
-      if (referenceImage.startsWith("data:")) {
-        const match = referenceImage.match(/^data:(image\/\w+);base64,(.+)$/);
-        if (match) {
-          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
-        }
-      } else {
-        try {
-          const imgResp = await fetchWithTimeout(referenceImage, undefined, 10_000);
-          if (imgResp.ok) {
-            const buf = await imgResp.arrayBuffer();
-            const b64 = bufferToBase64(buf);
-            const ct = imgResp.headers.get("content-type") || "image/jpeg";
-            parts.push({ inlineData: { mimeType: ct, data: b64 } });
-          }
-        } catch (e) { console.error("Failed to fetch reference image:", e); }
-      }
+    const cappedRefs = refItems.slice(0, 4); // stay within model attachment limits
+    if (cappedRefs.length > 0) {
+      const legend = cappedRefs
+        .map((r, i) => `Image ${i + 1} = ${r.name}${r.isPhoto ? " (a REAL PHOTO of this child — match their exact face shape, eye colour and shape, eyebrows, skin tone, and hair)" : " (a character reference sheet for this child)"}`)
+        .join("; ");
+      imagePrompt = `CRITICAL CHILD LIKENESS & CONSISTENCY (do NOT ignore): The attached image(s) are references for the child character(s) in this book. ${legend}. You MUST reproduce EACH child's face, hair, eye colour and skin tone faithfully from THEIR OWN reference, translated into the chosen art style, so each child is IMMEDIATELY and unmistakably recognizable as that same real child on EVERY page. NEVER invent a generic face and NEVER swap features between children. When a reference is a real photograph, use it for the child's FACE and HAIR ONLY — do NOT copy the clothing, outfit, colours, prints, logos or accessories from the photo (dress each child per the story scene and the modesty rules below). Keep each child's look identical across all pages. ${imagePrompt}`;
+      for (const r of cappedRefs) await pushImagePart(r.src);
     }
 
     // Inject scene reference image for visual consistency across books
