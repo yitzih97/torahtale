@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, ArrowRight, Loader2, Sparkles, Plus,
+  ArrowLeft, ArrowRight, Loader2, Sparkles, Plus, Minus,
   Users, BookOpen, Palette, Package, Check,
   Camera, Sun, User, Type, Calendar, Heart, Image, PenLine,
   Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw,
@@ -1296,22 +1296,37 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </h2>
                 </motion.div>
 
-                <motion.div variants={staggerChild}>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={15}
-                    placeholder={t.wizard.agePlaceholder}
-                    value={child.age}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "" || (parseInt(val) >= 0 && parseInt(val) <= 15)) {
-                        updateChild(child.id, { age: val });
-                      }
+                <motion.div variants={staggerChild} dir="ltr" className="flex items-center justify-center gap-4">
+                  {/* minus (left) */}
+                  <button
+                    type="button"
+                    aria-label="Decrease age"
+                    disabled={(parseInt(child.age) || 0) <= 1}
+                    onClick={() => {
+                      const cur = parseInt(child.age) || 1;
+                      updateChild(child.id, { age: String(Math.max(1, cur - 1)) });
                     }}
-                    className="rounded-2xl h-20 text-4xl text-center font-bold border-2 border-border/40 bg-card/60 backdrop-blur-sm focus:border-accent/50 focus:ring-accent/20 placeholder:text-muted-foreground/30"
-                    autoFocus
-                  />
+                    className="w-16 h-16 rounded-2xl border-2 border-border/40 bg-card/60 backdrop-blur-sm flex items-center justify-center text-accent hover:border-accent/50 active:scale-95 transition disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    <Minus className="w-7 h-7" />
+                  </button>
+                  {/* age value */}
+                  <div className="w-24 h-20 rounded-2xl border-2 border-border/40 bg-card/60 backdrop-blur-sm flex items-center justify-center text-4xl font-bold text-foreground">
+                    {child.age || <span className="text-muted-foreground/30 text-2xl">age</span>}
+                  </div>
+                  {/* plus (right) */}
+                  <button
+                    type="button"
+                    aria-label="Increase age"
+                    disabled={(parseInt(child.age) || 0) >= 15}
+                    onClick={() => {
+                      const cur = parseInt(child.age) || 0;
+                      updateChild(child.id, { age: String(Math.min(15, cur + 1)) });
+                    }}
+                    className="w-16 h-16 rounded-2xl border-2 border-border/40 bg-card/60 backdrop-blur-sm flex items-center justify-center text-accent hover:border-accent/50 active:scale-95 transition disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    <Plus className="w-7 h-7" />
+                  </button>
                 </motion.div>
 
               </motion.div>
