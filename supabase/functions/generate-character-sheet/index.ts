@@ -209,8 +209,8 @@ ${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial 
     // ============= END OPENAI BRANCH =============
 
     const imageModels = customImageModel
-      ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
-      : ["gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview", "gemini-2.5-flash-image"];
+      ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-3.1-flash-image"]
+      : ["gemini-3.1-flash-image-preview", "gemini-3.1-flash-image", "gemini-2.5-flash-image"];
 
     let response: Response | null = null;
     let selectedModel: string | null = null;

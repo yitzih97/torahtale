@@ -443,10 +443,10 @@ serve(async (req) => {
     // ============= END OPENAI; fall through to Gemini fallback =============
 
     const imageModels = (customImageModel && !isOpenAI)
-      ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image-preview"]
+      ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-3.1-flash-image"]
       : [
           "gemini-3.1-flash-image-preview",
-          "gemini-2.5-flash-image-preview",
+          "gemini-3.1-flash-image",
           "gemini-2.5-flash-image",
         ];
 
