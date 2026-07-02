@@ -359,6 +359,7 @@ export const yi: typeof en = {
     chooseManuallyDesc: "דפדפו בתנ״ך המלא ובחרו כל סיפור שתרצו",
     thisWeeksParsha: "פרשת השבוע",
     useAutoParsha: "נבחר אוטומטית לפי השבת הקרובה",
+    nextParshaIn: "קומעדיקע פרשה אין",
     orChooseManually: "או בחרו ידנית",
     backToOptions: "→ חזרה לאפשרויות הבחירה",
     all: "הכל",

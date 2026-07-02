@@ -25,6 +25,7 @@ import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, g
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getCurrentParsha, stripSeferPrefix, type TorahOption } from "./wizard/TorahPortions";
+import { ParshaCountdown } from "./wizard/ParshaCountdown";
 import { PortionIcon } from "./wizard/portionIcons";
 import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
 import { supabase } from "@/integrations/supabase/client";
@@ -1652,6 +1653,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                             <p className="font-display text-base sm:text-lg font-bold text-foreground leading-tight mt-1">
                               {upcomingTitle}
                             </p>
+                            <div className="mt-1.5">
+                              <ParshaCountdown label={t.wizard.nextParshaIn} />
+                            </div>
                           </div>
                           {data.torahPortion === upcomingValue && (
                             <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center flex-shrink-0">

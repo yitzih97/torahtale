@@ -359,6 +359,7 @@ export const he: typeof en = {
     chooseManuallyDesc: "דפדפו בכל התנ״ך ובחרו כל סיפור שבא לכם",
     thisWeeksParsha: "פרשת השבוע",
     useAutoParsha: "נבחרת אוטומטית לפי השבת הקרובה",
+    nextParshaIn: "הפרשה הבאה בעוד",
     orChooseManually: "או בחרו בעצמכם",
     backToOptions: "→ חזרה לאפשרויות הבחירה",
     all: "הכל",
