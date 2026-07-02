@@ -393,3 +393,26 @@ export const getUpcomingParsha = (from: Date = new Date(), leadWeeks = 3): strin
 
   return "bereishit";
 };
+
+/**
+ * The parashah to suggest as "this week" in the creation wizard.
+ *
+ * A parashah "week" runs Thursday → the following Wednesday: from Thursday we
+ * point at the coming Shabbat, and keep showing it through the next Wednesday —
+ * so once Wednesday passes we roll forward to the next week's parashah. (Unlike
+ * getUpcomingParsha, which adds a multi-week production lead used by the
+ * subscription release job — this one shows the current/upcoming week, no lead.)
+ *
+ * e.g. Thu 2026-07-02 → pinchas (Shabbat 2026-07-04); from Thu 2026-07-09 → matot.
+ */
+export const getCurrentParsha = (from: Date = new Date()): string => {
+  const daysSinceThu = (from.getDay() - 4 + 7) % 7; // Thu=0, Fri=1, Sat=2, Sun=3 … Wed=6
+  const targetSat = new Date(from);
+  targetSat.setDate(from.getDate() - daysSinceThu + 2); // Saturday of this Thu→Wed window
+  targetSat.setHours(12, 0, 0, 0); // noon — avoids UTC/local date-slice drift near midnight
+  const key = targetSat.toISOString().slice(0, 10);
+
+  if (PARSHA_CALENDAR[key]) return PARSHA_CALENDAR[key];
+  const future = Object.keys(PARSHA_CALENDAR).sort().find((d) => d >= key);
+  return future ? PARSHA_CALENDAR[future] : "bereishit";
+};
