@@ -354,6 +354,7 @@ export const en = {
     chooseManuallyDesc: "Browse the full Tanach and pick any story you'd like",
     thisWeeksParsha: "This Week's Parsha",
     useAutoParsha: "Automatically selected based on the upcoming Shabbat",
+    nextParshaIn: "Next parsha in",
     orChooseManually: "Or choose manually",
     backToOptions: "← Back to selection options",
     all: "All",

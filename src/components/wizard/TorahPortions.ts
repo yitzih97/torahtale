@@ -394,23 +394,50 @@ export const getUpcomingParsha = (from: Date = new Date(), leadWeeks = 3): strin
   return "bereishit";
 };
 
+// ── Weekly parashah rollover: Wednesday 12:00 PM Eastern ─────────────────────
+// The wizard's auto-selected parashah rolls over every Wednesday at noon ET and
+// the on-screen countdown ticks toward that moment. We derive the Eastern wall
+// clock of any instant via toLocaleString (DST-safe, no date library): `et` is a
+// Date whose LOCAL fields mirror the America/New_York clock, and `offset`
+// converts an ET-wall-clock Date back into a real UTC instant.
+const easternClock = (d: Date): { et: Date; offset: number } => {
+  const et = new Date(d.toLocaleString("en-US", { timeZone: "America/New_York" }));
+  return { et, offset: d.getTime() - et.getTime() };
+};
+
+/** The instant of the next Wednesday 12:00 PM ET strictly after `from`. */
+export const getNextParshaRollover = (from: Date = new Date()): Date => {
+  const { et, offset } = easternClock(from);
+  const target = new Date(et);
+  target.setDate(et.getDate() + ((3 - et.getDay() + 7) % 7)); // next Wednesday (Wed = 3)
+  target.setHours(12, 0, 0, 0);
+  if (target.getTime() <= et.getTime()) target.setDate(target.getDate() + 7);
+  return new Date(target.getTime() + offset);
+};
+
 /**
  * The parashah to suggest as "this week" in the creation wizard.
  *
- * A parashah "week" runs Thursday → the following Wednesday: from Thursday we
- * point at the coming Shabbat, and keep showing it through the next Wednesday —
- * so once Wednesday passes we roll forward to the next week's parashah. (Unlike
- * getUpcomingParsha, which adds a multi-week production lead used by the
- * subscription release job — this one shows the current/upcoming week, no lead.)
+ * A parashah "week" runs from one Wednesday-noon-ET rollover to the next: from
+ * Wednesday noon ET we point at the coming Shabbat and hold it through the
+ * following Wednesday noon, then roll forward. (Unlike getUpcomingParsha, which
+ * adds a multi-week production lead used by the subscription release job — this
+ * one shows the current/upcoming week, no lead.)
  *
- * e.g. Thu 2026-07-02 → pinchas (Shabbat 2026-07-04); from Thu 2026-07-09 → matot.
+ * e.g. now → 2026-07-02 (before Wed 07-08 noon ET) → pinchas (Shabbat 07-04);
+ * from Wed 2026-07-08 noon ET → matot (Shabbat 07-11).
  */
 export const getCurrentParsha = (from: Date = new Date()): string => {
-  const daysSinceThu = (from.getDay() - 4 + 7) % 7; // Thu=0, Fri=1, Sat=2, Sun=3 … Wed=6
-  const targetSat = new Date(from);
-  targetSat.setDate(from.getDate() - daysSinceThu + 2); // Saturday of this Thu→Wed window
-  targetSat.setHours(12, 0, 0, 0); // noon — avoids UTC/local date-slice drift near midnight
-  const key = targetSat.toISOString().slice(0, 10);
+  const { et } = easternClock(from);
+  // Most recent Wednesday-noon-ET rollover, then the Shabbat 3 days later.
+  const rollover = new Date(et);
+  rollover.setDate(et.getDate() - ((et.getDay() - 3 + 7) % 7)); // this/most-recent Wednesday
+  rollover.setHours(12, 0, 0, 0);
+  if (rollover.getTime() > et.getTime()) rollover.setDate(rollover.getDate() - 7); // before noon on a Wed
+  const sat = new Date(rollover);
+  sat.setDate(rollover.getDate() + 3);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const key = `${sat.getFullYear()}-${pad(sat.getMonth() + 1)}-${pad(sat.getDate())}`;
 
   if (PARSHA_CALENDAR[key]) return PARSHA_CALENDAR[key];
   const future = Object.keys(PARSHA_CALENDAR).sort().find((d) => d >= key);
