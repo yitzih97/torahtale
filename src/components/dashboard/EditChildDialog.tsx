@@ -12,13 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 
-import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
-import presetGirlCartoon from "@/assets/presets/girl-cartoon.jpg";
-import presetBoy3dPixar from "@/assets/presets/boy-3d-pixar.jpg";
-import presetGirl3dPixar from "@/assets/presets/girl-3d-pixar.jpg";
-import presetBoyRealistic from "@/assets/presets/boy-realistic.jpg";
-import presetGirlRealistic from "@/assets/presets/girl-realistic.jpg";
-
 const AGE_BRACKETS = [
   { min: 2, label: "2-3", desc: "Toddler", emoji: "👶" },
   { min: 4, label: "4-5", desc: "Preschool", emoji: "🧒" },
@@ -26,20 +19,6 @@ const AGE_BRACKETS = [
   { min: 8, label: "8-9", desc: "Explorer", emoji: "🔍" },
   { min: 10, label: "10-12", desc: "Preteen", emoji: "🌟" },
 ];
-
-const ART_STYLES = [
-  { key: "cartoon", label: "Cartoon" },
-  { key: "3d-pixar", label: "3D Pixar" },
-  { key: "realistic", label: "Realistic" },
-];
-
-const getStylePreset = (gender: string, style: string): string => {
-  const map: Record<string, Record<string, string>> = {
-    boy: { cartoon: presetBoyCartoon, "3d-pixar": presetBoy3dPixar, realistic: presetBoyRealistic },
-    girl: { cartoon: presetGirlCartoon, "3d-pixar": presetGirl3dPixar, realistic: presetGirlRealistic },
-  };
-  return map[gender]?.[style] || presetBoyCartoon;
-};
 
 export interface EditChildResult {
   name: string;
@@ -70,7 +49,6 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
-  const [artStyle, setArtStyle] = useState("");
   const [description, setDescription] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -82,7 +60,6 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
       setName(initialData.name || "");
       setGender(initialData.gender || "");
       setAge(initialData.age ? String(initialData.age) : "");
-      setArtStyle(initialData.art_style || "");
       setDescription(initialData.description || "");
       setPhotoPreview(initialData.photo_url || null);
       setPhotoFile(null);
@@ -115,7 +92,9 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
       name: name.trim(),
       age: age ? parseInt(age) : null,
       gender: gender || null,
-      art_style: artStyle || null,
+      // Book art style is chosen per-book in the creation wizard, not on the
+      // child. Preserve any legacy value rather than overwriting it.
+      art_style: initialData?.art_style ?? null,
       photo_url: photoUrl,
       description: description || null,
     });
@@ -148,7 +127,7 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
   };
 
   const canSave = !!name.trim() && !!gender && !!age;
-  const previewSrc = photoPreview || (gender && artStyle ? getStylePreset(gender, artStyle) : null);
+  const previewSrc = photoPreview;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -248,33 +227,6 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
                   placeholder="e.g., 6"
                   className="rounded-xl h-11 w-28"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Art Style</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {ART_STYLES.map((s) => (
-                    <button
-                      key={s.key}
-                      type="button"
-                      onClick={() => setArtStyle(s.key)}
-                      className={`rounded-xl border-2 overflow-hidden text-center transition-all ${
-                        artStyle === s.key
-                          ? "border-accent bg-accent/10"
-                          : "border-border hover:border-accent/40"
-                      }`}
-                    >
-                      <div className="aspect-[3/2] overflow-hidden bg-muted/30">
-                        <img
-                          src={getStylePreset(gender || "boy", s.key)}
-                          alt={s.label}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <p className="text-xs font-semibold py-1.5">{s.label}</p>
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div className="space-y-2">

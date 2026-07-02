@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, ArrowRight, Type, Heart, Calendar, Palette, Check, User,
+  ArrowLeft, ArrowRight, Type, Heart, Calendar, Check, User,
   Camera, Sun, PenLine, Image,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ import presetPreteenGirl from "@/assets/presets/preteen-girl-cartoon.jpg";
 
 /* ── constants ── */
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const slideVariants = {
@@ -49,17 +49,10 @@ const AGE_BRACKETS = [
   { min: 10, max: 12, label: "10-12", desc: "Preteen", emoji: "🌟" },
 ];
 
-const ART_STYLES = [
-  { key: "cartoon", label: "Cartoon", desc: "Colorful & whimsical" },
-  { key: "3d-pixar", label: "3D Pixar", desc: "Cinematic & polished" },
-  { key: "realistic", label: "Realistic", desc: "Lifelike & detailed" },
-];
-
 const STEP_LABELS = [
   { label: "Name", icon: Type },
   { label: "Gender", icon: Heart },
   { label: "Age", icon: Calendar },
-  { label: "Style", icon: Palette },
   { label: "Photo", icon: Image },
 ];
 
@@ -126,7 +119,6 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
-  const [artStyle, setArtStyle] = useState("");
   const [description, setDescription] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -140,7 +132,6 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
         setName(initialData.name || "");
         setGender(initialData.gender || "");
         setAge(initialData.age ? String(initialData.age) : "");
-        setArtStyle(initialData.art_style || "");
         setDescription(initialData.description || "");
         setPhotoPreview(initialData.photo_url || null);
         setPhotoFile(null);
@@ -154,7 +145,6 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
     setName("");
     setGender("");
     setAge("");
-    setArtStyle("");
     setDescription("");
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -186,7 +176,9 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
       name,
       age: age ? parseInt(age) : null,
       gender: gender || null,
-      art_style: artStyle || null,
+      // Book art style is chosen per-book in the creation wizard, not stored on
+      // the child. Preserve any legacy value on edit; never set it on add.
+      art_style: initialData?.art_style ?? null,
       photo_url: photoUrl || null,
       description: description || null,
     });
@@ -231,15 +223,13 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
       case 1: return !!name.trim();
       case 2: return !!gender;
       case 3: return !!age;
-      case 4: return !!artStyle;
-      case 5: return true; // photo/desc optional
+      case 4: return true; // photo/desc optional
       default: return false;
     }
   })();
 
   const getPreviewImage = (): string | null => {
     if (photoPreview) return photoPreview;
-    if (gender && age && artStyle) return getStylePreset(gender, artStyle);
     if (gender && age) return getAgePreset(gender, ageToBracketLabel(age));
     if (gender) return getStylePreset(gender, "cartoon");
     return null;
@@ -434,45 +424,9 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                   </motion.div>
                 )}
 
-                {/* Step 4: Art Style */}
+                {/* Step 4: Photo / Description */}
                 {step === 4 && (
                   <motion.div key="s4" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Palette className="w-6 h-6 text-accent" /> Pick a preferred art style
-                      </h2>
-                      <p className="text-muted-foreground text-sm mt-1">This will be the default style for {name || "your child"}'s books.</p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      {ART_STYLES.map((style) => {
-                        const previewImg = gender ? getStylePreset(gender, style.key) : getStylePreset("boy", style.key);
-                        return (
-                          <button
-                            key={style.key}
-                            onClick={() => setArtStyle(style.key)}
-                            className={`rounded-2xl border-2 overflow-hidden text-center transition-all duration-300 active:scale-[0.97] ${
-                              artStyle === style.key
-                                ? "border-accent bg-accent/5 shadow-md"
-                                : "border-border hover:border-accent/30"
-                            }`}
-                          >
-                            <div className="aspect-[3/2] overflow-hidden">
-                              <img src={previewImg} alt={style.label} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="p-3">
-                              <p className="font-display font-semibold text-primary text-sm">{style.label}</p>
-                              <p className="text-[11px] text-muted-foreground">{style.desc}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Step 5: Photo / Description */}
-                {step === 5 && (
-                  <motion.div key="s5" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
                     <div>
                       <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
                         <Image className="w-6 h-6 text-accent" /> Help us draw {name || "your child"}
