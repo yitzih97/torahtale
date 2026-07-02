@@ -172,6 +172,7 @@ Requirements:
 - Make the kinderlach the main characters and heroes of the story
 - Each story page should be 2-3 sentences, appropriate for a ${age}-year-old
 - CRITICAL: At least 70% of the pages MUST depict SPECIFIC, ACTUAL events from the Torah portion. For example, for Va'era show the plagues one by one; for Beshalach show the crossing of the sea; for Bereishit show the days of creation. The child must be IN those scenes, witnessing and participating in the actual events — not just hearing about them or being told the story.
+- DOUBLE PARSHA: If the Torah Portion name above joins TWO parshiyos (e.g. "Chukas-Balak", "Matos-Masei", "Tazria-Metzora") this is ONE book covering BOTH. Give balanced coverage to the key events of each parsha — roughly half the story pages for the first, half for the second — so both are meaningfully represented in the single book.
 - DO NOT compress the Torah events into 1-2 pages. Spread the key events across most of the book, giving each major event its own page with vivid detail.
 - The story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim
 - The kinderlach should discover the hidden lesson behind the Torah story through their adventure
