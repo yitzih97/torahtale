@@ -29,6 +29,8 @@ const FAQ = lazy(() => import("./pages/FAQ.tsx"));
 const Pricing = lazy(() => import("./pages/Pricing.tsx"));
 const Testimonials = lazy(() => import("./pages/Testimonials.tsx"));
 const Affiliates = lazy(() => import("./pages/Affiliates.tsx"));
+const Blog = lazy(() => import("./pages/Blog.tsx"));
+const BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -61,6 +63,8 @@ const AppInner = () => {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/affiliates" element={<Affiliates />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
