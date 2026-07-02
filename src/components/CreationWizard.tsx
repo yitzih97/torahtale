@@ -1480,8 +1480,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                       <p className="font-display font-semibold text-sm text-foreground">{t.wizard.uploadPhoto}</p>
                     </div>
                     {child.photoPreview ? (
-                      <div className="relative rounded-2xl overflow-hidden border-2 border-accent/40">
-                        <img src={child.photoPreview} alt={child.name} className="w-full h-52 object-cover" />
+                      <div className="relative mx-auto max-w-xs aspect-square rounded-2xl overflow-hidden border-2 border-accent/40">
+                        <img src={child.photoPreview} alt={child.name} className="w-full h-full object-cover" />
                         <button
                           type="button"
                           onClick={() => updateChild(child.id, { photo: null, photoPreview: null })}
