@@ -24,7 +24,7 @@ import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, getColoringBookAddonPrice, getStoryPageCount, type BookOptions } from "./wizard/BookOptionsStep";
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
-import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getUpcomingParsha, stripSeferPrefix, type TorahOption } from "./wizard/TorahPortions";
+import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getCurrentParsha, stripSeferPrefix, type TorahOption } from "./wizard/TorahPortions";
 import { PortionIcon } from "./wizard/portionIcons";
 import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
 import { supabase } from "@/integrations/supabase/client";
@@ -931,8 +931,18 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         const currentIdx = mainSteps.indexOf(step);
         const showHeader = step <= 8;
         if (!showHeader) return null;
+        const stepProgress = ((currentIdx + 1) / mainSteps.length) * 100;
         return (
           <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl">
+            {/* Slim progress bar — fills step-by-step toward a finished book */}
+            <div className="h-1 w-full bg-foreground/10" role="progressbar" aria-valuenow={Math.round(stepProgress)} aria-valuemin={0} aria-valuemax={100}>
+              <motion.div
+                className="h-full rounded-e-full bg-accent"
+                initial={false}
+                animate={{ width: `${Math.max(6, stepProgress)}%` }}
+                transition={{ type: "spring", stiffness: 140, damping: 22 }}
+              />
+            </div>
             <div className="max-w-3xl mx-auto px-5 sm:px-8 h-16 sm:h-20 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
               <div className="flex items-center">
                 {step > 1 ? (
@@ -1527,7 +1537,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             {/* ── STEP 6: Torah Portion (simplified, single screen) ── */}
             {step === 6 && (() => {
               const isHe = lang === "he" || lang === "yi";
-              const upcomingValue = getUpcomingParsha();
+              const upcomingValue = getCurrentParsha();
               const upcoming = TORAH_PORTIONS.find((p) => p.value === upcomingValue);
               const upcomingTitle = upcoming
                 ? (isHe ? upcoming.sub : upcoming.label)
