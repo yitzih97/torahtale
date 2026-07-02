@@ -469,8 +469,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       setStep(dir >= 0 ? 3 : 1);
     } else if (step === 3 && data.children.length > 0 && data.children.every((c) => !!c.savedChildId && !!c.age && !!c.gender)) {
       setStep(dir >= 0 ? 4 : 1);
-    } else if (step === 5 && data.children.length > 0 && data.children.every((c) => !!c.savedChildId && !!c.existingPhotoUrl)) {
-      setStep(dir >= 0 ? 6 : 4);
+    } else if (step === 4 && data.children.length > 0 && data.children.every((c) => !!c.savedChildId && !!c.existingPhotoUrl)) {
+      setStep(dir >= 0 ? 5 : 3);
     }
   }, [step, dir, data.children]);
 
@@ -487,7 +487,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   // Entering the story step always starts at the first drill-down level.
   useEffect(() => {
-    if (step === 6) setPortionView("mode");
+    if (step === 5) setPortionView("mode");
   }, [step]);
 
   /* ───── login prompt during step 8 auth gate ───── */
@@ -710,10 +710,9 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setDir(1);
     let nextStep = step + 1;
     if (step === 1 && allChildrenHaveGenderAge()) {
-      nextStep = 4;
-    }
-    if (step === 4 && allChildrenHaveGenderAge() && allChildrenHavePhotoOrDesc()) {
-      nextStep = 6;
+      // Saved children already have gender/age — skip those steps; skip the photo
+      // step too when every child already has a stored photo.
+      nextStep = allChildrenHavePhotoOrDesc() ? 5 : 4;
     }
     // Step 11 (payment + summary) — the "Continue" CTA inside the step advances directly to step 12 (shipping),
     // and step 12's own Place Order button calls handlePlaceOrder which jumps to the success step.
@@ -725,14 +724,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   const back = () => {
     if (autoAdvanceTimerRef.current) { clearTimeout(autoAdvanceTimerRef.current); autoAdvanceTimerRef.current = null; }
-    // Within step 6, "back" walks the drill-down up one level before leaving the step.
-    if (step === 6 && portionView === "stories") { setPortionView("category"); return; }
-    if (step === 6 && portionView === "category") { setPortionView("mode"); return; }
+    // Within the Torah-portion step, "back" walks the drill-down up one level before leaving the step.
+    if (step === 5 && portionView === "stories") { setPortionView("category"); return; }
+    if (step === 5 && portionView === "category") { setPortionView("mode"); return; }
     setDir(-1);
     let prevStep = step - 1;
-    if (allChildrenHaveGenderAge()) {
-      if (step === 6 && allChildrenHavePhotoOrDesc()) prevStep = 4;
-    }
+    // Saved-child skips (gender/age/photo) are handled by the auto-skip effect,
+    // which cascades backward when dir < 0, so plain step-1 is correct here.
     if (step === 12) prevStep = 11;
     if (step === 13) prevStep = 11;
     setStep(Math.max(prevStep, 1));
@@ -842,12 +840,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       case 1: return data.children.some((c) => !!c.name.trim());
       case 2: return !!child.gender;
       case 3: return !!child.age && parseInt(child.age) >= 1 && parseInt(child.age) <= 15;
-      case 4: return !!data.artStyle;
       // Photo step: every child needs an uploaded photo.
-      case 5: return data.children.every((c) =>
+      case 4: return data.children.every((c) =>
         !!c.photoPreview || !!c.existingPhotoUrl);
-      case 6: return !!data.torahPortion;
-      case 7: return selectedLanguages.length >= 1;
+      case 5: return !!data.torahPortion;
+      case 6: return selectedLanguages.length >= 1;
+      case 7: return !!data.artStyle;
       case 8: return true;
       case 10: return true;
       case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
@@ -893,10 +891,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       case 1: return Type;
       case 2: return Heart;
       case 3: return Calendar;
-      case 4: return Palette;
-      case 5: return Image;
-      case 6: return BookOpen;
-      case 7: return Sun;
+      case 4: return Image;
+      case 5: return BookOpen;
+      case 6: return Sun;
+      case 7: return Palette;
       case 8: return Sparkles;
       default: return Sparkles;
     }
@@ -1347,17 +1345,18 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </section>
             )}
 
-            {/* ── STEP 4: Art Style ── */}
-            {step === 4 && (
+            {/* ── STEP 7: Art Style (shown after Language, right before Review/Generate;
+                    block kept here in the file — only one step renders at a time) ── */}
+            {step === 7 && (
               <section
-                id={stepIdFor(4)}
-                ref={setStepRef(4)}
-                onClick={step !== 4 ? () => setStep(4) : undefined}
-                className={sectionClass(4)}
+                id={stepIdFor(7)}
+                ref={setStepRef(7)}
+                onClick={step !== 7 ? () => setStep(7) : undefined}
+                className={sectionClass(7)}
               >
-              {step !== 4 && <div className="absolute inset-0 z-10" aria-hidden />}
+              {step !== 7 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
-                key="s4"
+                key="s7"
                 custom={dir}
                 variants={{ ...stepVariants, ...staggerContainer }}
                 initial="enter"
@@ -1420,17 +1419,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </section>
             )}
 
-            {/* ── STEP 5: Photo / Description ── */}
-            {step === 5 && (
+            {/* ── STEP 4: Photo / Description ── */}
+            {step === 4 && (
               <section
-                id={stepIdFor(5)}
-                ref={setStepRef(5)}
-                onClick={step !== 5 ? () => setStep(5) : undefined}
-                className={sectionClass(5)}
+                id={stepIdFor(4)}
+                ref={setStepRef(4)}
+                onClick={step !== 4 ? () => setStep(4) : undefined}
+                className={sectionClass(4)}
               >
-              {step !== 5 && <div className="absolute inset-0 z-10" aria-hidden />}
+              {step !== 4 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
-                key="s5"
+                key="s4"
                 custom={dir}
                 variants={{ ...stepVariants, ...staggerContainer }}
                 initial="enter"
@@ -1535,8 +1534,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               </section>
             )}
 
-            {/* ── STEP 6: Torah Portion (simplified, single screen) ── */}
-            {step === 6 && (() => {
+            {/* ── STEP 5: Torah Portion (simplified, single screen) ── */}
+            {step === 5 && (() => {
               const isHe = lang === "he" || lang === "yi";
               const upcomingValue = getCurrentParsha();
               const upcoming = TORAH_PORTIONS.find((p) => p.value === upcomingValue);
@@ -1584,14 +1583,14 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
               return (
               <section
-                id={stepIdFor(6)}
-                ref={setStepRef(6)}
-                onClick={step !== 6 ? () => setStep(6) : undefined}
-                className={sectionClass(6)}
+                id={stepIdFor(5)}
+                ref={setStepRef(5)}
+                onClick={step !== 5 ? () => setStep(5) : undefined}
+                className={sectionClass(5)}
               >
-              {step !== 6 && <div className="absolute inset-0 z-10" aria-hidden />}
+              {step !== 5 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
-                key="s6"
+                key="s5"
                 custom={dir}
                 variants={{ ...stepVariants, ...staggerContainer }}
                 initial="enter"
@@ -1796,17 +1795,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             })()}
 
 
-            {/* ── STEP 7: Language ── */}
-            {step === 7 && (
+            {/* ── STEP 6: Language ── */}
+            {step === 6 && (
               <section
-                id={stepIdFor(7)}
-                ref={setStepRef(7)}
-                onClick={step !== 7 ? () => setStep(7) : undefined}
-                className={sectionClass(7)}
+                id={stepIdFor(6)}
+                ref={setStepRef(6)}
+                onClick={step !== 6 ? () => setStep(6) : undefined}
+                className={sectionClass(6)}
               >
-              {step !== 7 && <div className="absolute inset-0 z-10" aria-hidden />}
+              {step !== 6 && <div className="absolute inset-0 z-10" aria-hidden />}
               <motion.div
-                key="s7"
+                key="s6"
                 custom={dir}
                 variants={{ ...stepVariants, ...staggerContainer }}
                 initial="enter"
