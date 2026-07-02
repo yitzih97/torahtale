@@ -45,3 +45,9 @@ jobs:
     steps:
       - id: deploy
         uses: actions/deploy-pages@v4
+        with:
+          # GitHub's Pages deployment backend has been sitting in
+          # "deployment_queued" and tripping the default 10-min timeout.
+          # Give it more room so a slow (but recovering) backend can finish.
+          timeout: 1800000
+          error_count: 20
