@@ -437,13 +437,17 @@ export const getNextParshaRollover = (from: Date = new Date()): Date => {
  */
 export const getCurrentParsha = (from: Date = new Date()): string => {
   const { et } = easternClock(from);
-  // Most recent Wednesday-noon-ET rollover, then the Shabbat 3 days later.
+  // Anchor on the most recent Wednesday-noon-ET rollover, then show the parashah
+  // of the Shabbat of the FOLLOWING week (rollover + 10 days). This gives a
+  // production lead: once Wednesday noon passes we advance to next week's parashah.
+  // e.g. Thu 2026-07-02 (past Wed 07-01 noon) -> Shabbat 07-11 = matot-masei;
+  // it flips to the next parashah at Wed 07-08 noon ET.
   const rollover = new Date(et);
   rollover.setDate(et.getDate() - ((et.getDay() - 3 + 7) % 7)); // this/most-recent Wednesday
   rollover.setHours(12, 0, 0, 0);
   if (rollover.getTime() > et.getTime()) rollover.setDate(rollover.getDate() - 7); // before noon on a Wed
   const sat = new Date(rollover);
-  sat.setDate(rollover.getDate() + 3);
+  sat.setDate(rollover.getDate() + 10);
   const pad = (n: number) => String(n).padStart(2, "0");
   const key = `${sat.getFullYear()}-${pad(sat.getMonth() + 1)}-${pad(sat.getDate())}`;
 
