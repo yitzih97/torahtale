@@ -158,6 +158,16 @@ serve(async (req) => {
     const coloringStyle = "clean black-and-white line-art coloring-book page: bold, smooth, evenly-weighted black outlines on a pure white background, NO color, NO grayscale shading, NO fills, NO gradients, generous open white areas for a child to color in, simple and friendly shapes, thick clear contours";
     const styleDesc = isColoring ? coloringStyle : (styleMap[artStyle] || styleMap.cartoon);
 
+    // Short human-readable name for the chosen style, used in the style-lock
+    // clause below.
+    const styleNameMap: Record<string, string> = {
+      cartoon: "hand-painted cartoon illustration",
+      "3d-pixar": "3D Pixar/DreamWorks-style CGI render",
+      realistic: "photograph",
+      "graphic-novel": "graphic-novel illustration",
+    };
+    const styleName = isColoring ? "black-and-white line-art coloring page" : (styleNameMap[artStyle] || styleNameMap.cartoon);
+
     let imagePrompt: string;
 
     // Priority: 1) explicit prompt param, 2) page-specific template, 3) custom global template, 4) default
@@ -347,6 +357,20 @@ serve(async (req) => {
           parts.push({ inlineData: { mimeType: ct, data: b64 } });
         }
       } catch (e) { console.error("Failed to fetch scene reference image:", e); }
+    }
+
+    // ── ART-STYLE LOCK ──────────────────────────────────────────────────────
+    // When a real child PHOTO is attached as a likeness reference, gpt-image
+    // (via images/edits) and the Gemini fallback both tend to carry the photo's
+    // PHOTOGRAPHIC realism into the output — so within a single "3D Pixar" book
+    // roughly half the pages came back looking like real photos instead of the
+    // chosen style. The style was stated only once, buried mid-prompt, while the
+    // likeness preamble strongly pushes faithful photo reproduction. Re-assert
+    // the target style LAST (most salient position) and explicitly forbid a
+    // photographic result — unless the chosen style genuinely IS "realistic".
+    const hasPhotoRef = cappedRefs.some((r) => r.isPhoto);
+    if (hasPhotoRef && !isColoring && artStyle !== "realistic") {
+      imagePrompt += ` ⚠️ ART-STYLE LOCK (HIGHEST PRIORITY — overrides the visual look of any attached photo): The FINAL image MUST be a ${styleName}, rendered ENTIRELY in this style: ${styleDesc}. The attached photo is ONLY a likeness reference for the child's face and hair — do NOT reproduce its photographic look, lighting or texture. The output must NOT be a real photograph, NOT photorealistic, and NOT a lightly-edited photo. Fully re-render the child and the entire scene from scratch as a ${styleName}. EVERY page of this book must share this exact same ${styleName} art style — never mix in a realistic/photographic page.`;
     }
 
     parts.push({ text: imagePrompt });
