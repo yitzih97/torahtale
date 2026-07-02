@@ -25,6 +25,7 @@ export const Footer = () => {
             <nav className="flex flex-col gap-2.5">
               <a href="/" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.home}</a>
               <a href="/about" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.aboutUs}</a>
+              <a href="/blog" className="text-sm text-muted-foreground hover:text-accent transition-colors">Blog</a>
               <a href="/dashboard" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.nav.dashboard}</a>
             </nav>
           </div>

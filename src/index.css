@@ -433,3 +433,16 @@
 @media (prefers-reduced-motion: reduce) {
   .hero-page-turn { animation: none; opacity: 0; }
 }
+
+/* Blog article body (hand-authored HTML rendered via dangerouslySetInnerHTML) */
+.blog-prose { line-height: 1.75; }
+.blog-prose h2 { font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.75rem; color: hsl(var(--foreground)); }
+.blog-prose h3 { font-size: 1.2rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; color: hsl(var(--foreground)); }
+.blog-prose p { margin-bottom: 1rem; color: hsl(var(--muted-foreground)); }
+.blog-prose ul, .blog-prose ol { margin: 0 0 1rem 1.25rem; color: hsl(var(--muted-foreground)); }
+.blog-prose ul { list-style: disc; }
+.blog-prose ol { list-style: decimal; }
+.blog-prose li { margin-bottom: 0.4rem; }
+.blog-prose strong { color: hsl(var(--foreground)); font-weight: 600; }
+.blog-prose a { color: hsl(var(--accent)); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.blog-prose a:hover { opacity: 0.85; }

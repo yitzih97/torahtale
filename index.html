@@ -6,18 +6,29 @@
     <title>Torah Tale — Personalized Torah Storybooks for Jewish Kids</title>
     <meta name="description" content="AI-personalized Torah storybooks starring your child. Tznius, halachically-mindful stories aligned with the weekly parsha, delivered to your door." />
     <meta name="author" content="Torah Tale" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#FBF6EC" />
     <link rel="canonical" href="https://torahtale.com/" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
     <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
 
-    <meta property="og:title" content="Torah Tale — Personalized Torah Storybooks" />
-    <meta property="og:description" content="AI-personalized Torah storybooks for frum Yiddishe kinderlach, aligned with the weekly parsha." />
+    <meta property="og:site_name" content="Torah Tale" />
+    <meta property="og:title" content="Torah Tale — Personalized Torah Storybooks for Jewish Kids" />
+    <meta property="og:description" content="AI-personalized Torah storybooks starring your child, aligned with the weekly parsha and made with rabbinical guidance. Delivered to your door." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://torahtale.com/" />
+    <meta property="og:image" content="https://torahtale.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A personalized Torah Tale storybook starring your child" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@TorahTale" />
-    <meta name="twitter:title" content="Torah Tale — Personalized Torah Storybooks" />
-    <meta name="twitter:description" content="AI-personalized Torah storybooks for frum Yiddishe kinderlach." />
+    <meta name="twitter:title" content="Torah Tale — Personalized Torah Storybooks for Jewish Kids" />
+    <meta name="twitter:description" content="AI-personalized Torah storybooks starring your child, aligned with the weekly parsha." />
+    <meta name="twitter:image" content="https://torahtale.com/og-image.jpg" />
 
     <script type="application/ld+json">
       {
@@ -25,9 +36,11 @@
         "@type": "Organization",
         "name": "Torah Tale",
         "url": "https://torahtale.com",
-        "logo": "https://torahtale.com/favicon.svg",
+        "logo": "https://torahtale.com/apple-touch-icon.png",
+        "image": "https://torahtale.com/og-image.jpg",
         "description": "AI-personalized Torah storybooks for Orthodox Jewish children, aligned with the weekly parsha.",
-        "email": "help@torahtale.com"
+        "email": "help@torahtale.com",
+        "sameAs": ["https://twitter.com/TorahTale"]
       }
     </script>
     <script type="application/ld+json">
@@ -35,7 +48,12 @@
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "Torah Tale",
-        "url": "https://torahtale.com"
+        "url": "https://torahtale.com",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": { "@type": "EntryPoint", "urlTemplate": "https://torahtale.com/create?parsha={search_term_string}" },
+          "query-input": "required name=search_term_string"
+        }
       }
     </script>
   </head>
