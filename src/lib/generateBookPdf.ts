@@ -124,14 +124,26 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
     ctx.stroke();
   }
 
-  ctx.fillStyle = layout.color;
   ctx.textAlign = layout.align;
   let textAnchorX = boxX + padX;
   if (layout.align === "center") textAnchorX = boxX + boxW / 2;
   else if (layout.align === "right") textAnchorX = boxX + boxW - padX;
 
+  // Light outline halo behind the letters keeps captions readable on any scene
+  // without a background box (mirrors READ_HALO in EditableTextBox). Skipped when
+  // a solid background box is already present.
+  const halo = !layout.background;
+  ctx.lineJoin = "round";
+  ctx.miterLimit = 2;
   for (let i = 0; i < lines.length; i++) {
-    ctx.fillText(lines[i], textAnchorX, boxY + padY + i * lineHeight);
+    const ly = boxY + padY + i * lineHeight;
+    if (halo) {
+      ctx.strokeStyle = "rgba(255,255,255,0.92)";
+      ctx.lineWidth = Math.max(2, fontSize * 0.18);
+      ctx.strokeText(lines[i], textAnchorX, ly);
+    }
+    ctx.fillStyle = layout.color;
+    ctx.fillText(lines[i], textAnchorX, ly);
   }
 }
 
