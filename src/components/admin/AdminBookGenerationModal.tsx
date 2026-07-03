@@ -485,16 +485,16 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
+      <DialogContent className="w-[calc(100vw-0.75rem)] sm:w-full max-w-5xl max-h-[96vh] overflow-y-auto p-0 gap-0 rounded-2xl sm:rounded-3xl border-border/50 shadow-soft-lg">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 rounded-t-3xl">
+        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border px-4 sm:px-6 py-3 sm:py-4 rounded-t-2xl sm:rounded-t-3xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+              <div className="hidden sm:flex w-10 h-10 rounded-2xl bg-accent/10 items-center justify-center flex-shrink-0">
                 <BookOpen className="w-5 h-5 text-accent" />
               </div>
               <div className="min-w-0">
-                <h2 className="font-display text-lg font-bold text-primary truncate">
+                <h2 className="font-display text-base sm:text-lg font-bold text-primary truncate">
                   {book?.child_name}'s Book — {book?.torah_portion}
                 </h2>
                 <p className="text-xs text-muted-foreground capitalize">{book?.art_style} style · {book?.language || "english"}</p>
@@ -529,9 +529,26 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          {/* Compact stepper for phones */}
+          <div className="flex md:hidden items-center gap-2 mt-2">
+            <div className="flex items-center gap-1">
+              {STEPS.map((_, i) => (
+                <span
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i < activeStep ? "w-3 bg-green-500/70" : i === activeStep ? "w-5 bg-accent" : "w-3 bg-muted-foreground/20"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-[11px] font-semibold text-muted-foreground">
+              Step {activeStep + 1} of {STEPS.length} · {STEPS[activeStep]?.label}
+            </span>
+          </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
           {/* Progress bar (any generating phase) */}
           <AnimatePresence>
             {(phase === "character" || phase === "story" || phase === "images") && (
@@ -541,7 +558,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 exit={{ opacity: 0, height: 0 }}
                 className="space-y-3"
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <Sparkles className="w-4 h-4 text-accent animate-pulse flex-shrink-0" />
                     <span className="text-sm font-medium text-primary truncate">{statusText}</span>
@@ -765,7 +782,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           {/* ── Done state ── */}
           {phase === "done" && pages.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-              <div className={`flex items-center justify-between gap-3 p-3 rounded-2xl border ${
+              <div className={`flex flex-col sm:flex-row sm:items-center items-start justify-between gap-3 p-3 rounded-2xl border ${
                 failedCount > 0
                   ? "bg-amber-50 dark:bg-amber-950 border-amber-300 dark:border-amber-800"
                   : "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"
