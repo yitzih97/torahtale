@@ -46,9 +46,12 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
 
   const navLinks: { label: string; href: string; section?: string }[] = [
     { label: t.nav.home, href: "/" },
+    { label: t.nav.howItWorks, href: "/#how-it-works", section: "how-it-works" },
     { label: t.nav.about, href: "/about" },
     { label: t.nav.pricing, href: "/pricing" },
     { label: t.nav.testimonials, href: "/testimonials" },
+    { label: t.nav.blog, href: "/blog" },
+    { label: t.nav.faq, href: "/faq" },
     { label: t.nav.contact, href: "/contact" },
   ];
 
@@ -68,7 +71,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
           <span className="sr-only">{brandName}</span>
         </a>
 
-        <div className="hidden lg:flex items-center gap-8">
+        <div className="hidden lg:flex items-center gap-5 xl:gap-7">
           {navLinks.map((link) => (
             <a
               key={link.href}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { BookOpen, Shield, Baby, Palette, ArrowRight, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -44,6 +44,12 @@ export const ProductsSection = ({ onStart }: Props) => {
   const [paused, setPaused] = useState(false);
   const [hovered, setHovered] = useState(false);
 
+  // Parallax on the decorative backdrop as the section scrolls through.
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const blobY = useTransform(scrollYProgress, [0, 1], [80, -80]);
+  const blobY2 = useTransform(scrollYProgress, [0, 1], [-50, 70]);
+
   const fmt = (usd: number, ils: number) =>
     code === "ILS" ? `${symbol}${ils.toFixed(0)}` : `${symbol}${Math.round(usd * rate)}`;
 
@@ -65,13 +71,20 @@ export const ProductsSection = ({ onStart }: Props) => {
 
   return (
     <section
+      ref={sectionRef}
       id="products"
       dir={dir}
-      className="relative bg-gradient-to-b from-[hsl(42_55%_96%)] to-[hsl(38_48%_93%)]"
+      className="relative overflow-hidden bg-gradient-to-b from-[hsl(42_55%_96%)] to-[hsl(38_48%_93%)]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="container py-16 lg:py-24">
+      {/* Parallax backdrop */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div style={{ y: blobY }} className="absolute top-10 left-[10%] w-80 h-80 bg-gold/10 rounded-full blur-3xl" />
+        <motion.div style={{ y: blobY2 }} className="absolute bottom-0 right-[8%] w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="container py-16 lg:py-24 relative z-10">
         {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -107,9 +120,20 @@ export const ProductsSection = ({ onStart }: Props) => {
                   {activeTab && (
                     <motion.span
                       layoutId="productTabPill"
-                      className="absolute inset-0 rounded-xl bg-background shadow-[0_4px_16px_-6px_hsl(43_64%_42%/0.35)] ring-1 ring-gold/15"
+                      className="absolute inset-0 rounded-xl bg-background shadow-[0_4px_16px_-6px_hsl(43_64%_42%/0.35)] ring-1 ring-gold/15 overflow-hidden"
                       transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                    />
+                    >
+                      {/* Auto-rotate countdown bar */}
+                      {!paused && (
+                        <motion.span
+                          key={active}
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: 1 }}
+                          transition={{ duration: AUTO_MS / 1000, ease: "linear" }}
+                          className="absolute bottom-0 inset-x-0 h-0.5 bg-gold/50 origin-left rtl:origin-right"
+                        />
+                      )}
+                    </motion.span>
                   )}
                   <prod.icon className={`relative z-10 w-4 h-4 ${activeTab ? "text-gold" : ""}`} strokeWidth={1.75} />
                   <span className="relative z-10 whitespace-nowrap">{prod.name}</span>
@@ -137,8 +161,15 @@ export const ProductsSection = ({ onStart }: Props) => {
                   transition={{ duration: 0.5, ease }}
                   className="absolute inset-0"
                 >
-                  {/* Finished cover (default) */}
-                  <img src={p.image} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
+                  {/* Finished cover (default) — slow ken-burns drift keeps it alive */}
+                  <motion.img
+                    src={p.image}
+                    alt={p.name}
+                    initial={{ scale: 1 }}
+                    animate={{ scale: hovered ? 1 : 1.06 }}
+                    transition={{ duration: 6, ease: "linear" }}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
                   {/* Original blank product from Shopify (on hover) */}
                   <img
                     src={p.hoverImage}
@@ -161,38 +192,51 @@ export const ProductsSection = ({ onStart }: Props) => {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={p.key}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.45, ease }}
+                  initial="hidden"
+                  animate="show"
+                  exit={{ opacity: 0, y: -10, transition: { duration: 0.25 } }}
+                  variants={{ show: { transition: { staggerChildren: 0.08 } } }}
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/12 text-gold text-[11px] font-semibold tracking-[0.16em] uppercase px-2.5 py-1">
-                      <p.icon className="w-3.5 h-3.5" strokeWidth={2} />
-                      {p.tagline}
-                    </span>
-                  </div>
-                  <h3 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{p.name}</h3>
-                  <p className="mt-3 text-sm sm:text-base text-foreground/70 leading-relaxed max-w-md">{p.desc}</p>
-
-                  <div className={`mt-6 flex items-center gap-4 ${isRtl ? "flex-row-reverse justify-end" : ""}`}>
-                    <div className="flex items-baseline gap-1">
-                      {p.addOn && <span className="text-sm text-foreground/55">+</span>}
-                      <span className="font-display text-3xl font-bold text-foreground">{fmt(p.priceUsd, p.priceIls)}</span>
-                    </div>
-                    <span className="h-5 w-px bg-foreground/15" />
-                    <span className="text-sm font-medium text-foreground/55">{p.size}</span>
-                  </div>
-
-                  <Button
-                    variant="gold"
-                    size="lg"
-                    onClick={onStart}
-                    className="group mt-7 rounded-xl gold-glow w-full sm:w-auto px-7"
-                  >
-                    {t.productsShowcase.cta}
-                    <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
-                  </Button>
+                  {(
+                    [
+                      <div key="badge" className="flex items-center gap-2 mb-3">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/12 text-gold text-[11px] font-semibold tracking-[0.16em] uppercase px-2.5 py-1">
+                          <p.icon className="w-3.5 h-3.5" strokeWidth={2} />
+                          {p.tagline}
+                        </span>
+                      </div>,
+                      <h3 key="name" className="font-display text-2xl sm:text-3xl font-bold text-foreground">{p.name}</h3>,
+                      <p key="desc" className="mt-3 text-sm sm:text-base text-foreground/70 leading-relaxed max-w-md">{p.desc}</p>,
+                      <div key="price" className={`mt-6 flex items-center gap-4 ${isRtl ? "flex-row-reverse justify-end" : ""}`}>
+                        <div className="flex items-baseline gap-1">
+                          {p.addOn && <span className="text-sm text-foreground/55">+</span>}
+                          <span className="font-display text-3xl font-bold text-foreground">{fmt(p.priceUsd, p.priceIls)}</span>
+                        </div>
+                        <span className="h-5 w-px bg-foreground/15" />
+                        <span className="text-sm font-medium text-foreground/55">{p.size}</span>
+                      </div>,
+                      <Button
+                        key="cta"
+                        variant="gold"
+                        size="lg"
+                        onClick={onStart}
+                        className="group mt-7 rounded-xl gold-glow w-full sm:w-auto px-7"
+                      >
+                        {t.productsShowcase.cta}
+                        <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
+                      </Button>,
+                    ] as const
+                  ).map((child, ci) => (
+                    <motion.div
+                      key={ci}
+                      variants={{
+                        hidden: { opacity: 0, y: 16 },
+                        show: { opacity: 1, y: 0, transition: { duration: 0.45, ease } },
+                      }}
+                    >
+                      {child}
+                    </motion.div>
+                  ))}
                 </motion.div>
               </AnimatePresence>
             </div>

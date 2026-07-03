@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { ProductsSection } from "@/components/ProductsSection";
 import { HowItWorks } from "@/components/HowItWorks";
+import { WhyTorahTale } from "@/components/WhyTorahTale";
 import { GalleryReviewsSection } from "@/components/GalleryReviewsSection";
 import { CTASection } from "@/components/CTASection";
 import { Footer } from "@/components/Footer";
@@ -47,6 +48,7 @@ const Index = () => {
       <HeroSection onStart={goToCreate} />
       <ProductsSection onStart={goToCreate} />
       <HowItWorks />
+      <WhyTorahTale />
       <GalleryReviewsSection />
       <CTASection onStart={goToCreate} />
       <Footer />

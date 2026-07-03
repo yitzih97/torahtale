@@ -8,10 +8,12 @@ export const Footer = () => {
 
   const brandName = getSetting("website", "brand-name", "Torah Tale");
 
+  const linkCls = "text-sm text-muted-foreground hover:text-accent transition-colors";
+
   return (
     <footer className="py-14 bg-background border-t border-border">
-      <div className="container max-w-5xl mx-auto">
-        <div className="grid sm:grid-cols-4 gap-10 sm:gap-8">
+      <div className="container max-w-6xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-10 sm:gap-8">
           <div className="space-y-4">
             <div className="space-y-4">
               <BrandMark iconClassName="h-12 w-12" wordmarkClassName="h-10 w-auto" />
@@ -23,27 +25,37 @@ export const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-xs font-semibold tracking-widest text-accent/70 uppercase">{t.footer.navigate}</h4>
             <nav className="flex flex-col gap-2.5">
-              <a href="/" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.home}</a>
-              <a href="/about" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.aboutUs}</a>
-              <a href="/blog" className="text-sm text-muted-foreground hover:text-accent transition-colors">Blog</a>
-              <a href="/dashboard" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.nav.dashboard}</a>
+              <a href="/" className={linkCls}>{t.footer.home}</a>
+              <a href="/about" className={linkCls}>{t.footer.aboutUs}</a>
+              <a href="/pricing" className={linkCls}>{t.footer.pricing}</a>
+              <a href="/testimonials" className={linkCls}>{t.footer.testimonials}</a>
+              <a href="/dashboard" className={linkCls}>{t.nav.dashboard}</a>
+            </nav>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">{t.footer.discover}</h4>
+            <nav className="flex flex-col gap-2.5">
+              <a href="/#how-it-works" className={linkCls}>{t.footer.howItWorks}</a>
+              <a href="/blog" className={linkCls}>{t.footer.blog}</a>
+              <a href="/faq" className={linkCls}>{t.footer.faq}</a>
+              <a href="/affiliates" className={linkCls}>Affiliate Program</a>
             </nav>
           </div>
 
           <div className="space-y-4">
             <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">{t.footer.support}</h4>
             <nav className="flex flex-col gap-2.5">
-              <a href="/contact" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.contactUs}</a>
-              <a href="/affiliates" className="text-sm text-muted-foreground hover:text-accent transition-colors">Affiliate Program</a>
-              <a href="mailto:help@torahtale.com" className="text-sm text-muted-foreground hover:text-accent transition-colors">help@torahtale.com</a>
+              <a href="/contact" className={linkCls}>{t.footer.contactUs}</a>
+              <a href="mailto:help@torahtale.com" className={linkCls}>help@torahtale.com</a>
             </nav>
           </div>
 
           <div className="space-y-4">
             <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">{t.footer.legal}</h4>
             <nav className="flex flex-col gap-2.5">
-              <a href="/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.privacyPolicy}</a>
-              <a href="/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">{t.footer.termsOfService}</a>
+              <a href="/privacy" className={linkCls}>{t.footer.privacyPolicy}</a>
+              <a href="/terms" className={linkCls}>{t.footer.termsOfService}</a>
             </nav>
           </div>
         </div>

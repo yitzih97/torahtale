@@ -8,6 +8,8 @@ export const en = {
     reviews: "Reviews",
     testimonials: "Testimonials",
     about: "About Us",
+    faq: "FAQ",
+    blog: "Blog",
     contact: "Contact Us",
     dashboard: "My Dashboard",
     login: "Login",
@@ -55,6 +57,30 @@ export const en = {
     subtitle: "",
     readReview: "Read Review",
     childStory: "'s story",
+    trustLine: "Joined by frum families around the world",
+    trustStars: "5-star reviews from real parents",
+  },
+
+  // Why Torah Tale (homepage features)
+  whyUs: {
+    label: "Why Torah Tale",
+    title: "Made with yiras Shamayim,",
+    titleAccent: "designed around your child",
+    subtitle: "Every book is built to become a keepsake — kosher content, beautiful art, and your child at the very heart of the Torah story.",
+    features: [
+      { title: "Tznius & Halachically Mindful", desc: "Every illustration and storyline is crafted to frum standards — modest dress, authentic settings, and Torah-true details on every page." },
+      { title: "Your Child Is the Star", desc: "Their name, their face, their smile — woven into the parsha, so the Torah story becomes their story." },
+      { title: "Aligned with the Parsha", desc: "From Bereishis to Yonah, pick the story your child is learning right now and bring it to life at home." },
+      { title: "Premium Print, Delivered", desc: "Vivid color, quality paper, and durable bindings — printed and shipped straight to your door." },
+      { title: "English & Hebrew", desc: "Read in the language your family loves, with authentic loshon kodesh names throughout." },
+      { title: "A Gift That Lasts", desc: "For birthdays, upsherins, siddur parties, and Yom Tov — a keepsake they'll pull off the shelf again and again." },
+    ],
+    stats: [
+      { value: 10, suffix: "+", label: "Torah stories to choose from" },
+      { value: 4, suffix: "", label: "Book formats, softcover to coloring" },
+      { value: 2, suffix: "", label: "Languages — English & Hebrew" },
+      { value: 5, suffix: "★", label: "Rated by frum families" },
+    ],
   },
 
   // CTA
@@ -62,6 +88,8 @@ export const en = {
     headline: "Every Jewish Child Deserves to Be Part of the Story",
     subtext: "",
     button: "Create My Book",
+    secondary: "See Pricing",
+    microcopy: "Ready in minutes · Ships worldwide",
   },
 
   // Footer
@@ -72,6 +100,11 @@ export const en = {
     howItWorks: "How It Works",
     dashboard: "Dashboard",
     aboutUs: "About Us",
+    discover: "Discover",
+    pricing: "Pricing",
+    testimonials: "Testimonials",
+    faq: "FAQ",
+    blog: "Blog",
     support: "Support",
     contactUs: "Contact Us",
     legal: "Legal",

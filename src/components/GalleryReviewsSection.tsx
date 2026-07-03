@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Star } from "lucide-react";
 import { BookPreviewModal } from "@/components/gallery/BookPreviewModal";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -46,6 +46,14 @@ const stories = [
 export const GalleryReviewsSection = () => {
   const [selectedBook, setSelectedBook] = useState<number | null>(null);
   const { t, lang } = useLanguage();
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Subtle parallax: alternating cards drift at different speeds while scrolling.
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const blobY1 = useTransform(scrollYProgress, [0, 1], [60, -60]);
+  const blobY2 = useTransform(scrollYProgress, [0, 1], [-50, 70]);
+  const driftUp = useTransform(scrollYProgress, [0, 1], [24, -24]);
+  const driftDown = useTransform(scrollYProgress, [0, 1], [-16, 28]);
 
   const book = selectedBook !== null ? {
     ...stories[selectedBook],
@@ -55,10 +63,10 @@ export const GalleryReviewsSection = () => {
   } : null;
 
   return (
-    <section id="testimonials" className="py-24 lg:py-32 bg-card relative overflow-hidden scroll-mt-20">
+    <section ref={sectionRef} id="testimonials" className="py-24 lg:py-32 bg-card relative overflow-hidden scroll-mt-20">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+        <motion.div style={{ y: blobY1 }} className="absolute top-0 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <motion.div style={{ y: blobY2 }} className="absolute bottom-0 right-1/4 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
       </div>
 
       <div className="container max-w-6xl mx-auto px-4 relative z-10">
@@ -80,14 +88,57 @@ export const GalleryReviewsSection = () => {
               {t.gallery.subtitle}
             </p>
           )}
+
+          {/* Trust ribbon — overlapping kid avatars + stars */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.2, ease }}
+            className="mt-8 inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 rounded-full border border-border/60 bg-background/70 backdrop-blur px-5 py-3 shadow-sm"
+          >
+            <div className="flex -space-x-2.5 rtl:space-x-reverse">
+              {stories.slice(0, 6).map((s, i) => (
+                <motion.img
+                  key={s.child}
+                  src={s.childPhoto}
+                  alt={s.child}
+                  initial={{ opacity: 0, scale: 0.4, x: -8 }}
+                  whileInView={{ opacity: 1, scale: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.3 + i * 0.07 }}
+                  className="w-8 h-8 rounded-full object-cover border-2 border-background shadow-sm"
+                />
+              ))}
+            </div>
+            <div className="flex flex-col items-center sm:items-start">
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, j) => (
+                  <motion.span
+                    key={j}
+                    initial={{ opacity: 0, scale: 0, rotate: -30 }}
+                    whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ type: "spring", stiffness: 340, damping: 16, delay: 0.6 + j * 0.08 }}
+                  >
+                    <Star className="w-3.5 h-3.5 fill-accent text-accent" />
+                  </motion.span>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t.gallery.trustLine} · {t.gallery.trustStars}
+              </p>
+            </div>
+          </motion.div>
         </motion.div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 lg:gap-6">
           {stories.map((story, i) => (
             <motion.div
               key={story.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              style={{ y: i % 2 === 0 ? driftUp : driftDown }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true, amount: 0.1 }}
               transition={{ duration: 0.5, delay: i * 0.06, ease }}
               className={`group cursor-pointer ${i % 3 === 1 ? "lg:mt-8" : ""}`}
