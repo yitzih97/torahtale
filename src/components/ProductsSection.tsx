@@ -106,7 +106,7 @@ export const ProductsSection = ({ onStart }: Props) => {
 
         {/* Tabs */}
         <div className="mt-10 flex justify-center">
-          <div className="inline-flex flex-wrap justify-center gap-1 rounded-2xl border border-foreground/8 bg-background/70 backdrop-blur p-1.5">
+          <div className="inline-flex flex-wrap justify-center gap-1 rounded-2xl border border-foreground/10 bg-background/70 backdrop-blur p-1.5">
             {products.map((prod, i) => {
               const activeTab = i === active;
               return (
@@ -144,7 +144,7 @@ export const ProductsSection = ({ onStart }: Props) => {
         </div>
 
         {/* Active product card */}
-        <div className="mt-8 rounded-3xl border border-foreground/8 bg-background/60 backdrop-blur-sm shadow-[0_24px_60px_-30px_rgba(0,0,0,0.3)] overflow-hidden">
+        <div className="mt-8 rounded-3xl border border-foreground/10 bg-background/60 backdrop-blur-sm shadow-[0_24px_60px_-30px_rgba(0,0,0,0.3)] overflow-hidden">
           <div className="grid lg:grid-cols-2 items-stretch">
             {/* Image — hover reveals the original blank product photo from Shopify */}
             <div
@@ -200,7 +200,7 @@ export const ProductsSection = ({ onStart }: Props) => {
                   {(
                     [
                       <div key="badge" className="flex items-center gap-2 mb-3">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/12 text-gold text-[11px] font-semibold tracking-[0.16em] uppercase px-2.5 py-1">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/10 text-gold text-[11px] font-semibold tracking-[0.16em] uppercase px-2.5 py-1">
                           <p.icon className="w-3.5 h-3.5" strokeWidth={2} />
                           {p.tagline}
                         </span>

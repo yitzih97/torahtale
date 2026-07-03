@@ -53,8 +53,8 @@ export const WhyTorahTale = () => {
       className="relative py-20 lg:py-28 overflow-hidden bg-gradient-to-b from-background via-[hsl(42_55%_96%)] to-background"
     >
       <div className="absolute inset-0 pointer-events-none">
-        <motion.div style={{ y: blobY1 }} className="absolute -top-20 left-[8%] w-80 h-80 bg-gold/8 rounded-full blur-3xl" />
-        <motion.div style={{ y: blobY2 }} className="absolute bottom-0 right-[5%] w-96 h-96 bg-primary/8 rounded-full blur-3xl" />
+        <motion.div style={{ y: blobY1 }} className="absolute -top-20 left-[8%] w-80 h-80 bg-gold/10 rounded-full blur-3xl" />
+        <motion.div style={{ y: blobY2 }} className="absolute bottom-0 right-[5%] w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       </div>
 
       <div className="container max-w-6xl mx-auto px-4 relative z-10">
@@ -108,10 +108,10 @@ export const WhyTorahTale = () => {
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.6, delay: (i % 3) * 0.12, ease }}
                 whileHover={{ y: -6 }}
-                className="group relative rounded-3xl border border-foreground/8 bg-background/70 backdrop-blur-sm p-6 lg:p-8 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_50px_-24px_hsl(43_64%_42%/0.45)] hover:border-gold/30 transition-[box-shadow,border-color] duration-500"
+                className="group relative rounded-3xl border border-foreground/10 bg-background/70 backdrop-blur-sm p-6 lg:p-8 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_50px_-24px_hsl(43_64%_42%/0.45)] hover:border-gold/30 transition-[box-shadow,border-color] duration-500"
               >
                 {/* soft gold sheen on hover */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-gold/6 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 <motion.div
                   whileHover={{ rotate: [0, -8, 8, 0], scale: 1.05 }}
                   transition={{ duration: 0.5 }}

@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { BookViewer, type BookPage } from "@/components/wizard/BookViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { generateBookZip } from "@/lib/generateBookZip";
@@ -9,12 +11,18 @@ import { generateBookPdf } from "@/lib/generateBookPdf";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Play, Loader2, CheckCircle2, Save, X,
-  BookOpen, Sparkles, FileDown, Package,
+  Loader2, CheckCircle2, Save, X, RefreshCw, Square,
+  BookOpen, Sparkles, FileDown, Package, PenLine, Image as ImageIcon,
+  AlertTriangle, ChevronRight, Wand2, Baby, Palette, Languages, Layers,
 } from "lucide-react";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 
-type Phase = "idle" | "character" | "story" | "images" | "done";
+type Phase = "idle" | "character" | "story" | "storyReview" | "images" | "done";
+
+/** Per-page illustration status during the images phase. */
+type PageStatus = "pending" | "generating" | "done" | "failed" | "skipped";
+
+const IMAGE_CONCURRENCY = 3;
 
 interface Props {
   open: boolean;
@@ -23,20 +31,37 @@ interface Props {
   onBookUpdated: () => void;
 }
 
+const PAGE_COUNT_CHOICES = [10, 14, 20];
+
 export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }: Props) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [pages, setPages] = useState<BookPage[]>([]);
   const [storyData, setStoryData] = useState<any>(null);
-  const [currentImageIdx, setCurrentImageIdx] = useState(0);
-  const [totalImages, setTotalImages] = useState(0);
   const [statusText, setStatusText] = useState("");
+  const [pageStatuses, setPageStatuses] = useState<PageStatus[]>([]);
+  const [doneImages, setDoneImages] = useState(0);
+  const [pageCount, setPageCount] = useState<number>(0);
   const [saving, setSaving] = useState(false);
   const [downloadingZip, setDownloadingZip] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [confirmRegen, setConfirmRegen] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const abortRef = useRef(false);
   const characterSheetsRef = useRef<Record<string, string>>({});
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedPagesRef = useRef<string>("");
+  const imageDurationsRef = useRef<number[]>([]);
+
+  const sd = useMemo(() => book?.story_data || {}, [book?.story_data]);
+  const childDescriptions: any[] = useMemo(() => sd.childDescriptions || [], [sd.childDescriptions]);
+
+  const bookFormat = useMemo(() => {
+    const opts = sd.bookOptions || {};
+    return opts.productType === "hardcover"
+      ? `hardcover-${opts.hardcoverSize || "8x8"}`
+      : opts.productType === "board" ? "board-6x6"
+      : opts.productType === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
+  }, [sd.bookOptions]);
 
   // Persist pages to the books row (used by both auto-save and manual Save).
   const persistPages = useCallback(
@@ -80,7 +105,6 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       setPages(loaded);
       setPhase("done");
       setStatusText("Book loaded — edits save automatically.");
-      // Prime so the auto-save effect doesn't re-write identical pages on mount.
       lastSavedPagesRef.current = JSON.stringify(loaded);
     } else if (open) {
       setPhase("idle");
@@ -88,74 +112,50 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       setStatusText("");
       lastSavedPagesRef.current = "";
     }
+    if (open) {
+      setConfirmRegen(false);
+      setPageCount(sd.pageCount || 10);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, book?.id]);
 
-  const handleGenerate = useCallback(async () => {
-    if (!book) return;
-    abortRef.current = false;
+  /* ─────────────── Phase 1: character sheets (photo-less children only) ─────────────── */
+
+  const generateCharacterSheets = useCallback(async () => {
     characterSheetsRef.current = {};
+    const needsSheet = childDescriptions.filter((c: any) => !c.photoUrl && !c.hasPhoto);
+    if (needsSheet.length === 0) return;
 
-    const sd = book.story_data || {};
-    const childDescriptions: any[] = sd.childDescriptions || [];
-
-    // ── Phase 1: Character Sheets ──
-    if (childDescriptions.length > 0) {
-      setPhase("character");
-      setStatusText("Creating character reference sheets...");
-
-      for (let i = 0; i < childDescriptions.length; i++) {
-        if (abortRef.current) return;
-        const child = childDescriptions[i];
-        // Page generation now anchors likeness on each child's real photo, so a
-        // character sheet is only needed when there is no photo — skip it (and its
-        // slow gpt-image call) whenever the child has one.
-        if (child.photoUrl || child.hasPhoto) continue;
-        setStatusText(`Creating character sheet for ${child.name} (${i + 1}/${childDescriptions.length})...`);
-
-        try {
-          // Try to get photo URL from child-photos bucket
-          let photoUrl: string | null = null;
-          if (child.photoUrl) {
-            photoUrl = child.photoUrl;
-          } else if (child.hasPhoto && book.child_id) {
-            // Try to find photo in storage (admin can list any user's folder)
-            const { data: files } = await supabase.storage.from("child-photos").list(book.user_id);
-            const match = files?.find((f: any) => f.name.includes(book.child_id) || f.name.includes(child.name.toLowerCase()));
-            if (match) {
-              const { data: signed } = await supabase.storage
-                .from("child-photos")
-                .createSignedUrl(`${book.user_id}/${match.name}`, 60 * 60 * 24);
-              photoUrl = signed?.signedUrl || null;
-            }
-          }
-
-          const { data: sheetData, error: sheetErr } = await supabase.functions.invoke("generate-character-sheet", {
-            body: {
-              childName: child.name,
-              age: child.age || "6",
-              gender: child.gender || "boy",
-              artStyle: book.art_style || "cartoon",
-              description: child.description || "",
-              referenceImage: photoUrl,
-            },
-          });
-
-          if (!sheetErr && sheetData?.imageUrl) {
-            characterSheetsRef.current[child.name] = sheetData.imageUrl;
-          }
-        } catch (err) {
-          console.error(`Failed to generate character sheet for ${child.name}:`, err);
+    setPhase("character");
+    for (let i = 0; i < needsSheet.length; i++) {
+      if (abortRef.current) return;
+      const child = needsSheet[i];
+      setStatusText(`Creating character sheet for ${child.name} (${i + 1}/${needsSheet.length})…`);
+      try {
+        const { data: sheetData, error: sheetErr } = await supabase.functions.invoke("generate-character-sheet", {
+          body: {
+            childName: child.name,
+            age: child.age || "6",
+            gender: child.gender || "boy",
+            artStyle: book.art_style || "cartoon",
+            description: child.description || "",
+            referenceImage: null,
+          },
+        });
+        if (!sheetErr && sheetData?.imageUrl) {
+          characterSheetsRef.current[child.name] = sheetData.imageUrl;
         }
+      } catch (err) {
+        console.error(`Failed to generate character sheet for ${child.name}:`, err);
       }
     }
+  }, [book, childDescriptions]);
 
-    if (abortRef.current) return;
+  /* ─────────────── Phase 2: story ─────────────── */
 
-    // ── Phase 2: Story ──
+  const generateStory = useCallback(async (): Promise<BookPage[] | null> => {
     setPhase("story");
-    setStatusText("Generating story text...");
-    setPages([]);
-
+    setStatusText("Writing the story…");
     try {
       const portionLabel = book.torah_portion ? getPortionDisplay(book.torah_portion, "en") : "";
       const { data: storyResult, error: storyErr } = await supabase.functions.invoke("generate-story", {
@@ -168,143 +168,185 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           torahPortionLabel: portionLabel || book.torah_portion,
           artStyle: book.art_style,
           language: book.language || "english",
-          pageCount: sd.pageCount || 20,
+          pageCount,
         },
       });
       if (storyErr) throw storyErr;
-      if (abortRef.current) return;
+      if (abortRef.current) return null;
 
       setStoryData(storyResult);
       const cover = storyResult.cover || { title: `${book.child_name}'s Torah Adventure`, subtitle: "" };
-      // Back-cover synopsis/dedication kept on storyData metadata only — no separate page.
       const questions = storyResult.backCover?.questions || storyResult.questions || [];
 
       let pageId = 0;
       const allPages: BookPage[] = [];
-
-      // Cover page
       allPages.push({
-        id: pageId++, text: cover.title, image: null, imageLoading: true,
+        id: pageId++, text: cover.title, image: null, imageLoading: false,
         type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle,
       });
-
-      // Story pages (all except the last one)
-      const storyPages = storyResult.pages || [];
-      for (const p of storyPages) {
-        allPages.push({ id: pageId++, text: p.text, image: null, imageLoading: true, type: "story" });
+      for (const p of storyResult.pages || []) {
+        allPages.push({ id: pageId++, text: p.text, image: null, imageLoading: false, type: "story" });
       }
-
-      // Questions page (last inner page before back cover)
       if (questions.length > 0) {
         const questionsText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
-        // The questions page renders on a clean, empty parchment page (no
-        // illustration), so it needs no generated image.
         allPages.push({
           id: pageId++, text: questionsText, image: null, imageLoading: false,
           type: "questions", questions,
         });
       }
-
-      // NOTE: no separate back-cover page. The cover spread renders front + back together.
-      // Synopsis/dedication metadata is preserved on story_data only.
-
       setPages(allPages);
-
-      // ── Phase 3: Images ──
-      setPhase("images");
-      setTotalImages(allPages.length);
-      setCurrentImageIdx(0);
-
-      const styleMap: Record<string, string> = {
-        cartoon: "colorful cartoon illustration, soft watercolor textures, children's book style",
-        "3d-pixar": "3D Pixar-style CGI render, warm lighting, soft shadows",
-        realistic: "photorealistic illustration, natural lighting, lifelike detail, warm cinematic tones",
-      };
-      const style = styleMap[book.art_style] || styleMap.cartoon;
-
-      const bookOpts = sd.bookOptions || {};
-      const productType = bookOpts.productType || "softcover";
-      const hardcoverSize = bookOpts.hardcoverSize || "8x8";
-      const bookFormat = productType === "hardcover"
-        ? `hardcover-${hardcoverSize}`
-        : productType === "board" ? "board-6x6"
-        : productType === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
-
-      // Send ALL children's character sheets + photos + descriptions so every kid stays consistent
-      const characterSheetsMap = { ...characterSheetsRef.current };
-      const childRefs = childDescriptions.map((c: any) => ({
-        name: c.name,
-        age: c.age,
-        gender: c.gender,
-        description: c.description || "",
-        photoUrl: c.photoUrl || null,
-        characterSheet: characterSheetsRef.current[c.name] || null,
-      }));
-
-      // Back-compat: primary child
-      const primaryChildName = childDescriptions[0]?.name || book.child_name;
-      const primaryCharacterSheet = characterSheetsRef.current[primaryChildName] || null;
-      const primaryChildDesc = childDescriptions[0]?.description || "";
-      const primaryChildPhoto = childDescriptions[0]?.photoUrl || null;
-
-      // Track the story-page index (1-based, excluding cover) so admin per-page templates match
-      let storyPageNumber = 0;
-
-      for (let i = 0; i < allPages.length; i++) {
-        if (abortRef.current) return;
-        setCurrentImageIdx(i);
-        const pg = allPages[i];
-
-        // The questions page is a clean empty parchment page — skip image gen.
-        if (pg.type === "questions") continue;
-
-        setStatusText(`Generating image ${i + 1} of ${allPages.length}...`);
-
-        const pageType = pg.type; // keep "cover" | "back-cover" | "questions" | "story" intact
-        let pageNumber: number | undefined;
-        if (pg.type === "story") {
-          storyPageNumber += 1;
-          pageNumber = storyPageNumber;
-        }
-
-        try {
-          // Do NOT pass `prompt` — let the edge function honor admin per-page templates,
-          // global image-prompt-template, and master rules.
-          const { data: imgData } = await supabase.functions.invoke("generate-image", {
-            body: {
-              childName: book.child_name,
-              artStyle: book.art_style,
-              torahPortion: book.torah_portion,
-              bookFormat,
-              pageType,
-              pageNumber,
-              characterSheet: primaryCharacterSheet,
-              referenceImage: primaryChildPhoto,
-              childDescription: primaryChildDesc,
-              characterSheets: characterSheetsMap,
-              childRefs,
-              pageText: pg.text,
-            },
-          });
-          allPages[i] = { ...allPages[i], image: imgData?.imageUrl || null, imageLoading: false };
-        } catch {
-          allPages[i] = { ...allPages[i], image: null, imageLoading: false };
-        }
-        setPages([...allPages]);
-      }
-
-      setPhase("done");
-      setStatusText("Generation complete! Saved automatically — edits keep saving as you make them.");
-      // Fire-and-forget immediate save so the freshly generated book is persisted
-      // even before any edit triggers the debounced auto-save effect.
-      persistPages(allPages, storyResult);
-      toast.success("Book generated and saved.");
+      return allPages;
     } catch (err: any) {
-      toast.error(err?.message || "Generation failed");
+      toast.error(err?.message || "Story generation failed");
       setPhase("idle");
       setStatusText("");
+      return null;
     }
-  }, [book, persistPages]);
+  }, [book, sd.childrenInfo, childDescriptions, pageCount]);
+
+  /* ─────────────── Phase 3: illustrations (concurrent worker pool) ─────────────── */
+
+  const buildImageBody = useCallback((pg: BookPage, pageNumber?: number) => {
+    const characterSheetsMap = { ...characterSheetsRef.current };
+    const childRefs = childDescriptions.map((c: any) => ({
+      name: c.name,
+      age: c.age,
+      gender: c.gender,
+      description: c.description || "",
+      photoUrl: c.photoUrl || null,
+      characterSheet: characterSheetsRef.current[c.name] || null,
+    }));
+    const primaryChildName = childDescriptions[0]?.name || book.child_name;
+    return {
+      childName: book.child_name,
+      artStyle: book.art_style,
+      torahPortion: book.torah_portion,
+      bookFormat,
+      pageType: pg.type,
+      pageNumber,
+      characterSheet: characterSheetsRef.current[primaryChildName] || null,
+      referenceImage: childDescriptions[0]?.photoUrl || null,
+      childDescription: childDescriptions[0]?.description || "",
+      characterSheets: characterSheetsMap,
+      childRefs,
+      pageText: pg.text,
+    };
+  }, [book, childDescriptions, bookFormat]);
+
+  const illustratePages = useCallback(async (allPages: BookPage[], onlyIndices?: number[]) => {
+    setPhase("images");
+    imageDurationsRef.current = [];
+
+    // Story-page numbering (1-based, excluding cover) for admin per-page templates.
+    const storyNumbers = new Map<number, number>();
+    let n = 0;
+    allPages.forEach((pg, i) => {
+      if (pg.type === "story") storyNumbers.set(i, ++n);
+    });
+
+    const targets = (onlyIndices ?? allPages.map((_, i) => i)).filter((i) => allPages[i].type !== "questions");
+    const statuses: PageStatus[] = allPages.map((pg, i) =>
+      pg.type === "questions" ? "skipped" : targets.includes(i) ? "pending" : pg.image ? "done" : "pending"
+    );
+    setPageStatuses([...statuses]);
+    setDoneImages(statuses.filter((s) => s === "done").length);
+
+    const working = [...allPages];
+    const queue = [...targets];
+
+    const worker = async () => {
+      while (queue.length > 0) {
+        if (abortRef.current) return;
+        const idx = queue.shift()!;
+        statuses[idx] = "generating";
+        setPageStatuses([...statuses]);
+        const t0 = Date.now();
+        try {
+          // Do NOT pass `prompt` — the edge function honors admin per-page
+          // templates, the global image-prompt-template, and master rules.
+          const { data: imgData } = await supabase.functions.invoke("generate-image", {
+            body: buildImageBody(working[idx], storyNumbers.get(idx)),
+          });
+          const url = imgData?.imageUrl || null;
+          working[idx] = { ...working[idx], image: url, imageLoading: false };
+          statuses[idx] = url ? "done" : "failed";
+        } catch {
+          working[idx] = { ...working[idx], image: working[idx].image || null, imageLoading: false };
+          statuses[idx] = "failed";
+        }
+        imageDurationsRef.current.push(Date.now() - t0);
+        setPageStatuses([...statuses]);
+        setDoneImages(statuses.filter((s) => s === "done").length);
+        setPages([...working]);
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(IMAGE_CONCURRENCY, targets.length) }, worker));
+
+    const failed = statuses.filter((s) => s === "failed").length;
+    setPhase("done");
+    setStatusText(
+      abortRef.current
+        ? "Generation stopped — progress saved. You can resume by retrying the remaining pages."
+        : failed > 0
+          ? `Illustrations complete with ${failed} failed page${failed > 1 ? "s" : ""} — retry them below.`
+          : "Book generated and saved — edits keep saving automatically."
+    );
+    persistPages(working, storyData);
+    if (!abortRef.current) {
+      if (failed > 0) toast.warning(`${failed} page(s) failed — use "Retry failed pages".`);
+      else toast.success("Book generated and saved.");
+    }
+    return working;
+  }, [buildImageBody, persistPages, storyData]);
+
+  /* ─────────────── Flows ─────────────── */
+
+  // Recommended flow: character sheets → story → PAUSE for text review.
+  const handleGenerateStory = useCallback(async () => {
+    if (!book) return;
+    abortRef.current = false;
+    await generateCharacterSheets();
+    if (abortRef.current) return;
+    const result = await generateStory();
+    if (result) {
+      setPhase("storyReview");
+      setStatusText("");
+    }
+  }, [book, generateCharacterSheets, generateStory]);
+
+  // One-shot flow: everything without the review pause.
+  const handleGenerateFull = useCallback(async () => {
+    if (!book) return;
+    abortRef.current = false;
+    await generateCharacterSheets();
+    if (abortRef.current) return;
+    const result = await generateStory();
+    if (!result || abortRef.current) return;
+    await illustratePages(result);
+  }, [book, generateCharacterSheets, generateStory, illustratePages]);
+
+  const handleIllustrateReviewed = useCallback(async () => {
+    abortRef.current = false;
+    await illustratePages(pages);
+  }, [illustratePages, pages]);
+
+  const handleRetryFailed = useCallback(async () => {
+    const failedIdx = pages
+      .map((p, i) => ({ p, i }))
+      .filter(({ p }) => p.type !== "questions" && !p.image)
+      .map(({ i }) => i);
+    if (failedIdx.length === 0) return;
+    setRetrying(true);
+    abortRef.current = false;
+    await illustratePages(pages, failedIdx);
+    setRetrying(false);
+  }, [pages, illustratePages]);
+
+  const handleStop = () => {
+    abortRef.current = true;
+    setStatusText("Stopping after the pages currently in flight…");
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -336,7 +378,6 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         updated_at: new Date().toISOString(),
       } as any).eq("id", book.id);
 
-      // Auto-submit to Printify
       try {
         const { data: printifyResult, error: printifyErr } = await supabase.functions.invoke("printify-submit", {
           body: { action: "submit-order", bookId: book.id },
@@ -399,39 +440,99 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     finally { setDownloadingPdf(false); }
   };
 
-  const progressPercent = phase === "character" ? 3
-    : phase === "story" ? 8
-    : phase === "images" ? Math.round(10 + (currentImageIdx / Math.max(totalImages, 1)) * 85)
-    : phase === "done" ? 100 : 0;
-
   const handleClose = () => {
     abortRef.current = true;
     onClose();
   };
 
+  /* ─────────────── Derived UI state ─────────────── */
+
+  const illustratable = pages.filter((p) => p.type !== "questions").length;
+  const failedCount = phase === "done" ? pages.filter((p) => p.type !== "questions" && !p.image).length : 0;
+
+  const progressPercent =
+    phase === "character" ? 4
+    : phase === "story" ? 10
+    : phase === "storyReview" ? 15
+    : phase === "images" ? Math.round(15 + (doneImages / Math.max(illustratable, 1)) * 85)
+    : phase === "done" ? 100 : 0;
+
+  const etaText = useMemo(() => {
+    if (phase !== "images" || imageDurationsRef.current.length === 0) return "";
+    const avg = imageDurationsRef.current.reduce((a, b) => a + b, 0) / imageDurationsRef.current.length;
+    const remaining = Math.max(illustratable - doneImages, 0);
+    const secs = Math.round((avg * remaining) / IMAGE_CONCURRENCY / 1000);
+    if (secs <= 0) return "";
+    return secs >= 60 ? `~${Math.ceil(secs / 60)} min left` : `~${secs}s left`;
+  }, [phase, doneImages, illustratable]);
+
+  const STEPS: { key: Phase[]; label: string; icon: typeof PenLine }[] = [
+    { key: ["idle", "character"], label: "Setup", icon: Baby },
+    { key: ["story"], label: "Story", icon: PenLine },
+    { key: ["storyReview"], label: "Review Text", icon: BookOpen },
+    { key: ["images"], label: "Illustrate", icon: ImageIcon },
+    { key: ["done"], label: "Finish", icon: CheckCircle2 },
+  ];
+  const activeStep = STEPS.findIndex((s) => s.key.includes(phase));
+
+  const summaryChips = [
+    { icon: Baby, label: book?.child_name },
+    { icon: BookOpen, label: book?.torah_portion ? getPortionDisplay(book.torah_portion, "en") || book.torah_portion : "—" },
+    { icon: Palette, label: book?.art_style, cap: true },
+    { icon: Languages, label: book?.language || "english", cap: true },
+    { icon: Layers, label: bookFormat.replace("-", " · ") },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between rounded-t-3xl">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-accent" />
+        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 rounded-t-3xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+                <BookOpen className="w-5 h-5 text-accent" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="font-display text-lg font-bold text-primary truncate">
+                  {book?.child_name}'s Book — {book?.torah_portion}
+                </h2>
+                <p className="text-xs text-muted-foreground capitalize">{book?.art_style} style · {book?.language || "english"}</p>
+              </div>
             </div>
-            <div>
-              <h2 className="font-display text-lg font-bold text-primary">
-                {book?.child_name}'s Book — {book?.torah_portion}
-              </h2>
-              <p className="text-xs text-muted-foreground capitalize">{book?.art_style} style</p>
+
+            {/* Phase stepper */}
+            <div className="hidden md:flex items-center gap-1 mx-4">
+              {STEPS.map((s, i) => {
+                const state = i < activeStep ? "past" : i === activeStep ? "active" : "future";
+                return (
+                  <div key={s.label} className="flex items-center gap-1">
+                    <div
+                      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                        state === "active"
+                          ? "bg-accent/15 text-accent"
+                          : state === "past"
+                            ? "text-green-600"
+                            : "text-muted-foreground/50"
+                      }`}
+                    >
+                      {state === "past" ? <CheckCircle2 className="w-3.5 h-3.5" /> : <s.icon className="w-3.5 h-3.5" />}
+                      {s.label}
+                    </div>
+                    {i < STEPS.length - 1 && <ChevronRight className="w-3 h-3 text-muted-foreground/30" />}
+                  </div>
+                );
+              })}
             </div>
+
+            <button onClick={handleClose} className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0">
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button onClick={handleClose} className="text-muted-foreground hover:text-foreground transition-colors">
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Progress bar */}
+          {/* Progress bar (any generating phase) */}
           <AnimatePresence>
             {(phase === "character" || phase === "story" || phase === "images") && (
               <motion.div
@@ -440,36 +541,200 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 exit={{ opacity: 0, height: 0 }}
                 className="space-y-3"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-accent animate-pulse" />
-                    <span className="text-sm font-medium text-primary">{statusText}</span>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Sparkles className="w-4 h-4 text-accent animate-pulse flex-shrink-0" />
+                    <span className="text-sm font-medium text-primary truncate">{statusText}</span>
                   </div>
-                  <span className="text-xs font-mono text-muted-foreground">{progressPercent}%</span>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {phase === "images" && (
+                      <span className="text-xs text-muted-foreground">
+                        {doneImages}/{illustratable} pages{etaText ? ` · ${etaText}` : ""}
+                      </span>
+                    )}
+                    <span className="text-xs font-mono text-muted-foreground">{progressPercent}%</span>
+                    <Button variant="outline" size="sm" onClick={handleStop} className="gap-1.5 rounded-lg h-7 px-2.5 text-xs">
+                      <Square className="w-3 h-3" /> Stop
+                    </Button>
+                  </div>
                 </div>
                 <Progress value={progressPercent} className="h-2" />
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Idle state */}
+          {/* ── Setup / idle ── */}
           {phase === "idle" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12 space-y-4">
-              <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
-                <Play className="w-8 h-8 text-accent" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-6 space-y-6">
+              {/* Book summary */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {summaryChips.map((c, i) => (
+                  <span key={i} className={`inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-xs font-medium text-foreground/80 ${c.cap ? "capitalize" : ""}`}>
+                    <c.icon className="w-3.5 h-3.5 text-accent" /> {c.label}
+                  </span>
+                ))}
               </div>
-              <h3 className="font-display text-xl font-bold text-primary">Ready to Generate</h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                This will generate character sheets, story text, and all illustrations. You'll see each page appear in real-time.
+
+              {/* Page count */}
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">Story pages:</span>
+                {PAGE_COUNT_CHOICES.map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setPageCount(n)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold border transition-colors ${
+                      pageCount === n
+                        ? "border-accent bg-accent/10 text-accent"
+                        : "border-border/60 text-muted-foreground hover:border-accent/40"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+
+              {/* Two flows */}
+              <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                <button
+                  onClick={handleGenerateStory}
+                  className="group text-left rounded-2xl border-2 border-accent/50 bg-accent/5 p-5 hover:border-accent hover:shadow-lg transition-all"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+                      <PenLine className="w-4 h-4 text-accent" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-accent bg-accent/10 rounded-full px-2 py-0.5">Recommended</span>
+                  </div>
+                  <p className="font-display font-bold text-foreground">Write story first, review, then illustrate</p>
+                  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                    Generate the story text, proofread and edit every page, then illustrate. Catches text issues before spending on images — the top-quality path.
+                  </p>
+                </button>
+
+                <button
+                  onClick={handleGenerateFull}
+                  className="group text-left rounded-2xl border border-border/60 bg-card/50 p-5 hover:border-accent/40 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
+                      <Wand2 className="w-4 h-4 text-foreground/70" />
+                    </div>
+                  </div>
+                  <p className="font-display font-bold text-foreground">Generate everything in one go</p>
+                  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                    Story and all illustrations without pausing. Fastest path — review and fix pages at the end.
+                  </p>
+                </button>
+              </div>
+
+              <p className="text-center text-[11px] text-muted-foreground">
+                Illustrations run {IMAGE_CONCURRENCY} at a time · every page can be regenerated individually afterwards · progress auto-saves
               </p>
-              <Button variant="gold" size="lg" onClick={handleGenerate} className="gap-2 rounded-2xl">
-                <Sparkles className="w-4 h-4" /> Start Generation
-              </Button>
             </motion.div>
           )}
 
-          {/* Book viewer */}
-          {pages.length > 0 && (
+          {/* ── Story text review ── */}
+          {phase === "storyReview" && pages.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+              <div className="flex items-center gap-2 p-3 rounded-2xl bg-accent/10 border border-accent/25">
+                <PenLine className="w-4 h-4 text-accent flex-shrink-0" />
+                <p className="text-sm text-foreground/80">
+                  <span className="font-semibold">Proofread before illustrating.</span> Fix names, nusach, and flow now — each page's text also guides its illustration.
+                </p>
+              </div>
+
+              <div className="space-y-3 max-h-[46vh] overflow-y-auto pr-1">
+                {pages.map((pg, i) => (
+                  <div key={pg.id} className="rounded-2xl border border-border/50 bg-card/40 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">
+                      {pg.type === "cover" ? "Cover" : pg.type === "questions" ? "Review Questions (auto page)" : `Page ${i}`}
+                    </p>
+                    {pg.type === "cover" ? (
+                      <div className="space-y-2">
+                        <Input
+                          value={pg.coverTitle || ""}
+                          onChange={(e) => {
+                            const next = [...pages];
+                            next[i] = { ...pg, coverTitle: e.target.value, text: e.target.value };
+                            setPages(next);
+                          }}
+                          className="rounded-xl font-display font-bold"
+                          placeholder="Cover title"
+                        />
+                        <Input
+                          value={pg.coverSubtitle || ""}
+                          onChange={(e) => {
+                            const next = [...pages];
+                            next[i] = { ...pg, coverSubtitle: e.target.value };
+                            setPages(next);
+                          }}
+                          className="rounded-xl text-sm"
+                          placeholder="Cover subtitle"
+                        />
+                      </div>
+                    ) : pg.type === "questions" ? (
+                      <p className="text-xs text-muted-foreground whitespace-pre-line">{pg.text}</p>
+                    ) : (
+                      <Textarea
+                        value={pg.text}
+                        onChange={(e) => {
+                          const next = [...pages];
+                          next[i] = { ...pg, text: e.target.value };
+                          setPages(next);
+                        }}
+                        className="rounded-xl text-sm min-h-[72px]"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <Button variant="ghost" size="sm" onClick={handleGenerateStory} className="gap-1.5 text-xs text-muted-foreground">
+                  <RefreshCw className="w-3 h-3" /> Rewrite story from scratch
+                </Button>
+                <Button variant="gold" size="lg" onClick={handleIllustrateReviewed} className="gap-2 rounded-2xl w-full sm:w-auto">
+                  <ImageIcon className="w-4 h-4" /> Illustrate {illustratable} pages
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Live page grid during illustration ── */}
+          {phase === "images" && pages.length > 0 && (
+            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+              {pages.map((pg, i) => {
+                const st = pageStatuses[i] || "pending";
+                return (
+                  <div
+                    key={pg.id}
+                    className={`relative aspect-square rounded-xl overflow-hidden border text-center ${
+                      st === "failed" ? "border-red-400/60 bg-red-50" : "border-border/50 bg-muted/40"
+                    }`}
+                  >
+                    {pg.image ? (
+                      <img src={pg.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                        {st === "generating" && <Loader2 className="w-4 h-4 animate-spin text-accent" />}
+                        {st === "failed" && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                        {st === "skipped" && <BookOpen className="w-4 h-4 text-muted-foreground/40" />}
+                        <span className="text-[9px] text-muted-foreground">
+                          {pg.type === "cover" ? "Cover" : pg.type === "questions" ? "Q&A" : `p.${i}`}
+                        </span>
+                      </div>
+                    )}
+                    {st === "generating" && !pg.image && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-sheen" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── Book viewer (review/done) ── */}
+          {(phase === "done") && pages.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <BookViewer
                 childName={book?.child_name || ""}
@@ -479,21 +744,12 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 onPagesChange={setPages}
                 editable
                 generationContext={{
-                  childDescription: (book.story_data?.childDescriptions || [])[0]?.description || "",
-                  referenceImage: (book.story_data?.childDescriptions || [])[0]?.photoUrl || null,
-                  characterSheet: characterSheetsRef.current[(book.story_data?.childDescriptions || [])[0]?.name || book?.child_name] || null,
+                  childDescription: childDescriptions[0]?.description || "",
+                  referenceImage: childDescriptions[0]?.photoUrl || null,
+                  characterSheet: characterSheetsRef.current[childDescriptions[0]?.name || book?.child_name] || null,
                   characterSheets: { ...characterSheetsRef.current },
-                  bookFormat: (() => {
-                    const opts = book.story_data?.bookOptions || {};
-                    return opts.productType === "hardcover"
-                      ? `hardcover-${opts.hardcoverSize || "8x8"}`
-                      : opts.productType === "board"
-                        ? "board-6x6"
-                        : opts.productType === "coloring"
-                          ? "coloring-8.5x11"
-                          : "softcover-8x8";
-                  })(),
-                  childRefs: (book.story_data?.childDescriptions || []).map((c: any) => ({
+                  bookFormat,
+                  childRefs: childDescriptions.map((c: any) => ({
                     name: c.name,
                     age: c.age,
                     gender: c.gender,
@@ -506,20 +762,42 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             </motion.div>
           )}
 
-          {/* Done state */}
+          {/* ── Done state ── */}
           {phase === "done" && pages.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-              <div className="flex items-center gap-2 p-3 rounded-2xl bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-300">{statusText}</span>
+              <div className={`flex items-center justify-between gap-3 p-3 rounded-2xl border ${
+                failedCount > 0
+                  ? "bg-amber-50 dark:bg-amber-950 border-amber-300 dark:border-amber-800"
+                  : "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"
+              }`}>
+                <div className="flex items-center gap-2 min-w-0">
+                  {failedCount > 0
+                    ? <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                    : <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />}
+                  <span className={`text-sm font-medium ${failedCount > 0 ? "text-amber-700 dark:text-amber-300" : "text-green-700 dark:text-green-300"}`}>
+                    {statusText || `${pages.length} pages · ${pages.filter((p) => p.image).length} illustrated`}
+                  </span>
+                </div>
+                {failedCount > 0 && (
+                  <Button size="sm" onClick={handleRetryFailed} disabled={retrying} className="gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white flex-shrink-0">
+                    {retrying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                    Retry {failedCount} failed
+                  </Button>
+                )}
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <Button variant="outline" onClick={handleSave} disabled={saving} className="gap-2 rounded-xl">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
                 </Button>
-                <Button variant="default" onClick={handleApprove} disabled={saving} className="gap-2 rounded-xl bg-green-600 hover:bg-green-700 text-white">
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Approve
+                <Button
+                  variant="default"
+                  onClick={handleApprove}
+                  disabled={saving || failedCount > 0}
+                  title={failedCount > 0 ? "Fix failed pages before approving" : undefined}
+                  className="gap-2 rounded-xl bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Approve & Print
                 </Button>
                 <Button variant="outline" onClick={handleDownloadZip} disabled={downloadingZip} className="gap-2 rounded-xl">
                   {downloadingZip ? <Loader2 className="w-4 h-4 animate-spin" /> : <Package className="w-4 h-4" />} ZIP
@@ -530,9 +808,21 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               </div>
 
               <div className="text-center">
-                <Button variant="ghost" size="sm" onClick={handleGenerate} className="text-xs text-muted-foreground gap-1.5">
-                  <Sparkles className="w-3 h-3" /> Re-generate entire book
-                </Button>
+                {confirmRegen ? (
+                  <div className="inline-flex items-center gap-2 rounded-xl border border-red-300 bg-red-50 dark:bg-red-950 px-3 py-2">
+                    <span className="text-xs text-red-700 dark:text-red-300 font-medium">Overwrite the entire book?</span>
+                    <Button size="sm" variant="destructive" className="h-7 rounded-lg text-xs" onClick={() => { setConfirmRegen(false); handleGenerateStory(); }}>
+                      Yes, regenerate
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs" onClick={() => setConfirmRegen(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="ghost" size="sm" onClick={() => setConfirmRegen(true)} className="text-xs text-muted-foreground gap-1.5">
+                    <Sparkles className="w-3 h-3" /> Re-generate entire book
+                  </Button>
+                )}
               </div>
             </motion.div>
           )}
