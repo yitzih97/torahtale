@@ -75,6 +75,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   return (
     <>
       <section className="relative overflow-hidden bg-[hsl(42_60%_96%)]" dir={dir}>
+        {/* Hero visual wrapper — keeps the background images above the opaque trust bar
+            so the book at the bottom of the image is never covered by it. */}
+        <div className="relative overflow-hidden">
         {/* Desktop: wide image (kids+book on one side, copy space the other), mirrored for LTR. */}
         <div className="hidden lg:block absolute inset-0 overflow-hidden">
           <div className="absolute inset-0" style={{ transform: isRtl ? undefined : "scaleX(-1)" }}>
@@ -167,6 +170,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
 
             <div className="hidden lg:block lg:min-h-[600px]" />
           </div>
+        </div>
         </div>
 
         {/* Trust bar */}
