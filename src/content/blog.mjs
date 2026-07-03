@@ -15,90 +15,109 @@
  * @property {string} bodyHtml
  */
 
-// Self-contained animated "screencast" of the 5-step book wizard. Pure inline
-// SVG + CSS keyframes — no external assets, so it renders identically in the
-// React pages and the static prerender. Reused across articles with a tailored
-// caption. Prefixed .ttw classes; falls back to a static first step when the
-// reader prefers reduced motion.
-const WIZARD_DEMO = (caption) => `
-<figure class="ttw" role="group" aria-label="Animation of the five steps to create a personalized Torah storybook">
-  <svg viewBox="0 0 680 384" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true" style="width:100%;height:auto;display:block">
-    <style>
-      .ttw svg{font-family:'Inter',system-ui,-apple-system,sans-serif}
-      .ttw .cap{fill:#9aa0a8;font-size:13px;letter-spacing:.4px}
-      .ttw .h{fill:#30353f}
-      .ttw .mut{fill:#6b7280}
-      .ttw .scr{opacity:0;animation:ttwShow 17.5s infinite}
-      .ttw .s1{animation-delay:0s}.ttw .s2{animation-delay:3.5s}.ttw .s3{animation-delay:7s}.ttw .s4{animation-delay:10.5s}.ttw .s5{animation-delay:14s}
-      @keyframes ttwShow{0%{opacity:0}1.5%{opacity:1}18.5%{opacity:1}20%{opacity:0}100%{opacity:0}}
-      .ttw .bar{animation:ttwBar 17.5s infinite}
-      @keyframes ttwBar{0%,20%{width:112px}20.01%,40%{width:229px}40.01%,60%{width:346px}60.01%,80%{width:463px}80.01%,100%{width:580px}}
-      @media (prefers-reduced-motion:reduce){.ttw .scr{animation:none}.ttw .s1{opacity:1}.ttw .bar{animation:none;width:112px}}
-    </style>
-    <rect x="8" y="8" width="664" height="368" rx="18" fill="#fbfcfd" stroke="#e8eaed"/>
-    <circle cx="34" cy="38" r="5" fill="#eab7b0"/><circle cx="52" cy="38" r="5" fill="#efd39a"/><circle cx="70" cy="38" r="5" fill="#bcd8b0"/>
-    <rect x="214" y="27" width="252" height="22" rx="11" fill="#f0f2f4"/>
-    <text x="340" y="42" text-anchor="middle" class="mut" font-size="12">torahtale.com/create</text>
-    <line x1="8" y1="62" x2="672" y2="62" stroke="#eef0f2"/>
-    <text x="340" y="94" text-anchor="middle" class="h" font-size="22" font-weight="700" font-family="'Playfair Display',Georgia,serif">Create Your Book</text>
-    <rect x="50" y="112" width="580" height="8" rx="4" fill="#edeff2"/>
-    <rect class="bar" x="50" y="112" width="112" height="8" rx="4" fill="#F1B527"/>
-    <!-- Step 1: name -->
-    <g class="scr s1">
-      <text x="340" y="162" text-anchor="middle" class="cap">STEP 1 · WHO IS IT FOR?</text>
-      <rect x="196" y="196" width="288" height="56" rx="12" fill="#ffffff" stroke="#e2e5e9"/>
-      <text x="216" y="223" class="mut" font-size="10" letter-spacing="1">CHILD'S NAME</text>
-      <text x="216" y="243" class="h" font-size="19" font-weight="600">Adina</text>
-      <rect x="279" y="222" width="2" height="22" fill="#F1B527"/>
-    </g>
-    <!-- Step 2: photo -->
-    <g class="scr s2">
-      <text x="340" y="162" text-anchor="middle" class="cap">STEP 2 · ADD A PHOTO</text>
-      <rect x="290" y="182" width="100" height="100" rx="18" fill="#FCEFCF"/>
-      <circle cx="340" cy="226" r="24" fill="#F1B527" opacity="0.55"/>
-      <circle cx="340" cy="258" r="20" fill="#F1B527" opacity="0.35"/>
-      <circle cx="383" cy="190" r="13" fill="#3BA55D"/>
-      <path d="M377 190 l4 4 l8 -8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-      <text x="340" y="304" text-anchor="middle" class="mut" font-size="13">Clear &amp; front-facing ✓</text>
-    </g>
-    <!-- Step 3: parsha -->
-    <g class="scr s3">
-      <text x="340" y="162" text-anchor="middle" class="cap">STEP 3 · CHOOSE THE PARSHA</text>
-      <rect x="150" y="182" width="380" height="96" rx="14" fill="#FFF9EC" stroke="#F1B527" stroke-opacity="0.55"/>
-      <text x="176" y="212" class="h" font-size="11" font-weight="700" letter-spacing="1" fill="#B67B0A">✦ THIS WEEK'S PARSHA</text>
-      <text x="176" y="240" class="h" font-size="21" font-weight="700" font-family="'Playfair Display',Georgia,serif">Parshas Matos-Masei</text>
-      <rect x="176" y="252" width="168" height="18" rx="9" fill="#F6E7C4"/>
-      <text x="184" y="265" class="mut" font-size="11">Next parsha in 5d 21h</text>
-    </g>
-    <!-- Step 4: style -->
-    <g class="scr s4">
-      <text x="340" y="162" text-anchor="middle" class="cap">STEP 4 · PICK THE ART STYLE</text>
-      <g>
-        <rect x="163" y="184" width="110" height="86" rx="12" fill="#f5f6f8"/>
-        <circle cx="218" cy="218" r="20" fill="#cbd2da"/>
-        <text x="218" y="260" text-anchor="middle" class="mut" font-size="12">Cartoon</text>
-      </g>
-      <g>
-        <rect x="285" y="184" width="110" height="86" rx="12" fill="#FFF9EC" stroke="#F1B527" stroke-width="2"/>
-        <circle cx="340" cy="218" r="20" fill="#F1B527"/>
-        <text x="340" y="260" text-anchor="middle" class="h" font-size="12" font-weight="700">3D Pixar</text>
-      </g>
-      <g>
-        <rect x="407" y="184" width="110" height="86" rx="12" fill="#f5f6f8"/>
-        <circle cx="462" cy="218" r="20" fill="#cbd2da"/>
-        <text x="462" y="260" text-anchor="middle" class="mut" font-size="12">Realistic</text>
-      </g>
-    </g>
-    <!-- Step 5: generate -->
-    <g class="scr s5">
-      <text x="340" y="162" text-anchor="middle" class="cap">STEP 5 · CREATE THE BOOK</text>
-      <rect x="210" y="206" width="260" height="56" rx="28" fill="#F1B527"/>
-      <text x="340" y="241" text-anchor="middle" font-size="18" font-weight="700" fill="#3a2c05">Generate Book ✨</text>
-    </g>
-  </svg>
-  <figcaption style="text-align:center;font-size:.85rem;color:hsl(var(--muted-foreground));margin-top:.6rem">${caption}</figcaption>
-</figure>
-`;
+// Per-step animations for the blog articles. Each is a small, self-contained
+// inline SVG + CSS-keyframes clip illustrating ONE step of the flow. No external
+// assets, so they render identically in the React pages and the static
+// prerender. Unique aN- prefixes let all five sit on the same page without
+// keyframe collisions; each freezes gracefully under prefers-reduced-motion.
+const FIG = (svg) => `<figure aria-hidden="true" style="margin:1.15rem 0"><svg viewBox="0 0 440 150" xmlns="http://www.w3.org/2000/svg" role="img" style="width:100%;max-width:440px;height:auto;display:block;margin:0 auto;font-family:'Inter',system-ui,-apple-system,sans-serif">${svg}</svg></figure>`;
+
+// Step 1 — name types in + photo pops with a check
+const ANIM_NAME = FIG(`
+  <style>
+    @keyframes a1caret{0%,50%{opacity:1}51%,100%{opacity:0}}
+    @keyframes a1pop{0%,8%{transform:scale(.5);opacity:0}22%,100%{transform:scale(1);opacity:1}}
+    @keyframes a1chk{0%,42%{transform:scale(0)}54%{transform:scale(1.25)}62%,100%{transform:scale(1)}}
+    .a1c{animation:a1caret 1s steps(1) infinite}
+    .a1p{transform-box:fill-box;transform-origin:center;animation:a1pop 4s ease-in-out infinite}
+    .a1k{transform-box:fill-box;transform-origin:center;animation:a1chk 4s ease-in-out infinite}
+    @media(prefers-reduced-motion:reduce){.a1c,.a1p,.a1k{animation:none}.a1p,.a1k{transform:none;opacity:1}}
+  </style>
+  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
+  <text x="30" y="46" fill="#9aa0a8" font-size="10" letter-spacing="1">CHILD'S NAME</text>
+  <rect x="28" y="56" width="212" height="44" rx="10" fill="#fff" stroke="#e2e5e9"/>
+  <text x="44" y="84" fill="#30353f" font-size="18" font-weight="600">Adina</text>
+  <rect class="a1c" x="103" y="66" width="2" height="24" fill="#F1B527"/>
+  <g class="a1p">
+    <rect x="300" y="34" width="96" height="82" rx="14" fill="#FCEFCF"/>
+    <circle cx="348" cy="72" r="19" fill="#F1B527" opacity=".55"/>
+    <circle cx="348" cy="104" r="15" fill="#F1B527" opacity=".33"/>
+  </g>
+  <g class="a1k"><circle cx="392" cy="40" r="12" fill="#3BA55D"/><path d="M386 40 l4 4 l8 -8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>
+`);
+
+// Step 2 — a gold selection ring glides across three style tiles
+const ANIM_STYLE = FIG(`
+  <style>
+    @keyframes a2ring{0%,14%{transform:translateX(0)}31%,47%{transform:translateX(133px)}64%,84%{transform:translateX(266px)}100%{transform:translateX(0)}}
+    .a2r{animation:a2ring 5s ease-in-out infinite}
+    @media(prefers-reduced-motion:reduce){.a2r{animation:none;transform:translateX(133px)}}
+  </style>
+  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
+  <g>
+    <rect x="27" y="30" width="120" height="78" rx="12" fill="#f5f6f8"/><circle cx="87" cy="62" r="17" fill="#cbd2da"/><text x="87" y="98" text-anchor="middle" fill="#6b7280" font-size="12">Cartoon</text>
+    <rect x="160" y="30" width="120" height="78" rx="12" fill="#FFF9EC"/><circle cx="220" cy="62" r="17" fill="#F1B527"/><text x="220" y="98" text-anchor="middle" fill="#30353f" font-size="12" font-weight="700">3D Pixar</text>
+    <rect x="293" y="30" width="120" height="78" rx="12" fill="#f5f6f8"/><circle cx="353" cy="62" r="17" fill="#cbd2da"/><text x="353" y="98" text-anchor="middle" fill="#6b7280" font-size="12">Realistic</text>
+  </g>
+  <rect class="a2r" x="27" y="30" width="120" height="78" rx="12" fill="none" stroke="#F1B527" stroke-width="3"/>
+  <text x="220" y="132" text-anchor="middle" fill="#9aa0a8" font-size="11">One style, applied to every page</text>
+`);
+
+// Step 3 — this-week's-parsha card with a ticking countdown clock
+const ANIM_PARSHA = FIG(`
+  <style>
+    @keyframes a3spin{to{transform:rotate(360deg)}}
+    @keyframes a3in{0%,6%{opacity:0;transform:translateY(8px)}20%,100%{opacity:1;transform:translateY(0)}}
+    .a3h{transform-box:fill-box;transform-origin:349px 92px;animation:a3spin 3s linear infinite}
+    .a3card{transform-box:fill-box;animation:a3in 5s ease-out infinite}
+    @media(prefers-reduced-motion:reduce){.a3h,.a3card{animation:none;transform:none;opacity:1}}
+  </style>
+  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
+  <g class="a3card">
+    <rect x="24" y="26" width="392" height="98" rx="14" fill="#FFF9EC" stroke="#F1B527" stroke-opacity=".55"/>
+    <text x="44" y="54" fill="#B67B0A" font-size="11" font-weight="700" letter-spacing="1">✦ THIS WEEK'S PARSHA</text>
+    <text x="44" y="84" fill="#30353f" font-size="21" font-weight="700" font-family="'Playfair Display',Georgia,serif">Parshas Matos-Masei</text>
+    <text x="44" y="108" fill="#6b7280" font-size="12">Auto-selected · refreshes every week</text>
+    <circle cx="349" cy="92" r="24" fill="#fff" stroke="#F1B527" stroke-width="2"/>
+    <line class="a3h" x1="349" y1="92" x2="349" y2="76" stroke="#B67B0A" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="349" cy="92" r="2.5" fill="#B67B0A"/>
+  </g>
+`);
+
+// Step 4 — a book with a page turning
+const ANIM_REVIEW = FIG(`
+  <style>
+    @keyframes a4turn{0%,8%{transform:scaleX(1)}46%{transform:scaleX(0)}54%{transform:scaleX(0)}92%,100%{transform:scaleX(1)}}
+    .a4pg{transform-box:fill-box;transform-origin:left;animation:a4turn 4s ease-in-out infinite}
+    @media(prefers-reduced-motion:reduce){.a4pg{animation:none}}
+  </style>
+  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
+  <rect x="120" y="30" width="100" height="92" rx="4" fill="#fff" stroke="#e2e5e9"/>
+  <rect x="220" y="30" width="100" height="92" rx="4" fill="#fff" stroke="#e2e5e9"/>
+  <line x1="220" y1="30" x2="220" y2="122" stroke="#e2e5e9"/>
+  <circle cx="170" cy="58" r="12" fill="#FCEFCF"/><rect x="136" y="80" width="68" height="5" rx="2.5" fill="#e6e9ed"/><rect x="136" y="92" width="52" height="5" rx="2.5" fill="#eef0f2"/>
+  <rect x="236" y="46" width="68" height="5" rx="2.5" fill="#e6e9ed"/><rect x="236" y="58" width="60" height="5" rx="2.5" fill="#eef0f2"/><circle cx="270" cy="92" r="14" fill="#FCEFCF"/>
+  <rect class="a4pg" x="220" y="30" width="100" height="92" rx="4" fill="#fdfdfe" stroke="#e2e5e9"/>
+  <text x="360" y="72" fill="#9aa0a8" font-size="11">Every</text><text x="360" y="88" fill="#9aa0a8" font-size="11">page</text>
+`);
+
+// Step 5 — three formats rise, then a shipped check
+const ANIM_ORDER = FIG(`
+  <style>
+    @keyframes a5rise{0%,10%{transform:translateY(24px);opacity:0}30%,100%{transform:translateY(0);opacity:1}}
+    @keyframes a5ship{0%,55%{opacity:0;transform:scale(.6)}70%{transform:scale(1.15)}80%,100%{opacity:1;transform:scale(1)}}
+    .a5b{transform-box:fill-box;animation:a5rise 4.5s ease-out infinite}
+    .a5b2{animation-delay:.15s}.a5b3{animation-delay:.3s}
+    .a5s{transform-box:fill-box;transform-origin:center;animation:a5ship 4.5s ease-out infinite}
+    @media(prefers-reduced-motion:reduce){.a5b,.a5s{animation:none;transform:none;opacity:1}}
+  </style>
+  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
+  <g class="a5b"><rect x="44" y="44" width="64" height="76" rx="6" fill="#f0f2f4" stroke="#e2e5e9"/><rect x="44" y="44" width="8" height="76" rx="3" fill="#cbd2da"/><text x="76" y="136" text-anchor="middle" fill="#9aa0a8" font-size="10">Soft</text></g>
+  <g class="a5b a5b2"><rect x="120" y="36" width="64" height="84" rx="6" fill="#FFF9EC" stroke="#F1B527" stroke-width="2"/><rect x="120" y="36" width="8" height="84" rx="3" fill="#F1B527"/><text x="152" y="136" text-anchor="middle" fill="#B67B0A" font-size="10" font-weight="700">Hardcover</text></g>
+  <g class="a5b a5b3"><rect x="196" y="44" width="64" height="76" rx="6" fill="#f0f2f4" stroke="#e2e5e9"/><rect x="196" y="44" width="8" height="76" rx="3" fill="#cbd2da"/><text x="228" y="136" text-anchor="middle" fill="#9aa0a8" font-size="10">Board</text></g>
+  <g class="a5s"><circle cx="340" cy="70" r="22" fill="#3BA55D"/><path d="M330 70 l7 7 l14 -15" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><text x="340" y="112" text-anchor="middle" fill="#6b7280" font-size="11">Shipped to</text><text x="340" y="126" text-anchor="middle" fill="#6b7280" font-size="11">your door</text></g>
+`);
+
 
 /** @type {Article[]} */
 export const ARTICLES = [
@@ -114,8 +133,6 @@ export const ARTICLES = [
     readingMins: 6,
     bodyHtml: `
       <p>A personalized Torah storybook puts <strong>your own child</strong> inside the weekly parsha — walking through the split sea, standing at Har Sinai, greeting the malachim with Avraham Avinu. It turns parsha learning into something a child genuinely looks forward to. Here is the whole process, step by step.</p>
-      ${WIZARD_DEMO("The five-step flow — from a single photo to a printed keepsake, in about five minutes.")}
-
       <h2>Step 1 — Add your child (name, age, and a photo)</h2>
       <p>Start by telling us who the book is for. Enter your child's name and age, then upload one clear, front-facing photo. The photo is used only as a likeness reference so the illustrated hero looks like your child on every page.</p>
       <ul>
@@ -123,18 +140,23 @@ export const ARTICLES = [
         <li>Avoid group shots, sunglasses, or photos taken from the side.</li>
         <li>Adding several children? You can include siblings in the same book.</li>
       </ul>
+      ${ANIM_NAME}
 
       <h2>Step 2 — Pick the art style</h2>
       <p>Choose the look that fits your family — a warm 3D Pixar-style render, a hand-painted cartoon, or a classic illustrated style. Whatever you pick is applied consistently across every page of the book.</p>
+      ${ANIM_STYLE}
 
       <h2>Step 3 — Choose the parsha or story</h2>
       <p>By default we suggest <strong>this week's parsha</strong>, automatically selected and refreshed every week. You can also browse the full Chumash, the Neviim, Yomim Tovim, and more, and pick any story you like. On a double-parsha week (like Chukas-Balak or Matos-Masei) the book covers both together.</p>
+      ${ANIM_PARSHA}
 
       <h2>Step 4 — Review the story and pages</h2>
       <p>We generate a complete story where your child is the hero, with the actual events of the parsha unfolding page by page and a clear middos lesson woven through. Every book is created with careful rabbinical guidance and strict tznius, so you can hand it to your child with confidence.</p>
+      ${ANIM_REVIEW}
 
       <h2>Step 5 — Choose your book and order</h2>
       <p>Pick a format — softcover, a premium hardcover keepsake, or a sturdy board book for little hands — and we print and ship it to your door. Prefer a weekly habit? A <a href="/pricing">subscription</a> delivers a fresh parsha book every week.</p>
+      ${ANIM_ORDER}
 
       <h2>Ready to start?</h2>
       <p>The whole process takes about five minutes. <a href="/create">Create your child's Torah storybook</a> now, or see <a href="/pricing">pricing and subscription options</a>. Not sure which story to pick? Read <a href="/blog/how-to-choose-the-weekly-parsha-for-your-childs-book">how to choose the weekly parsha for your child's book</a>.</p>
@@ -152,7 +174,7 @@ export const ARTICLES = [
     readingMins: 5,
     bodyHtml: `
       <p>One of the best things about a personalized Torah book is that <em>you</em> choose the story. Here are the most popular ways families pick a parsha — and how to decide what's right for your child.</p>
-      ${WIZARD_DEMO("Choosing a parsha is Step 3 of the quick five-step flow — this week's portion is filled in for you automatically.")}
+      ${ANIM_PARSHA}
 
       <h2>Option 1 — This week's parsha</h2>
       <p>The simplest and most popular choice. Learning the parsha your child is hearing in cheder or Bais Yaakov this very week makes the book feel alive and timely. Torah Tale automatically suggests the current parsha and refreshes it every week, so you're always in sync with the leining.</p>
@@ -190,7 +212,7 @@ export const ARTICLES = [
     readingMins: 5,
     bodyHtml: `
       <p>Finding a Jewish gift that's meaningful, lasting, and genuinely exciting for a child is hard. Toys are forgotten in a week; a personalized Torah storybook — where the child is the <strong>hero of the parsha</strong> — becomes a treasured keepsake. Here's when it shines.</p>
-      ${WIZARD_DEMO("Personalizing the gift takes about five minutes — name and photo, parsha, art style, and order.")}
+      ${ANIM_ORDER}
 
       <h2>Birthdays</h2>
       <p>Instead of another toy, give a book that stars the birthday child inside a Torah adventure. Pick their favorite story or the parsha of their birthday week for an extra-personal touch.</p>
