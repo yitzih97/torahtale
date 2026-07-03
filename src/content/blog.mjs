@@ -15,109 +15,34 @@
  * @property {string} bodyHtml
  */
 
-// Per-step animations for the blog articles. Each is a small, self-contained
-// inline SVG + CSS-keyframes clip illustrating ONE step of the flow. No external
-// assets, so they render identically in the React pages and the static
-// prerender. Unique aN- prefixes let all five sit on the same page without
-// keyframe collisions; each freezes gracefully under prefers-reduced-motion.
-const FIG = (svg) => `<figure aria-hidden="true" style="margin:1.15rem 0"><svg viewBox="0 0 440 150" xmlns="http://www.w3.org/2000/svg" role="img" style="width:100%;max-width:440px;height:auto;display:block;margin:0 auto;font-family:'Inter',system-ui,-apple-system,sans-serif">${svg}</svg></figure>`;
+// Real screenshots of the Torah Tale creation wizard (captured from the live
+// product, stored in /public/blog/wizard/). One helper keeps the markup and
+// styling consistent across articles.
+const SHOT = (file, alt, caption) => `
+  <figure style="margin:1.35rem auto;max-width:560px">
+    <img src="/blog/wizard/${file}" alt="${alt}" loading="lazy"
+      style="width:100%;height:auto;display:block;border:1px solid #e8e3d5;border-radius:14px;box-shadow:0 10px 30px -18px rgba(60,45,15,.25)" />
+    ${caption ? `<figcaption style="margin-top:.5rem;text-align:center;font-size:.8rem;color:#8a8578">${caption}</figcaption>` : ""}
+  </figure>`;
 
-// Step 1 — name types in + photo pops with a check
-const ANIM_NAME = FIG(`
-  <style>
-    @keyframes a1caret{0%,50%{opacity:1}51%,100%{opacity:0}}
-    @keyframes a1pop{0%,8%{transform:scale(.5);opacity:0}22%,100%{transform:scale(1);opacity:1}}
-    @keyframes a1chk{0%,42%{transform:scale(0)}54%{transform:scale(1.25)}62%,100%{transform:scale(1)}}
-    .a1c{animation:a1caret 1s steps(1) infinite}
-    .a1p{transform-box:fill-box;transform-origin:center;animation:a1pop 4s ease-in-out infinite}
-    .a1k{transform-box:fill-box;transform-origin:center;animation:a1chk 4s ease-in-out infinite}
-    @media(prefers-reduced-motion:reduce){.a1c,.a1p,.a1k{animation:none}.a1p,.a1k{transform:none;opacity:1}}
-  </style>
-  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
-  <text x="30" y="46" fill="#9aa0a8" font-size="10" letter-spacing="1">CHILD'S NAME</text>
-  <rect x="28" y="56" width="212" height="44" rx="10" fill="#fff" stroke="#e2e5e9"/>
-  <text x="44" y="84" fill="#30353f" font-size="18" font-weight="600">Adina</text>
-  <rect class="a1c" x="103" y="66" width="2" height="24" fill="#F1B527"/>
-  <g class="a1p">
-    <rect x="300" y="34" width="96" height="82" rx="14" fill="#FCEFCF"/>
-    <circle cx="348" cy="72" r="19" fill="#F1B527" opacity=".55"/>
-    <circle cx="348" cy="104" r="15" fill="#F1B527" opacity=".33"/>
-  </g>
-  <g class="a1k"><circle cx="392" cy="40" r="12" fill="#3BA55D"/><path d="M386 40 l4 4 l8 -8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>
-`);
-
-// Step 2 — a gold selection ring glides across three style tiles
-const ANIM_STYLE = FIG(`
-  <style>
-    @keyframes a2ring{0%,14%{transform:translateX(0)}31%,47%{transform:translateX(133px)}64%,84%{transform:translateX(266px)}100%{transform:translateX(0)}}
-    .a2r{animation:a2ring 5s ease-in-out infinite}
-    @media(prefers-reduced-motion:reduce){.a2r{animation:none;transform:translateX(133px)}}
-  </style>
-  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
-  <g>
-    <rect x="27" y="30" width="120" height="78" rx="12" fill="#f5f6f8"/><circle cx="87" cy="62" r="17" fill="#cbd2da"/><text x="87" y="98" text-anchor="middle" fill="#6b7280" font-size="12">Cartoon</text>
-    <rect x="160" y="30" width="120" height="78" rx="12" fill="#FFF9EC"/><circle cx="220" cy="62" r="17" fill="#F1B527"/><text x="220" y="98" text-anchor="middle" fill="#30353f" font-size="12" font-weight="700">3D Pixar</text>
-    <rect x="293" y="30" width="120" height="78" rx="12" fill="#f5f6f8"/><circle cx="353" cy="62" r="17" fill="#cbd2da"/><text x="353" y="98" text-anchor="middle" fill="#6b7280" font-size="12">Realistic</text>
-  </g>
-  <rect class="a2r" x="27" y="30" width="120" height="78" rx="12" fill="none" stroke="#F1B527" stroke-width="3"/>
-  <text x="220" y="132" text-anchor="middle" fill="#9aa0a8" font-size="11">One style, applied to every page</text>
-`);
-
-// Step 3 — this-week's-parsha card with a ticking countdown clock
-const ANIM_PARSHA = FIG(`
-  <style>
-    @keyframes a3spin{to{transform:rotate(360deg)}}
-    @keyframes a3in{0%,6%{opacity:0;transform:translateY(8px)}20%,100%{opacity:1;transform:translateY(0)}}
-    .a3h{transform-box:fill-box;transform-origin:349px 92px;animation:a3spin 3s linear infinite}
-    .a3card{transform-box:fill-box;animation:a3in 5s ease-out infinite}
-    @media(prefers-reduced-motion:reduce){.a3h,.a3card{animation:none;transform:none;opacity:1}}
-  </style>
-  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
-  <g class="a3card">
-    <rect x="24" y="26" width="392" height="98" rx="14" fill="#FFF9EC" stroke="#F1B527" stroke-opacity=".55"/>
-    <text x="44" y="54" fill="#B67B0A" font-size="11" font-weight="700" letter-spacing="1">✦ THIS WEEK'S PARSHA</text>
-    <text x="44" y="84" fill="#30353f" font-size="21" font-weight="700" font-family="'Playfair Display',Georgia,serif">Parshas Matos-Masei</text>
-    <text x="44" y="108" fill="#6b7280" font-size="12">Auto-selected · refreshes every week</text>
-    <circle cx="349" cy="92" r="24" fill="#fff" stroke="#F1B527" stroke-width="2"/>
-    <line class="a3h" x1="349" y1="92" x2="349" y2="76" stroke="#B67B0A" stroke-width="2.4" stroke-linecap="round"/>
-    <circle cx="349" cy="92" r="2.5" fill="#B67B0A"/>
-  </g>
-`);
-
-// Step 4 — a book with a page turning
-const ANIM_REVIEW = FIG(`
-  <style>
-    @keyframes a4turn{0%,8%{transform:scaleX(1)}46%{transform:scaleX(0)}54%{transform:scaleX(0)}92%,100%{transform:scaleX(1)}}
-    .a4pg{transform-box:fill-box;transform-origin:left;animation:a4turn 4s ease-in-out infinite}
-    @media(prefers-reduced-motion:reduce){.a4pg{animation:none}}
-  </style>
-  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
-  <rect x="120" y="30" width="100" height="92" rx="4" fill="#fff" stroke="#e2e5e9"/>
-  <rect x="220" y="30" width="100" height="92" rx="4" fill="#fff" stroke="#e2e5e9"/>
-  <line x1="220" y1="30" x2="220" y2="122" stroke="#e2e5e9"/>
-  <circle cx="170" cy="58" r="12" fill="#FCEFCF"/><rect x="136" y="80" width="68" height="5" rx="2.5" fill="#e6e9ed"/><rect x="136" y="92" width="52" height="5" rx="2.5" fill="#eef0f2"/>
-  <rect x="236" y="46" width="68" height="5" rx="2.5" fill="#e6e9ed"/><rect x="236" y="58" width="60" height="5" rx="2.5" fill="#eef0f2"/><circle cx="270" cy="92" r="14" fill="#FCEFCF"/>
-  <rect class="a4pg" x="220" y="30" width="100" height="92" rx="4" fill="#fdfdfe" stroke="#e2e5e9"/>
-  <text x="360" y="72" fill="#9aa0a8" font-size="11">Every</text><text x="360" y="88" fill="#9aa0a8" font-size="11">page</text>
-`);
-
-// Step 5 — three formats rise, then a shipped check
-const ANIM_ORDER = FIG(`
-  <style>
-    @keyframes a5rise{0%,10%{transform:translateY(24px);opacity:0}30%,100%{transform:translateY(0);opacity:1}}
-    @keyframes a5ship{0%,55%{opacity:0;transform:scale(.6)}70%{transform:scale(1.15)}80%,100%{opacity:1;transform:scale(1)}}
-    .a5b{transform-box:fill-box;animation:a5rise 4.5s ease-out infinite}
-    .a5b2{animation-delay:.15s}.a5b3{animation-delay:.3s}
-    .a5s{transform-box:fill-box;transform-origin:center;animation:a5ship 4.5s ease-out infinite}
-    @media(prefers-reduced-motion:reduce){.a5b,.a5s{animation:none;transform:none;opacity:1}}
-  </style>
-  <rect x="1" y="1" width="438" height="148" rx="14" fill="#fbfcfd" stroke="#e8eaed"/>
-  <g class="a5b"><rect x="44" y="44" width="64" height="76" rx="6" fill="#f0f2f4" stroke="#e2e5e9"/><rect x="44" y="44" width="8" height="76" rx="3" fill="#cbd2da"/><text x="76" y="136" text-anchor="middle" fill="#9aa0a8" font-size="10">Soft</text></g>
-  <g class="a5b a5b2"><rect x="120" y="36" width="64" height="84" rx="6" fill="#FFF9EC" stroke="#F1B527" stroke-width="2"/><rect x="120" y="36" width="8" height="84" rx="3" fill="#F1B527"/><text x="152" y="136" text-anchor="middle" fill="#B67B0A" font-size="10" font-weight="700">Hardcover</text></g>
-  <g class="a5b a5b3"><rect x="196" y="44" width="64" height="76" rx="6" fill="#f0f2f4" stroke="#e2e5e9"/><rect x="196" y="44" width="8" height="76" rx="3" fill="#cbd2da"/><text x="228" y="136" text-anchor="middle" fill="#9aa0a8" font-size="10">Board</text></g>
-  <g class="a5s"><circle cx="340" cy="70" r="22" fill="#3BA55D"/><path d="M330 70 l7 7 l14 -15" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><text x="340" y="112" text-anchor="middle" fill="#6b7280" font-size="11">Shipped to</text><text x="340" y="126" text-anchor="middle" fill="#6b7280" font-size="11">your door</text></g>
-`);
-
+// The four real book products, side by side (photos of the actual printed books).
+const PRODUCT_GRID = `
+  <figure style="margin:1.35rem auto;max-width:620px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      ${[
+        ["mockup-softcover.jpg", "Softcover photo book — the printed Torah Tale product", "Softcover 8″×8″"],
+        ["mockup-hardcover.jpg", "Hardcover photo book — the printed Torah Tale product", "Hardcover 8″×8″"],
+        ["mockup-board.jpg", "Board book — the printed Torah Tale product", "Board book 6″×6″"],
+        ["mockup-coloring.jpg", "Matching coloring book — the printed Torah Tale product", "Coloring book 8.5″×11″"],
+      ].map(([f, alt, label]) => `
+        <div>
+          <img src="/blog/wizard/${f}" alt="${alt}" loading="lazy"
+            style="width:100%;height:auto;display:block;border:1px solid #e8e3d5;border-radius:12px" />
+          <p style="margin:.35rem 0 0;text-align:center;font-size:.78rem;color:#8a8578">${label}</p>
+        </div>`).join("")}
+    </div>
+    <figcaption style="margin-top:.6rem;text-align:center;font-size:.8rem;color:#8a8578">The real printed books — every format tells the same personalized story.</figcaption>
+  </figure>`;
 
 /** @type {Article[]} */
 export const ARTICLES = [
@@ -125,38 +50,60 @@ export const ARTICLES = [
     slug: "how-to-create-a-personalized-torah-storybook",
     title: "How to Create a Personalized Torah Storybook for Your Child (Step by Step)",
     description:
-      "A simple step-by-step guide to making a custom Torah storybook that stars your own child — from uploading a photo to choosing the parsha and printing a keepsake hardcover.",
+      "A simple step-by-step guide to making a custom Torah storybook that stars your own child — from uploading a photo to choosing the parsha, the language, the art style, and the book format.",
     excerpt:
-      "From a single photo to a printed keepsake — here is exactly how to turn your child into the hero of their own Torah adventure in about five minutes.",
-    date: "July 2, 2026",
-    dateISO: "2026-07-02",
-    readingMins: 6,
+      "From a single photo to a printed keepsake — here is exactly how to turn your child into the hero of their own Torah adventure, with real screenshots of every step.",
+    date: "July 3, 2026",
+    dateISO: "2026-07-03",
+    readingMins: 7,
     bodyHtml: `
-      <p>A personalized Torah storybook puts <strong>your own child</strong> inside the weekly parsha — walking through the split sea, standing at Har Sinai, greeting the malachim with Avraham Avinu. It turns parsha learning into something a child genuinely looks forward to. Here is the whole process, step by step.</p>
-      <h2>Step 1 — Add your child (name, age, and a photo)</h2>
-      <p>Start by telling us who the book is for. Enter your child's name and age, then upload one clear, front-facing photo. The photo is used only as a likeness reference so the illustrated hero looks like your child on every page.</p>
+      <p>A personalized Torah storybook puts <strong>your own child</strong> inside the weekly parsha — walking through the split sea, standing at Har Sinai, greeting the malachim with Avraham Avinu. It turns parsha learning into something a child genuinely looks forward to. Below is the whole process, step by step, with real screenshots from the Torah Tale book creator.</p>
+
+      <h2>Step 1 — Enter your child's name</h2>
+      <p>Start by telling us who the book is for. Type your child's name — this is the name that will appear throughout the story and on the cover. Making a book for siblings? You can add up to four children to the same book, and each one will appear in the illustrations.</p>
+      ${SHOT("step-1-name.jpg", "Wizard step 1 — entering the child's name", "Step 1 of the book creator — every book starts with a name.")}
+
+      <h2>Step 2 — Boy or girl</h2>
+      <p>One tap. This makes sure the character, the clothing, and the storyline details are right for your child.</p>
+      ${SHOT("step-2-gender.jpg", "Wizard step 2 — choosing boy or girl")}
+
+      <h2>Step 3 — How old are they?</h2>
+      <p>Set your child's age (1–15). The age shapes how the character is drawn and also helps us recommend the right book format later — sturdy board books for toddlers, bigger photo books for older kids.</p>
+      ${SHOT("step-3-age.jpg", "Wizard step 3 — setting the child's age")}
+
+      <h2>Step 4 — Upload a photo</h2>
+      <p>This is where the magic starts. Upload one clear, smiling, front-facing photo — we use it to create an illustrated character that looks just like your child on every page. The screen shows you exactly what works best: clear and front-facing is perfect; photos facing away or group shots won't work. A built-in crop tool lets you frame the face just right.</p>
+      ${SHOT("step-4-photo.jpg", "Wizard step 4 — photo upload with a guide showing which photos work best", "The photo guide — one clear, front-facing photo is all it takes.")}
+
+      <h2>Step 5 — Choose the story</h2>
+      <p><strong>This week's parsha</strong> is suggested automatically, complete with a live countdown to the next one — perfect for Shabbos prep, and on a double-parsha week (like Matos-Masei) the book covers both together. Want something else? Tap "Choose a different story" and browse the full Tanach — Chumash, Nevi'im, Kesuvim, Megillos, and Yamim Tovim stories for Rosh Hashanah, Chanukah, Purim, Pesach, and more.</p>
+      ${SHOT("step-5-story.jpg", "Wizard step 5 — choosing this week's parsha or browsing the full Tanach", "This week's parsha is auto-selected — or browse the entire Tanach.")}
+
+      <h2>Step 6 — Pick the language</h2>
+      <p>Torah Tale books come in <strong>English, Hebrew, and Yiddish</strong>. Pick one — or select more than one if you'd like the story in multiple languages.</p>
+      ${SHOT("step-6-language.jpg", "Wizard step 6 — choosing English, Hebrew, or Yiddish")}
+
+      <h2>Step 7 — Choose the art style</h2>
+      <p>Here's everyone's favorite step: the moment you arrive, you see <strong>your own child</strong> previewed in each illustration style — a warm hand-painted Cartoon, a 3D Pixar-style render, and a Realistic style. Whichever you choose is applied consistently across every page of the book.</p>
+      ${SHOT("step-7-style.jpg", "Wizard step 7 — the child previewed in Cartoon, 3D Pixar, and Realistic styles", "Your child, previewed in all three styles before you decide.")}
+
+      <h2>Step 8 — Review and create</h2>
+      <p>One last look: name, age, story, art style, and plan, all on one screen. Tap "Create My Book" and we start writing and illustrating a complete story where your child is the hero, with the actual events of the parsha unfolding page by page and a clear middos lesson woven through. Every book is created with careful rabbinical guidance and strict tznius, so you can hand it to your child with confidence. You'll also receive an email preview of the book within 24 hours.</p>
+      ${SHOT("step-8-review.jpg", "Wizard step 8 — the review screen before generating the book", "The final check before your book is created.")}
+
+      <h2>Step 9 — Pick your book format (don't skip the coloring book!)</h2>
+      <p>After creating a free account, choose how your story gets printed:</p>
       <ul>
-        <li>Use a bright, front-facing photo where the face is clearly visible.</li>
-        <li>Avoid group shots, sunglasses, or photos taken from the side.</li>
-        <li>Adding several children? You can include siblings in the same book.</li>
+        <li><strong>Softcover Photo Book (8″×8″)</strong> — classic and affordable, on smooth semi-gloss paper. Recommended for ages 4–8.</li>
+        <li><strong>Hardcover Photo Book (8″×8″)</strong> — premium case-wrap binding with lay-flat pages, in your choice of <strong>square or landscape</strong>. The most popular gift option, for ages 5–12.</li>
+        <li><strong>Board Book (6″×6″)</strong> — thick chipboard pages with rounded safety corners, built for the littlest hands (ages 2–4).</li>
+        <li><strong>Coloring Book add-on (8.5″×11″)</strong> — a matching coloring book of the same story in black-and-white line art, so your child can color their own adventure. It's an optional add-on to any format — and one of the most-loved extras.</li>
       </ul>
-      ${ANIM_NAME}
+      ${PRODUCT_GRID}
 
-      <h2>Step 2 — Pick the art style</h2>
-      <p>Choose the look that fits your family — a warm 3D Pixar-style render, a hand-painted cartoon, or a classic illustrated style. Whatever you pick is applied consistently across every page of the book.</p>
-      ${ANIM_STYLE}
-
-      <h2>Step 3 — Choose the parsha or story</h2>
-      <p>By default we suggest <strong>this week's parsha</strong>, automatically selected and refreshed every week. You can also browse the full Chumash, the Neviim, Yomim Tovim, and more, and pick any story you like. On a double-parsha week (like Chukas-Balak or Matos-Masei) the book covers both together.</p>
-      ${ANIM_PARSHA}
-
-      <h2>Step 4 — Review the story and pages</h2>
-      <p>We generate a complete story where your child is the hero, with the actual events of the parsha unfolding page by page and a clear middos lesson woven through. Every book is created with careful rabbinical guidance and strict tznius, so you can hand it to your child with confidence.</p>
-      ${ANIM_REVIEW}
-
-      <h2>Step 5 — Choose your book and order</h2>
-      <p>Pick a format — softcover, a premium hardcover keepsake, or a sturdy board book for little hands — and we print and ship it to your door. Prefer a weekly habit? A <a href="/pricing">subscription</a> delivers a fresh parsha book every week.</p>
-      ${ANIM_ORDER}
+      <h2>Step 10 — Order (once, or as a subscription)</h2>
+      <p>On the order screen you choose how you'd like to receive books: a <strong>single custom book</strong>, or a subscription — <strong>Weekly</strong> (a new parsha book every Shabbos), <strong>Monthly</strong> (4 books a month, the most popular), or a <strong>Year Bundle</strong> with two months free. Standard shipping is free (5–7 business days); express (2–3 business days) is available, and we ship worldwide.</p>
+      ${SHOT("step-11-order.jpg", "The order summary — single book or weekly, monthly, and yearly subscription plans", "One book or a weekly Torah habit — you choose at the end.")}
 
       <h2>Ready to start?</h2>
       <p>The whole process takes about five minutes. <a href="/create">Create your child's Torah storybook</a> now, or see <a href="/pricing">pricing and subscription options</a>. Not sure which story to pick? Read <a href="/blog/how-to-choose-the-weekly-parsha-for-your-childs-book">how to choose the weekly parsha for your child's book</a>.</p>
@@ -174,7 +121,7 @@ export const ARTICLES = [
     readingMins: 5,
     bodyHtml: `
       <p>One of the best things about a personalized Torah book is that <em>you</em> choose the story. Here are the most popular ways families pick a parsha — and how to decide what's right for your child.</p>
-      ${ANIM_PARSHA}
+      ${SHOT("step-5-story.jpg", "The Torah Tale story picker with this week's parsha auto-selected", "The real story picker — this week's parsha is suggested automatically, with a live countdown.")}
 
       <h2>Option 1 — This week's parsha</h2>
       <p>The simplest and most popular choice. Learning the parsha your child is hearing in cheder or Bais Yaakov this very week makes the book feel alive and timely. Torah Tale automatically suggests the current parsha and refreshes it every week, so you're always in sync with the leining.</p>
@@ -188,7 +135,7 @@ export const ARTICLES = [
       </ul>
 
       <h2>Option 3 — A story your child already loves</h2>
-      <p>If your child is captivated by Noach and the teivah, Yosef and his colorful coat, or Yonah and the big fish, lean into it. A child who already loves the story will read the book again and again.</p>
+      <p>If your child is captivated by Noach and the teivah, Yosef and his colorful coat, or Yonah and the big fish, lean into it. A child who already loves the story will read the book again and again. In the story picker, tap "Choose a different story" to browse the full Tanach — Chumash, Nevi'im, Kesuvim, and Megillos.</p>
 
       <h2>What about double parshiyos?</h2>
       <p>On weeks when two parshiyos are read together — like Chukas-Balak or Matos-Masei — Torah Tale creates a single book that covers <strong>both</strong> parshiyos, with balanced attention to the key events of each. You get one complete keepsake for the full week's leining.</p>
@@ -212,25 +159,25 @@ export const ARTICLES = [
     readingMins: 5,
     bodyHtml: `
       <p>Finding a Jewish gift that's meaningful, lasting, and genuinely exciting for a child is hard. Toys are forgotten in a week; a personalized Torah storybook — where the child is the <strong>hero of the parsha</strong> — becomes a treasured keepsake. Here's when it shines.</p>
-      ${ANIM_ORDER}
+      ${PRODUCT_GRID}
 
       <h2>Birthdays</h2>
-      <p>Instead of another toy, give a book that stars the birthday child inside a Torah adventure. Pick their favorite story or the parsha of their birthday week for an extra-personal touch.</p>
+      <p>Instead of another toy, give a book that stars the birthday child inside a Torah adventure. Pick their favorite story or the parsha of their birthday week for an extra-personal touch — and add the matching <strong>coloring book</strong> so the fun continues after the story is read.</p>
 
       <h2>Upsherin</h2>
-      <p>A boy's first haircut is a beautiful milestone into learning Torah. A custom book featuring him — peyos and all — celebrating a parsha makes a deeply fitting keepsake for the day.</p>
+      <p>A boy's first haircut is a beautiful milestone into learning Torah. A custom book featuring him — peyos and all — celebrating a parsha makes a deeply fitting keepsake for the day. The sturdy board book format is perfect for a three-year-old's hands.</p>
 
       <h2>Bar &amp; Bas Mitzvah</h2>
       <p>A hardcover book built around the child's <strong>bar or bas mitzvah parsha</strong>, with them as the hero, is a gift they'll keep for life — perfect from grandparents, an aunt or uncle, or a rebbe.</p>
 
       <h2>Yom Tov</h2>
-      <p>Rosh Hashanah, Chanukah, Purim, Pesach — a personalized Yom Tov book helps a child feel the chag and gives them something special to read at the table. Building a set over the year makes a wonderful family library.</p>
+      <p>Rosh Hashanah, Chanukah, Purim, Pesach — a personalized Yom Tov book helps a child feel the chag and gives them something special to read at the table. Building a set over the year makes a wonderful family library — the <a href="/pricing">weekly and monthly subscriptions</a> do exactly that, automatically.</p>
 
       <h2>Why it makes a better gift</h2>
       <ul>
         <li><strong>It teaches Torah</strong> — the child absorbs the parsha while being entertained.</li>
-        <li><strong>It's truly personal</strong> — their name, their face, their story.</li>
-        <li><strong>It lasts</strong> — a printed hardcover keepsake, not a passing toy.</li>
+        <li><strong>It's truly personal</strong> — their name, their face, their story, in English, Hebrew, or Yiddish.</li>
+        <li><strong>It lasts</strong> — a printed keepsake in softcover, hardcover, or board book, not a passing toy.</li>
         <li><strong>It's made with care</strong> — every book follows careful rabbinical guidance and strict tznius.</li>
       </ul>
 

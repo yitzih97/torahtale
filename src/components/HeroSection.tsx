@@ -114,10 +114,12 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         <div
           className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[62%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)]/96 to-transparent z-[1]`}
         />
-        <div className="lg:hidden pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-[hsl(42_60%_96%)]/97 via-[hsl(42_60%_96%)]/80 to-transparent" />
+        {/* Mobile scrim — near-solid cream behind the whole copy+CTA block (top ~55%),
+            fading out only below it so the text passes WCAG AA over the busy photo. */}
+        <div className="lg:hidden pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-[hsl(42_60%_96%)] from-[18%] via-[hsl(42_60%_96%)]/88 via-[42%] to-transparent to-[62%]" />
 
-        <div className="container relative z-10 pt-28 lg:pt-32 pb-8 lg:pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-start lg:items-center min-h-[132vw] sm:min-h-[92vw] lg:min-h-[600px]">
+        <div className="container relative z-10 pt-24 sm:pt-28 lg:pt-32 pb-8 lg:pb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-4 lg:gap-6 items-start lg:items-center min-h-[142vw] sm:min-h-[92vw] lg:min-h-[600px]">
             {/* copy */}
             <div className={`relative z-10 ${isRtl ? "text-right" : "text-left"}`}>
               <motion.h1
@@ -129,9 +131,9 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 <span className="block">{copy.title1}</span>
                 {/* Emphasis line — a deep amber gold so it stays legible over the warm background. */}
                 <span
-                  className="block italic font-semibold [filter:drop-shadow(0_1px_1px_hsl(36_70%_18%/0.4))]"
+                  className="block italic font-semibold [filter:drop-shadow(0_1px_2px_hsl(36_70%_15%/0.55))]"
                   style={{
-                    background: "linear-gradient(180deg, hsl(38 92% 46%), hsl(28 88% 34%))",
+                    background: "linear-gradient(180deg, hsl(37 90% 42%), hsl(26 86% 29%))",
                     WebkitBackgroundClip: "text",
                     backgroundClip: "text",
                     color: "transparent",
@@ -145,7 +147,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.15, ease }}
-                className="mt-4 sm:mt-6 text-sm sm:text-lg text-foreground/70 max-w-lg leading-relaxed [text-shadow:0_1px_2px_rgba(60,45,15,0.18)]"
+                className="mt-3 sm:mt-6 text-sm sm:text-lg text-foreground/90 sm:text-foreground/70 max-w-lg leading-relaxed [text-shadow:0_1px_0_hsl(42_60%_96%/0.9),0_0_12px_hsl(42_60%_96%/0.8)]"
               >
                 {copy.description}
               </motion.p>
@@ -154,13 +156,13 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3, ease }}
-                className={`mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start ${isRtl ? "lg:justify-end" : "lg:justify-start"}`}
+                className={`mt-4 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center sm:items-start ${isRtl ? "lg:justify-end" : "lg:justify-start"}`}
               >
                 <Button
                   variant="gold"
                   size="xl"
                   onClick={onStart}
-                  className="group gold-glow rounded-xl w-full sm:w-auto px-7"
+                  className="group rounded-full w-full max-w-sm sm:max-w-none sm:w-auto px-7 gap-1.5 shadow-lg shadow-[hsl(30_70%_20%/0.35)] ring-1 ring-white/50 text-[hsl(36_60%_10%)] bg-[linear-gradient(180deg,hsl(41_90%_52%),hsl(33_88%_44%))] hover:brightness-105"
                 >
                   {copy.primaryCta}
                   <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
