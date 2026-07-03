@@ -373,6 +373,15 @@ serve(async (req) => {
       imagePrompt += ` ⚠️ ART-STYLE LOCK (HIGHEST PRIORITY — overrides the visual look of any attached photo): The FINAL image MUST be a ${styleName}, rendered ENTIRELY in this style: ${styleDesc}. The attached photo is ONLY a likeness reference for the child's face and hair — do NOT reproduce its photographic look, lighting or texture. The output must NOT be a real photograph, NOT photorealistic, and NOT a lightly-edited photo. Fully re-render the child and the entire scene from scratch as a ${styleName}. EVERY page of this book must share this exact same ${styleName} art style — never mix in a realistic/photographic page.`;
     }
 
+    // ── CAPTION SPACE ───────────────────────────────────────────────────────
+    // Reserve a calm band along the bottom of story-page illustrations so the app
+    // can auto-place the story text there without overlapping faces or action.
+    // This is what lets caption placement/sizing run almost fully autonomously —
+    // there is always a clean, low-detail zone waiting for the text.
+    if (!isColoring && !isCover) {
+      imagePrompt += ` CAPTION SPACE (composition rule): Keep a clean, UNCLUTTERED horizontal band across the BOTTOM ~30% of the image — soft ground, grass, water, floor, sky or a gentle gradient — with NO faces, hands, or important details inside that band, so a line of story text can be overlaid there and stay perfectly readable. Keep the characters and the main action in the upper two-thirds of the frame.`;
+    }
+
     parts.push({ text: imagePrompt });
 
     // Upscale a base64 PNG toward print resolution. Fully guarded (dynamic

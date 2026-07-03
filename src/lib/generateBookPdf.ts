@@ -185,7 +185,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   let layout = page.textLayout;
   if (img) {
     drawFullImage(ctx, img, W, H);
-    if (!layout) layout = computeAutoTextLayout(img, rtl) || undefined;
+    if (!layout) layout = computeAutoTextLayout(img, rtl, page.text) || undefined;
   } else {
     ctx.fillStyle = "#dcd2bd";
     ctx.fillRect(0, 0, W, H);
