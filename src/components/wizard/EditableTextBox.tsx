@@ -28,14 +28,20 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   fontSize: 20,
   color: "#2b2418",
   align: "left",
-  bold: false,
+  // Captions are BOLD with a light outline halo (see READ_HALO) by default so
+  // they stay readable on any scene — no cream box needed. Box background/border
+  // remain toggleable from the toolbar for special cases.
+  bold: true,
   italic: false,
-  // The illustration now fills the whole spread with an open sky/negative-space
-  // area for text (hero-style), so the text sits directly on the art by default
-  // — no cream box, no border. Both remain toggleable from the toolbar.
   background: false,
   border: false,
 };
+
+// Light outline "halo" drawn around caption text so dark bold letters stay
+// legible on light OR dark artwork without a background box. Mirrored in the
+// PDF renderer (generateBookPdf drawTextOverlay).
+export const READ_HALO =
+  "0 0 2px #fff, 0 0 4px #fff, 0 0 6px rgba(255,255,255,0.85), 0 1px 1px rgba(255,255,255,0.9)";
 
 export const FONT_OPTIONS = [
   { label: "Cormorant", value: "'Cormorant Garamond', 'Georgia', serif" },
@@ -175,6 +181,9 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
           touchAction: "none",
           zIndex: selected ? 30 : 20,
           boxShadow: layout.background ? "0 4px 14px rgba(0,0,0,0.12)" : undefined,
+          // Light outline halo keeps the caption readable on any scene (skipped
+          // when a solid background box already guarantees contrast, or while editing).
+          textShadow: editing || layout.background ? undefined : READ_HALO,
         }}
       >
         {editing ? (

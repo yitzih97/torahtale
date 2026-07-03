@@ -22,7 +22,6 @@ const PAD = 14;                // caption inner padding (px @ ref) reserved when
 const FONT_MIN = 15;
 const FONT_MAX = 30;
 const LINE_HEIGHT = 1.5;
-const BUSY_BOX_THRESHOLD = 16; // mean edge detail above which we add a caption box
 
 interface RegionStat { detail: number; mean: number }
 
@@ -154,19 +153,14 @@ export function computeAutoTextLayout(
     }
     if (!best) return null;
 
-    const { c, stat, fontSize } = best;
-    const busy = stat.detail > BUSY_BOX_THRESHOLD;
-    // On a busy area, a soft cream box guarantees legibility; on a calm area,
-    // place text directly on the art (dark on light, white on dark).
-    const background = busy;
-    const color = background
-      ? "#2b2418"
-      : (stat.mean >= 130 ? "#2b2418" : "#ffffff");
-
+    const { c, fontSize } = best;
+    // Consistent, readable styling on EVERY page: bold dark text with a light
+    // outline halo (applied by the renderer), no background box — so captions
+    // look the same across all pages/scenes instead of some boxed, some not.
     return {
       ...DEFAULT_TEXT_LAYOUT,
       x: c.x, y: c.y, width: c.width, align: c.align,
-      fontSize, color, background,
+      fontSize, color: "#2b2418", bold: true, background: false,
     } as TextLayout;
   } catch {
     return null;
