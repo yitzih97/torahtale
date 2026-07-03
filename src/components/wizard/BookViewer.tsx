@@ -292,7 +292,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             crossOrigin="anonymous"
             onLoad={(e) => {
               if (page && !page.textLayout && autoLayouts[page.id] === undefined) {
-                const al = computeAutoTextLayout(e.currentTarget, isRtl);
+                const al = computeAutoTextLayout(e.currentTarget, isRtl, page.text);
                 if (al) setAutoLayouts((prev) => ({ ...prev, [page.id]: al }));
               }
             }}
