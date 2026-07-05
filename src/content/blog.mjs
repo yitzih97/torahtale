@@ -102,7 +102,7 @@ export const ARTICLES = [
       ${SHOT("step-7-style.jpg", "Wizard step 7 — the child previewed in Cartoon, 3D Pixar, and Realistic styles", "Your child, previewed in all three styles before you decide.")}
 
       <h2>Step 8 — Review and create</h2>
-      <p>One last look: name, age, story, art style, and plan, all on one screen. Tap "Create My Book" and we start writing and illustrating a complete story where your child is the hero, with the actual events of the parsha unfolding page by page and a clear middos lesson woven through. Every book is created with careful rabbinical guidance and strict tznius, so you can hand it to your child with confidence. You'll also receive an email preview of the book within 24 hours.</p>
+      <p>One last look: name, age, story, art style, and plan, all on one screen. Tap "Create My Book" and we start writing and illustrating a complete story where your child is the hero, with the actual events of the parsha unfolding page by page and a clear middos lesson woven through. Every book is created with careful rabbinical guidance and strict tznius, and our team personally reviews it before it goes to print — so you can hand it to your child with confidence. You'll get a quick peek by email when your book ships.</p>
       ${SHOT("step-8-review.jpg", "Wizard step 8 — the review screen before generating the book", "The final check before your book is created.")}
 
       <h2>Step 9 — Pick your book format (don't skip the coloring book!)</h2>
@@ -161,7 +161,7 @@ export const ARTICLES = [
       ${SHOT("step-7-style-he.jpg", "שלב 7 — הילד בתצוגה מקדימה בסגנונות מצויר, תלת-ממד וריאליסטי", "הילד שלכם, בתצוגה מקדימה בשלושת הסגנונות — עוד לפני שהחלטתם.", true)}
 
       <h2>שלב 8 — סקירה ויצירה</h2>
-      <p>מבט אחרון: שם, גיל, סיפור, סגנון איור ותוכנית — הכל במסך אחד. לחצו על "צור את הספר שלי" ואנחנו מתחילים לכתוב ולאייר סיפור שלם שבו הילד שלכם הוא הגיבור, כשאירועי הפרשה האמיתיים מתגלגלים עמוד אחרי עמוד ולקח ברור במידות שזור לכל אורכו. כל ספר נוצר בליווי רבני קפדני ובצניעות מלאה, כך שתוכלו למסור אותו לילד בלב שקט. בתוך 24 שעות תקבלו גם תצוגה מקדימה של הספר למייל.</p>
+      <p>מבט אחרון: שם, גיל, סיפור, סגנון איור ותוכנית — הכל במסך אחד. לחצו על "צור את הספר שלי" ואנחנו מתחילים לכתוב ולאייר סיפור שלם שבו הילד שלכם הוא הגיבור, כשאירועי הפרשה האמיתיים מתגלגלים עמוד אחרי עמוד ולקח ברור במידות שזור לכל אורכו. כל ספר נוצר בליווי רבני קפדני ובצניעות מלאה, והצוות שלנו עובר עליו אישית לפני שהוא יוצא להדפסה — כך שתוכלו למסור אותו לילד בלב שקט. כשהספר יוצא למשלוח תקבלו הצצה מהירה אליו למייל.</p>
       ${SHOT("step-8-review-he.jpg", "שלב 8 — מסך הסקירה לפני יצירת הספר", "בדיקה אחרונה לפני שהספר שלכם נוצר.", true)}
 
       <h2>שלב 9 — בחרו את פורמט הספר (אל תוותרו על חוברת הצביעה!)</h2>
