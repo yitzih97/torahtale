@@ -166,6 +166,12 @@ export const TORAH_PORTIONS: TorahOption[] = [
   { value: "simchat-torah", label: "Simchas Torah", sub: "שמחת תורה", category: "holiday", emoji: "🎉", icon: "Scroll" },
   { value: "tu-bishvat", label: "Tu B'Shvat", sub: "ט״ו בשבט", category: "holiday", emoji: "🌳", icon: "TreePine" },
   { value: "lag-baomer", label: "Lag B'Omer", sub: "ל״ג בעומר", category: "holiday", emoji: "🔥", icon: "Flame" },
+  // Fast days (in calendar order through the year)
+  { value: "tzom-gedaliah", label: "Tzom Gedaliah", sub: "צום גדליה", category: "holiday", emoji: "🍂", icon: "Leaf" },
+  { value: "asarah-bteves", label: "Asarah B'Teves", sub: "עשרה בטבת", category: "holiday", emoji: "🏰", icon: "Castle" },
+  { value: "taanis-esther", label: "Taanis Esther", sub: "תענית אסתר", category: "holiday", emoji: "👑", icon: "Crown" },
+  { value: "shiva-asar-btammuz", label: "Shiva Asar B'Tammuz", sub: "שבעה עשר בתמוז", category: "holiday", emoji: "🧱", icon: "Shield" },
+  { value: "tisha-bav", label: "Tisha B'Av", sub: "תשעה באב", category: "holiday", emoji: "🕯️", icon: "Landmark" },
 
   // ──── EDUCATIONAL STORIES (good middos in daily life) ────
   { value: "edu-hakaras-hatov", label: "Saying Thank You", sub: "אומרים תודה", category: "educational", emoji: "🙏", icon: "Sun" },
