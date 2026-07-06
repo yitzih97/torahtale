@@ -37,7 +37,7 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
   const infoRows = [
     { Icon: User, label: "Child", value: book.child_name || "—" },
     { Icon: BookOpen, label: "Portion", value: portionDisplay || "—" },
-    { Icon: Palette, label: "Art style", value: (book.art_style || "cartoon").replace("3d-pixar", "3D Pixar") },
+    { Icon: Palette, label: "Art style", value: (book.art_style || "3d-pixar").replace("3d-pixar", "3D Pixar") },
     { Icon: Globe2, label: "Language", value: book.language || "English" },
     { Icon: Hash, label: "Order #", value: book.order_number || "—" },
     { Icon: Calendar, label: "Created", value: format(new Date(book.created_at), "MMM d, yyyy") },

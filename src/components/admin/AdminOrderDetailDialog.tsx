@@ -102,7 +102,7 @@ export function AdminOrderDetailDialog({
             <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Book</h3>
             <Row Icon={BookOpen} label="Type" value={PRODUCT_LABEL[productType] || productType} />
             <Row Icon={BookOpen} label="Portion" value={book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "—"} />
-            <Row Icon={Palette} label="Art style" value={(book.art_style || "cartoon").replace("3d-pixar", "3D Pixar")} />
+            <Row Icon={Palette} label="Art style" value={(book.art_style || "3d-pixar").replace("3d-pixar", "3D Pixar")} />
             <Row Icon={Globe2} label="Language" value={book.language || "English"} />
             <Row Icon={Hash} label="Pages" value={String(PAGES_BY_TYPE[productType] ?? "—")} />
           </section>

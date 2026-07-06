@@ -64,7 +64,7 @@ export const ARTICLES = [
     slug: "how-to-create-a-personalized-torah-storybook",
     title: "How to Create a Personalized Torah Storybook for Your Child (Step by Step)",
     description:
-      "A simple step-by-step guide to making a custom Torah storybook that stars your own child — from uploading a photo to choosing the parsha, the language, the art style, and the book format.",
+      "A simple step-by-step guide to making a custom Torah storybook that stars your own child — from uploading a photo to choosing the parsha, the language, and the book format.",
     excerpt:
       "From a single photo to a printed keepsake — here is exactly how to turn your child into the hero of their own Torah adventure, with real screenshots of every step.",
     date: "July 3, 2026",
@@ -97,15 +97,12 @@ export const ARTICLES = [
       <p>Torah Tale books come in <strong>English, Hebrew, and Yiddish</strong>. Pick one — or select more than one if you'd like the story in multiple languages.</p>
       ${SHOT("step-6-language.jpg", "Wizard step 6 — choosing English, Hebrew, or Yiddish")}
 
-      <h2>Step 7 — Choose the art style</h2>
-      <p>Here's everyone's favorite step: the moment you arrive, you see <strong>your own child</strong> previewed in each illustration style — a warm hand-painted Cartoon, a 3D Pixar-style render, and a Realistic style. Whichever you choose is applied consistently across every page of the book.</p>
-      ${SHOT("step-7-style.jpg", "Wizard step 7 — the child previewed in Cartoon, 3D Pixar, and Realistic styles", "Your child, previewed in all three styles before you decide.")}
 
-      <h2>Step 8 — Review and create</h2>
-      <p>One last look: name, age, story, art style, and plan, all on one screen. Tap "Create My Book" and we start writing and illustrating a complete story where your child is the hero, with the actual events of the parsha unfolding page by page and a clear middos lesson woven through. Every book is created with careful rabbinical guidance and strict tznius, and our team personally reviews it before it goes to print — so you can hand it to your child with confidence. You'll get a quick peek by email when your book ships.</p>
+      <h2>Step 7 — Review and create</h2>
+      <p>One last look: name, age, story, and plan, all on one screen. Every book is illustrated in our signature ultra high-resolution 3D Pixar style — rich, movie-quality scenes on every page. Tap "Create My Book" and we start writing and illustrating a complete story where your child is the hero, with the actual events of the parsha unfolding page by page and a clear middos lesson woven through. Every book is created with careful rabbinical guidance and strict tznius, and our team personally reviews it before it goes to print — so you can hand it to your child with confidence. You'll get a quick peek by email when your book ships.</p>
       ${SHOT("step-8-review.jpg", "Wizard step 8 — the review screen before generating the book", "The final check before your book is created.")}
 
-      <h2>Step 9 — Pick your book format (don't skip the coloring book!)</h2>
+      <h2>Step 8 — Pick your book format (don't skip the coloring book!)</h2>
       <p>After creating a free account, choose how your story gets printed:</p>
       <ul>
         <li><strong>Softcover Photo Book (8″×8″)</strong> — classic and affordable, on smooth semi-gloss paper. Recommended for ages 4–8.</li>
@@ -115,7 +112,7 @@ export const ARTICLES = [
       </ul>
       ${PRODUCT_GRID}
 
-      <h2>Step 10 — Order (once, or as a subscription)</h2>
+      <h2>Step 9 — Order (once, or as a subscription)</h2>
       <p>On the order screen you choose how you'd like to receive books: a <strong>single custom book</strong>, or a subscription — <strong>Weekly</strong> (a new parsha book every Shabbos), <strong>Monthly</strong> (4 books a month, the most popular), or a <strong>Year Bundle</strong> with two months free. Standard shipping is free (5–7 business days); express (2–3 business days) is available, and we ship worldwide.</p>
       ${SHOT("step-11-order.jpg", "The order summary — single book or weekly, monthly, and yearly subscription plans", "One book or a weekly Torah habit — you choose at the end.")}
 
@@ -125,7 +122,7 @@ export const ARTICLES = [
     he: {
       title: "איך יוצרים ספר תורה מותאם אישית לילד שלכם (שלב אחרי שלב)",
       description:
-        "מדריך פשוט, שלב אחרי שלב, ליצירת ספר סיפורי תורה מותאם אישית שבו הילד שלכם הוא הגיבור — מהעלאת תמונה ועד בחירת הפרשה, השפה, סגנון האיור ופורמט הספר.",
+        "מדריך פשוט, שלב אחרי שלב, ליצירת ספר סיפורי תורה מותאם אישית שבו הילד שלכם הוא הגיבור — מהעלאת תמונה ועד בחירת הפרשה, השפה ופורמט הספר.",
       excerpt:
         "מתמונה אחת ועד מזכרת מודפסת — כך בדיוק הופכים את הילד שלכם לגיבור של הרפתקת התורה שלו, עם צילומי מסך אמיתיים של כל שלב.",
       date: "3 ביולי 2026",
@@ -156,15 +153,12 @@ export const ARTICLES = [
       <p>ספרי טורה־טייל זמינים <strong>בעברית, באנגלית וביידיש</strong>. בחרו שפה אחת — או סמנו יותר מאחת אם תרצו את הסיפור בכמה שפות.</p>
       ${SHOT("step-6-language-he.jpg", "שלב 6 — בחירת עברית, אנגלית או יידיש", "", true)}
 
-      <h2>שלב 7 — בחרו סגנון איור</h2>
-      <p>וזה השלב האהוב על כולם: ברגע שאתם מגיעים אליו, אתם רואים את <strong>הילד שלכם</strong> בתצוגה מקדימה בכל סגנון איור — ציור מצויר חם, עיבוד תלת־ממד בסגנון פיקסאר, וסגנון ריאליסטי. הסגנון שתבחרו מיושם באופן אחיד על כל עמודי הספר.</p>
-      ${SHOT("step-7-style-he.jpg", "שלב 7 — הילד בתצוגה מקדימה בסגנונות מצויר, תלת-ממד וריאליסטי", "הילד שלכם, בתצוגה מקדימה בשלושת הסגנונות — עוד לפני שהחלטתם.", true)}
 
-      <h2>שלב 8 — סקירה ויצירה</h2>
-      <p>מבט אחרון: שם, גיל, סיפור, סגנון איור ותוכנית — הכל במסך אחד. לחצו על "צור את הספר שלי" ואנחנו מתחילים לכתוב ולאייר סיפור שלם שבו הילד שלכם הוא הגיבור, כשאירועי הפרשה האמיתיים מתגלגלים עמוד אחרי עמוד ולקח ברור במידות שזור לכל אורכו. כל ספר נוצר בליווי רבני קפדני ובצניעות מלאה, והצוות שלנו עובר עליו אישית לפני שהוא יוצא להדפסה — כך שתוכלו למסור אותו לילד בלב שקט. כשהספר יוצא למשלוח תקבלו הצצה מהירה אליו למייל.</p>
+      <h2>שלב 7 — סקירה ויצירה</h2>
+      <p>מבט אחרון: שם, גיל, סיפור ותוכנית — הכל במסך אחד. כל ספר מאויר בסגנון החתימה שלנו — תלת־ממד באיכות פיקסאר וברזולוציה גבוהה במיוחד, עם סצנות באיכות קולנועית בכל עמוד. לחצו על "צור את הספר שלי" ואנחנו מתחילים לכתוב ולאייר סיפור שלם שבו הילד שלכם הוא הגיבור, כשאירועי הפרשה האמיתיים מתגלגלים עמוד אחרי עמוד ולקח ברור במידות שזור לכל אורכו. כל ספר נוצר בליווי רבני קפדני ובצניעות מלאה, והצוות שלנו עובר עליו אישית לפני שהוא יוצא להדפסה — כך שתוכלו למסור אותו לילד בלב שקט. כשהספר יוצא למשלוח תקבלו הצצה מהירה אליו למייל.</p>
       ${SHOT("step-8-review-he.jpg", "שלב 8 — מסך הסקירה לפני יצירת הספר", "בדיקה אחרונה לפני שהספר שלכם נוצר.", true)}
 
-      <h2>שלב 9 — בחרו את פורמט הספר (אל תוותרו על חוברת הצביעה!)</h2>
+      <h2>שלב 8 — בחרו את פורמט הספר (אל תוותרו על חוברת הצביעה!)</h2>
       <p>אחרי פתיחת חשבון חינם, בחרו איך הסיפור שלכם יודפס:</p>
       <ul>
         <li><strong>ספר בכריכה רכה (8″×8″)</strong> — קלאסי ומשתלם, על נייר סמי־גלוסי חלק. מומלץ לגילאי 4–8.</li>
@@ -174,7 +168,7 @@ export const ARTICLES = [
       </ul>
       ${PRODUCT_GRID_HE}
 
-      <h2>שלב 10 — הזמינו (פעם אחת, או במנוי)</h2>
+      <h2>שלב 9 — הזמינו (פעם אחת, או במנוי)</h2>
       <p>במסך ההזמנה בוחרים איך תרצו לקבל ספרים: <strong>ספר בודד</strong>, או מנוי — <strong>שבועי</strong> (ספר פרשה חדש לכל שבת), <strong>חודשי</strong> (4 ספרים בחודש — הפופולרי ביותר), או <strong>חבילה שנתית</strong> עם חודשיים מתנה. משלוח רגיל חינם (5–7 ימי עסקים); משלוח מהיר (2–3 ימי עסקים) זמין בתוספת, ואנחנו שולחים לכל העולם.</p>
       ${SHOT("step-11-order-he.jpg", "סיכום ההזמנה — ספר בודד או מנוי שבועי, חודשי ושנתי", "ספר אחד או הרגל תורה שבועי — אתם בוחרים בסוף.", true)}
 

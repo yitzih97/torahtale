@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Loader2, Sparkles, Plus, Minus,
-  Users, BookOpen, Palette, Package, Check,
+  Users, BookOpen, Package, Check,
   Camera, Sun, User, Type, Calendar, Heart, Image, PenLine,
   Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw,
   ChevronLeft, ChevronRight, Search, Smile, UserRound
@@ -105,7 +105,7 @@ interface WizardData {
 const initialData: WizardData = {
   children: [createChild()],
   torahPortion: "",
-  artStyle: "cartoon",
+  artStyle: "3d-pixar",
   narrativeStyle: "story",
   language: "english",
   pageCount: getStoryPageCount(DEFAULT_BOOK_OPTIONS),
@@ -216,11 +216,6 @@ const staggerChild = {
   center: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30 } },
 };
 
-const ART_STYLES = [
-  { key: "cartoon", labelKey: "cartoon" as const },
-  { key: "3d-pixar", labelKey: "threeDPixar" as const },
-  { key: "realistic", labelKey: "realistic" as const },
-];
 /* ── (generation phase icons are constructed inside the component) ── */
 
 /* ───────────────── component ───────────────── */
@@ -381,6 +376,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
           setSavedBookId(parsed.savedBookId);
         }
         const restoredData = parsed.data || initialData;
+        // Style selection was removed — every book is 3D Pixar now.
+        restoredData.artStyle = "3d-pixar";
         if (!restoredData.language || restoredData.language === "english") {
           restoredData.language = defaultLanguage;
         }
@@ -479,7 +476,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     autoAdvanceTimerRef.current = setTimeout(() => {
       setDir(1);
       setStep((s) => {
-        let nextStep = s + 1;
+        const nextStep = s + 1;
         return Math.min(nextStep, TOTAL_STEPS);
       });
     }, 350);
@@ -709,6 +706,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
     setDir(1);
     let nextStep = step + 1;
+    // The art-style step was removed — language flows straight to review.
+    if (step === 6) nextStep = 8;
     if (step === 1 && allChildrenHaveGenderAge()) {
       // Saved children already have gender/age — skip those steps; skip the photo
       // step too when every child already has a stored photo.
@@ -731,6 +730,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     let prevStep = step - 1;
     // Saved-child skips (gender/age/photo) are handled by the auto-skip effect,
     // which cascades backward when dir < 0, so plain step-1 is correct here.
+    if (step === 8) prevStep = 6; // art-style step removed
     if (step === 12) prevStep = 11;
     if (step === 13) prevStep = 11;
     setStep(Math.max(prevStep, 1));
@@ -802,7 +802,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
           user_id: user.id,
           child_id: subChildId,
           child_name: childNames,
-          art_style: data.artStyle || "cartoon",
+          art_style: data.artStyle || "3d-pixar",
           language: data.language || "english",
           status: "active",
           frequency: orderPlan,
@@ -845,7 +845,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         !!c.photoPreview || !!c.existingPhotoUrl);
       case 5: return !!data.torahPortion;
       case 6: return selectedLanguages.length >= 1;
-      case 7: return !!data.artStyle;
       case 8: return true;
       case 10: return true;
       case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
@@ -865,7 +864,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   /* ───── progress calculation ───── */
   const progressPercent = (() => {
-    const mainSteps = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    const mainSteps = [0, 1, 2, 3, 4, 5, 6, 8];
     const idx = mainSteps.indexOf(step);
     if (idx >= 0) return ((idx + 1) / mainSteps.length) * 100;
     if (step === 9) return 100;
@@ -879,7 +878,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (child.characterPreview) return child.characterPreview;
     const gender = child.gender || "";
     const age = child.age || "";
-    const style = data.artStyle || "cartoon";
+    const style = data.artStyle || "3d-pixar";
     if (gender && age) return getAgePreset(gender, ageToBracketLabel(age));
     if (gender) return getStylePreset(gender, style);
     return null;
@@ -894,7 +893,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       case 4: return Image;
       case 5: return BookOpen;
       case 6: return Sun;
-      case 7: return Palette;
       case 8: return Sparkles;
       default: return Sparkles;
     }
@@ -926,7 +924,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
           7: t.wizard.createYourBook,
           8: t.wizard.createYourBook,
         };
-        const mainSteps = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+        const mainSteps = [0, 1, 2, 3, 4, 5, 6, 8];
         const currentIdx = mainSteps.indexOf(step);
         const showHeader = step <= 8;
         if (!showHeader) return null;
@@ -1347,78 +1345,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
             {/* ── STEP 7: Art Style (shown after Language, right before Review/Generate;
                     block kept here in the file — only one step renders at a time) ── */}
-            {step === 7 && (
-              <section
-                id={stepIdFor(7)}
-                ref={setStepRef(7)}
-                onClick={step !== 7 ? () => setStep(7) : undefined}
-                className={sectionClass(7)}
-              >
-              {step !== 7 && <div className="absolute inset-0 z-10" aria-hidden />}
-              <motion.div
-                key="s7"
-                custom={dir}
-                variants={{ ...stepVariants, ...staggerContainer }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={springTransition}
-                className="space-y-6"
-              >
-                <motion.div variants={staggerChild} className="text-center">
-                  <motion.div
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ ...springTransition, delay: 0.1 }}
-                    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4"
-                  >
-                    <Palette className="w-7 h-7 text-accent" />
-                  </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    {t.wizard.chooseStyle}
-                  </h2>
-                </motion.div>
-
-                <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                  {ART_STYLES.map((s) => {
-                    const previewGender = data.children.length >= 2 ? "duo" : (child.gender || "boy");
-                    const stylePreview = getStylePreset(previewGender, s.key);
-                    return (
-                      <motion.button
-                        key={s.key}
-                        variants={staggerChild}
-                        onClick={() => {
-                          update({ artStyle: s.key });
-                          autoAdvance();
-                        }}
-                        whileHover={{ y: -4 }}
-                        whileTap={{ scale: 0.97 }}
-                        className={glassCard(data.artStyle === s.key)}
-                      >
-                        <div className="aspect-square bg-muted/20 relative">
-                          <img src={stylePreview} alt={t.wizard[s.labelKey]} className="w-full h-full object-cover" loading="lazy" width={512} height={512} />
-                        </div>
-                        <div className="p-2 sm:p-3">
-                          <span className="text-xs sm:text-sm font-semibold text-foreground block">{t.wizard[s.labelKey]}</span>
-                        </div>
-                        {data.artStyle === s.key && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                            className="absolute top-2 end-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center shadow-md"
-                          >
-                            <Check className="w-3.5 h-3.5 text-accent-foreground" />
-                          </motion.div>
-                        )}
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-              </section>
-            )}
-
             {/* ── STEP 4: Photo / Description ── */}
             {step === 4 && (
               <section
@@ -1916,7 +1842,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   )}
                   <li className="flex items-start gap-3 text-base">
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.artStyle}:</span> <span className="font-semibold capitalize">{data.artStyle}</span></span>
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.artStyle}:</span> <span className="font-semibold">{t.wizard.threeDPixar}</span></span>
                   </li>
                   <li className="flex items-start gap-3 text-base">
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />

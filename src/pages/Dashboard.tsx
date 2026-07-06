@@ -408,7 +408,7 @@ export default function Dashboard() {
           onClose={() => setViewingBook(null)}
           childName={viewingBook.child_name || ""}
           torahPortion={viewingBook.torah_portion || ""}
-          artStyle={viewingBook.art_style || "cartoon"}
+          artStyle={viewingBook.art_style || "3d-pixar"}
           pages={bookPages}
           bookFormat={(() => {
             const pt = (viewingBook.shipping_data as any)?.bookOptions?.productType;

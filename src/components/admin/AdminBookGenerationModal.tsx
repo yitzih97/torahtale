@@ -137,7 +137,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             childName: child.name,
             age: child.age || "6",
             gender: child.gender || "boy",
-            artStyle: book.art_style || "cartoon",
+            artStyle: book.art_style || "3d-pixar",
             description: child.description || "",
             referenceImage: null,
           },
@@ -756,7 +756,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               <BookViewer
                 childName={book?.child_name || ""}
                 torahPortion={book?.torah_portion || ""}
-                artStyle={book?.art_style || "cartoon"}
+                artStyle={book?.art_style || "3d-pixar"}
                 pages={pages}
                 onPagesChange={setPages}
                 editable

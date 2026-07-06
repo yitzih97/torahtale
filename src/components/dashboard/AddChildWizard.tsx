@@ -231,7 +231,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
   const getPreviewImage = (): string | null => {
     if (photoPreview) return photoPreview;
     if (gender && age) return getAgePreset(gender, ageToBracketLabel(age));
-    if (gender) return getStylePreset(gender, "cartoon");
+    if (gender) return getStylePreset(gender, "3d-pixar");
     return null;
   };
 
