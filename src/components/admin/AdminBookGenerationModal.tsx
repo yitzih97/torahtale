@@ -24,6 +24,10 @@ type PageStatus = "pending" | "generating" | "done" | "failed" | "skipped";
 
 const IMAGE_CONCURRENCY = 3;
 
+// Every book generates in the signature high-res style, regardless of what
+// older rows have stored — the product no longer offers other styles.
+const ART_STYLE = "3d-pixar";
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -76,6 +80,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           .update({
             pages_data: nextPages as any,
             story_data: nextStoryData || book.story_data,
+            art_style: ART_STYLE,
             cover_image_url: nextPages[0]?.image || null,
             updated_at: new Date().toISOString(),
           } as any)
@@ -137,7 +142,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             childName: child.name,
             age: child.age || "6",
             gender: child.gender || "boy",
-            artStyle: book.art_style || "3d-pixar",
+            artStyle: ART_STYLE,
             description: child.description || "",
             referenceImage: null,
           },
@@ -166,7 +171,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           gender: childDescriptions[0]?.gender || "boy",
           torahPortion: book.torah_portion,
           torahPortionLabel: portionLabel || book.torah_portion,
-          artStyle: book.art_style,
+          artStyle: ART_STYLE,
           language: book.language || "english",
           pageCount,
         },
@@ -219,7 +224,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     const primaryChildName = childDescriptions[0]?.name || book.child_name;
     return {
       childName: book.child_name,
-      artStyle: book.art_style,
+      artStyle: ART_STYLE,
       torahPortion: book.torah_portion,
       bookFormat,
       pageType: pg.type,
@@ -355,6 +360,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         pages_data: pages as any,
         story_data: storyData || book.story_data,
         cover_image_url: pages[0]?.image || null,
+        art_style: ART_STYLE,
         status: "pending_review",
         updated_at: new Date().toISOString(),
       } as any).eq("id", book.id);
@@ -374,6 +380,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         pages_data: pages as any,
         story_data: storyData || book.story_data,
         cover_image_url: pages[0]?.image || null,
+        art_style: ART_STYLE,
         status: "approved",
         updated_at: new Date().toISOString(),
       } as any).eq("id", book.id);
@@ -497,7 +504,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 <h2 className="font-display text-base sm:text-lg font-bold text-primary truncate">
                   {book?.child_name}'s Book — {book?.torah_portion}
                 </h2>
-                <p className="text-xs text-muted-foreground capitalize">{book?.art_style} style · {book?.language || "english"}</p>
+                <p className="text-xs text-muted-foreground">3D Pixar style · <span className="capitalize">{book?.language || "english"}</span></p>
               </div>
             </div>
 
@@ -756,7 +763,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               <BookViewer
                 childName={book?.child_name || ""}
                 torahPortion={book?.torah_portion || ""}
-                artStyle={book?.art_style || "3d-pixar"}
+                artStyle={ART_STYLE}
                 pages={pages}
                 onPagesChange={setPages}
                 editable

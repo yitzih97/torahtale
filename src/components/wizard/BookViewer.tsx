@@ -425,7 +425,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
       {/* Action buttons (admin only) */}
       {editable && (
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {pageType === "story" && (
           <Button variant="outline" size="sm" onClick={startEdit} disabled={regeneratingId !== null} className="text-xs">
             <Pencil className="w-3.5 h-3.5" /> Edit Text

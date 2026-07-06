@@ -29,14 +29,14 @@ const template = readFileSync(join(DIST, "index.html"), "utf8");
 const HOME_HTML = `
   <main>
     <h1>Personalized Torah Storybooks Starring Your Child</h1>
-    <p>Torah Tale creates one-of-a-kind, AI-personalized Torah storybooks where your own child is the hero of the weekly parsha — made with careful rabbinical guidance and strict tznius, and printed and delivered to your door.</p>
+    <p>Torah Tale creates one-of-a-kind, AI-personalized Torah storybooks where your own child is the hero of the weekly parsha — made with careful rabbinical guidance and strict tznius, illustrated in high-resolution 3D Pixar style, and printed and delivered to your door.</p>
     <h2>How it works</h2>
     <ol>
       <li>Add your child's name, age, and a photo.</li>
-      <li>Pick an art style — 3D Pixar-style, hand-painted cartoon, and more.</li>
       <li>Choose this week's parsha (selected automatically) or any Torah story or Yom Tov.</li>
-      <li>We generate a complete, kosher story with your child as the hero.</li>
-      <li>Order a softcover, hardcover keepsake, or board book — or subscribe for a new book every week.</li>
+      <li>Pick English, Hebrew, or Yiddish.</li>
+      <li>We generate a complete, kosher story with your child as the hero — illustrated in movie-quality 3D Pixar style.</li>
+      <li>Order a softcover, hardcover keepsake, or board book (with an optional matching coloring book) — or subscribe for a new book every week.</li>
     </ol>
     <p><a href="/create">Create your child's book</a> · <a href="/pricing">See pricing</a> · <a href="/blog">Read our guides</a></p>
   </main>`;
@@ -83,7 +83,7 @@ const routes = [
   { path: "/testimonials", title: "Reviews — What Families Say About Torah Tale", description: "Read what frum families say about their personalized Torah Tale storybooks for their children." },
   { path: "/contact", title: "Contact Torah Tale", description: "Get in touch with the Torah Tale team. We're happy to help with your personalized Torah storybook order." },
   { path: "/affiliates", title: "Affiliate Program — Torah Tale", description: "Earn by sharing Torah Tale's personalized Torah storybooks with your community. Join the affiliate program." },
-  { path: "/create", title: "Create Your Child's Torah Storybook — Torah Tale", description: "Start building a personalized Torah storybook starring your child in about five minutes. Choose the parsha, art style, and book format." },
+  { path: "/create", title: "Create Your Child's Torah Storybook — Torah Tale", description: "Start building a personalized Torah storybook starring your child in about five minutes. Choose the parsha, language, and book format." },
   { path: "/blog", title: "Torah Tale Blog — Guides to Personalized Torah Storybooks", description: "Step-by-step guides and ideas for making personalized Torah storybooks for Jewish kids — choosing the weekly parsha, gift ideas, and how it works.", content: blogIndexHtml() },
   { path: "/terms", title: "Terms of Service — Torah Tale", description: "Torah Tale's terms of service." },
   { path: "/privacy", title: "Privacy Policy — Torah Tale", description: "How Torah Tale handles your data and your child's photos with care." },
@@ -126,8 +126,11 @@ for (const r of routes) {
   }
 
   // Pre-rendered body content inside #root (React replaces it on mount).
+  // Visually hidden so users never see raw text while the app boots —
+  // crawlers still read it from the HTML.
   if (r.content) {
-    html = html.replace(/<div id="root">\s*<\/div>/, `<div id="root">${r.content}</div>`);
+    const hidden = `<div style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">${r.content}</div>`;
+    html = html.replace(/<div id="root">\s*<\/div>/, `<div id="root">${hidden}</div>`);
   }
 
   const outPath = r.path === "/" ? join(DIST, "index.html") : join(DIST, r.path, "index.html");
