@@ -109,11 +109,11 @@ export default function Auth() {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="text-center mb-8">
-          <a href="/" className="inline-flex mx-auto mb-6">
-            <BrandMark stacked iconClassName="h-16 w-16" wordmarkClassName="h-9 w-auto" />
+        <div className="text-center mb-5 sm:mb-8">
+          <a href="/" className="inline-flex mx-auto mb-3 sm:mb-5">
+            <BrandMark className="gap-1.5" iconClassName="h-12 w-12 sm:h-14 sm:w-14" wordmarkClassName="h-14 sm:h-16 w-auto" />
           </a>
-          <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">
             {mode === "login" ? t.auth.welcomeBack : mode === "signup" ? t.auth.createAccount : t.auth.resetPassword}
             <span className="text-accent">.</span>
           </h1>
@@ -126,7 +126,7 @@ export default function Auth() {
           </p>
         </div>
 
-        <div className="p-8 md:p-10 rounded-[2rem] bg-card/60 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.1)_inset]">
+        <div className="p-5 sm:p-8 md:p-10 rounded-[2rem] bg-card/60 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.1)_inset]">
           {/* Google first — the default, primary sign-in. */}
           {mode !== "forgot" && (
             <>
@@ -134,7 +134,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-14 rounded-2xl border-border/40 bg-background/70 hover:bg-background text-base font-semibold transition-all duration-300"
+                  className="w-full h-12 sm:h-14 rounded-2xl border-border/40 bg-background/70 hover:bg-background text-sm sm:text-base font-semibold transition-all duration-300"
                   disabled={loading}
                   onClick={async () => {
                     setLoading(true);
@@ -155,7 +155,7 @@ export default function Auth() {
                   {t.auth.continueWithGoogle}
                 </Button>
               </motion.div>
-              <div className="relative my-6">
+              <div className="relative my-4 sm:my-6">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-border/30" />
                 </div>
@@ -166,13 +166,13 @@ export default function Auth() {
             </>
           )}
 
-          <form onSubmit={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgotPassword} className="space-y-5">
+          <form onSubmit={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgotPassword} className="space-y-3.5 sm:space-y-5">
             {mode === "signup" && (
               <motion.div
                 variants={fieldVariants}
                 animate={focusedField === "fullName" ? "focused" : "idle"}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className="space-y-2.5 rounded-2xl"
+                className="space-y-1.5 sm:space-y-2.5 rounded-2xl"
               >
                 <Label htmlFor="fullName" className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t.auth.fullName}</Label>
                 <div className="relative">
@@ -194,7 +194,7 @@ export default function Auth() {
               variants={fieldVariants}
               animate={focusedField === "email" ? "focused" : "idle"}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="space-y-2.5 rounded-2xl"
+              className="space-y-1.5 sm:space-y-2.5 rounded-2xl"
             >
               <Label htmlFor="email" className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t.auth.email}</Label>
               <div className="relative">
@@ -217,7 +217,7 @@ export default function Auth() {
                 variants={fieldVariants}
                 animate={focusedField === "password" ? "focused" : "idle"}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className="space-y-2.5 rounded-2xl"
+                className="space-y-1.5 sm:space-y-2.5 rounded-2xl"
               >
                 <Label htmlFor="password" className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{t.auth.password}</Label>
                 <div className="relative">
@@ -246,7 +246,7 @@ export default function Auth() {
               <Button
                 type="submit"
                 variant="gold"
-                className="w-full h-14 rounded-2xl text-base font-semibold tracking-wide shadow-[0_0_30px_hsl(var(--accent)/0.25)] hover:shadow-[0_0_50px_hsl(var(--accent)/0.35)] transition-shadow duration-500"
+                className="w-full h-12 sm:h-14 rounded-2xl text-base font-semibold tracking-wide shadow-[0_0_30px_hsl(var(--accent)/0.25)] hover:shadow-[0_0_50px_hsl(var(--accent)/0.35)] transition-shadow duration-500"
                 disabled={loading}
               >
                 {loading ? (
@@ -262,7 +262,7 @@ export default function Auth() {
             </motion.div>
           </form>
 
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-4 sm:mt-6 text-center text-sm">
             {mode === "login" && (
               <>
                 <button onClick={() => setMode("forgot")} className="text-accent hover:underline">{t.auth.forgotPassword}</button>
@@ -287,7 +287,7 @@ export default function Auth() {
         </div>
 
         {/* Subtle reflection */}
-        <div className="mt-3 mx-8 h-12 rounded-b-3xl bg-gradient-to-b from-card/20 to-transparent blur-sm" />
+        <div className="hidden sm:block mt-3 mx-8 h-12 rounded-b-3xl bg-gradient-to-b from-card/20 to-transparent blur-sm" />
       </motion.div>
     </div>
   );
