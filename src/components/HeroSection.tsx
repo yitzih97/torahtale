@@ -27,7 +27,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         title1: "סיפורי תורה,",
         title2: "בכיכוב הילדים שלכם",
         description:
-          "אנחנו יוצרים ספרים אישיים שמחזירים את סיפורי התורה לחיים — כשהילד שלכם הוא גיבור הסיפור, וכל עמוד מנחיל ערכים לכל החיים.",
+          "יוצרים ספרים מותאמים אישית שמחזירים לחיים סיפורי תורה וסיפורים חינוכיים — בכיכוב הילד שלכם",
         primaryCta: "צרו את הסיפור של ילדכם",
         features: [
           { icon: BookOpen, label: "תוכן יהודי טהור" },
@@ -51,7 +51,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         title1: "Torah Stories,",
         title2: "Starring Your Kids",
         description:
-          "We create personalized books that bring Torah stories to life—starring your child, instilling values that inspire a lifetime.",
+          "Create personalized books that bring Torah & Educational stories to life - starring your child",
         primaryCta: "Start Your Child's Story",
         features: [
           { icon: BookOpen, label: "100% Jewish Content" },
