@@ -97,6 +97,15 @@ CHARACTER DETAILS:
 - ${descPart}
 - Art style: ${style}
 
+CANONICAL OUTFIT — LOCKED WARDROBE (this exact outfit will be reproduced on EVERY page of a printed book, so treat it as the character's permanent costume):
+${gender === "boy"
+  ? (isUnder3Boy
+      ? "- A simple modest toddler outfit: a soft cream or light-blue shirt with dark soft trousers. The same exact outfit in every view."
+      : "- A crisp white button-down shirt, dark navy trousers, black shoes, a dark yarmulke, tzitzis strings visible at the sides, and neat peyos. The same exact outfit in every view.")
+  : "- ONE modest dress in a single soft color (dusty rose or muted blue), long sleeves past the elbow, skirt well below the knee, a simple matching headband, and modest shoes. The same exact dress in every view."}
+- If the appearance description above explicitly requests specific clothing, honor that instead — but keep it identical in every view.
+- NEVER modern casual wear: no t-shirts, no logos or prints, no jeans, no sneakers, no baseball caps.
+
 CRITICAL CONSISTENCY RULES:
 - Every view must show the EXACT SAME character — identical face shape, nose, eyes, eyebrows, mouth, hair color, hair style, skin tone, and body proportions.
 - The child must read as EXACTLY ${ageNum} years old in every view — never older, never younger. Preserve the same head size, body scale, height impression, and toddler/child proportions in every panel.
@@ -106,7 +115,7 @@ CRITICAL CONSISTENCY RULES:
 
 BACKGROUND: Clean solid white background. No environments, no props, no text labels.
 
-${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial features, face shape, hair color, hair texture, eye color, and skin tone from the attached reference photo as closely as possible, while rendering in the specified art style. The illustrated character should be immediately recognizable as the same child in the photo. If this is a boy under 3, use the photo for likeness first and ONLY keep a kippah, peyos, or tzitzis if they are clearly visible in the photo or explicitly requested in the description.` : ""}`;
+${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial features, face shape, hair color, hair texture, eye color, and skin tone from the attached reference photo as closely as possible, while rendering in the specified art style. The illustrated character should be immediately recognizable as the same child in the photo. The photo is for FACE and HAIR likeness ONLY — do NOT copy the clothing from the photo; dress the character in the canonical outfit above. If this is a boy under 3, use the photo for likeness first and ONLY keep a kippah, peyos, or tzitzis if they are clearly visible in the photo or explicitly requested in the description.` : ""}`;
 
     const parts: any[] = [];
 

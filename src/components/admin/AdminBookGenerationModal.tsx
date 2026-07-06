@@ -79,7 +79,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           .from("books")
           .update({
             pages_data: nextPages as any,
-            story_data: nextStoryData || book.story_data,
+            story_data: { ...(nextStoryData || book.story_data || {}), characterSheets: characterSheetsRef.current },
             art_style: ART_STYLE,
             cover_image_url: nextPages[0]?.image || null,
             updated_at: new Date().toISOString(),
@@ -120,6 +120,9 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     if (open) {
       setConfirmRegen(false);
       setPageCount(sd.pageCount || 10);
+      // Reuse the sheets from a previous generation so retries/regens keep the
+      // exact same character look across sessions.
+      characterSheetsRef.current = (sd.characterSheets as Record<string, string>) || {};
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, book?.id]);
@@ -127,8 +130,11 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   /* ─────────────── Phase 1: character sheets (photo-less children only) ─────────────── */
 
   const generateCharacterSheets = useCallback(async () => {
-    characterSheetsRef.current = {};
-    const needsSheet = childDescriptions.filter((c: any) => !c.photoUrl && !c.hasPhoto);
+    // Every child gets a character sheet — it locks ONE canonical outfit and the
+    // stylized look, which is what keeps the child consistent across pages. The
+    // real photo (when present) is passed as the likeness input. Sheets from a
+    // previous run are reused so the look never drifts between regenerations.
+    const needsSheet = childDescriptions.filter((c: any) => c?.name && !characterSheetsRef.current[c.name]);
     if (needsSheet.length === 0) return;
 
     setPhase("character");
@@ -144,7 +150,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             gender: child.gender || "boy",
             artStyle: ART_STYLE,
             description: child.description || "",
-            referenceImage: null,
+            referenceImage: child.photoUrl || null,
           },
         });
         if (!sheetErr && sheetData?.imageUrl) {
@@ -154,7 +160,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         console.error(`Failed to generate character sheet for ${child.name}:`, err);
       }
     }
-  }, [book, childDescriptions]);
+  }, [childDescriptions]);
 
   /* ─────────────── Phase 2: story ─────────────── */
 
@@ -358,7 +364,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     try {
       await supabase.from("books").update({
         pages_data: pages as any,
-        story_data: storyData || book.story_data,
+        story_data: { ...(storyData || book.story_data || {}), characterSheets: characterSheetsRef.current },
         cover_image_url: pages[0]?.image || null,
         art_style: ART_STYLE,
         status: "pending_review",
@@ -378,7 +384,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     try {
       await supabase.from("books").update({
         pages_data: pages as any,
-        story_data: storyData || book.story_data,
+        story_data: { ...(storyData || book.story_data || {}), characterSheets: characterSheetsRef.current },
         cover_image_url: pages[0]?.image || null,
         art_style: ART_STYLE,
         status: "approved",

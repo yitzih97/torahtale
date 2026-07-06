@@ -293,7 +293,9 @@ serve(async (req) => {
     // NON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES — always applied, even on explicit prompt, regen, or admin edit.
     imagePrompt += ` \n\nNON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES (apply to EVERY illustration without exception):
 - Each named child character must appear EXACTLY ONCE in the image. NEVER duplicate, clone, mirror, twin, or repeat the same child anywhere in the scene — not in the foreground, not in the background, not as a reflection, not as a second copy. One child = one single figure on the page.
-- A child's clothing comes ONLY from the story scene, the character reference sheet, and the modesty rules above. DO NOT copy the clothing, outfit, colors, prints, logos, brand marks, or accessories from any attached real-life PHOTOGRAPH of the child — a photograph is a guide to the child's FACE and HAIR ONLY, never to their wardrobe.`;
+- A child's clothing comes ONLY from their character reference sheet and the modesty rules above. DO NOT copy the clothing, outfit, colors, prints, logos, brand marks, or accessories from any attached real-life PHOTOGRAPH of the child — a photograph is a guide to the child's FACE and HAIR ONLY, never to their wardrobe.
+- WARDROBE LOCK: when a child has a character reference sheet attached, dress that child in the EXACT outfit shown on their sheet — the same garments, the same colors, the same head covering — on EVERY page and in EVERY scene. Never restyle, recolor, or swap the outfit between pages.
+- NEVER dress the hero child in modern casual clothing — no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics — unless their character sheet itself shows those items.`;
 
 
     const parts: any[] = [];
@@ -331,15 +333,22 @@ serve(async (req) => {
       const isSingle = refChildren.length === 1;
       const photo = c?.photoUrl || (isSingle && typeof referenceImage === "string" ? referenceImage : null);
       const sheet = c?.characterSheet || sheetMap[c?.name] || (isSingle ? characterSheet : null);
-      const src = photo || sheet;
-      if (typeof src === "string" && src) {
-        refItems.push({ name: c?.name || childName || "the child", src, isPhoto: !!photo });
-      }
+      const nm = c?.name || childName || "the child";
+      // Attach BOTH when available: the sheet locks the outfit + stylized look,
+      // the photo anchors the exact face. Sending only the photo left wardrobe
+      // to chance on every page (and models copied the photo's real clothes).
+      if (typeof sheet === "string" && sheet) refItems.push({ name: nm, src: sheet, isPhoto: false });
+      if (typeof photo === "string" && photo) refItems.push({ name: nm, src: photo, isPhoto: true });
     }
-    const cappedRefs = refItems.slice(0, 4); // stay within model attachment limits
+    // Stay within model attachment limits (4). Past the cap, keep every child's
+    // SHEET first (it carries both likeness and the locked outfit), then photos.
+    let cappedRefs = refItems;
+    if (refItems.length > 4) {
+      cappedRefs = [...refItems.filter((r) => !r.isPhoto), ...refItems.filter((r) => r.isPhoto)].slice(0, 4);
+    }
     if (cappedRefs.length > 0) {
       const legend = cappedRefs
-        .map((r, i) => `Image ${i + 1} = ${r.name}${r.isPhoto ? " (a REAL PHOTO of this child — match their exact face shape, eye colour and shape, eyebrows, skin tone, and hair)" : " (a character reference sheet for this child)"}`)
+        .map((r, i) => `Image ${i + 1} = ${r.name}${r.isPhoto ? " (a REAL PHOTO of this child — match their exact face shape, eye colour and shape, eyebrows, skin tone, and hair from it. FACE AND HAIR ONLY — never copy the clothing in this photo)" : " (this child's OFFICIAL CHARACTER SHEET — it defines their permanent look INCLUDING the exact outfit: reproduce the SAME clothing, colors, head covering and styling shown on the sheet)"}`)
         .join("; ");
       imagePrompt = `CRITICAL CHILD LIKENESS & CONSISTENCY (do NOT ignore): The attached image(s) are references for the child character(s) in this book. ${legend}. You MUST reproduce EACH child's face, hair, eye colour and skin tone faithfully from THEIR OWN reference, translated into the chosen art style, so each child is IMMEDIATELY and unmistakably recognizable as that same real child on EVERY page. NEVER invent a generic face and NEVER swap features between children. When a reference is a real photograph, use it for the child's FACE and HAIR ONLY — do NOT copy the clothing, outfit, colours, prints, logos or accessories from the photo (dress each child per the story scene and the modesty rules below). Keep each child's look identical across all pages. ${imagePrompt}`;
       for (const r of cappedRefs) await pushImagePart(r.src);
