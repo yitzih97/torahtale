@@ -125,15 +125,16 @@ export function computeAutoTextLayout(
     }
 
     const startAlign: TextLayout["align"] = rtl ? "right" : "left";
-    // Bottom band is the reserved caption zone (see generate-image); it's the
-    // default preference, with a top band as the alternative.
+    // The TOP band (calm painted sky) is the reserved caption zone — see the
+    // COMPOSITION rule in generate-image — so it's the default preference,
+    // with the bottom band as the alternative for scenes with busy skies.
     const candidates: Candidate[] = [
-      { x: 8, y: 66, width: 84, align: "center",   region: [0.06, 0.64, 0.88, 0.30], hFrac: 0.30, bias: 1.0 },
-      { x: 6, y: 64, width: 46, align: startAlign, region: [0.04, 0.62, 0.48, 0.32], hFrac: 0.32, bias: 1.08 },
-      { x: 50, y: 64, width: 46, align: rtl ? "right" : "left", region: [0.5, 0.62, 0.46, 0.32], hFrac: 0.32, bias: 1.08 },
-      { x: 8, y: 6, width: 84, align: "center",    region: [0.06, 0.05, 0.88, 0.26], hFrac: 0.26, bias: 1.25 },
-      { x: 6, y: 7, width: 46, align: startAlign,  region: [0.04, 0.05, 0.48, 0.30], hFrac: 0.30, bias: 1.3 },
-      { x: 50, y: 7, width: 46, align: rtl ? "right" : "left", region: [0.5, 0.05, 0.46, 0.30], hFrac: 0.30, bias: 1.3 },
+      { x: 8, y: 6, width: 84, align: "center",    region: [0.06, 0.05, 0.88, 0.26], hFrac: 0.26, bias: 1.0 },
+      { x: 6, y: 7, width: 46, align: startAlign,  region: [0.04, 0.05, 0.48, 0.30], hFrac: 0.30, bias: 1.06 },
+      { x: 50, y: 7, width: 46, align: rtl ? "right" : "left", region: [0.5, 0.05, 0.46, 0.30], hFrac: 0.30, bias: 1.06 },
+      { x: 8, y: 66, width: 84, align: "center",   region: [0.06, 0.64, 0.88, 0.30], hFrac: 0.30, bias: 1.22 },
+      { x: 6, y: 64, width: 46, align: startAlign, region: [0.04, 0.62, 0.48, 0.32], hFrac: 0.32, bias: 1.28 },
+      { x: 50, y: 64, width: 46, align: rtl ? "right" : "left", region: [0.5, 0.62, 0.46, 0.32], hFrac: 0.32, bias: 1.28 },
     ];
 
     const containerHRef = REF_W * (h / w);
