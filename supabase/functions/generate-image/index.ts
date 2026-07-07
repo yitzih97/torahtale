@@ -295,7 +295,8 @@ serve(async (req) => {
 - Each named child character must appear EXACTLY ONCE in the image. NEVER duplicate, clone, mirror, twin, or repeat the same child anywhere in the scene — not in the foreground, not in the background, not as a reflection, not as a second copy. One child = one single figure on the page.
 - A child's clothing comes ONLY from their character reference sheet and the modesty rules above. DO NOT copy the clothing, outfit, colors, prints, logos, brand marks, or accessories from any attached real-life PHOTOGRAPH of the child — a photograph is a guide to the child's FACE and HAIR ONLY, never to their wardrobe.
 - WARDROBE LOCK: when a child has a character reference sheet attached, dress that child in the EXACT outfit shown on their sheet — the same garments, the same colors, the same head covering — on EVERY page and in EVERY scene. Never restyle, recolor, or swap the outfit between pages.
-- NEVER dress the hero child in modern casual clothing — no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics — unless their character sheet itself shows those items.`;
+- NEVER dress the hero child in modern casual clothing — no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics — unless their character sheet itself shows those items.
+- HAIR & FEATURE LOCK: each child's hair COLOR, hair style, eye color, and skin tone must EXACTLY match their character sheet on every page. If the sheet shows brown hair, the hair is that exact same brown on every single page — never blonde, never a different shade, never a different style.`;
 
 
     const parts: any[] = [];
@@ -334,11 +335,12 @@ serve(async (req) => {
       const photo = c?.photoUrl || (isSingle && typeof referenceImage === "string" ? referenceImage : null);
       const sheet = c?.characterSheet || sheetMap[c?.name] || (isSingle ? characterSheet : null);
       const nm = c?.name || childName || "the child";
-      // Attach BOTH when available: the sheet locks the outfit + stylized look,
-      // the photo anchors the exact face. Sending only the photo left wardrobe
-      // to chance on every page (and models copied the photo's real clothes).
-      if (typeof sheet === "string" && sheet) refItems.push({ name: nm, src: sheet, isPhoto: false });
-      if (typeof photo === "string" && photo) refItems.push({ name: nm, src: photo, isPhoto: true });
+      // The character SHEET is the one canonical anchor — it was generated from
+      // the child's photo and locks the face, hair color, and outfit in-style.
+      // Anchoring pages on the sheet ONLY (never sheet+photo together) removes
+      // conflicting references — mixed anchors made hair color flip between pages.
+      const src = (typeof sheet === "string" && sheet) ? sheet : ((typeof photo === "string" && photo) ? photo : null);
+      if (src) refItems.push({ name: nm, src, isPhoto: src === photo });
     }
     // Stay within model attachment limits (4). Past the cap, keep every child's
     // SHEET first (it carries both likeness and the locked outfit), then photos.
@@ -391,6 +393,11 @@ serve(async (req) => {
       imagePrompt += ` CAPTION SPACE (composition rule): Keep a clean, UNCLUTTERED horizontal band across the BOTTOM ~30% of the image — soft ground, grass, water, floor, sky or a gentle gradient — with NO faces, hands, or important details inside that band, so a line of story text can be overlaid there and stay perfectly readable. Keep the characters and the main action in the upper two-thirds of the frame.`;
     }
 
+    // Final, most-salient reminder — image models weight the end of the prompt heavily.
+    if (!isColoring && cappedRefs.length > 0) {
+      imagePrompt += ` \n\nFINAL CHECK BEFORE RENDERING (highest priority, overrides everything else): (1) each named child appears EXACTLY ONCE in the image — no duplicates, no twins, no reflections, no second copy in the background; (2) each child's hair color and hair style EXACTLY match their character sheet; (3) each child wears EXACTLY the outfit shown on their character sheet.`;
+    }
+
     parts.push({ text: imagePrompt });
 
     // Upscale a base64 PNG toward print resolution. Fully guarded (dynamic
@@ -413,6 +420,9 @@ serve(async (req) => {
       }
     };
 
+    // One full generation attempt (OpenAI primary → Gemini fallback). Reads the
+    // current `parts` array, so the QA gate can amend the prompt and re-run it.
+    const generateOnce = async (): Promise<string> => {
     // ============= OPENAI GPT IMAGE (primary) =============
     // GPT Image is the primary generator now — including when a child photo is
     // attached (it goes through images/edits for likeness). "medium" quality so
@@ -467,9 +477,7 @@ serve(async (req) => {
               // worker with a 546 WORKER_RESOURCE_LIMIT (not a catchable error) —
               // which is what was leaving pages blank. Any print-resolution
               // upscaling must happen off-edge (client-side / at submit time).
-              return new Response(JSON.stringify({ imageUrl: `data:image/jpeg;base64,${b64}` }), {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-              });
+              return `data:image/jpeg;base64,${b64}`;
             }
             console.error("OpenAI returned no image — falling back to Gemini.");
           } else {
@@ -524,10 +532,9 @@ serve(async (req) => {
       console.error(`Gemini image generation error with model ${model}:`, attempt.status, body);
 
       if (attempt.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited — please try again in a moment." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const rateErr = new Error("Rate limited — please try again in a moment.") as Error & { status?: number };
+        rateErr.status = 429;
+        throw rateErr;
       }
 
       const retryableModelError =
@@ -560,14 +567,101 @@ serve(async (req) => {
       throw new Error("No image returned from Gemini");
     }
 
-    return new Response(JSON.stringify({ imageUrl }), {
+    return imageUrl;
+    };
+
+    // ── CHARACTER QA GATE ────────────────────────────────────────────────────
+    // Prompt rules steer, but they don't guarantee. After generating, a fast
+    // vision model inspects the page against the character sheet(s) for the
+    // three failure modes users actually see — duplicated child, wrong hair
+    // color, wrong outfit — and, on failure, ONE corrective regeneration runs
+    // with the inspector's findings appended to the prompt. Fail-open: any QA
+    // error keeps the first image.
+    const sheetRefs = cappedRefs.filter((r) => !r.isPhoto);
+
+    const collectInline = async (src: string, out: any[]) => {
+      if (!src) return;
+      if (src.startsWith("data:")) {
+        const m = src.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (m) out.push({ inlineData: { mimeType: m[1], data: m[2] } });
+        return;
+      }
+      try {
+        const r = await fetchWithTimeout(src, undefined, 10_000);
+        if (r.ok) {
+          const buf = await r.arrayBuffer();
+          out.push({ inlineData: { mimeType: r.headers.get("content-type") || "image/jpeg", data: bufferToBase64(buf) } });
+        }
+      } catch { /* fail-open */ }
+    };
+
+    const qaCheck = async (imgUrl: string): Promise<string | null> => {
+      try {
+        const qaParts: any[] = [];
+        await collectInline(imgUrl, qaParts);
+        if (qaParts.length === 0) return null;
+        const usableSheets = sheetRefs.slice(0, 2);
+        for (const r of usableSheets) await collectInline(r.src, qaParts);
+        if (qaParts.length < 2) return null; // need the page + at least one sheet
+        const names = usableSheets.map((r) => r.name).join(", ");
+        qaParts.push({ text: `You are a strict QA inspector for a children's book. Image 1 is a GENERATED book page. The following ${usableSheets.length} image(s) are the OFFICIAL character sheet(s) for the hero child(ren): ${names}. Inspect the generated page for ONLY these defects:
+1) duplicate — the SAME hero child appears more than once in the page (a twin, clone, mirror or extra copy of the same child).
+2) hairMismatch — a hero child's hair COLOR clearly differs from their character sheet (e.g. blonde on the page but brown on the sheet).
+3) outfitMismatch — a hero child's clothing clearly differs from the outfit on their character sheet (e.g. modern t-shirt instead of the sheet outfit).
+Judge ONLY the hero child(ren) shown on the sheets — ignore background/biblical figures. Be tolerant of art-style differences, lighting, and pose; flag only CLEAR mismatches. Reply with STRICT minified JSON only, no prose: {"duplicate":false,"hairMismatch":false,"outfitMismatch":false,"details":""}` });
+        const r = await fetchWithTimeout(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ role: "user", parts: qaParts }], generationConfig: { temperature: 0 } }),
+          },
+          20_000,
+        );
+        if (!r.ok) return null;
+        const j = await r.json();
+        const txt = (j.candidates?.[0]?.content?.parts || []).map((p: any) => p.text || "").join("");
+        const m = txt.match(/\{[\s\S]*\}/);
+        if (!m) return null;
+        const v = JSON.parse(m[0]);
+        const issues: string[] = [];
+        if (v.duplicate) issues.push("the same hero child appeared MORE THAN ONCE — render each named child EXACTLY ONCE, with no duplicate anywhere in the scene");
+        if (v.hairMismatch) issues.push("a hero child's HAIR COLOR did not match the character sheet — copy the exact hair color and shade from the sheet");
+        if (v.outfitMismatch) issues.push("a hero child's OUTFIT did not match the character sheet — dress them in exactly the outfit shown on the sheet");
+        if (issues.length === 0) return null;
+        const details = typeof v.details === "string" && v.details.trim() ? ` (inspector notes: ${v.details.slice(0, 200)})` : "";
+        return issues.join("; ") + details;
+      } catch (e) {
+        console.error("QA check failed (fail-open):", e);
+        return null;
+      }
+    };
+
+    const qaStartedAt = Date.now();
+    let finalImageUrl = await generateOnce();
+
+    if (!isColoring && sheetRefs.length > 0 && Date.now() - qaStartedAt < 75_000) {
+      const issues = await qaCheck(finalImageUrl);
+      if (issues) {
+        console.warn("QA gate rejected page — regenerating once:", issues);
+        imagePrompt += ` \n\n⚠️ PREVIOUS ATTEMPT REJECTED BY AUTOMATED QA — it had these exact problems: ${issues}. Fix them now: every named child appears EXACTLY ONCE, with hair color, hair style, and outfit copied EXACTLY from their character sheet.`;
+        parts[parts.length - 1] = { text: imagePrompt };
+        try {
+          finalImageUrl = await generateOnce();
+        } catch (e) {
+          console.error("QA retry failed — keeping first attempt:", e);
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({ imageUrl: finalImageUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("generate-image error:", e);
     const isTimeout = e instanceof DOMException && e.name === "AbortError";
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: isTimeout ? 504 : 500,
+      status: isTimeout ? 504 : ((e as Error & { status?: number })?.status || 500),
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
