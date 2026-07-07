@@ -390,7 +390,7 @@ serve(async (req) => {
     // This is what lets caption placement/sizing run almost fully autonomously —
     // there is always a clean, low-detail zone waiting for the text.
     if (!isColoring && !isCover) {
-      imagePrompt += ` CAPTION SPACE (composition rule): Keep a clean, UNCLUTTERED horizontal band across the BOTTOM ~30% of the image — soft ground, grass, water, floor, sky or a gentle gradient — with NO faces, hands, or important details inside that band, so a line of story text can be overlaid there and stay perfectly readable. Keep the characters and the main action in the upper two-thirds of the frame.`;
+      imagePrompt += ` CAPTION SPACE (composition rule): Compose the scene so its own natural foreground — soft ground, grass, sand, water, stone floor, or open sky — flows continuously into the BOTTOM ~28% of the image and stays calm there: no faces, no hands, no important story details in that zone, so a line of story text can be overlaid and stay perfectly readable. CRITICAL: this calm zone must be a SEAMLESS, FULLY-PAINTED part of the illustration itself — same palette, same lighting, same textures as the rest of the scene, just gently lower in detail and contrast. NEVER render it as a separate strip, a solid color band, an empty/blank bar, a white or cream box, a fog line, a hard horizontal edge, or any visible seam — the illustration must look complete, natural and beautiful even before any text is placed on it. Keep the characters and the main action in the upper two-thirds of the frame.`;
     }
 
     // Final, most-salient reminder — image models weight the end of the prompt heavily.

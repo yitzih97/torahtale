@@ -28,7 +28,7 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   fontSize: 20,
   color: "#2b2418",
   align: "left",
-  // Captions are BOLD with a light outline halo (see READ_HALO) by default so
+  // Captions are BOLD with a crisp white border (see READ_STROKE) by default so
   // they stay readable on any scene — no cream box needed. Box background/border
   // remain toggleable from the toolbar for special cases.
   bold: true,
@@ -37,11 +37,12 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   border: false,
 };
 
-// Light outline "halo" drawn around caption text so dark bold letters stay
-// legible on light OR dark artwork without a background box. Mirrored in the
-// PDF renderer (generateBookPdf drawTextOverlay).
-export const READ_HALO =
-  "0 0 2px #fff, 0 0 4px #fff, 0 0 6px rgba(255,255,255,0.85), 0 1px 1px rgba(255,255,255,0.9)";
+// Crisp WHITE BORDER drawn around caption text (a text stroke, not a soft
+// shadow) so dark bold letters stay legible on any artwork without a
+// background box. paint-order renders the stroke UNDER the fill, keeping the
+// letterforms solid. Mirrored in the PDF renderer (generateBookPdf
+// drawTextOverlay), which strokes each line in solid white behind the fill.
+export const READ_STROKE = "0.16em #ffffff";
 
 export const FONT_OPTIONS = [
   { label: "Cormorant", value: "'Cormorant Garamond', 'Georgia', serif" },
@@ -181,9 +182,10 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
           touchAction: "none",
           zIndex: selected ? 30 : 20,
           boxShadow: layout.background ? "0 4px 14px rgba(0,0,0,0.12)" : undefined,
-          // Light outline halo keeps the caption readable on any scene (skipped
+          // Crisp white border keeps the caption readable on any scene (skipped
           // when a solid background box already guarantees contrast, or while editing).
-          textShadow: editing || layout.background ? undefined : READ_HALO,
+          WebkitTextStroke: editing || layout.background ? undefined : READ_STROKE,
+          paintOrder: "stroke fill",
         }}
       >
         {editing ? (

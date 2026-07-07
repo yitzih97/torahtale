@@ -293,7 +293,13 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             onLoad={(e) => {
               if (page && !page.textLayout && autoLayouts[page.id] === undefined) {
                 const al = computeAutoTextLayout(e.currentTarget, isRtl, page.text);
-                if (al) setAutoLayouts((prev) => ({ ...prev, [page.id]: al }));
+                if (al) {
+                  setAutoLayouts((prev) => ({ ...prev, [page.id]: al }));
+                  // Persist the auto placement (admin view) so the saved book —
+                  // and therefore the printed PDF — uses the exact same layout
+                  // without the admin touching anything.
+                  if (editable) updatePage(page.id, { textLayout: al });
+                }
               }
             }}
             className={`absolute inset-0 w-full h-full object-cover ${isRegenThis ? "animate-pulse opacity-50" : ""}`}
