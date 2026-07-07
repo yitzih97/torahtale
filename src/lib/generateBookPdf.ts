@@ -129,17 +129,20 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   if (layout.align === "center") textAnchorX = boxX + boxW / 2;
   else if (layout.align === "right") textAnchorX = boxX + boxW - padX;
 
-  // Crisp solid-white BORDER behind the letters keeps captions readable on any
-  // scene without a background box (mirrors READ_STROKE in EditableTextBox).
-  // Skipped when a solid background box is already present.
-  const outline = !layout.background;
+  // Thin solid-white BORDER behind the letters keeps captions readable on any
+  // scene without a background box (mirrors the outlineWidth stroke in
+  // EditableTextBox). Skipped when a solid background box is already present
+  // or the outline is set to 0.
+  const outlineWidthRef = layout.outlineWidth ?? 2; // px at the 1024-ref container
+  const outline = !layout.background && outlineWidthRef > 0;
   ctx.lineJoin = "round";
   ctx.miterLimit = 2;
   for (let i = 0; i < lines.length; i++) {
     const ly = boxY + padY + i * lineHeight;
     if (outline) {
       ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = Math.max(3, fontSize * 0.16 * 2); // stroke is centered — 2x for the visible border width
+      // Scale the ref-space width to canvas pixels the same way the font is scaled.
+      ctx.lineWidth = Math.max(1, outlineWidthRef * (fontSize / layout.fontSize));
       ctx.strokeText(lines[i], textAnchorX, ly);
     }
     ctx.fillStyle = layout.color;

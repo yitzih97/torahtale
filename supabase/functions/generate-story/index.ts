@@ -119,6 +119,10 @@ CRITICAL NAME TRANSLITERATION RULES — ALWAYS use the Yiddish/Hebrew transliter
 - Use the Yam Suf (NOT Red Sea), Har Sinai (NOT Mount Sinai), Gan Eden (NOT Garden of Eden)
 - Refer to non-Jewish nations by their Hebrew names when possible
 
+CRITICAL ACCURACY RULES:
+- The story MUST follow the ACTUAL events of the Torah portion with complete accuracy, according to the pesukim and accepted midrashim. NEVER change, soften, or reverse an outcome — if the Torah says a request was refused (for example, the Melech of Edom REFUSED to let Bnei Yisrael pass through his land), then in the story it is refused. Do not invent friendlier or different endings to real Torah events.
+- NEVER describe the hero children's clothing, outfit, or clothing colors anywhere in the story text (no "wearing a blue shirt", no "her favorite skirt"). The illustrations control what the children wear, and clothing mentioned in text will contradict the pictures. Describe actions, feelings, and the scene — never the heroes' wardrobe.
+
 CRITICAL RULE: The MAJORITY of story pages (at least 70%) MUST depict the ACTUAL events from the Torah portion in vivid, specific detail. For example, if the story is about the Exodus, you must show the individual plagues, the splitting of the sea, etc. — not just mention them in passing. The child characters must be PRESENT IN and PARTICIPATING IN those actual Torah scenes, witnessing the miracles and events firsthand. Do NOT summarize the Torah events in 1-2 pages and spend the rest on generic adventure. Each Torah event deserves its own page with rich, specific detail.`;
 
     const characterDesc = childrenInfo

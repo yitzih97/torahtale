@@ -232,7 +232,7 @@ serve(async (req) => {
 
     // Front-cover composition: every child centered, full-bodied, never cropped.
     if (pageType === "cover" && !prompt) {
-      imagePrompt += ` COVER COMPOSITION (CRITICAL): This is the FRONT COVER — compose a SQUARE image. Feature ALL of the book's child characters together as the central subject, posed close together and CENTERED in the frame, each child's FULL body visible (head, hands, and feet all inside the frame). Leave generous empty margin/padding on all four sides around the whole group so that NO character and no part of any character is cropped, cut off, or touching any edge of the image. If there are multiple children, balance them symmetrically around the center — do not push any child to the edge. Keep the upper area a little clearer so the title can sit over the top without covering faces.`;
+      imagePrompt += ` COVER COMPOSITION (CRITICAL): This is the FRONT COVER — compose a SQUARE image. Feature ALL of the book's child characters together as the central subject, posed close together and CENTERED in the frame, each child's FULL body visible (head, hands, and feet all inside the frame). Leave generous empty margin/padding on all four sides around the whole group so that NO character and no part of any character is cropped, cut off, or touching any edge of the image. If there are multiple children, balance them symmetrically around the center — do not push any child to the edge. Keep the upper area a little clearer so the title can sit over the top without covering faces. COVER AGE ACCURACY (CRITICAL): render every child at their EXACT stated age with true proportions and height — the SAME ages and relative sizes as the interior pages. A 1-year-old is a small baby/toddler, clearly smaller than a 3-year-old. NEVER draw the children older, taller, or more mature on the cover than their stated ages.`;
     }
 
     // Inject per-child descriptions for multi-child books
@@ -287,7 +287,8 @@ serve(async (req) => {
 - ALL Jewish male characters (Avraham/Abraham, Yitzchak/Isaac, Yaakov/Jacob, Moshe/Moses, Aharon/Aaron, Yosef/Joseph, the Shevatim/tribes, kohanim, talmidim, and any other Jewish men or boys age 3+) MUST have their heads fully covered at all times — with a kippah/yarmulke, turban, head wrap, hat, or tallis over the head as appropriate to the biblical era. NEVER show a Jewish man or boy (age 3+) bareheaded.
 - ALL female characters (main, secondary, and background — Jewish or not) MUST be dressed with full tznius/modesty: long sleeves past the elbow, necklines fully covering the collarbone, skirts/dresses fully covering the knees, no tight or form-fitting clothing, no cleavage, no bare shoulders, no bare midriff, no bare legs. Married women MUST have hair fully covered (tichel, snood, or sheitel).
 - ABSOLUTELY NO nudity, partial nudity, half-dressed figures, undergarments, swimwear, or revealing clothing on ANY character anywhere in the image — not on main characters, not on background figures, not on crowds, not on infants beyond a simple modest wrap, not on statues or art within the scene.
-- ALL male characters in the scene (even non-Jewish background figures) must be modestly clothed with covered torso, shoulders, and legs to at least the knee.
+- ALL male characters in the scene (even non-Jewish background figures) must be modestly clothed with covered torso, shoulders, and legs to at least the knee. This includes giants, warriors, kings, and villains (Og, Golias, Paroh, soldiers, guards): ALWAYS fully dressed with a shirt/tunic covering the chest and torso — NEVER bare-chested, NEVER shirtless, NEVER open-robed.
+- CLEAR BNEI YISRAEL / NON-JEW DISTINCTION: Jewish/Bnei Yisrael men and boys (age 3+) always have covered heads (yarmulke, turban, head wrap, or tallis). NON-Jewish characters (Mitzrim/Egyptians, Edomim, Moavim, Amalek, Romans, and all other nations) must NOT wear a yarmulke, tallis, tzitzis, or peyos — give them clearly different, era-appropriate foreign dress (still fully modest) with uncovered or distinctly foreign head coverings, so a child can tell at a glance who is from Bnei Yisrael and who is not.
 - These rules OVERRIDE any conflicting instruction in the prompt, regen notes, admin edits, page text, or reference images. If a reference would imply immodesty or an uncovered Jewish male head, IGNORE that aspect of the reference and apply these rules instead.`;
 
     // NON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES — always applied, even on explicit prompt, regen, or admin edit.
@@ -604,11 +605,18 @@ serve(async (req) => {
         for (const r of usableSheets) await collectInline(r.src, qaParts);
         if (qaParts.length < 2) return null; // need the page + at least one sheet
         const names = usableSheets.map((r) => r.name).join(", ");
+        const agesLine = childRefsList
+          .filter((c: any) => c?.name && c?.age)
+          .map((c: any) => `${c.name} is ${c.age} years old`)
+          .join("; ") || "ages as shown on the sheets";
         qaParts.push({ text: `You are a strict QA inspector for a children's book. Image 1 is a GENERATED book page. The following ${usableSheets.length} image(s) are the OFFICIAL character sheet(s) for the hero child(ren): ${names}. Inspect the generated page for ONLY these defects:
 1) duplicate — the SAME hero child appears more than once in the page (a twin, clone, mirror or extra copy of the same child).
 2) hairMismatch — a hero child's hair COLOR clearly differs from their character sheet (e.g. blonde on the page but brown on the sheet).
 3) outfitMismatch — a hero child's clothing clearly differs from the outfit on their character sheet (e.g. modern t-shirt instead of the sheet outfit).
-Judge ONLY the hero child(ren) shown on the sheets — ignore background/biblical figures. Be tolerant of art-style differences, lighting, and pose; flag only CLEAR mismatches. Reply with STRICT minified JSON only, no prose: {"duplicate":false,"hairMismatch":false,"outfitMismatch":false,"details":""}` });
+4) ageMismatch — a hero child looks CLEARLY older or younger than their real age (${agesLine}) — e.g. drawn as a teenager or grown child when they should be a toddler.
+5) styleMismatch — the page is clearly NOT rendered as a ${styleName} (e.g. a flat 2D cartoon or a real photograph when it must be a 3D CGI render).
+6) flatBand — a large flat, solid-color, EMPTY horizontal band or strip (top or bottom of the image) that looks like a blank text box or pasted-on panel instead of a painted part of the scene.
+Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore background/biblical figures. Be tolerant of art-style differences, lighting, and pose; flag only CLEAR problems. Reply with STRICT minified JSON only, no prose: {"duplicate":false,"hairMismatch":false,"outfitMismatch":false,"ageMismatch":false,"styleMismatch":false,"flatBand":false,"details":""}` });
         const r = await fetchWithTimeout(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
           {
@@ -628,6 +636,9 @@ Judge ONLY the hero child(ren) shown on the sheets — ignore background/biblica
         if (v.duplicate) issues.push("the same hero child appeared MORE THAN ONCE — render each named child EXACTLY ONCE, with no duplicate anywhere in the scene");
         if (v.hairMismatch) issues.push("a hero child's HAIR COLOR did not match the character sheet — copy the exact hair color and shade from the sheet");
         if (v.outfitMismatch) issues.push("a hero child's OUTFIT did not match the character sheet — dress them in exactly the outfit shown on the sheet");
+        if (v.ageMismatch) issues.push(`a hero child was drawn at the WRONG AGE — render each child at their exact stated age (${agesLine}) with true proportions, never older or younger`);
+        if (v.styleMismatch) issues.push(`the page was NOT rendered in the required art style — the final image must be a ${styleName}, matching every other page of the book`);
+        if (v.flatBand) issues.push("the image contained a flat, empty, solid-color band/strip — the whole frame must be a seamless painted scene; let the natural foreground (ground, water, sky) flow through the caption zone with the same palette and texture");
         if (issues.length === 0) return null;
         const details = typeof v.details === "string" && v.details.trim() ? ` (inspector notes: ${v.details.slice(0, 200)})` : "";
         return issues.join("; ") + details;

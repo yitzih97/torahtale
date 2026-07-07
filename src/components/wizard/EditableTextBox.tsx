@@ -16,6 +16,8 @@ export interface TextLayout {
   italic: boolean;
   background: boolean;
   border: boolean;
+  /** Width (px) of the white border stroked around the letters. 0 = off. */
+  outlineWidth?: number;
 }
 
 export const DEFAULT_FONT_FAMILY = "'Cormorant Garamond', 'Georgia', serif";
@@ -35,14 +37,13 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   italic: false,
   background: false,
   border: false,
+  outlineWidth: 2,
 };
 
-// Crisp WHITE BORDER drawn around caption text (a text stroke, not a soft
-// shadow) so dark bold letters stay legible on any artwork without a
-// background box. paint-order renders the stroke UNDER the fill, keeping the
-// letterforms solid. Mirrored in the PDF renderer (generateBookPdf
-// drawTextOverlay), which strokes each line in solid white behind the fill.
-export const READ_STROKE = "0.16em #ffffff";
+// A thin, crisp WHITE BORDER is stroked around caption text (paint-order
+// renders it UNDER the fill so letterforms stay solid). Width comes from
+// layout.outlineWidth (px, adjustable in the toolbar; 0 disables it) and is
+// mirrored in the PDF renderer (generateBookPdf drawTextOverlay).
 
 export const FONT_OPTIONS = [
   { label: "Cormorant", value: "'Cormorant Garamond', 'Georgia', serif" },
@@ -182,9 +183,11 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
           touchAction: "none",
           zIndex: selected ? 30 : 20,
           boxShadow: layout.background ? "0 4px 14px rgba(0,0,0,0.12)" : undefined,
-          // Crisp white border keeps the caption readable on any scene (skipped
+          // Thin white border keeps the caption readable on any scene (skipped
           // when a solid background box already guarantees contrast, or while editing).
-          WebkitTextStroke: editing || layout.background ? undefined : READ_STROKE,
+          WebkitTextStroke: editing || layout.background || !(layout.outlineWidth ?? 2)
+            ? undefined
+            : `${layout.outlineWidth ?? 2}px #ffffff`,
           paintOrder: "stroke fill",
         }}
       >
@@ -261,6 +264,17 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
               max={48}
               step={1}
               onValueChange={([v]) => onLayoutChange({ ...layout, fontSize: v })}
+            />
+          </div>
+
+          <div className="flex items-center gap-1 px-1 w-28" title="White outline width">
+            <span className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">Outline</span>
+            <Slider
+              value={[layout.outlineWidth ?? 2]}
+              min={0}
+              max={8}
+              step={0.5}
+              onValueChange={([v]) => onLayoutChange({ ...layout, outlineWidth: v })}
             />
           </div>
 
