@@ -43,7 +43,10 @@ serve(async (req) => {
     const { childName, childrenInfo, age, gender, torahPortion, torahPortionLabel, artStyle, language, pageCount } = await req.json();
 
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
-    if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!GOOGLE_AI_API_KEY && !ANTHROPIC_API_KEY) {
+      throw new Error("No AI provider configured (set ANTHROPIC_API_KEY and/or GOOGLE_AI_API_KEY)");
+    }
 
     // Page count is driven by book type (board=10, soft/hardcover=20). Validate to a sane range.
     const requestedPages = Number(pageCount);
@@ -219,46 +222,162 @@ The questions should be part of the back cover (inside the backCover object):
 
 No markdown, no explanation, just the JSON object.`;
 
-    const storyModel = customModel || "gemini-2.5-pro";
+    const storyModel = customModel || "claude-fable-5";
     const temperature = customTemperature ?? 0.9;
+    const isClaude = /^claude/i.test(storyModel);
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${storyModel}:generateContent?key=${GOOGLE_AI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            temperature,
+    // JSON schema for the book — enforced via Anthropic structured outputs so the
+    // response is guaranteed parseable (no markdown fences, no truncated JSON).
+    const bookSchema = {
+      type: "object",
+      additionalProperties: false,
+      required: ["cover", "pages", "backCover"],
+      properties: {
+        cover: {
+          type: "object",
+          additionalProperties: false,
+          required: ["title", "subtitle"],
+          properties: { title: { type: "string" }, subtitle: { type: "string" } },
+        },
+        pages: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["page", "text"],
+            properties: { page: { type: "integer" }, text: { type: "string" } },
           },
-        }),
-      }
-    );
+        },
+        backCover: {
+          type: "object",
+          additionalProperties: false,
+          required: ["synopsis", "dedication", "questions"],
+          properties: {
+            synopsis: { type: "string" },
+            dedication: { type: "string" },
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["number", "question"],
+                properties: { number: { type: "integer" }, question: { type: "string" } },
+              },
+            },
+          },
+        },
+      },
+    };
 
-    if (!response.ok) {
-      const status = response.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited — please try again in a moment." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    let content: string | null = null;
+
+    // ============= ANTHROPIC CLAUDE (primary story writer) =============
+    if (isClaude) {
+      if (!ANTHROPIC_API_KEY) {
+        console.warn("ANTHROPIC_API_KEY not configured — falling back to Gemini for the story.");
+      } else {
+        try {
+          // Claude Fable 5: thinking is always on (no `thinking` param) and sampling
+          // params (temperature) are rejected — the admin story-temperature setting
+          // only applies to the Gemini path. The server-side fallback re-serves the
+          // rare safety-classifier refusal on Opus 4.8 inside the same call.
+          const isFable = storyModel.startsWith("claude-fable");
+          const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+          };
+          const reqBody: Record<string, unknown> = {
+            model: storyModel,
+            max_tokens: 16000,
+            system: systemPrompt,
+            messages: [{ role: "user", content: userPrompt }],
+            output_config: { format: { type: "json_schema", schema: bookSchema } },
+          };
+          if (isFable) {
+            headers["anthropic-beta"] = "server-side-fallback-2026-06-01";
+            reqBody.fallbacks = [{ model: "claude-opus-4-8" }];
+          }
+          // Bounded so a slow generation degrades to the Gemini fallback instead of
+          // blowing the edge wall-clock budget of the generate-book orchestrator.
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 110_000);
+          let aResp: Response;
+          try {
+            aResp = await fetch("https://api.anthropic.com/v1/messages", {
+              method: "POST",
+              headers,
+              body: JSON.stringify(reqBody),
+              signal: controller.signal,
+            });
+          } finally {
+            clearTimeout(timer);
+          }
+          if (!aResp.ok) {
+            const t = await aResp.text();
+            throw new Error(`Anthropic API error [${aResp.status}]: ${t.slice(0, 300)}`);
+          }
+          const aData = await aResp.json();
+          if (aData.stop_reason === "refusal") {
+            throw new Error("Anthropic declined the request (stop_reason=refusal)");
+          }
+          const text = (aData.content ?? [])
+            .filter((b: { type: string }) => b.type === "text")
+            .map((b: { text: string }) => b.text)
+            .join("");
+          if (!text) throw new Error("Anthropic returned no text content");
+          console.log(`Story generated with Anthropic model: ${aData.model || storyModel}`);
+          content = text;
+        } catch (e) {
+          console.error("Anthropic story generation failed — falling back to Gemini:", e);
+        }
       }
-      const body = await response.text();
-      console.error("Gemini API error:", status, body);
-      throw new Error(`Gemini API error [${status}]`);
     }
 
-    const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    // ============= GEMINI (explicit gemini-* model, or Claude fallback) =============
+    if (content === null) {
+      if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
+      const geminiModel = isClaude ? "gemini-2.5-pro" : storyModel;
 
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GOOGLE_AI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              temperature,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) {
+          return new Response(JSON.stringify({ error: "Rate limited — please try again in a moment." }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const body = await response.text();
+        console.error("Gemini API error:", status, body);
+        throw new Error(`Gemini API error [${status}]`);
+      }
+
+      const data = await response.json();
+      content = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    }
+
+    const storyJson = content ?? "{}";
     let parsed;
     try {
-      parsed = JSON.parse(content);
+      parsed = JSON.parse(storyJson);
     } catch {
-      const match = content.match(/\{[\s\S]*\}/);
+      const match = storyJson.match(/\{[\s\S]*\}/);
       parsed = match ? JSON.parse(match[0]) : {};
     }
 

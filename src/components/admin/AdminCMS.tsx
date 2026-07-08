@@ -45,6 +45,8 @@ const SITE_IMAGE_KEYS = [
 ];
 
 const AI_MODELS = [
+  { value: "claude-fable-5", label: "Claude Fable 5 (Anthropic — most capable, recommended)" },
+  { value: "claude-opus-4-8", label: "Claude Opus 4.8 (Anthropic)" },
   { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
   { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
   { value: "gemini-3-flash-preview", label: "Gemini 3 Flash Preview" },
@@ -52,13 +54,13 @@ const AI_MODELS = [
 ];
 
 const IMAGE_MODELS = [
-  { value: "gpt-image-2", label: "GPT Image 2 (OpenAI — newest, recommended)" },
+  { value: "gemini-3.1-flash-image-preview", label: "Nano Banana 2 (Gemini 3.1 Flash Image — recommended)" },
+  { value: "gemini-2.5-flash-image-preview", label: "Gemini 2.5 Flash Image" },
+  { value: "gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image (stable)" },
+  { value: "gpt-image-2", label: "GPT Image 2 (OpenAI)" },
   { value: "gpt-image-2-2026-04-21", label: "GPT Image 2 (snapshot 2026-04-21)" },
   { value: "gpt-image-1.5", label: "GPT Image 1.5 (OpenAI)" },
   { value: "gpt-image-1", label: "GPT Image 1 (OpenAI)" },
-  { value: "gemini-3.1-flash-image-preview", label: "Gemini 3.1 Flash Image (Nano Banana 2)" },
-  { value: "gemini-2.5-flash-image-preview", label: "Gemini 2.5 Flash Image" },
-  { value: "gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image (stable)" },
 ];
 
 /* ─── Extracted components (outside AdminCMS to prevent remount on every keystroke) ─── */

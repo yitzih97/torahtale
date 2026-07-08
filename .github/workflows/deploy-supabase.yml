@@ -85,6 +85,18 @@ jobs:
             echo "::warning::OPENAI_API_KEY repo secret not set — book images fall back to Gemini instead of gpt-image-1."
           fi
 
+      - name: Sync function secrets (ANTHROPIC_API_KEY for Claude story generation)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            supabase secrets set ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" --project-ref "$PROJECT_REF"
+            echo "ANTHROPIC_API_KEY synced to Supabase."
+          else
+            echo "::warning::ANTHROPIC_API_KEY repo secret not set — story generation falls back to Gemini instead of Claude Fable 5."
+          fi
+
       - name: Re-pin Supabase client if Lovable reverted it
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

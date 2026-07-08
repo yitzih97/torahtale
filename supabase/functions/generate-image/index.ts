@@ -421,12 +421,12 @@ serve(async (req) => {
     // One full generation attempt (OpenAI primary → Gemini fallback). Reads the
     // current `parts` array, so the QA gate can amend the prompt and re-run it.
     const generateOnce = async (): Promise<string> => {
-    // ============= OPENAI GPT IMAGE (primary) =============
-    // GPT Image is the primary generator now — including when a child photo is
-    // attached (it goes through images/edits for likeness). "medium" quality so
-    // a full 20-page auto-generation still fits the edge time budget. Falls back
-    // to Gemini below if OpenAI is unavailable or errors.
-    const requestedImageModel = customImageModel || "gpt-image-2";
+    // ============= MODEL DISPATCH =============
+    // Nano Banana 2 (Gemini 3.1 Flash Image) is the primary generator. An admin
+    // can still route to OpenAI by selecting a gpt-image model in the CMS — that
+    // path goes through images/edits for likeness and falls back to Gemini on
+    // error or when OpenAI is unavailable.
+    const requestedImageModel = customImageModel || "gemini-3.1-flash-image-preview";
     const isOpenAI = /^(gpt-image|dall-e)/i.test(requestedImageModel);
     if (isOpenAI) {
       const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
