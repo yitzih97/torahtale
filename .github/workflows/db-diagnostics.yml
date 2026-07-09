@@ -1,29 +1,22 @@
-name: DB diagnostics (one-shot)
-
+name: DB maintenance (one-shot)
 on:
   workflow_dispatch: {}
-
 jobs:
   diag:
     runs-on: ubuntu-latest
     steps:
-      - name: Query DB size + biggest tables + books weight
+      - name: Inspect load + stuck jobs
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
           API="https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/database/query"
-          q() {
-            jq -n --arg query "$1" '{query:$query}' \
-              | curl -s -X POST "$API" \
-                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-                  -H "Content-Type: application/json" --data @-
-          }
-          echo "== database size =="
-          q "select pg_size_pretty(pg_database_size(current_database())) as db_size;"
-          echo "== top 10 tables by total size =="
-          q "select schemaname||'.'||relname as table, pg_size_pretty(pg_total_relation_size(relid)) as total, n_live_tup as rows from pg_stat_user_tables order by pg_total_relation_size(relid) desc limit 10;"
-          echo "== books: count + total pages_data bytes + avg per book =="
-          q "select count(*) as books, pg_size_pretty(coalesce(sum(pg_column_size(pages_data)),0)) as total_pages_data, pg_size_pretty(coalesce(avg(pg_column_size(pages_data)),0)) as avg_per_book from public.books;"
-          echo "== biggest single books =="
-          q "select id, status, pg_size_pretty(pg_column_size(pages_data)) as weight, created_at from public.books order by pg_column_size(pages_data) desc nulls last limit 8;"
+          q(){ jq -n --arg query "$1" '{query:$query}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-; echo; }
+          echo "== books by status =="
+          q "select status, count(*) from public.books group by status order by count(*) desc;"
+          echo "== books touched in last 2h (recent writes) =="
+          q "select id, status, updated_at from public.books where updated_at > now() - interval '2 hours' order by updated_at desc limit 20;"
+          echo "== active connections by state =="
+          q "select state, count(*) from pg_stat_activity group by state;"
+          echo "== longest running queries =="
+          q "select pid, state, now()-query_start as dur, left(query,80) as q from pg_stat_activity where state<>'idle' and query not ilike '%pg_stat_activity%' order by query_start limit 10;"
