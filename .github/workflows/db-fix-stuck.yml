@@ -4,11 +4,12 @@ jobs:
   fix:
     runs-on: ubuntu-latest
     steps:
-      - name: Sample a stored image URL
+      - name: Fetch a full URL and test reachability
         env: { SUPABASE_ACCESS_TOKEN: "${{ secrets.SUPABASE_ACCESS_TOKEN }}" }
         run: |
           set -euo pipefail
           API="https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/database/query"
-          q(){ jq -n --arg query "$1" '{query:$query}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-; echo; }
-          echo "== a cover_image_url now =="
-          q "select id, left(cover_image_url, 90) as cover from public.books where cover_image_url is not null limit 3;"
+          resp=$(jq -n '{query:"select cover_image_url from public.books where cover_image_url like '"'"'http%'"'"' limit 1;"}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-)
+          url=$(echo "$resp" | jq -r '.[0].cover_image_url')
+          echo "URL: $url"
+          curl -s -o /dev/null -w "public image fetch -> HTTP %{http_code}, type=%{content_type}, %{size_download} bytes\n" --max-time 30 "$url"
