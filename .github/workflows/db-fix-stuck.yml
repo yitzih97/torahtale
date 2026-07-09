@@ -11,6 +11,6 @@ jobs:
           API="https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/database/query"
           q(){ jq -n --arg query "$1" '{query:$query}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-; echo; }
           echo "== books still containing data:image =="
-          q "select id, pg_size_pretty(pg_column_size(pages_data)+pg_column_size(story_data)+coalesce(pg_column_size(cover_image_url),0)) as weight, (pages_data::text like '%data:image%') as pages_b64, (story_data::text like '%data:image%') as story_b64, (coalesce(cover_image_url,'') like 'data:image%') as cover_b64 from public.books where pages_data::text like '%data:image%' or story_data::text like '%data:image%' or coalesce(cover_image_url,'') like 'data:image%' order by weight desc;"
-          echo "== biggest rows now =="
-          q "select id, pg_size_pretty(pg_column_size(pages_data)+pg_column_size(story_data)) as weight from public.books order by pg_column_size(pages_data)+pg_column_size(story_data) desc limit 6;"
+          q "select id, pg_size_pretty((pg_column_size(pages_data)+pg_column_size(story_data)+coalesce(pg_column_size(cover_image_url),0))::bigint) as weight, (pages_data::text like '%data:image%') as pages_b64, (story_data::text like '%data:image%') as story_b64, (coalesce(cover_image_url,'') like 'data:image%') as cover_b64 from public.books where pages_data::text like '%data:image%' or story_data::text like '%data:image%' or coalesce(cover_image_url,'') like 'data:image%' order by 2 desc;"
+          echo "== count remaining =="
+          q "select count(*) as still_b64 from public.books where pages_data::text like '%data:image%' or story_data::text like '%data:image%' or coalesce(cover_image_url,'') like 'data:image%';"
