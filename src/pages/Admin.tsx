@@ -17,7 +17,7 @@ import {
 import { AdminOrderDetailDialog } from "@/components/admin/AdminOrderDetailDialog";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAdminData } from "@/hooks/useAdminData";
+import { useAdminData, fetchBookFull } from "@/hooks/useAdminData";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -103,10 +103,12 @@ export default function Admin() {
   }
 
   const handleDownloadZip = async (book: any) => {
-    const pages = book.pages_data as any[] || [];
-    if (!pages.length) { toast.error("No pages to export"); return; }
     setDownloadingZip(book.id);
     try {
+      // pages_data is excluded from the list payload (too heavy) — fetch it now.
+      const full = await fetchBookFull(book.id);
+      const pages = (full?.pages_data as any[]) || [];
+      if (!pages.length) { toast.error("No pages to export"); return; }
       const blob = await generateBookZip(pages, book.child_name || "book", book.order_number || book.id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -121,14 +123,25 @@ export default function Admin() {
     finally { setDownloadingZip(null); }
   };
 
+  // The list rows carry metadata only (no pages_data/story_data/cover). Fetch the
+  // full book before opening the generation modal, which reads those heavy fields.
+  const openGenerationModal = async (book: any) => {
+    try {
+      const full = await fetchBookFull(book.id);
+      setGeneratingBook(full || book);
+    } catch {
+      toast.error("Couldn't load the book — please retry.");
+    }
+  };
+
   const handleTriggerGeneration = (book: any) => {
-    setGeneratingBook(book);
+    openGenerationModal(book);
   };
 
   // Whether the "Generate" action applies to this order's current state.
   const canGenerate = (book: any) =>
     book.status === "paid" || book.status === "generating" || book.status === "draft" ||
-    ((book.status === "ordered" || book.status === "pending_review") && !book.pages_data);
+    ((book.status === "ordered" || book.status === "pending_review") && !book.has_pages);
 
   // Approve a reviewed book and auto-submit it to Printify.
   const approveAndSubmit = async (book: any) => {
@@ -344,12 +357,12 @@ export default function Admin() {
                                           <Play className="w-3 h-3" />
                                         </Button>
                                       )}
-                                      {book.pages_data && (
-                                        <Button variant="ghost" size="sm" className="text-[11px] h-7 px-2" onClick={() => setGeneratingBook(book)} title="View & edit book">
+                                      {book.has_pages && (
+                                        <Button variant="ghost" size="sm" className="text-[11px] h-7 px-2" onClick={() => openGenerationModal(book)} title="View & edit book">
                                           <Eye className="w-3 h-3" />
                                         </Button>
                                       )}
-                                      {book.pages_data && (
+                                      {book.has_pages && (
                                         <Button
                                           variant="ghost"
                                           size="sm"
@@ -361,7 +374,7 @@ export default function Admin() {
                                           {downloadingZip === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                                         </Button>
                                       )}
-                                      {book.pages_data && (book.status === "pending_review" || book.status === "ordered") && (
+                                      {book.has_pages && (book.status === "pending_review" || book.status === "ordered") && (
                                         <Button
                                           variant="ghost"
                                           size="sm"
@@ -504,7 +517,7 @@ export default function Admin() {
           canGenerate={canGenerate(selectedOrder)}
           downloading={downloadingZip === selectedOrder.id}
           onGenerate={() => { handleTriggerGeneration(selectedOrder); setSelectedOrder(null); }}
-          onViewEdit={() => { setGeneratingBook(selectedOrder); setSelectedOrder(null); }}
+          onViewEdit={() => { openGenerationModal(selectedOrder); setSelectedOrder(null); }}
           onDownload={() => handleDownloadZip(selectedOrder)}
           onApprove={() => approveAndSubmit(selectedOrder)}
           onViewCustomer={() => openCustomerFromOrder(selectedOrder.user_id)}

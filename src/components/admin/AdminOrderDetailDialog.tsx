@@ -209,15 +209,15 @@ export function AdminOrderDetailDialog({
             {canGenerate && (
               <Button size="sm" className="h-8 text-xs" onClick={onGenerate}><Play className="w-3.5 h-3.5" /> Generate</Button>
             )}
-            {book.pages_data && (
+            {book.has_pages && (
               <Button size="sm" variant="outline" className="h-8 text-xs" onClick={onViewEdit}><Eye className="w-3.5 h-3.5" /> View & edit</Button>
             )}
-            {book.pages_data && (
+            {book.has_pages && (
               <Button size="sm" variant="outline" className="h-8 text-xs" disabled={downloading} onClick={onDownload}>
                 {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} ZIP
               </Button>
             )}
-            {book.pages_data && (book.status === "pending_review" || book.status === "ordered") && (
+            {book.has_pages && (book.status === "pending_review" || book.status === "ordered") && (
               <Button size="sm" variant="outline" className="h-8 text-xs text-green-600" onClick={onApprove}>
                 <CheckCircle2 className="w-3.5 h-3.5" /> Approve → Printify
               </Button>
