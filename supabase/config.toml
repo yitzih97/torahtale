@@ -23,3 +23,8 @@ verify_jwt = false
 # must not pre-reject it. The function authorizes the secret (or an admin JWT) itself.
 [functions.generate-book]
 verify_jwt = false
+
+# One-shot maintenance: moves existing base64 book images into the book-images
+# bucket. Invoked with x-cron-secret or an admin JWT; it authorizes itself.
+[functions.backfill-images]
+verify_jwt = false

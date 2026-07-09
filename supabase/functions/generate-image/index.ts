@@ -52,6 +52,39 @@ async function fetchWithTimeout(input: string, init?: RequestInit, timeoutMs = P
   }
 }
 
+// Upload a base64 data URL to the book-images bucket and return its public URL,
+// so the generated image lives in object storage instead of being stored as a
+// multi-MB base64 blob inside the books row. Fail-open: on any error, return the
+// original data URL so image generation never breaks because of storage.
+async function uploadImageToStorage(dataUrl: string, pathPrefix: string): Promise<string> {
+  try {
+    if (!dataUrl.startsWith("data:")) return dataUrl; // already a URL
+    const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+    if (!m) return dataUrl;
+    const mimeType = m[1];
+    const bytes = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
+    const ext = mimeType.includes("png") ? "png" : mimeType.includes("webp") ? "webp" : "jpg";
+    // Deterministic-enough unique name without Math.random (blocked in some runtimes).
+    const rnd = crypto.randomUUID();
+    const filePath = `${pathPrefix}/${rnd}.${ext}`;
+    const svcKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!svcKey) return dataUrl;
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, svcKey);
+    const { error } = await admin.storage
+      .from("book-images")
+      .upload(filePath, bytes, { contentType: mimeType, upsert: true });
+    if (error) {
+      console.error("book-images upload failed (keeping data URL):", error.message);
+      return dataUrl;
+    }
+    const { data: urlData } = admin.storage.from("book-images").getPublicUrl(filePath);
+    return urlData?.publicUrl || dataUrl;
+  } catch (e) {
+    console.error("uploadImageToStorage threw (keeping data URL):", e);
+    return dataUrl;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -59,7 +92,7 @@ serve(async (req) => {
   if (authErr) return authErr;
 
   try {
-    const { prompt, promptAdditions, childName, age, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText } = await req.json();
+    const { prompt, promptAdditions, childName, age, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText, bookId } = await req.json();
 
     const childRefsList = Array.isArray(childRefs) ? childRefs : [];
     const descLower = String(childDescription || "").toLowerCase();
@@ -698,7 +731,13 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
       }
     }
 
-    return new Response(JSON.stringify({ imageUrl: finalImageUrl }), {
+    // Move the finished image into object storage and return its URL, so the
+    // caller (generate-book) stores a short URL in pages_data instead of a
+    // multi-MB base64 blob. Namespaced by book + page for easy cleanup.
+    const pageTag = pageType ? `${pageType}${pageNumber ? `-${pageNumber}` : ""}` : "page";
+    const storedUrl = await uploadImageToStorage(finalImageUrl, `${bookId || "adhoc"}/${pageTag}`);
+
+    return new Response(JSON.stringify({ imageUrl: storedUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

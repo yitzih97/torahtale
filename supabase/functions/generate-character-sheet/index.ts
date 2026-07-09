@@ -43,6 +43,32 @@ function bufferToBase64(buf: ArrayBuffer): string {
   return btoa(binary);
 }
 
+// Move a base64 image into the book-images bucket, return its public URL.
+// Fail-open to the data URL so sheet generation never breaks on storage errors.
+async function uploadImageToStorage(dataUrl: string, pathPrefix: string): Promise<string> {
+  try {
+    if (!dataUrl.startsWith("data:")) return dataUrl;
+    const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+    if (!m) return dataUrl;
+    const mimeType = m[1];
+    const bytes = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
+    const ext = mimeType.includes("png") ? "png" : mimeType.includes("webp") ? "webp" : "jpg";
+    const svcKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!svcKey) return dataUrl;
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, svcKey);
+    const filePath = `${pathPrefix}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await admin.storage
+      .from("book-images")
+      .upload(filePath, bytes, { contentType: mimeType, upsert: true });
+    if (error) { console.error("book-images upload failed:", error.message); return dataUrl; }
+    const { data: urlData } = admin.storage.from("book-images").getPublicUrl(filePath);
+    return urlData?.publicUrl || dataUrl;
+  } catch (e) {
+    console.error("uploadImageToStorage threw:", e);
+    return dataUrl;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -53,7 +79,7 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
-    const { childName, age, gender, artStyle, description, referenceImage } = await req.json();
+    const { childName, age, gender, artStyle, description, referenceImage, bookId } = await req.json();
 
     const ageNum = parseInt(age) || 5;
     let ageDesc = "child";
@@ -212,7 +238,8 @@ ${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial 
       const b64 = od.data?.[0]?.b64_json;
       if (!b64) throw new Error("No image returned from OpenAI");
       console.log(`Character sheet using OpenAI model: ${customImageModel}`);
-      return new Response(JSON.stringify({ imageUrl: `data:image/png;base64,${b64}` }), {
+      const oUrl = await uploadImageToStorage(`data:image/png;base64,${b64}`, `${bookId || "adhoc"}/sheets`);
+      return new Response(JSON.stringify({ imageUrl: oUrl }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -274,7 +301,8 @@ ${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial 
 
     if (!imageUrl) throw new Error("No image returned from Gemini");
 
-    return new Response(JSON.stringify({ imageUrl }), {
+    const storedUrl = await uploadImageToStorage(imageUrl, `${bookId || "adhoc"}/sheets`);
+    return new Response(JSON.stringify({ imageUrl: storedUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {

@@ -137,6 +137,7 @@ function buildPendingTasks(pages: any[], book: any, sdState: any, sheets: Record
     tasks.push({
       idx,
       body: {
+        bookId: book.id,
         childName: book.child_name,
         age: primaryAge,
         artStyle: book.art_style,
@@ -243,6 +244,7 @@ async function generate(bookId: string) {
             }
           }
           const sheet = await callFn("generate-character-sheet", {
+            bookId: book.id,
             childName: child.name,
             age: child.age || "6",
             gender: child.gender || "boy",
