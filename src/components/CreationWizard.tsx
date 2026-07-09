@@ -32,8 +32,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useChildren } from "@/hooks/useChildren";
+import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { ImageCropDialog } from "./ImageCropDialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FamilyPhotoDialog, type ReviewedPerson } from "./wizard/FamilyPhotoDialog";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
 
@@ -230,7 +231,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { t, lang } = useLanguage();
-  const { children: existingChildren, addChild: addChildMutation } = useChildren();
+  const { children: existingChildren, addChild: addChildMutation, updateChild: updateChildRecord } = useChildren();
 
   const GENERATION_PHASES = [
     { icon: BookOpenCheck, text: t.wizard.writingStory, duration: 3000 },
@@ -267,6 +268,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [bookOptionsChosenEarly, setBookOptionsChosenEarly] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"weekly" | "monthly" | "yearly" | "once">("once");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  // Same-name-but-different-age/gender children found on the user's account when
+  // a returning guest signs in — the user decides merge vs. add-new per child.
+  const [pendingConflicts, setPendingConflicts] = useState<
+    Array<{ childId: string; incoming: { name: string; age: string; gender: string }; candidate: ChildRecord }>
+  >([]);
+  // Resolved conflict decisions, keyed by wizard child id: "new" | "merge:<existingId>".
+  const mergeDecisionsRef = useRef<Map<string, string>>(new Map());
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginFullName, setLoginFullName] = useState("");
@@ -588,10 +596,49 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         const portionLabel = getPortionLabel(data.torahPortion);
         const childrenInfo = data.children.map((c) => `${c.name} (${c.age} years old, ${c.gender})`).join(", ");
 
-        // Upload child photos to storage and collect URLs
+        // ── Reconcile against the user's existing saved children ──
+        // A returning user often re-enters a child they already have (e.g. they
+        // started as a guest, then signed in at place-order). Match by name:
+        //   • same name + same age + same gender  → same kid → merge/update it
+        //   • same name, different age/gender      → ask (merge or add new)
+        //   • no match                             → add as a new child
+        const norm = (s?: string | null) => (s || "").trim().toLowerCase();
+        const { data: existingRows } = await supabase
+          .from("children")
+          .select("*")
+          .eq("user_id", user.id);
+        const existingList: ChildRecord[] = (existingRows as ChildRecord[]) || [];
+
+        // targetId per wizard child: an existing child id to merge into, or null = insert new.
+        const plan = new Map<string, string | null>();
+        const conflicts: Array<{ childId: string; incoming: { name: string; age: string; gender: string }; candidate: ChildRecord }> = [];
+        for (const c of data.children) {
+          if (c.savedChildId) { plan.set(c.id, null); continue; } // already a chosen saved profile
+          if (!c.name) { plan.set(c.id, null); continue; }
+          const matches = existingList.filter((e) => norm(e.name) === norm(c.name));
+          if (matches.length === 0) { plan.set(c.id, null); continue; }
+          const age = parseInt(c.age) || null;
+          const exact = matches.find((e) => e.age === age && norm(e.gender) === norm(c.gender));
+          if (exact) { plan.set(c.id, exact.id); continue; } // same name+age+gender → auto-merge
+          const decided = mergeDecisionsRef.current.get(c.id);
+          if (decided === "new") { plan.set(c.id, null); continue; }
+          if (decided?.startsWith("merge:")) { plan.set(c.id, decided.slice(6)); continue; }
+          conflicts.push({ childId: c.id, incoming: { name: c.name, age: c.age, gender: c.gender }, candidate: matches[0] });
+        }
+
+        // Unresolved conflicts → let the user decide, then this runs again.
+        if (conflicts.length > 0) {
+          setPendingConflicts(conflicts);
+          persistingBookRef.current = false;
+          return;
+        }
+
+        // Upload child photos to storage, merge/insert child records, collect URLs.
         const childDescriptions = await Promise.all(
           data.children.map(async (c) => {
+            const targetId = plan.get(c.id) ?? null;
             let photoUrl: string | null = c.existingPhotoUrl ?? null;
+            let uploadedNew = false;
             if (c.photo) {
               const filePath = `${user.id}/${c.id}-${Date.now()}.jpg`;
               const { error: uploadErr } = await supabase.storage
@@ -602,10 +649,33 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   .from("child-photos")
                   .createSignedUrl(filePath, 60 * 60 * 24 * 365);
                 photoUrl = signed?.signedUrl || null;
+                uploadedNew = !!photoUrl;
               }
             }
-            // Save new children as reusable characters
-            if (!c.savedChildId && c.name && c.age && c.gender) {
+
+            if (targetId) {
+              // MERGE into the existing child: update age/gender/description (and
+              // the photo only if a new one was provided — never erase a good
+              // saved photo). Reuse the saved photo for book generation if the
+              // guest didn't upload a new one.
+              const match = existingList.find((e) => e.id === targetId);
+              if (!photoUrl) photoUrl = match?.photo_url ?? null;
+              const upd: Partial<Omit<ChildRecord, "id" | "user_id" | "created_at">> = {
+                age: parseInt(c.age) || null,
+                gender: c.gender || match?.gender || null,
+                description: c.description || match?.description || null,
+                art_style: data.artStyle,
+              };
+              if (uploadedNew) upd.photo_url = photoUrl;
+              try {
+                await updateChildRecord.mutateAsync({ id: targetId, ...upd });
+                updateChild(c.id, { savedChildId: targetId }); // link book/subscription to it
+              } catch (e) {
+                console.warn("Failed to merge into existing child:", e);
+              }
+            } else if (!c.savedChildId && c.name && c.age && c.gender) {
+              // No existing match → save as a new reusable character (unchanged
+              // from the original flow).
               try {
                 await addChildMutation.mutateAsync({
                   name: c.name,
@@ -619,12 +689,13 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 console.warn("Failed to save child as character:", e);
               }
             }
+
             return {
               name: c.name,
               age: c.age,
               gender: c.gender,
               description: c.description,
-              hasPhoto: !!c.photoPreview,
+              hasPhoto: !!c.photoPreview || !!photoUrl,
               photoUrl,
             };
           })
@@ -658,6 +729,17 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     } finally {
       persistingBookRef.current = false;
     }
+  };
+
+  // Record the user's choice for one name-conflict child, then — once every
+  // conflict is decided — resume persisting the book.
+  const resolveConflict = (childId: string, decision: string) => {
+    mergeDecisionsRef.current.set(childId, decision);
+    setPendingConflicts((prev) => {
+      const next = prev.filter((c) => c.childId !== childId);
+      if (next.length === 0) setTimeout(() => { void persistGeneratedBook(); }, 0);
+      return next;
+    });
   };
 
   const startGeneration = async () => {
@@ -1193,6 +1275,22 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   })()}
                 </motion.div>
 
+                {/* Returning users: let them sign in first so their saved kids
+                    (and this new one) land on their existing account. */}
+                {!user && (
+                  <motion.div variants={staggerChild} className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      {t.wizard.haveAccount}{" "}
+                      <button
+                        type="button"
+                        onClick={() => { setLoginMode("login"); setShowLoginPrompt(true); }}
+                        className="text-accent font-semibold hover:underline"
+                      >
+                        {t.wizard.signInLink}
+                      </button>
+                    </p>
+                  </motion.div>
+                )}
 
               </motion.div>
               </section>
@@ -2305,6 +2403,132 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
       t={t}
       onConfirm={handleFamilyPhotoConfirm}
     />
+
+    {/* Same-name child conflict: existing kid on the account has a different age
+        or gender than what was just entered. Ask per child: merge or add new. */}
+    <Dialog
+      open={pendingConflicts.length > 0}
+      onOpenChange={(open) => {
+        // Dismissing without choosing defaults to the safe, non-destructive
+        // option: add each undecided child as a new, separate profile.
+        if (!open && pendingConflicts.length > 0) {
+          pendingConflicts.forEach((c) => mergeDecisionsRef.current.set(c.childId, "new"));
+          setPendingConflicts([]);
+          setTimeout(() => { void persistGeneratedBook(); }, 0);
+        }
+      }}
+    >
+      <DialogContent className="max-w-md rounded-3xl p-6">
+        <div className="space-y-4">
+          <div>
+            <p className="font-display font-semibold text-base text-foreground">
+              {lang === "he" ? "האם זה אותו ילד?" : lang === "yi" ? "איז דאס דער זעלבער קינד?" : "Is this the same child?"}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {lang === "he"
+                ? "כבר יש לכם ילד בשם הזה עם פרטים שונים. למזג ולעדכן, או להוסיף כילד נוסף?"
+                : lang === "yi"
+                ? "איר האט שוין א קינד מיט דעם נאמען מיט אנדערע פרטים. צונויפגיסן און דערהײַנטיקן, אדער צולייגן ווי א נײַער קינד?"
+                : "You already have a child with this name but different details. Merge and update, or add as a separate child?"}
+            </p>
+          </div>
+          {pendingConflicts.map((conf) => (
+            <div key={conf.childId} className="rounded-2xl border border-border/50 p-3 space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-xl bg-muted/40 p-2">
+                  <p className="font-semibold text-foreground mb-0.5">
+                    {lang === "he" ? "קיים" : lang === "yi" ? "עקזיסטירט" : "On your account"}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {conf.candidate.name}
+                    {conf.candidate.age != null ? ` · ${conf.candidate.age}` : ""}
+                    {conf.candidate.gender ? ` · ${conf.candidate.gender}` : ""}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-muted/40 p-2">
+                  <p className="font-semibold text-foreground mb-0.5">
+                    {lang === "he" ? "חדש" : lang === "yi" ? "נײַ" : "Just entered"}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {conf.incoming.name}
+                    {conf.incoming.age ? ` · ${conf.incoming.age}` : ""}
+                    {conf.incoming.gender ? ` · ${conf.incoming.gender}` : ""}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="gold" className="flex-1 rounded-xl h-9 text-xs" onClick={() => resolveConflict(conf.childId, `merge:${conf.candidate.id}`)}>
+                  {lang === "he" ? "אותו ילד — מזג" : lang === "yi" ? "זעלבער קינד — צונויפגיסן" : "Same child — merge"}
+                </Button>
+                <Button variant="outline" className="flex-1 rounded-xl h-9 text-xs border-border/50" onClick={() => resolveConflict(conf.childId, "new")}>
+                  {lang === "he" ? "הוסף כילד נוסף" : lang === "yi" ? "צולייגן ווי נײַער קינד" : "Add as new child"}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Sign-in dialog for returning users who start the wizard as a guest.
+        Closes automatically once signed in (see the post-auth effect), leaving
+        them right where they were to keep adding children. */}
+    <Dialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
+      <DialogContent className="max-w-sm rounded-3xl p-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+              <LogIn className="w-5 h-5 text-accent" />
+            </div>
+            <p className="font-display font-semibold text-sm text-foreground">{t.wizard.signInToContinue}</p>
+          </div>
+
+          <Button type="button" variant="outline" className="w-full rounded-xl h-11 gap-2 border-border/40 font-semibold bg-background/70 hover:bg-background" onClick={handleWizardGoogleLogin} disabled={loginLoading}>
+            <svg className="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            {t.wizard.continueWithGoogle}
+          </Button>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-border/50" />
+            <span className="text-[10px] text-muted-foreground/60">{t.wizard.or}</span>
+            <div className="flex-1 h-px bg-border/50" />
+          </div>
+
+          <form onSubmit={loginMode === "login" ? handleWizardLogin : handleWizardSignup} className="space-y-3">
+            {loginMode === "signup" && (
+              <div>
+                <Label className="text-xs text-muted-foreground">{t.wizard.fullName}</Label>
+                <Input value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} placeholder="Rachel Goldberg" className="rounded-xl h-10 mt-1 border-border/40 bg-card/60" />
+              </div>
+            )}
+            <div>
+              <Label className="text-xs text-muted-foreground">{t.wizard.email}</Label>
+              <div className="relative mt-1">
+                <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="you@email.com" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required />
+                <Mail className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">{t.wizard.password}</Label>
+              <div className="relative mt-1">
+                <Input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="••••••••" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required minLength={6} />
+                <Lock className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+            <Button type="submit" variant="gold" className="w-full rounded-xl h-10" disabled={loginLoading}>
+              {loginLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : loginMode === "login" ? t.wizard.signIn : t.wizard.createAccount}
+            </Button>
+            <p className="text-center text-[11px] text-muted-foreground">
+              {loginMode === "login" ? (
+                <>{t.wizard.noAccount}{" "}<button type="button" onClick={() => setLoginMode("signup")} className="text-accent font-medium hover:underline">{t.wizard.signUp}</button></>
+              ) : (
+                <>{t.wizard.haveAccount}{" "}<button type="button" onClick={() => setLoginMode("login")} className="text-accent font-medium hover:underline">{t.wizard.signInLink}</button></>
+              )}
+            </p>
+          </form>
+        </div>
+      </DialogContent>
+    </Dialog>
     </>
   );
 };
