@@ -203,8 +203,8 @@ serve(async (req) => {
       imagePrompt += isColoring
         ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Fill the page with a clear, friendly black-and-white line drawing of the scene for a child to color — bold clean outlines only, pure white background, NO color, NO shading, NO grey, NO fills. Keep details simple and the shapes large and open. Absolutely NO text, letters, or words in the image.`
         : isSpreadFormat
-        ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration. Arrange it as a cinematic scene with the main character(s) toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and stay easy to read. Do NOT center the subject so tightly that there is no breathing room. The calm areas must be fully painted parts of the scene (open sky, soft landscape) with the same palette and lighting — never an empty strip, solid bar, or blank panel. Absolutely NO text, letters, or words in the image.`
-        : ` COMPOSITION: This is a single SQUARE page illustration and it must be FULL-BLEED: one continuous painted scene filling the entire square edge-to-edge. NEVER add an empty strip, solid-color bar, blank panel, frame, or border anywhere — the page must be a complete, beautiful illustration on its own. Give the scene a naturally CALM, OPEN upper portion (roughly the top quarter): open sky with soft clouds, gentle light rays, or distant landscape — fully painted with the same palette, lighting, and texture as the rest of the scene, just quieter and lower-detail, with no faces or story details up there. Keep all characters and action in the middle and lower portions of the frame. A few lines of story text will later be overlaid on that calm painted sky, so it must genuinely read as sky/scenery — never as a bar, box, or panel. Absolutely NO text, letters, or words in the image.`;
+        ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration painted as ONE SINGLE CONTINUOUS SCENE — one sky, one horizon, one consistent lighting direction from the top edge to the bottom edge. Arrange it as a cinematic scene with the main character(s) toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and stay easy to read. Do NOT center the subject so tightly that there is no breathing room. The calm areas must be fully painted parts of the SAME scene (its own open sky, soft landscape) with the same palette and lighting — never an empty strip, solid bar, blank panel, or a SECOND sky pasted along an edge; there must be NO horizontal seam or visible line where the top of the image meets the rest — clouds, light, and color must flow continuously from the very top edge down into the scene. Absolutely NO text, letters, or words in the image.`
+        : ` COMPOSITION: This is a single SQUARE page illustration and it must be FULL-BLEED: ONE SINGLE CONTINUOUS painted scene filling the entire square edge-to-edge, composed in one pass with ONE sky, ONE horizon, and ONE consistent lighting direction. NEVER paint a separate strip, solid-color bar, blank panel, frame, border, or a SECOND sky at the top or bottom — there must be NO horizontal seam, edge, or visible line where the upper part of the image looks attached or pasted onto the scene below; clouds, light, and colors must flow continuously and seamlessly from the very top edge down into the scene. Compose the scene so its OWN natural upper portion is calm and quiet (the scene's sky with soft clouds, gentle light rays, or distant landscape — same palette, lighting, and texture as everything below, just lower-detail, with no faces or story details up there). Keep all characters and action in the middle and lower portions of the frame. A few lines of story text will later be overlaid on that calm upper area, so it must genuinely be part of the SAME scene — never a bar, box, or panel. Absolutely NO text, letters, or words in the image.`;
     }
 
     // Inject scene text (story page narrative) so the illustration depicts the right moment
@@ -297,7 +297,10 @@ serve(async (req) => {
 - A child's clothing comes ONLY from their character reference sheet and the modesty rules above. DO NOT copy the clothing, outfit, colors, prints, logos, brand marks, or accessories from any attached real-life PHOTOGRAPH of the child — a photograph is a guide to the child's FACE and HAIR ONLY, never to their wardrobe.
 - WARDROBE LOCK: when a child has a character reference sheet attached, dress that child in the EXACT outfit shown on their sheet — the same garments, the same colors, the same head covering — on EVERY page and in EVERY scene. Never restyle, recolor, or swap the outfit between pages.
 - NEVER dress the hero child in modern casual clothing — no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics — unless their character sheet itself shows those items.
-- HAIR & FEATURE LOCK: each child's hair COLOR, hair style, eye color, and skin tone must EXACTLY match their character sheet on every page. If the sheet shows brown hair, the hair is that exact same brown on every single page — never blonde, never a different shade, never a different style.`;
+- HAIR & FEATURE LOCK: each child's hair COLOR, hair style, eye color, and skin tone must EXACTLY match their character sheet on every page. If the sheet shows brown hair, the hair is that exact same brown on every single page — never blonde, never a different shade, never a different style.
+- HERO CHILDREN ONLY — NO PARENTS: the hero child(ren) experience the story ON THEIR OWN. NEVER add their parents, Tatty, Mommy, bubby, zeidy, siblings not named in this book, teachers, or any other modern-day family adults to the scene — not holding them, not reading to them, not standing behind them. The ONLY adults allowed are figures from the Torah narrative itself (Moshe, Avraham, the meraglim, Paroh, soldiers, etc.) when the scene depicts them. If the page text mentions Tatty/Mommy, still show ONLY the hero child(ren) in the illustration.
+- KAVOD HASEFORIM — NEVER place a sefer, book, chumash, or siddur on the floor or ground. Books are ALWAYS held respectfully in hands, or resting on a table, shtender, bookshelf, or bimah — never lying on a rug, floor, or the ground, never scattered, never stepped over.
+- ONE SEAMLESS IMAGE: the illustration must be one single continuous scene with one sky and one lighting scheme — never two skies, never a horizontal seam, and never a strip that looks pasted on at the top or bottom.`;
 
 
     const parts: any[] = [];
@@ -503,48 +506,77 @@ serve(async (req) => {
     let selectedModel: string | null = null;
     let lastErrorStatus: number | null = null;
     let lastErrorBody = "";
+    let saw429 = false;
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-    for (const model of imageModels) {
-      const attempt = await fetchWithTimeout(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts }],
-            generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
-          }),
-        },
-        PROVIDER_TIMEOUT_MS,
-      );
+    // Resilient dispatch: a timed-out or rate-limited model moves on to the next
+    // model in the list (each has its own quota) instead of failing the whole
+    // page. A 429 gets ONE short backoff + same-model retry first, since preview
+    // models rate-limit in bursts under the orchestrator's concurrency.
+    for (const model of [...new Set(imageModels)]) {
+      let modelDone = false;
+      for (let modelTry = 0; modelTry < 2 && !modelDone; modelTry++) {
+        let attempt: Response;
+        try {
+          attempt = await fetchWithTimeout(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ role: "user", parts }],
+                generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+              }),
+            },
+            PROVIDER_TIMEOUT_MS,
+          );
+        } catch (e) {
+          const isTimeout = e instanceof DOMException && e.name === "AbortError";
+          console.error(`Gemini model ${model} ${isTimeout ? "timed out" : "threw"} — trying next model:`, e);
+          lastErrorStatus = isTimeout ? 504 : 500;
+          lastErrorBody = String(e);
+          break; // next model — a hung model won't improve on an immediate retry
+        }
 
-      if (attempt.ok) {
-        response = attempt;
-        selectedModel = model;
-        break;
+        if (attempt.ok) {
+          response = attempt;
+          selectedModel = model;
+          modelDone = true;
+          break;
+        }
+
+        const body = await attempt.text();
+        lastErrorStatus = attempt.status;
+        lastErrorBody = body;
+        console.error(`Gemini image generation error with model ${model}:`, attempt.status, body);
+
+        if (attempt.status === 429) {
+          saw429 = true;
+          if (modelTry === 0) {
+            await sleep(7_000); // brief cool-off, then retry the same model once
+            continue;
+          }
+          break; // still limited — fall through to the next model's separate quota
+        }
+
+        const retryableModelError =
+          attempt.status === 404 ||
+          (attempt.status === 400 && /not found|not supported|generatecontent|responsemodalities/i.test(body));
+
+        if (!retryableModelError) {
+          throw new Error(`Gemini image generation error [${attempt.status}]`);
+        }
+        break; // model unavailable — next model
       }
+      if (response) break;
+    }
 
-      const body = await attempt.text();
-      lastErrorStatus = attempt.status;
-      lastErrorBody = body;
-      console.error(`Gemini image generation error with model ${model}:`, attempt.status, body);
-
-      if (attempt.status === 429) {
+    if (!response) {
+      if (saw429) {
         const rateErr = new Error("Rate limited — please try again in a moment.") as Error & { status?: number };
         rateErr.status = 429;
         throw rateErr;
       }
-
-      const retryableModelError =
-        attempt.status === 404 ||
-        (attempt.status === 400 && /not found|not supported|generatecontent|responsemodalities/i.test(body));
-
-      if (!retryableModelError) {
-        throw new Error(`Gemini image generation error [${attempt.status}]`);
-      }
-    }
-
-    if (!response) {
       console.error("No compatible Gemini image model found", { lastErrorStatus, lastErrorBody });
       throw new Error(`Gemini image generation error [${lastErrorStatus ?? 500}]`);
     }
@@ -612,8 +644,10 @@ serve(async (req) => {
 3) outfitMismatch — a hero child's clothing clearly differs from the outfit on their character sheet (e.g. modern t-shirt instead of the sheet outfit).
 4) ageMismatch — a hero child looks CLEARLY older or younger than their real age (${agesLine}) — e.g. drawn as a teenager or grown child when they should be a toddler.
 5) styleMismatch — the page is clearly NOT rendered as a ${styleName} (e.g. a flat 2D cartoon or a real photograph when it must be a 3D CGI render).
-6) flatBand — a large flat, solid-color, EMPTY horizontal band or strip (top or bottom of the image) that looks like a blank text box or pasted-on panel instead of a painted part of the scene.
-Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore background/biblical figures. Be tolerant of art-style differences, lighting, and pose; flag only CLEAR problems. Reply with STRICT minified JSON only, no prose: {"duplicate":false,"hairMismatch":false,"outfitMismatch":false,"ageMismatch":false,"styleMismatch":false,"flatBand":false,"details":""}` });
+6) flatBand — a flat, solid-color, EMPTY horizontal band or strip (top or bottom) that looks like a blank text box or pasted-on panel, OR a visible horizontal SEAM where the top region does not continue the same scene — e.g. TWO different skies, a straight line where two images appear joined, or mismatched lighting/palette between a top strip and the rest of the image.
+7) extraAdult — a modern-day parent or family adult (father/Tatty, mother/Mommy, grandparent, teacher) appears WITH the hero child(ren). Adults in biblical/Torah dress who belong to the Torah scene are FINE and must NOT be flagged.
+8) bookOnFloor — a book, sefer, chumash, or siddur is lying on the floor, rug, or ground (books held in hands or on tables/shelves/shtenders are fine).
+Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore background/biblical figures. Be tolerant of art-style differences, lighting, and pose; flag only CLEAR problems. Reply with STRICT minified JSON only, no prose: {"duplicate":false,"hairMismatch":false,"outfitMismatch":false,"ageMismatch":false,"styleMismatch":false,"flatBand":false,"extraAdult":false,"bookOnFloor":false,"details":""}` });
         const r = await fetchWithTimeout(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
           {
@@ -635,7 +669,9 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
         if (v.outfitMismatch) issues.push("a hero child's OUTFIT did not match the character sheet — dress them in exactly the outfit shown on the sheet");
         if (v.ageMismatch) issues.push(`a hero child was drawn at the WRONG AGE — render each child at their exact stated age (${agesLine}) with true proportions, never older or younger`);
         if (v.styleMismatch) issues.push(`the page was NOT rendered in the required art style — the final image must be a ${styleName}, matching every other page of the book`);
-        if (v.flatBand) issues.push("the image contained a flat, empty, solid-color band/strip — the whole frame must be a seamless painted scene; let the natural foreground (ground, water, sky) flow through the caption zone with the same palette and texture");
+        if (v.flatBand) issues.push("the image contained a pasted-on band/strip or a second sky with a visible horizontal seam — repaint as ONE single continuous scene with ONE sky and ONE lighting scheme; clouds, light, and color must flow seamlessly from the very top edge down into the scene, with no line where two images appear joined");
+        if (v.extraAdult) issues.push("a modern parent/family adult appeared with the hero child(ren) — remove ALL parents and modern adults; show ONLY the hero child(ren), plus Torah-narrative figures if the scene depicts them");
+        if (v.bookOnFloor) issues.push("a sefer/book was lying on the floor or ground — kavod haseforim: books must be held in hands or rest on a table, shtender, or shelf, NEVER on the floor");
         if (issues.length === 0) return null;
         const details = typeof v.details === "string" && v.details.trim() ? ` (inspector notes: ${v.details.slice(0, 200)})` : "";
         return issues.join("; ") + details;

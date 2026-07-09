@@ -61,6 +61,9 @@ async function callFn(name: string, body: unknown) {
 
 async function callImageWithRetry(body: unknown): Promise<string | null> {
   for (let attempt = 0; attempt < 2; attempt++) {
+    // Cool-off before the retry — an immediate re-fire against a rate-limited
+    // provider just burns the attempt and forces another full pass later.
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 6_000));
     try {
       const data = await callFn("generate-image", body);
       if (data?.imageUrl) return data.imageUrl as string;
@@ -261,6 +264,11 @@ async function generate(bookId: string) {
     if (overBudget()) { await reinvoke(bookId); return; }
 
     // ── Phase B: story text + page skeleton (once) ──
+    // The Claude story call is bounded at ~110s inside generate-story, so it must
+    // START with most of the wall clock still available — otherwise a late start
+    // can blow past the edge runtime's hard kill. If the sheet phase already ate
+    // a chunk of this pass, hand the story off to a fresh worker instead.
+    if (!pages && Date.now() - start > 25_000) { await persist(); await reinvoke(bookId); return; }
     if (!pages) {
       const story = await callFn("generate-story", {
         childName: book.child_name,
