@@ -4,11 +4,25 @@ jobs:
   fix:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify guard trigger enabled
-        env: { SUPABASE_ACCESS_TOKEN: "${{ secrets.SUPABASE_ACCESS_TOKEN }}" }
+      - name: Run image backfill until done, then VACUUM FULL
+        env:
+          SUPABASE_ACCESS_TOKEN: "${{ secrets.SUPABASE_ACCESS_TOKEN }}"
+          CRON_SECRET: "${{ secrets.CRON_SECRET }}"
         run: |
           set -euo pipefail
+          FN="https://cjgqpusyxvltglcbnpvg.supabase.co/functions/v1/backfill-images"
           API="https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/database/query"
           q(){ jq -n --arg query "$1" '{query:$query}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-; echo; }
-          echo "== guard trigger status (O=enabled origin, D=disabled) =="
-          q "select tgname, tgenabled from pg_trigger where tgname='guard_book_privileged_fields';"
+          echo "== books table size BEFORE =="
+          q "select pg_size_pretty(pg_total_relation_size('public.books')) as books, pg_size_pretty(pg_database_size(current_database())) as db;"
+          echo "== running backfill (loop until done) =="
+          for i in $(seq 1 10); do
+            resp=$(curl -s -X POST "$FN" -H "x-cron-secret: ${CRON_SECRET}" -H "Content-Type: application/json" --data '{}')
+            echo "pass $i: $resp"
+            echo "$resp" | jq -e '.done == true' >/dev/null 2>&1 && break
+            sleep 3
+          done
+          echo "== VACUUM FULL books (reclaim disk) =="
+          q "vacuum full public.books;"
+          echo "== books table size AFTER =="
+          q "select pg_size_pretty(pg_total_relation_size('public.books')) as books, pg_size_pretty(pg_database_size(current_database())) as db;"
