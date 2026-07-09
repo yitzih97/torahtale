@@ -1,0 +1,16 @@
+name: DB fix stuck jobs (one-shot)
+on: { workflow_dispatch: {} }
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reset stale generating books
+        env: { SUPABASE_ACCESS_TOKEN: "${{ secrets.SUPABASE_ACCESS_TOKEN }}" }
+        run: |
+          set -euo pipefail
+          API="https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/database/query"
+          q(){ jq -n --arg query "$1" '{query:$query}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-; echo; }
+          echo "== resetting stale 'generating' books (no update >15m) =="
+          q "update public.books set status = case when pages_data is not null and jsonb_typeof(pages_data)='array' and jsonb_array_length(pages_data) > 0 then 'pending_review' else 'paid' end, updated_at = now() where status='generating' and updated_at < now() - interval '15 minutes' returning id, status;"
+          echo "== books by status after =="
+          q "select status, count(*) from public.books group by status order by count(*) desc;"
