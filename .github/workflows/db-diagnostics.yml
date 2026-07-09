@@ -1,0 +1,29 @@
+name: DB diagnostics (one-shot)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query DB size + biggest tables + books weight
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          API="https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/database/query"
+          q() {
+            jq -n --arg query "$1" '{query:$query}' \
+              | curl -s -X POST "$API" \
+                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                  -H "Content-Type: application/json" --data @-
+          }
+          echo "== database size =="
+          q "select pg_size_pretty(pg_database_size(current_database())) as db_size;"
+          echo "== top 10 tables by total size =="
+          q "select schemaname||'.'||relname as table, pg_size_pretty(pg_total_relation_size(relid)) as total, n_live_tup as rows from pg_stat_user_tables order by pg_total_relation_size(relid) desc limit 10;"
+          echo "== books: count + total pages_data bytes + avg per book =="
+          q "select count(*) as books, pg_size_pretty(coalesce(sum(pg_column_size(pages_data)),0)) as total_pages_data, pg_size_pretty(coalesce(avg(pg_column_size(pages_data)),0)) as avg_per_book from public.books;"
+          echo "== biggest single books =="
+          q "select id, status, pg_size_pretty(pg_column_size(pages_data)) as weight, created_at from public.books order by pg_column_size(pages_data) desc nulls last limit 8;"
