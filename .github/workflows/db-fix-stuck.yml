@@ -4,17 +4,11 @@ jobs:
   fix:
     runs-on: ubuntu-latest
     steps:
-      - name: Reset orphaned generating books (bypass guard) + vacuum
+      - name: Verify guard trigger enabled
         env: { SUPABASE_ACCESS_TOKEN: "${{ secrets.SUPABASE_ACCESS_TOKEN }}" }
         run: |
           set -euo pipefail
           API="https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/database/query"
           q(){ jq -n --arg query "$1" '{query:$query}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-; echo; }
-          echo "== reset orphaned generating (guard disabled for this stmt) =="
-          q "alter table public.books disable trigger guard_book_privileged_fields; update public.books set status = case when pages_data is not null and jsonb_typeof(pages_data)='array' and jsonb_array_length(pages_data)>0 then 'pending_review' else 'paid' end, updated_at = now() where status='generating'; alter table public.books enable trigger guard_book_privileged_fields;"
-          echo "== status counts after =="
-          q "select status, count(*) from public.books group by status order by count(*) desc;"
-          echo "== vacuum + analyze books (reclaim bloat) =="
-          q "vacuum (analyze) public.books;"
-          echo "== table size after =="
-          q "select pg_size_pretty(pg_total_relation_size('public.books')) as total, pg_size_pretty(pg_database_size(current_database())) as db;"
+          echo "== guard trigger status (O=enabled origin, D=disabled) =="
+          q "select tgname, tgenabled from pg_trigger where tgname='guard_book_privileged_fields';"
