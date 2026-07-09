@@ -41,11 +41,15 @@ async function uploadDataUrl(dataUrl: string, bookId: string): Promise<string> {
   }
 }
 
-// Recursively walk any JSON value; upload every "data:image/...;base64,..."
-// string and replace it with its bucket URL. Returns [newValue, count].
-async function convertDeep(value: unknown, bookId: string): Promise<[unknown, number]> {
+// Convert at most `budget.left` images per invocation so a huge book can't
+// blow the edge worker's memory — decoding many base64 images at once trips
+// WORKER_RESOURCE_LIMIT. Once the budget is spent, remaining data URLs are left
+// in place and the caller re-invokes to finish them. Mutates budget.left.
+type Budget = { left: number };
+async function convertDeep(value: unknown, bookId: string, budget: Budget): Promise<[unknown, number]> {
   if (typeof value === "string") {
-    if (value.startsWith("data:image")) {
+    if (value.startsWith("data:image") && budget.left > 0) {
+      budget.left -= 1;
       const url = await uploadDataUrl(value, bookId);
       return [url, url === value ? 0 : 1];
     }
@@ -55,7 +59,7 @@ async function convertDeep(value: unknown, bookId: string): Promise<[unknown, nu
     let n = 0;
     const out = [];
     for (const item of value) {
-      const [v, c] = await convertDeep(item, bookId);
+      const [v, c] = await convertDeep(item, bookId, budget);
       out.push(v); n += c;
     }
     return [out, n];
@@ -64,7 +68,7 @@ async function convertDeep(value: unknown, bookId: string): Promise<[unknown, nu
     let n = 0;
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value)) {
-      const [nv, c] = await convertDeep(v, bookId);
+      const [nv, c] = await convertDeep(v, bookId, budget);
       out[k] = nv; n += c;
     }
     return [out, n];
@@ -94,20 +98,23 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (!(await authorize(req))) return json({ error: "Unauthorized" }, 401);
 
-  const start = Date.now();
-  // Only ~a dozen books — fetch IDs (tiny), then process each full row on its
-  // own so we never pull all the base64 blobs in a single response.
+  // Cap images converted per invocation to stay under the edge worker's memory
+  // limit; a single very large book is finished across several calls.
+  const MAX_IMAGES_PER_RUN = 5;
+
+  // Find ONE book that still has an embedded base64 image and process it. Fetch
+  // IDs first (tiny), then read one full row at a time.
   const { data: ids, error } = await admin
     .from("books")
     .select("id")
     .order("updated_at", { ascending: true });
   if (error) return json({ error: error.message }, 500);
 
-  const total = ids?.length || 0;
-  let processed = 0, imagesMoved = 0, budgetHit = false;
+  const budget: Budget = { left: MAX_IMAGES_PER_RUN };
+  let imagesMoved = 0;
+  let workedOn: string | null = null;
 
   for (const { id } of ids || []) {
-    if (Date.now() - start > WALL_BUDGET_MS) { budgetHit = true; break; }
     const { data: book, error: rErr } = await admin
       .from("books")
       .select("pages_data, story_data, cover_image_url")
@@ -115,24 +122,34 @@ serve(async (req) => {
       .maybeSingle();
     if (rErr || !book) { console.error("read failed for", id, rErr?.message); continue; }
 
-    const [pages, pc] = await convertDeep(book.pages_data, id);
-    const [story, sc] = await convertDeep(book.story_data, id);
+    const hasB64 =
+      JSON.stringify(book.pages_data ?? "").includes("data:image") ||
+      JSON.stringify(book.story_data ?? "").includes("data:image") ||
+      (typeof book.cover_image_url === "string" && book.cover_image_url.startsWith("data:image"));
+    if (!hasB64) continue; // already fully converted — next book
+
+    workedOn = id;
+    const [pages, pc] = await convertDeep(book.pages_data, id, budget);
+    const [story, sc] = await convertDeep(book.story_data, id, budget);
     let cover = book.cover_image_url as string | null;
     let cc = 0;
-    if (typeof cover === "string" && cover.startsWith("data:image")) {
+    if (typeof cover === "string" && cover.startsWith("data:image") && budget.left > 0) {
+      budget.left -= 1;
       const u = await uploadDataUrl(cover, id);
       if (u !== cover) { cover = u; cc = 1; }
     }
-    if (pc + sc + cc === 0) { processed++; continue; } // already converted — skip write
-    const { error: upErr } = await admin
-      .from("books")
-      .update({ pages_data: pages as any, story_data: story as any, cover_image_url: cover, updated_at: new Date().toISOString() })
-      .eq("id", id);
-    if (upErr) { console.error("row update failed for", id, upErr.message); continue; }
-    processed++; imagesMoved += pc + sc + cc;
-    console.log(`backfill: ${id} — moved ${pc + sc + cc} image(s)`);
+    imagesMoved = pc + sc + cc;
+    if (imagesMoved > 0) {
+      const { error: upErr } = await admin
+        .from("books")
+        .update({ pages_data: pages as any, story_data: story as any, cover_image_url: cover, updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (upErr) return json({ error: upErr.message, workedOn }, 500);
+      console.log(`backfill: ${id} — moved ${imagesMoved} image(s) this pass`);
+    }
+    break; // one book per invocation — keep memory bounded
   }
 
-  // done when we scanned every book this pass without hitting the time budget.
-  return json({ scanned: total, processed, imagesMoved, done: !budgetHit });
+  // done when no book still contained a base64 image this scan.
+  return json({ workedOn, imagesMoved, done: workedOn === null });
 });
