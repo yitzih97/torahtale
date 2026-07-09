@@ -41,26 +41,41 @@ export const StoryPreviewStep = ({ bookId, childNames, onPrint, onEdit }: Props)
     }
     let cancelled = false;
     let attempts = 0;
-    const tick = async () => {
-      attempts += 1;
-      const { data, error } = await supabase
+
+    // Statuses at which images are finished and safe to load for the preview.
+    const READY = ["pending_review", "ordered", "approved", "printing", "shipped", "delivered"];
+
+    // Pull the heavy image columns exactly ONCE, when generation is done. Polling
+    // these directly (they hold ~15 MB of base64 images per book) every 2s was
+    // hammering the database and helping wedge it — poll only the tiny `status`
+    // column, then fetch the images a single time.
+    const loadImagesOnce = async () => {
+      const { data: full } = await supabase
         .from("books")
         .select("cover_image_url, pages_data")
         .eq("id", bookId)
         .maybeSingle();
       if (cancelled) return;
-      if (!error && data) {
-        setBook(data as BookRow);
-        const hasCover = !!(data as BookRow).cover_image_url;
-        const hasPages = Array.isArray((data as BookRow).pages_data) && (data as BookRow).pages_data.length > 0;
-        if (hasCover || hasPages || attempts > 15) {
-          setLoading(false);
-          return;
-        }
+      if (full) setBook(full as BookRow);
+      setLoading(false);
+    };
+
+    const tick = async () => {
+      attempts += 1;
+      const { data, error } = await supabase
+        .from("books")
+        .select("status")
+        .eq("id", bookId)
+        .maybeSingle();
+      if (cancelled) return;
+      const status = (data as { status?: string } | null)?.status;
+      if (!error && status && READY.includes(status)) {
+        await loadImagesOnce();
+        return;
       }
-      // poll while images are still being produced (max ~30s)
+      // keep polling the cheap status column while images are still being produced
       if (attempts < 15) setTimeout(tick, 2000);
-      else setLoading(false);
+      else await loadImagesOnce(); // timed out — try once in case partial images exist
     };
     tick();
     return () => { cancelled = true; };
