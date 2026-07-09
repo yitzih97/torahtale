@@ -1,0 +1,43 @@
+name: Restart Supabase project (recovery)
+
+# Manual recovery tool: restarts the cjgqpusyxvltglcbnpvg project when the
+# database stops responding (REST/auth returning 522). Uses the same
+# SUPABASE_ACCESS_TOKEN the deploy workflow already has — run it from the
+# Actions tab (or `gh workflow run restart-db.yml`).
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restart project via Management API
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          code=$(curl -s -o /tmp/resp.txt -w "%{http_code}" -X POST \
+            "https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/restart" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}")
+          echo "Restart API responded: $code"
+          cat /tmp/resp.txt || true
+          # 2xx = restart accepted
+          [ "${code:0:1}" = "2" ]
+
+      - name: Wait for database to come back
+        run: |
+          set +e
+          for i in $(seq 1 30); do
+            sleep 10
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+              "https://cjgqpusyxvltglcbnpvg.supabase.co/auth/v1/health" \
+              -H "apikey: sb_publishable_Ic9uQiC0ATzTyMRzOXyWQA_7hnU8a2X")
+            echo "attempt $i: auth health -> $code"
+            if [ "$code" = "200" ]; then
+              echo "Database is back."
+              exit 0
+            fi
+          done
+          echo "::error::Database still not healthy after 5 minutes."
+          exit 1
