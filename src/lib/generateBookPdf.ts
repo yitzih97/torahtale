@@ -210,14 +210,18 @@ function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: 
   ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
 }
 
-async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, spreadBased: boolean): Promise<string> {
+async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, spreadBased: boolean, scale = 1): Promise<string> {
   // Board: one illustration fills the 2:1 spread. 8×8: one square page image.
   const W = spreadBased ? SPREAD_W : SPREAD_H; // square page = SPREAD_H × SPREAD_H
   const H = SPREAD_H;
 
+  // `scale` renders at a higher backing resolution (used for print — the Printify
+  // page slot is 2400², double our 1200 base) while keeping every coordinate/font
+  // size in the original logical space, so nothing below needs to change.
   const canvas = document.createElement("canvas");
-  canvas.width = W; canvas.height = H;
+  canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
+  if (scale !== 1) ctx.scale(scale, scale);
 
   const img = await safeLoad(page.image);
   // Layout precedence: an admin-adjusted layout wins; otherwise auto-place the
@@ -237,15 +241,16 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: boolean): Promise<string> {
+async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: boolean, scale = 1): Promise<string> {
   // The questions page sits on a clean, empty parchment page (no illustration)
   // so the discussion text is always easy to read.
   const layout = migrateLayout(page.textLayout) || makeQuestionsLayout(rtl);
   const W = spreadBased ? SPREAD_W : SPREAD_H;
   const H = SPREAD_H;
   const canvas = document.createElement("canvas");
-  canvas.width = W; canvas.height = H;
+  canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
+  if (scale !== 1) ctx.scale(scale, scale);
   drawPaperFull(ctx, W, H);
   if (spreadBased) drawGutter(ctx, W, H);
   const questions = page.questions || [];
@@ -254,10 +259,11 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: 
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-async function renderCoverSpread(page: BookPage, childName: string, parashaLabel: string): Promise<string> {
+async function renderCoverSpread(page: BookPage, childName: string, parashaLabel: string, scale = 1): Promise<string> {
   const canvas = document.createElement("canvas");
-  canvas.width = SPREAD_W; canvas.height = SPREAD_H;
+  canvas.width = SPREAD_W * scale; canvas.height = SPREAD_H * scale;
   const ctx = canvas.getContext("2d")!;
+  if (scale !== 1) ctx.scale(scale, scale);
   drawPaperHalf(ctx, "left");
 
   // Render the icon + wordmark as ONE horizontal logo lockup (the real brand
@@ -367,13 +373,17 @@ export async function renderPrintImages(
 ): Promise<string[]> {
   const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   const spreadBased = bookFormat.startsWith("board");
+  // Render at 2× our 1200-based canvas so the output matches the Printify print
+  // slots natively (pages 2400², cover ~4800×2400) instead of letting Printify
+  // upscale a 1200px image — text and the cover wrap come out crisp (~300 DPI).
+  const PRINT_SCALE = 2;
   const out: string[] = [];
   const cover = pages.find((p) => p.type === "cover");
-  if (cover) out.push(await renderCoverSpread(cover, childName, parashaLabel));
+  if (cover) out.push(await renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE));
   let storyIdx = 0;
   for (const page of pages) {
     if (page.type === "cover" || page.type === "back-cover" || page.type === "questions") continue;
-    out.push(await renderStorySpread(page, storyIdx++, rtl, spreadBased));
+    out.push(await renderStorySpread(page, storyIdx++, rtl, spreadBased, PRINT_SCALE));
   }
   return out;
 }
