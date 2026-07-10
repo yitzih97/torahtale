@@ -73,6 +73,8 @@ interface Props {
       photoUrl?: string | null;
       characterSheet?: string | null;
     }>;
+    /** Recurring Torah-story characters (Moshe, Dovid, …) with fixed look. */
+    storyCharacters?: Array<{ name: string; description: string; sheet?: string | null }>;
   };
 }
 
@@ -178,6 +180,13 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
       const targetType = page.type || "story";
       const storyPages = pages.filter((p) => p.type === "story");
       const pageNumber = targetType === "story" ? storyPages.findIndex((p) => p.id === page.id) + 1 : undefined;
+      // Recurring Torah characters named on this page (all on the cover) — pass
+      // their fixed descriptions + sheets so a single-page regen keeps them
+      // looking the same as the rest of the book.
+      const pageTextLc = String(page.text || "").toLowerCase();
+      const storyCharacterRefs = (generationContext?.storyCharacters || [])
+        .filter((ch) => ch?.name && (targetType === "cover" || pageTextLc.includes(ch.name.toLowerCase())))
+        .map((ch) => ({ name: ch.name, description: ch.description || "", sheet: ch.sheet || null }));
       const { data, error } = await supabase.functions.invoke("generate-image", {
         body: {
           promptAdditions: finalPrompt
@@ -195,6 +204,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           characterSheet: generationContext?.characterSheet,
           characterSheets: generationContext?.characterSheets,
           childRefs: generationContext?.childRefs,
+          storyCharacterRefs,
         },
       });
       if (error) throw error;

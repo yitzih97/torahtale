@@ -52,6 +52,10 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const [retrying, setRetrying] = useState(false);
   const abortRef = useRef(false);
   const characterSheetsRef = useRef<Record<string, string>>({});
+  // Recurring Torah-story characters (Moshe, Dovid, Golias, …) + their reference
+  // sheets, so they stay consistent across pages AND across single-page regens.
+  const storyCharactersRef = useRef<Array<{ name: string; description: string }>>([]);
+  const storyCharacterSheetsRef = useRef<Record<string, string>>({});
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedPagesRef = useRef<string>("");
   const imageDurationsRef = useRef<number[]>([]);
@@ -79,7 +83,12 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           .from("books")
           .update({
             pages_data: nextPages as any,
-            story_data: { ...(nextStoryData || book.story_data || {}), characterSheets: characterSheetsRef.current },
+            story_data: {
+              ...(nextStoryData || book.story_data || {}),
+              characterSheets: characterSheetsRef.current,
+              characters: storyCharactersRef.current,
+              _storyCharacterSheets: storyCharacterSheetsRef.current,
+            },
             art_style: ART_STYLE,
             cover_image_url: nextPages[0]?.image || null,
             updated_at: new Date().toISOString(),
@@ -123,6 +132,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       // Reuse the sheets from a previous generation so retries/regens keep the
       // exact same character look across sessions.
       characterSheetsRef.current = (sd.characterSheets as Record<string, string>) || {};
+      storyCharactersRef.current = (sd.characters as Array<{ name: string; description: string }>) || [];
+      storyCharacterSheetsRef.current = (sd._storyCharacterSheets as Record<string, string>) || {};
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, book?.id]);
@@ -162,6 +173,30 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     }
   }, [childDescriptions]);
 
+  /* ── Phase 1b: sheets for recurring Torah-story characters (consistency) ── */
+  const generateStoryCharacterSheets = useCallback(async () => {
+    const chars = storyCharactersRef.current || [];
+    const needing = chars.filter((c) => c?.name && !storyCharacterSheetsRef.current[c.name]);
+    if (needing.length === 0) return;
+    setPhase("character");
+    for (let i = 0; i < needing.length; i++) {
+      if (abortRef.current) return;
+      const ch = needing[i];
+      setStatusText(`Creating character reference for ${ch.name} (${i + 1}/${needing.length})…`);
+      try {
+        // Explicit-prompt render (skips the frum-child scaffolding but keeps the
+        // non-negotiable modesty rules) — a clean single-character reference.
+        const sheetPrompt = `A clean CHARACTER REFERENCE illustration of ONE single Torah-story character on a plain white studio background, in a ${ART_STYLE} children's book illustration style. Full body, front view, neutral standing pose, even lighting, no scenery and no other characters. The character is ${ch.name}: ${ch.description || ch.name}. Render ONLY this one character, centered. NO text, NO words, NO labels anywhere in the image.`;
+        const { data, error } = await supabase.functions.invoke("generate-image", {
+          body: { prompt: sheetPrompt, artStyle: ART_STYLE, torahPortion: book.torah_portion, pageType: "character-sheet" },
+        });
+        if (!error && data?.imageUrl) storyCharacterSheetsRef.current[ch.name] = data.imageUrl;
+      } catch (err) {
+        console.error(`Failed to generate story-character sheet for ${ch.name}:`, err);
+      }
+    }
+  }, [book?.torah_portion]);
+
   /* ─────────────── Phase 2: story ─────────────── */
 
   const generateStory = useCallback(async (): Promise<BookPage[] | null> => {
@@ -186,6 +221,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       if (abortRef.current) return null;
 
       setStoryData(storyResult);
+      storyCharactersRef.current = Array.isArray(storyResult.characters) ? storyResult.characters : [];
       const cover = storyResult.cover || { title: `${book.child_name}'s Torah Adventure`, subtitle: "" };
       const questions = storyResult.backCover?.questions || storyResult.questions || [];
 
@@ -228,6 +264,11 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       characterSheet: characterSheetsRef.current[c.name] || null,
     }));
     const primaryChildName = childDescriptions[0]?.name || book.child_name;
+    // Recurring Torah characters named on this page (all of them on the cover).
+    const text = String(pg.text || "").toLowerCase();
+    const storyCharacterRefs = (storyCharactersRef.current || [])
+      .filter((ch) => ch?.name && (pg.type === "cover" || text.includes(ch.name.toLowerCase())))
+      .map((ch) => ({ name: ch.name, description: ch.description || "", sheet: storyCharacterSheetsRef.current[ch.name] || null }));
     return {
       childName: book.child_name,
       artStyle: ART_STYLE,
@@ -240,6 +281,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       childDescription: childDescriptions[0]?.description || "",
       characterSheets: characterSheetsMap,
       childRefs,
+      storyCharacterRefs,
       pageText: pg.text,
     };
   }, [book, childDescriptions, bookFormat]);
@@ -334,13 +376,17 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     if (abortRef.current) return;
     const result = await generateStory();
     if (!result || abortRef.current) return;
+    await generateStoryCharacterSheets();
+    if (abortRef.current) return;
     await illustratePages(result);
-  }, [book, generateCharacterSheets, generateStory, illustratePages]);
+  }, [book, generateCharacterSheets, generateStory, generateStoryCharacterSheets, illustratePages]);
 
   const handleIllustrateReviewed = useCallback(async () => {
     abortRef.current = false;
+    await generateStoryCharacterSheets();
+    if (abortRef.current) return;
     await illustratePages(pages);
-  }, [illustratePages, pages]);
+  }, [generateStoryCharacterSheets, illustratePages, pages]);
 
   const handleRetryFailed = useCallback(async () => {
     const failedIdx = pages
@@ -364,7 +410,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     try {
       await supabase.from("books").update({
         pages_data: pages as any,
-        story_data: { ...(storyData || book.story_data || {}), characterSheets: characterSheetsRef.current },
+        story_data: { ...(storyData || book.story_data || {}), characterSheets: characterSheetsRef.current, characters: storyCharactersRef.current, _storyCharacterSheets: storyCharacterSheetsRef.current },
         cover_image_url: pages[0]?.image || null,
         art_style: ART_STYLE,
         status: "pending_review",
@@ -384,7 +430,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     try {
       await supabase.from("books").update({
         pages_data: pages as any,
-        story_data: { ...(storyData || book.story_data || {}), characterSheets: characterSheetsRef.current },
+        story_data: { ...(storyData || book.story_data || {}), characterSheets: characterSheetsRef.current, characters: storyCharactersRef.current, _storyCharacterSheets: storyCharacterSheetsRef.current },
         cover_image_url: pages[0]?.image || null,
         art_style: ART_STYLE,
         status: "approved",
@@ -786,6 +832,11 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                     description: c.description || "",
                     photoUrl: c.photoUrl || null,
                     characterSheet: characterSheetsRef.current[c.name] || null,
+                  })),
+                  storyCharacters: (storyCharactersRef.current || []).map((ch) => ({
+                    name: ch.name,
+                    description: ch.description || "",
+                    sheet: storyCharacterSheetsRef.current[ch.name] || null,
                   })),
                 }}
               />
