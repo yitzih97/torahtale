@@ -90,8 +90,8 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
         </button>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-lg font-semibold text-foreground truncate">{portionDisplay || "Torah Tale"}</h3>
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+          <h3 className="font-display text-lg font-semibold text-foreground leading-tight line-clamp-2">{portionDisplay || "Torah Tale"}</h3>
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
             For {book.child_name || "—"} · {format(new Date(book.created_at), "MMM d, yyyy")}
           </p>
           {pageCount > 0 && (

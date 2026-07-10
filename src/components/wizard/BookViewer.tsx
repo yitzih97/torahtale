@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getPortionDisplay } from "./TorahPortions";
 
 export interface BookPage {
   id: number;
@@ -76,8 +77,16 @@ interface Props {
 }
 
 export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesChange, editable = false, generationContext }: Props) => {
-  const { dir } = useLanguage();
+  const { dir, lang } = useLanguage();
   const isRtl = dir === "rtl";
+
+  // Cover text: the Parasha name is the hero (big), the kids are the co-stars
+  // (small). Derived from the book's portion + child names, so this applies to
+  // every book — new and existing — without depending on stored cover titles.
+  const parashaName = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
+  const starringLabel = childName
+    ? (lang === "he" ? `בכיכובם של ${childName}` : lang === "yi" ? `מיט ${childName}` : `Starring ${childName}`)
+    : "";
   // Default text side: over the open sky on the reading-start side.
   const defaultTextSide: "left" | "right" = isRtl ? "right" : "left";
 
@@ -227,16 +236,25 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
   const renderCoverSpread = () => (
     <div className="absolute inset-0 grid grid-cols-2">
-      {/* Back cover — left */}
+      {/* Back cover — left. Mirrors the front: Parasha name big, kids small,
+          then a short blurb, brand mark, and site URL. */}
       <div className="relative flex flex-col items-center justify-between p-6 sm:p-8 text-center bg-[hsl(42_50%_94%)]">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
         <div className="relative">
-          <BrandMark stacked iconClassName="h-12 w-12" wordmarkClassName="h-7" />
+          <BrandMark stacked iconClassName="h-10 w-10" wordmarkClassName="h-6" />
         </div>
-        <div className="relative font-body italic text-primary/80 leading-relaxed space-y-1 text-sm sm:text-base whitespace-pre-line">
-          {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : COVER_TAGLINE)).map((line, i) => (
-            <p key={i}>{line}</p>
-          ))}
+        <div className="relative space-y-2">
+          <h2 className="font-display font-extrabold text-primary leading-[1.05] text-xl sm:text-3xl tracking-tight">
+            {parashaName}
+          </h2>
+          {starringLabel && (
+            <p className="font-body italic text-gold text-xs sm:text-sm">{starringLabel}</p>
+          )}
+          <div className="pt-2 font-body italic text-primary/80 leading-relaxed space-y-1 text-sm sm:text-base whitespace-pre-line">
+            {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : COVER_TAGLINE)).map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
         </div>
         <p className="relative font-mono text-xs tracking-[0.2em] text-gold uppercase">{COVER_URL}</p>
       </div>
@@ -253,11 +271,11 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           </div>
         )}
         <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-10 bg-gradient-to-b from-white/90 via-white/60 to-transparent text-center">
-          <h1 className="font-display font-bold text-primary leading-tight text-lg sm:text-2xl">
-            {page?.coverTitle || `${childName}'s Torah Tale`}
+          <h1 className="font-display font-extrabold text-primary leading-[1.05] text-2xl sm:text-4xl tracking-tight">
+            {parashaName}
           </h1>
-          {page?.coverSubtitle && (
-            <p className="mt-1 font-body italic text-gold text-xs sm:text-sm">{page.coverSubtitle}</p>
+          {starringLabel && (
+            <p className="mt-1.5 font-body italic text-gold text-xs sm:text-sm">{starringLabel}</p>
           )}
         </div>
       </div>

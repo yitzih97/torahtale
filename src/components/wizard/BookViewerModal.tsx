@@ -22,12 +22,12 @@ interface Props {
 
 export const BookViewerModal = ({ open, onClose, childName, torahPortion, artStyle, pages, bookFormat, onEdit, onReorder }: Props) => {
   const [downloading, setDownloading] = useState(false);
-  const { dir } = useLanguage();
+  const { dir, lang } = useLanguage();
 
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
-      const blob = await generateBookPdf(pages, childName, torahPortion, dir === "rtl", bookFormat);
+      const blob = await generateBookPdf(pages, childName, torahPortion, dir === "rtl", bookFormat, lang);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { BOOK_TEXT_STYLE, COVER_TAGLINE, COVER_URL, type BookPage } from "@/components/wizard/BookViewer";
+import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import torahTaleIcon from "@/assets/brand/torah-tale-icon.png";
@@ -229,7 +230,7 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: 
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-async function renderCoverSpread(page: BookPage, childName: string): Promise<string> {
+async function renderCoverSpread(page: BookPage, childName: string, parashaLabel: string, starringLabel: string): Promise<string> {
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W; canvas.height = SPREAD_H;
   const ctx = canvas.getContext("2d")!;
@@ -250,12 +251,28 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
     ctx.drawImage(icon, startX, centerY - iconH / 2, iconW, iconH);
     ctx.drawImage(wordmark, startX + iconW + gap, centerY - wmH / 2, wmW, wmH);
   }
-  ctx.fillStyle = "#5a4a32";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const tSize = 56;
+
+  // Back cover: Parasha name (big) + kids (small), mirroring the front.
+  ctx.fillStyle = "#2b2418";
+  ctx.font = `bold 66px 'Playfair Display', serif`;
+  const backTitleLines = wrapLines(ctx, parashaLabel, HALF_W - 140);
+  const backTitleY = SPREAD_H * 0.45;
+  backTitleLines.forEach((line, i) =>
+    ctx.fillText(line, HALF_W / 2, backTitleY + (i - (backTitleLines.length - 1) / 2) * 74),
+  );
+  if (starringLabel) {
+    ctx.fillStyle = "#b88a2a";
+    ctx.font = `italic 40px ${BOOK_TEXT_STYLE.fontFamily}`;
+    ctx.fillText(starringLabel, HALF_W / 2, backTitleY + backTitleLines.length * 74);
+  }
+
+  // Blurb, lower on the back cover.
+  ctx.fillStyle = "#5a4a32";
+  const tSize = 46;
   ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  const cy = SPREAD_H * 0.62;
+  const cy = SPREAD_H * 0.72;
   const taglineLines = page.backCoverText && page.backCoverText.trim()
     ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
     : COVER_TAGLINE;
@@ -280,17 +297,17 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
   ctx.fillStyle = bandGrad;
   ctx.fillRect(HALF_W, 0, HALF_W, bandH);
 
-  const title = page.coverTitle || `${childName}'s Torah Tale`;
+  // Front cover: Parasha name (big) + kids (small).
   ctx.fillStyle = "#2b2418";
-  ctx.font = `bold 78px 'Playfair Display', serif`;
+  ctx.font = `bold 82px 'Playfair Display', serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  const titleLines = wrapLines(ctx, title, HALF_W - 120);
-  titleLines.forEach((line, i) => ctx.fillText(line, HALF_W + HALF_W / 2, 70 + i * 90));
-  if (page.coverSubtitle) {
+  const titleLines = wrapLines(ctx, parashaLabel, HALF_W - 120);
+  titleLines.forEach((line, i) => ctx.fillText(line, HALF_W + HALF_W / 2, 70 + i * 92));
+  if (starringLabel) {
     ctx.fillStyle = "#b88a2a";
     ctx.font = `italic 42px ${BOOK_TEXT_STYLE.fontFamily}`;
-    ctx.fillText(page.coverSubtitle, HALF_W + HALF_W / 2, 70 + titleLines.length * 90 + 18);
+    ctx.fillText(starringLabel, HALF_W + HALF_W / 2, 70 + titleLines.length * 92 + 18);
   }
   drawGutter(ctx, SPREAD_W, SPREAD_H);
 
@@ -305,8 +322,7 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
   spineShade.addColorStop(1, "rgba(0,0,0,0.16)");
   ctx.fillStyle = spineShade;
   ctx.fillRect(spineX, 0, spineW, SPREAD_H);
-  const spineText = [page.coverTitle?.trim(), page.coverSubtitle?.trim()].filter(Boolean).join("  ")
-    || `${childName}'s Torah Tale`;
+  const spineText = [parashaLabel, childName].filter(Boolean).join("  ·  ");
   ctx.save();
   ctx.translate(HALF_W, SPREAD_H / 2);
   ctx.rotate(Math.PI / 2);
@@ -323,10 +339,17 @@ async function renderCoverSpread(page: BookPage, childName: string): Promise<str
 export async function generateBookPdf(
   pages: BookPage[],
   childName: string,
-  _torahPortion: string,
+  torahPortion: string,
   rtl = false,
   bookFormat = "",
+  lang: "en" | "he" | "yi" = "en",
 ): Promise<Blob> {
+  // Cover text: Parasha name is the hero, kids are the co-stars (mirrors the
+  // on-screen BookViewer). Derived from the portion + names so it's consistent.
+  const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
+  const starringLabel = childName
+    ? (lang === "he" ? `בכיכובם של ${childName}` : lang === "yi" ? `מיט ${childName}` : `Starring ${childName}`)
+    : "";
   // Board (6×6) is spread-based → wide 2:1 interior pages. Softcover/Hardcover
   // (8×8) are page-based → square interior pages. The cover wrap is always wide.
   const spreadBased = bookFormat.startsWith("board");
@@ -345,7 +368,7 @@ export async function generateBookPdf(
     if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
     let dataUrl: string;
     if (page.type === "cover") {
-      dataUrl = await renderCoverSpread(page, childName);
+      dataUrl = await renderCoverSpread(page, childName, parashaLabel, starringLabel);
     } else if (page.type === "questions") {
       dataUrl = await renderQuestionsSpread(page, rtl, spreadBased);
     } else {
