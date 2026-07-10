@@ -318,88 +318,54 @@ async function renderCoverSpread(
   if (scale !== 1) ctx.scale(scale, scale);
   drawPaperHalf(ctx, "left");
 
-  // ── BACK COVER (left half): book name + child + a 2×2 "coming next" grid of
-  // upcoming-story teasers, to drive subscriptions. Small brand logo + URL. ──
+  // ── BACK COVER (left half): brand logo, a single row of 4 small "coming next"
+  // story thumbnails, the subscribe invitation, and the site URL. ──
   const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon), safeLoad(torahTaleWordmark)]);
   if (icon && wordmark) {
-    const iconH = 96;
+    const iconH = 240;
     const iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
-    const wmH = 60;
+    const wmH = 150;
     const wmW = (wordmark.naturalWidth / wordmark.naturalHeight) * wmH;
-    const gap = 16;
+    const gap = 28;
     const groupW = iconW + gap + wmW;
     const startX = HALF_W / 2 - groupW / 2;
-    const cY = 92;
-    ctx.drawImage(icon, startX, cY - iconH / 2, iconW, iconH);
-    ctx.drawImage(wordmark, startX + iconW + gap, cY - wmH / 2, wmW, wmH);
+    const centerY = SPREAD_H * 0.22;
+    ctx.drawImage(icon, startX, centerY - iconH / 2, iconW, iconH);
+    ctx.drawImage(wordmark, startX + iconW + gap, centerY - wmH / 2, wmW, wmH);
   }
 
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  // Book name (parasha) + child name.
-  ctx.fillStyle = "#2b2418";
-  ctx.font = `bold 58px 'Playfair Display', serif`;
-  const backTitleLines = wrapLines(ctx, parashaLabel, HALF_W - 160);
-  let ty = 168;
-  backTitleLines.forEach((line) => { ctx.fillText(line, HALF_W / 2, ty); ty += 66; });
-  if (childName) {
-    ctx.fillStyle = "#b88a2a";
-    ctx.font = `italic 40px ${BOOK_TEXT_STYLE.fontFamily}`;
-    ctx.fillText(childName, HALF_W / 2, ty + 2);
-    ty += 58;
-  }
-
-  // "Coming up next" teaser heading.
-  ctx.fillStyle = "#5a4a32";
-  ctx.font = `600 30px 'Inter', sans-serif`;
-  const headingY = ty + 20;
-  ctx.fillText("MORE STORIES EVERY WEEK", HALF_W / 2, headingY);
-
-  // 2×2 grid of preview images (fall back to a name card when an image is missing).
+  // Row of 4 small "coming next" story thumbnails (empty box until generated).
   const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
-  const gridTop = headingY + 54;
-  const gridBottom = SPREAD_H - 96;
-  const margin = 80;
-  const gapG = 34;
-  const cellW = (HALF_W - margin * 2 - gapG) / 2;
-  const cellH = (gridBottom - gridTop - gapG) / 2;
+  const thumb = 190, tgap = 28;
+  const rowW = 4 * thumb + 3 * tgap;
+  const rowX = HALF_W / 2 - rowW / 2;
+  const rowY = SPREAD_H * 0.38;
   for (let i = 0; i < 4; i++) {
-    const col = i % 2, row = Math.floor(i / 2);
-    const cx = margin + col * (cellW + gapG);
-    const cyy = gridTop + row * (cellH + gapG);
-    const item = previews[i];
-    const pimg = previewImgs[i];
-    // Card background.
+    const tx = rowX + i * (thumb + tgap);
     ctx.fillStyle = "#efe7d3";
-    roundedRect(ctx, cx, cyy, cellW, cellH, 18); ctx.fill();
-    if (pimg) {
-      drawImageInRect(ctx, pimg, cx, cyy, cellW, cellH, 18);
-    }
-    // Label band at the bottom of the cell.
-    if (item?.label) {
-      ctx.save();
-      roundedRect(ctx, cx, cyy, cellW, cellH, 18); ctx.clip();
-      const bandH2 = 62;
-      ctx.fillStyle = pimg ? "rgba(20,16,10,0.66)" : "rgba(184,138,42,0.16)";
-      ctx.fillRect(cx, cyy + cellH - bandH2, cellW, bandH2);
-      ctx.fillStyle = pimg ? "#ffffff" : "#5a4a32";
-      ctx.font = `600 26px 'Inter', sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      const lbl = item.label.length > 22 ? item.label.slice(0, 21) + "…" : item.label;
-      ctx.fillText(lbl, cx + cellW / 2, cyy + cellH - bandH2 / 2);
-      ctx.restore();
-    }
-    // Thin card border.
-    ctx.strokeStyle = "rgba(0,0,0,0.12)"; ctx.lineWidth = 2;
-    roundedRect(ctx, cx, cyy, cellW, cellH, 18); ctx.stroke();
+    roundedRect(ctx, tx, rowY, thumb, thumb, 12); ctx.fill();
+    const pimg = previewImgs[i];
+    if (pimg) drawImageInRect(ctx, pimg, tx, rowY, thumb, thumb, 12);
+    ctx.strokeStyle = "rgba(0,0,0,0.30)"; ctx.lineWidth = 2;
+    roundedRect(ctx, tx, rowY, thumb, thumb, 12); ctx.stroke();
   }
 
-  // Subscription URL footer.
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  // Subscribe invitation + site URL.
+  ctx.fillStyle = "#5a4a32";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const tSize = 54;
+  ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
+  const cy = SPREAD_H * 0.68;
+  const taglineLines = page.backCoverText && page.backCoverText.trim()
+    ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
+    : COVER_TAGLINE;
+  taglineLines.forEach((line, i) => {
+    ctx.fillText(line, HALF_W / 2, cy + (i - (taglineLines.length - 1) / 2) * (tSize * 1.35));
+  });
   ctx.fillStyle = "#b88a2a";
-  ctx.font = `700 30px 'Inter', sans-serif`;
-  ctx.fillText(`SUBSCRIBE AT ${COVER_URL.toUpperCase()}`, HALF_W / 2, SPREAD_H - 52);
+  ctx.font = `600 36px 'Inter', sans-serif`;
+  ctx.fillText(COVER_URL.toUpperCase(), HALF_W / 2, SPREAD_H * 0.9);
 
   // ── FRONT COVER (right half): illustration + Parasha name + child. ──
   const img = await safeLoad(page.image);
