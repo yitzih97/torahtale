@@ -18,8 +18,10 @@ import { UpcomingDeliveries } from "@/components/dashboard/UpcomingDeliveries";
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
 import { BookReviewDialog } from "@/components/dashboard/BookReviewDialog";
 import { generateBookZip } from "@/lib/generateBookZip";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Check } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus, Settings, BookMarked,
@@ -52,6 +54,71 @@ export default function Dashboard() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [reviewingBook, setReviewingBook] = useState<BookRecord | null>(null);
   const [activeTab, setActiveTab] = useState("kids");
+
+  // Merge kids: select two or more, choose one to keep, then decide what to do
+  // with the others' books & subscriptions.
+  const queryClient = useQueryClient();
+  const [selectedKidIds, setSelectedKidIds] = useState<Set<string>>(new Set());
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [mergeKeepId, setMergeKeepId] = useState<string | null>(null);
+  const [merging, setMerging] = useState(false);
+
+  const toggleKidSelect = (id: string) =>
+    setSelectedKidIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+
+  const openMerge = () => {
+    const ids = [...selectedKidIds];
+    if (ids.length < 2) return;
+    setMergeKeepId(ids[0]);
+    setMergeOpen(true);
+  };
+
+  // reassign=true → move the other kids' books & subscriptions onto the kept
+  // child; reassign=false → just combine the profile and leave books where they
+  // are (their child link clears via ON DELETE SET NULL). Either way the kept
+  // child is enriched with any details it's missing, and the extras are removed.
+  const handleMerge = async (reassign: boolean) => {
+    const keep = children.find((c) => c.id === mergeKeepId);
+    const others = [...selectedKidIds].filter((id) => id !== mergeKeepId);
+    if (!keep || others.length === 0) { setMergeOpen(false); return; }
+    setMerging(true);
+    try {
+      if (reassign) {
+        for (const otherId of others) {
+          await supabase.from("books").update({ child_id: keep.id } as any).eq("child_id", otherId);
+          await supabase.from("subscriptions").update({ child_id: keep.id } as any).eq("child_id", otherId);
+        }
+      }
+      // Fill any blank fields on the kept child from the others.
+      const donors = children.filter((c) => others.includes(c.id));
+      const patch: Record<string, unknown> = {};
+      if (!keep.photo_url) { const d = donors.find((c) => c.photo_url); if (d) patch.photo_url = d.photo_url; }
+      if (!keep.description) { const d = donors.find((c) => c.description); if (d) patch.description = d.description; }
+      if (keep.age == null) { const d = donors.find((c) => c.age != null); if (d) patch.age = d.age; }
+      if (!keep.gender) { const d = donors.find((c) => c.gender); if (d) patch.gender = d.gender; }
+      if (!keep.art_style) { const d = donors.find((c) => c.art_style); if (d) patch.art_style = d.art_style; }
+      if (Object.keys(patch).length) await supabase.from("children").update(patch as any).eq("id", keep.id);
+      // Remove the merged-away kids (books/subscriptions survive via SET NULL).
+      const { error: delErr } = await supabase.from("children").delete().in("id", others);
+      if (delErr) throw delErr;
+
+      queryClient.invalidateQueries({ queryKey: ["children"] });
+      queryClient.invalidateQueries({ queryKey: ["books"] });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      toast.success(`Merged into ${keep.name}.`);
+    } catch (e) {
+      console.error("merge kids failed", e);
+      toast.error("Merge failed — please try again.");
+    } finally {
+      setMerging(false);
+      setMergeOpen(false);
+      setSelectedKidIds(new Set());
+    }
+  };
 
   // Track which books the current user has already reviewed
   const { data: reviewedBookIds } = useQuery({
@@ -211,17 +278,42 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : (
+                  <>
+                    {selectedKidIds.size >= 1 && (
+                      <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-border/50 bg-card/70 backdrop-blur px-4 py-2.5">
+                        <span className="text-sm text-muted-foreground">
+                          {selectedKidIds.size} selected
+                          {selectedKidIds.size < 2 && " · pick another to merge"}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedKidIds(new Set())}>Clear</Button>
+                          <Button variant="gold" size="sm" disabled={selectedKidIds.size < 2} onClick={openMerge}>
+                            Merge selected
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {children.map((kid, i) => {
                       const kidSub = subscriptions.find(
                         (s) => s.child_id === kid.id && s.status !== "canceled",
                       );
                       const kidBooks = books.filter((b) => b.child_id === kid.id).length;
+                      const selected = selectedKidIds.has(kid.id);
                       return (
+                        <div key={kid.id} className="relative">
+                        {/* Selection checkbox for merging duplicate kids. */}
+                        <button
+                          type="button"
+                          onClick={() => toggleKidSelect(kid.id)}
+                          aria-label={selected ? "Deselect" : "Select to merge"}
+                          className={`absolute top-3 left-3 z-20 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${selected ? "bg-accent border-accent text-white" : "bg-white/80 border-border/60 text-transparent hover:border-accent"}`}
+                        >
+                          <Check className="w-4 h-4" strokeWidth={3} />
+                        </button>
                         <KidCard
-                          key={kid.id}
-                          kid={kid}
                           index={i}
+                          kid={kid}
                           subscription={kidSub}
                           bookCount={kidBooks}
                           onEdit={() => setEditingChild(kid)}
@@ -237,6 +329,7 @@ export default function Dashboard() {
                             toast.success(next === "paused" ? "Subscription paused" : "Subscription resumed!");
                           }}
                         />
+                        </div>
                       );
                     })}
 
@@ -256,6 +349,7 @@ export default function Dashboard() {
                       <span className="text-sm font-medium">{t.dash.addChild}</span>
                     </motion.button>
                   </div>
+                  </>
                 )}
               </TabsContent>
 
@@ -383,6 +477,59 @@ export default function Dashboard() {
         onSubmit={handleAddChild}
         isPending={addChild.isPending}
       />
+
+      {/* Merge kids dialog: choose which child to keep, then pick what to do
+          with the others' books & subscriptions. */}
+      <Dialog open={mergeOpen} onOpenChange={(o) => { if (!o && !merging) setMergeOpen(false); }}>
+        <DialogContent className="max-w-md rounded-3xl p-6">
+          <div className="space-y-4">
+            <div>
+              <p className="font-display font-semibold text-base text-foreground">Merge kids</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Keep one profile and combine the rest into it. First choose which child to keep:
+              </p>
+            </div>
+            <div className="space-y-2">
+              {[...selectedKidIds].map((id) => {
+                const kid = children.find((c) => c.id === id);
+                if (!kid) return null;
+                const isKeep = mergeKeepId === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setMergeKeepId(id)}
+                    className={`w-full flex items-center gap-3 rounded-2xl border p-3 text-left transition-colors ${isKeep ? "border-accent bg-accent/10" : "border-border/50 hover:border-accent/50"}`}
+                  >
+                    <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isKeep ? "border-accent bg-accent text-white" : "border-border/60 text-transparent"}`}>
+                      <Check className="w-3 h-3" strokeWidth={3} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-foreground truncate">{kid.name}</span>
+                      <span className="block text-xs text-muted-foreground truncate">
+                        {[kid.age != null ? `${kid.age} yrs` : null, kid.gender].filter(Boolean).join(" · ") || "—"}
+                        {isKeep && " · keep this one"}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="pt-1 space-y-2">
+              <p className="text-xs text-muted-foreground">What about the other kids' books &amp; subscriptions?</p>
+              <Button variant="gold" className="w-full rounded-xl h-11" disabled={merging || !mergeKeepId} onClick={() => handleMerge(true)}>
+                {merging ? "Merging…" : "Move their books & subscriptions to the kept child"}
+              </Button>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-border/50" disabled={merging || !mergeKeepId} onClick={() => handleMerge(false)}>
+                Just combine the profile (leave books where they are)
+              </Button>
+              <Button variant="ghost" className="w-full rounded-xl h-9 text-muted-foreground" disabled={merging} onClick={() => setMergeOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Child Dialog (single-page) */}
       <EditChildDialog
