@@ -210,8 +210,17 @@ You MUST respond with ONLY a valid JSON object with this exact structure:
       { "number": 2, "question": "Discussion question 2" },
       ...up to 20 questions
     ]
-  }
+  },
+  "characters": [
+    { "name": "Dovid", "description": "a fixed, detailed visual description used to draw this character identically on every page" }
+  ]
 }
+
+CHARACTERS ARRAY (CRITICAL for illustration consistency):
+- List EVERY recurring named character from the Torah story who appears on more than one page — EXCEPT the hero kinderlach themselves (they have their own reference photos). For example: Moshe, Aharon, Dovid, Golias, Paroh, Yishai, the meraglim, a malach, etc.
+- For each, write ONE fixed, richly detailed VISUAL description (approx and hair, facial hair, skin tone, exact clothing and colors, headwear, distinguishing features, build/height) that an illustrator will reproduce IDENTICALLY every time that character appears, so the character looks the same on every page.
+- Descriptions MUST obey the modesty and Bnei-Yisrael/non-Jew rules above (e.g. Jewish men age 3+ always have covered heads; non-Jews wear distinct foreign dress).
+- Include at most 6 characters — the most important recurring ones. If the story has no recurring non-hero characters, return an empty array.
 
 The questions should be part of the back cover (inside the backCover object):
 - Include exactly 20 questions
@@ -265,6 +274,15 @@ No markdown, no explanation, just the JSON object.`;
                 properties: { number: { type: "integer" }, question: { type: "string" } },
               },
             },
+          },
+        },
+        characters: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["name", "description"],
+            properties: { name: { type: "string" }, description: { type: "string" } },
           },
         },
       },
@@ -416,7 +434,16 @@ No markdown, no explanation, just the JSON object.`;
       questions: normalizedQuestions,
     };
 
-    return new Response(JSON.stringify({ cover, pages: storyPages, backCover }), {
+    // Recurring Torah-story characters (not the hero kids) with fixed visual
+    // descriptions — used to keep them looking identical across every page.
+    const characters = Array.isArray(parsed.characters)
+      ? parsed.characters
+          .filter((c: any) => c && typeof c.name === "string" && c.name.trim())
+          .slice(0, 6)
+          .map((c: any) => ({ name: flattenText(c.name).trim(), description: flattenText(c.description).trim() }))
+      : [];
+
+    return new Response(JSON.stringify({ cover, pages: storyPages, backCover, characters }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

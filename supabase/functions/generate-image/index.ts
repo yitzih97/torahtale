@@ -92,7 +92,7 @@ serve(async (req) => {
   if (authErr) return authErr;
 
   try {
-    const { prompt, promptAdditions, childName, age, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText, bookId } = await req.json();
+    const { prompt, promptAdditions, childName, age, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText, bookId, storyCharacterRefs } = await req.json();
 
     const childRefsList = Array.isArray(childRefs) ? childRefs : [];
     const descLower = String(childDescription || "").toLowerCase();
@@ -391,6 +391,32 @@ serve(async (req) => {
         .join("; ");
       imagePrompt = `CRITICAL CHILD LIKENESS & CONSISTENCY (do NOT ignore): The attached image(s) are references for the child character(s) in this book. ${legend}. You MUST reproduce EACH child's face, hair, eye colour and skin tone faithfully from THEIR OWN reference, translated into the chosen art style, so each child is IMMEDIATELY and unmistakably recognizable as that same real child on EVERY page. NEVER invent a generic face and NEVER swap features between children. When a reference is a real photograph, use it for the child's FACE and HAIR ONLY — do NOT copy the clothing, outfit, colours, prints, logos or accessories from the photo (dress each child per the story scene and the modesty rules below). Keep each child's look identical across all pages. ${imagePrompt}`;
       for (const r of cappedRefs) await pushImagePart(r.src);
+    }
+
+    // Recurring Torah-story characters (Moshe, Dovid, Golias, …): keep each one
+    // identical across pages. Inject their fixed description ALWAYS (text lock),
+    // and attach their reference sheet in whatever attachment slots remain after
+    // the hero children (character attachments are capped at 4 total).
+    const storyRefsList: any[] = Array.isArray(storyCharacterRefs) ? storyCharacterRefs : [];
+    if (!isColoring && !prompt && storyRefsList.length > 0) {
+      const descLines = storyRefsList
+        .filter((s) => s?.name && s?.description)
+        .map((s) => `- ${s.name}: ${s.description}`);
+      if (descLines.length > 0) {
+        imagePrompt += ` \n\nRECURRING STORY CHARACTERS — every character below must look EXACTLY the same each time they appear in the book. Render each one precisely matching this fixed description (face, hair, facial hair, build, exact clothing and colours, headwear). Do NOT restyle or recolour them between pages:\n${descLines.join("\n")}`;
+      }
+      const remaining = Math.max(0, 4 - cappedRefs.length);
+      const storySheetRefs = storyRefsList
+        .filter((s) => typeof s?.sheet === "string" && s.sheet)
+        .slice(0, remaining);
+      if (storySheetRefs.length > 0) {
+        const startIdx = cappedRefs.length;
+        const legend2 = storySheetRefs
+          .map((s, i) => `Image ${startIdx + i + 1} = ${s.name} (this Torah character's OFFICIAL CHARACTER SHEET — reproduce them looking exactly as shown here)`)
+          .join("; ");
+        imagePrompt += ` ADDITIONAL CHARACTER REFERENCE SHEETS attached: ${legend2}.`;
+        for (const s of storySheetRefs) await pushImagePart(s.sheet);
+      }
     }
 
     // Inject scene reference image for visual consistency across books

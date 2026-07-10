@@ -114,7 +114,14 @@ async function reinvoke(bookId: string): Promise<boolean> {
 // Build the generate-image task bodies for every page that still needs an image.
 // storyPageNumber is counted across ALL story pages (done or not) so numbering
 // stays stable across resumes.
-function buildPendingTasks(pages: any[], book: any, sdState: any, sheets: Record<string, string>) {
+function buildPendingTasks(
+  pages: any[],
+  book: any,
+  sdState: any,
+  sheets: Record<string, string>,
+  storyChars: Array<{ name: string; description: string }> = [],
+  storySheets: Record<string, string> = {},
+) {
   const bookOpts = sdState.bookOptions || {};
   const bookFormat = mapBookFormat(bookOpts.productType || "softcover", bookOpts.hardcoverSize || "8x8");
   const childDescriptions: any[] = sdState.childDescriptions || [];
@@ -134,6 +141,20 @@ function buildPendingTasks(pages: any[], book: any, sdState: any, sheets: Record
     if (pg.type === "story") storyPageNumber += 1;
     if (pg.type === "questions") return; // questions page has no image
     if (pg.image) return; // already generated — skip
+
+    // Recurring Torah-story characters mentioned on THIS page — pass their fixed
+    // descriptions (always) and reference sheets (when available) so they render
+    // consistently. Cover features whichever characters lead the story.
+    const text = String(pg.text || "").toLowerCase();
+    const relevant = storyChars.filter((ch) =>
+      ch?.name && (pg.type === "cover" || text.includes(ch.name.toLowerCase())),
+    );
+    const storyCharacterRefs = relevant.map((ch) => ({
+      name: ch.name,
+      description: ch.description || "",
+      sheet: storySheets[ch.name] || null,
+    }));
+
     tasks.push({
       idx,
       body: {
@@ -150,6 +171,7 @@ function buildPendingTasks(pages: any[], book: any, sdState: any, sheets: Record
         childDescription: primaryDesc,
         characterSheets: sheets,
         childRefs,
+        storyCharacterRefs,
         pageText: pg.text,
       },
     });
@@ -301,8 +323,41 @@ async function generate(bookId: string) {
       await persist();
     }
 
+    // ── Phase B2: reference sheets for recurring Torah-story characters (once) ──
+    // Each named non-hero character (Moshe, Dovid, Golias, …) gets one fixed
+    // reference so they look identical on every page they appear. Bounded +
+    // resumable; fully fail-open — a book still generates without them.
+    const storyChars: Array<{ name: string; description: string }> =
+      Array.isArray(sdState.characters) ? sdState.characters : [];
+    const storySheets: Record<string, string> = sdState._storyCharacterSheets || {};
+    if (storyChars.length > 0 && !sdState._storyCharsDone) {
+      const styleName = book.art_style || "cartoon";
+      for (const ch of storyChars) {
+        if (!ch?.name || storySheets[ch.name]) continue;
+        if (overBudget()) { await persist(); await reinvoke(bookId); return; }
+        try {
+          // Render a clean single-character reference via generate-image's explicit
+          // `prompt` path (skips the frum-child scaffolding but still enforces the
+          // non-negotiable modesty rules, which apply even on explicit prompts).
+          const sheetPrompt = `A clean CHARACTER REFERENCE illustration of ONE single Torah-story character on a plain white studio background, in a ${styleName} children's book illustration style. Full body, front view, neutral standing pose, even lighting, no scenery and no other characters. The character is ${ch.name}: ${ch.description || ch.name}. Render ONLY this one character, centered. NO text, NO words, NO labels anywhere in the image.`;
+          const sheet = await callFn("generate-image", {
+            bookId: book.id,
+            prompt: sheetPrompt,
+            artStyle: book.art_style,
+            torahPortion: book.torah_portion,
+            pageType: "character-sheet",
+          });
+          if (sheet?.imageUrl) storySheets[ch.name] = sheet.imageUrl;
+        } catch (e) {
+          console.error("generate-book: story character sheet failed for", ch?.name, e);
+        }
+      }
+      sdState = { ...sdState, _storyCharacterSheets: storySheets, _storyCharsDone: true };
+      await persist();
+    }
+
     // ── Phase C: page images, time-bounded, persisted after each batch ──
-    const tasks = buildPendingTasks(pages, book, sdState, sheets);
+    const tasks = buildPendingTasks(pages, book, sdState, sheets, storyChars, storySheets);
     let madeProgress = 0;
     for (let i = 0; i < tasks.length; i += CONCURRENCY) {
       if (overBudget()) {
