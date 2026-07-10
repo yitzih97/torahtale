@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "reset-raw"
+        description: "test"
         required: true
-        default: "reset-raw"
+        default: "test"
 
 jobs:
   fix:
@@ -14,18 +14,25 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
     steps:
-      - name: Reset book row (raw response)
+      - name: Test write persistence
         run: |
           set -uo pipefail
           REF=cjgqpusyxvltglcbnpvg
           BOOK=36f04829-97ad-4911-bf26-92fd9957b6ce
-          echo "=== raw UPDATE response ==="
-          curl -s -X POST "https://api.supabase.com/v1/projects/${REF}/database/query" \
-            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
-            -d "{\"query\":\"update books set printify_order_id=null, printify_product_id=null, order_number=null, status='pending_review', updated_at=now() where id='${BOOK}';\"}"
-          echo
-          echo "=== read back ==="
-          curl -s -X POST "https://api.supabase.com/v1/projects/${REF}/database/query" \
-            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" \
-            -d "{\"query\":\"select status, printify_order_id, printify_product_id from books where id='${BOOK}';\"}"
-          echo
+          API="https://api.supabase.com/v1/projects/${REF}/database/query"
+          q() { curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" -d "$1"; }
+
+          echo "=== control: scratch table write ==="
+          q '{"query":"create table if not exists _wtest(id int primary key, v text);"}'; echo
+          q '{"query":"insert into _wtest(id,v) values (1,'"'"'ok'"'"') on conflict (id) do update set v='"'"'ok2'"'"';"}'; echo
+          echo "control read:"; q '{"query":"select * from _wtest where id=1;"}'; echo
+
+          echo "=== UPDATE books ... RETURNING ==="
+          q "{\"query\":\"update books set status='pending_review', printify_order_id=null, printify_product_id=null, order_number=null, updated_at=now() where id='${BOOK}' returning status, printify_order_id;\"}"; echo
+
+          echo "=== sleep 8s, then read back ==="
+          sleep 8
+          q "{\"query\":\"select status, printify_order_id, printify_product_id from books where id='${BOOK}';\"}"; echo
+
+          echo "=== cleanup scratch ==="
+          q '{"query":"drop table if exists _wtest;"}'; echo
