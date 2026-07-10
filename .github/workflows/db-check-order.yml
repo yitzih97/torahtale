@@ -4,20 +4,17 @@ jobs:
   chk:
     runs-on: ubuntu-latest
     steps:
-      - name: All recent books + printify-submit logs
+      - name: printify-submit edge logs
         env: { SUPABASE_ACCESS_TOKEN: "${{ secrets.SUPABASE_ACCESS_TOKEN }}" }
         run: |
           set -euo pipefail
           REF=cjgqpusyxvltglcbnpvg
-          API="https://api.supabase.com/v1/projects/${REF}/database/query"
-          q(){ jq -n --arg query "$1" '{query:$query}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-; echo; }
-          echo "== all books by updated_at =="
-          q "select id, child_name, status, shopify_order_name, printify_product_id, printify_order_id, updated_at from public.books order by updated_at desc limit 12;"
-          echo "== printify-submit function logs (last ~1h) =="
-          END=$(date -u +%s)000000
-          START=$(( $(date -u +%s) - 5400 ))000000
+          START=$(date -u -d '2 hours ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)
+          END=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "window: $START .. $END"
           curl -s -G "https://api.supabase.com/v1/projects/${REF}/analytics/endpoints/logs.all" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-            --data-urlencode "sql=select event_message, timestamp from function_edge_logs cross join unnest(metadata) as m where m.function_id is not null order by timestamp desc limit 40" \
-            --data-urlencode "iso_timestamp_start=$(date -u -d '@'$(( $(date +%s) - 5400 )) +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)" 2>&1 | head -c 2000 || echo "logs query failed"
-          echo
+            --data-urlencode "iso_timestamp_start=${START}" \
+            --data-urlencode "iso_timestamp_end=${END}" \
+            --data-urlencode "sql=select event_message, timestamp from function_edge_logs order by timestamp desc limit 50" \
+            | jq -r '.result[]? | .event_message' 2>/dev/null | grep -iE "printify|error|401|403|token|unauthor" | head -30 || echo "no matching log lines"
