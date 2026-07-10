@@ -53,6 +53,10 @@ jobs:
           )
           run_sql "$(jq -n --arg q "$BOOK_SQL" '{query:$q}')" | jq .
 
+          echo "=================== PAGES BREAKDOWN (image format/size per page) ==================="
+          PAGES_SQL="select p->>'type' as type, p->>'page' as page, (p->>'imageUrl') is not null as has_imageUrl, case when (p->>'image') is not null then left(p->>'image',24) else '(none)' end as image_prefix, length(p->>'image') as image_len from books, jsonb_array_elements(pages_data::jsonb) with ordinality as t(p, ord) where child_name ilike '%${Q}%' order by ord;"
+          run_sql "$(jq -n --arg q "$PAGES_SQL" '{query:$q}')" | jq .
+
           echo "=================== PRINTIFY site_settings ==================="
           run_sql '{"query":"select key, value from site_settings where category = '"'"'integrations'"'"' and key like '"'"'printify-%'"'"' order by key;"}' | jq .
 
