@@ -111,6 +111,31 @@ async function reinvoke(bookId: string): Promise<boolean> {
   }
 }
 
+// ── Back-cover "coming next" teasers ────────────────────────────────────────
+// The 4 upcoming stories to preview on the back cover (generated WITH the book,
+// so they show up in the preview — not lazily at print time). For a Megilla we
+// show the OTHER Megillos; otherwise the next parshiyos in reading order.
+const MEGILLOT = ["esther", "ruth", "shir-hashirim", "kohelet", "eicha"];
+const TORAH_ORDER = [
+  "bereishit", "noach", "lech-lecha", "vayera", "chayei-sarah", "toldot", "vayetzei", "vayishlach",
+  "vayeshev", "miketz", "vayigash", "vayechi", "shemot", "vaera", "bo", "beshalach", "yitro",
+  "mishpatim", "terumah", "tetzaveh", "ki-tisa", "vayakhel", "pekudei", "vayikra", "tzav", "shemini",
+  "tazria", "metzora", "acharei-mot", "kedoshim", "emor", "behar", "bechukotai", "bamidbar", "naso",
+  "behaalotecha", "shelach", "korach", "chukat", "balak", "pinchas", "matot", "masei", "devarim",
+  "vaetchanan", "eikev", "reeh", "shoftim", "ki-teitzei", "ki-tavo", "nitzavim", "vayelech",
+  "haazinu", "vezot-habracha",
+];
+function upcomingPortions(current: string): string[] {
+  if (MEGILLOT.includes(current)) return MEGILLOT.filter((m) => m !== current).slice(0, 4);
+  const i = TORAH_ORDER.indexOf(current);
+  if (i >= 0) {
+    const out: string[] = [];
+    for (let k = 1; out.length < 4 && k <= TORAH_ORDER.length; k++) out.push(TORAH_ORDER[(i + k) % TORAH_ORDER.length]);
+    return out;
+  }
+  return TORAH_ORDER.slice(0, 4);
+}
+
 // Build the generate-image task bodies for every page that still needs an image.
 // storyPageNumber is counted across ALL story pages (done or not) so numbering
 // stays stable across resumes.
@@ -155,6 +180,10 @@ function buildPendingTasks(
       sheet: storySheets[ch.name] || null,
     }));
 
+    // A "preview" page is a cover-style teaser for a DIFFERENT (upcoming) parsha,
+    // still starring this child — so it uses that portion + a cover pageType, and
+    // drops this story's recurring characters.
+    const isPreview = pg.type === "preview";
     tasks.push({
       idx,
       body: {
@@ -162,16 +191,16 @@ function buildPendingTasks(
         childName: book.child_name,
         age: primaryAge,
         artStyle: book.art_style,
-        torahPortion: book.torah_portion,
+        torahPortion: isPreview ? pg.portion : book.torah_portion,
         bookFormat,
-        pageType: pg.type,
+        pageType: isPreview ? "cover" : pg.type,
         pageNumber: pg.type === "story" ? storyPageNumber : undefined,
         characterSheet: primarySheet,
         referenceImage: primaryPhoto,
         childDescription: primaryDesc,
         characterSheets: sheets,
         childRefs,
-        storyCharacterRefs,
+        storyCharacterRefs: isPreview ? [] : storyCharacterRefs,
         pageText: pg.text,
       },
     });
@@ -229,8 +258,19 @@ async function generate(bookId: string) {
   };
 
   try {
-    // Already fully generated (e.g. produced via the admin modal)? Just make
-    // sure it's marked for review and stop.
+    // Backfill back-cover teaser pages onto books made before previews existed,
+    // so re-running generation adds (and then fills) them too.
+    if (pages && !pages.some((p) => p.type === "preview")) {
+      let maxId = pages.reduce((m, p) => Math.max(m, p.id || 0), 0);
+      for (const portion of upcomingPortions(book.torah_portion)) {
+        pages.push({ id: ++maxId, text: "", image: null, type: "preview", portion });
+      }
+      await persist();
+    }
+
+    // Already fully generated (incl. teasers)? Just mark it for review and stop.
+    // (Teasers ARE required here so an existing book flows into Phase C to fill
+    // them; a teaser that then fails to generate won't block finalize — see below.)
     if (pages && pages.filter((p) => p.type !== "questions" && !p.image).length === 0) {
       await finalize();
       return;
@@ -317,6 +357,11 @@ async function generate(bookId: string) {
         const qText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
         pages.push({ id: pageId++, text: qText, image: null, type: "questions", questions });
       }
+      // Back-cover teasers for the next 4 stories — generated now (with the book)
+      // so they appear in the preview. Best-effort: failures never block the book.
+      for (const portion of upcomingPortions(book.torah_portion)) {
+        pages.push({ id: pageId++, text: "", image: null, type: "preview", portion });
+      }
       // Keep the generated story at the top level (existing downstream contract)
       // while retaining the resume fields (childDescriptions / _characterSheets).
       sdState = { ...sdState, ...story, _characterSheets: sheets, _sheetsDone: true, _storyBuilt: true };
@@ -377,7 +422,8 @@ async function generate(bookId: string) {
     }
 
     // All pending tasks attempted this pass. Anything still missing = failures.
-    const remaining = pages.filter((p) => p.type !== "questions" && !p.image).length;
+    // Preview teasers are best-effort and never block finalize.
+    const remaining = pages.filter((p) => p.type !== "questions" && p.type !== "preview" && !p.image).length;
     if (remaining === 0) { await finalize(); return; }
 
     const noProgress = madeProgress === 0 ? (sdState._noProgress || 0) + 1 : 0;

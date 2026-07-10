@@ -20,7 +20,9 @@ export interface BookPage {
   text: string;
   image: string | null;
   imageLoading?: boolean;
-  type?: "cover" | "story" | "back-cover" | "questions";
+  type?: "cover" | "story" | "back-cover" | "questions" | "preview";
+  /** For a "preview" page: the upcoming portion value this teaser illustrates. */
+  portion?: string;
   coverTitle?: string;
   coverSubtitle?: string;
   /** Editable back-cover blurb (one line per row). Falls back to COVER_TAGLINE. */
@@ -241,6 +243,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   const getPageLabel = () => {
     if (pageType === "cover") return "Cover (Back · Front)";
     if (pageType === "questions") return "Discussion Page";
+    if (pageType === "preview") return `Back-cover teaser · ${getPortionDisplay(page?.portion || "", lang) || page?.portion || ""}`;
     const storyPages = displayPages.filter((p) => p.type === "story");
     const storyIdx = storyPages.findIndex((p) => p.id === page?.id);
     const unit = spreadBased ? "Spread" : "Page";
@@ -390,6 +393,26 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   };
 
 
+  // Back-cover "coming next" teaser: the generated cover for an upcoming story,
+  // shown read-only (these are composited onto the printed back cover).
+  const renderPreview = () => {
+    const label = getPortionDisplay(page?.portion || "", lang) || page?.portion || "";
+    return (
+      <div className="absolute inset-0 bg-muted">
+        {page?.image ? (
+          <img src={page.image} alt={label} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <BookLoadingSkeleton type="story" />
+        )}
+        <div className="absolute inset-x-0 top-0 flex justify-center p-2">
+          <span className="rounded-full bg-black/55 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+            Coming next: {label}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       {/* Page/Spread frame — wide (2:1) for the cover wrap and board spreads;
@@ -403,6 +426,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         {pageType === "cover" && renderCoverSpread()}
         {pageType === "story" && renderStorySpread()}
         {pageType === "questions" && renderQuestionsSpread()}
+        {pageType === "preview" && renderPreview()}
 
         {/* Center gutter — only on the cover wrap and board two-page spreads */}
         {(pageType === "cover" || spreadBased) && (

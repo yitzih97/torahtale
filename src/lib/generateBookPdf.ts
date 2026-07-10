@@ -471,6 +471,16 @@ async function renderCoverSpread(
  * Note: these blueprints have no slot for the discussion-questions page, so it
  * is intentionally omitted here (it never had a print image anyway).
  */
+/** Pull the back-cover teasers from the generated "preview" pages (each carries
+ *  an upcoming `portion` + its generated cover `image`). Label is derived from
+ *  the portion so it follows the book's language. */
+function backCoverPreviews(pages: BookPage[], lang: "en" | "he" | "yi"): BackCoverPreview[] {
+  return pages
+    .filter((p) => p.type === "preview")
+    .slice(0, 4)
+    .map((p) => ({ label: getPortionDisplay(p.portion || "", lang) || p.portion || "", url: p.image }));
+}
+
 export async function renderPrintImages(
   pages: BookPage[],
   childName: string,
@@ -478,7 +488,6 @@ export async function renderPrintImages(
   rtl = false,
   bookFormat = "",
   lang: "en" | "he" | "yi" = "en",
-  previews: BackCoverPreview[] = [],
 ): Promise<string[]> {
   const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   const spreadBased = bookFormat.startsWith("board");
@@ -488,6 +497,7 @@ export async function renderPrintImages(
   const PRINT_SCALE = 2;
   const out: string[] = [];
   const cover = pages.find((p) => p.type === "cover");
+  const previews = backCoverPreviews(pages, lang);
   if (cover) out.push(await renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews));
 
   // The questions page has no print slot on these blueprints, so its content is
@@ -496,7 +506,7 @@ export async function renderPrintImages(
   const questionsText = questionsPage
     ? (questionsPage.text || (questionsPage.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n"))
     : "";
-  const stories = pages.filter((p) => p.type !== "cover" && p.type !== "back-cover" && p.type !== "questions");
+  const stories = pages.filter((p) => p.type === "story" || !p.type);
   for (let i = 0; i < stories.length; i++) {
     const isLast = i === stories.length - 1;
     out.push(await renderStorySpread(stories[i], i, rtl, spreadBased, PRINT_SCALE, isLast ? questionsText : undefined));
@@ -518,7 +528,8 @@ export async function generateBookPdf(
   // Board (6×6) is spread-based → wide 2:1 interior pages. Softcover/Hardcover
   // (8×8) are page-based → square interior pages. The cover wrap is always wide.
   const spreadBased = bookFormat.startsWith("board");
-  const renderable = pages.filter((p) => p.type !== "back-cover");
+  const pdfPreviews = backCoverPreviews(pages, lang);
+  const renderable = pages.filter((p) => p.type !== "back-cover" && p.type !== "preview");
   const WIDE: [number, number] = [356, 178]; // mm — 2:1 cover/spread
   const SQUARE: [number, number] = [178, 178]; // mm — single 8×8 page
   const interior: [number, number] = spreadBased ? WIDE : SQUARE;
@@ -533,7 +544,7 @@ export async function generateBookPdf(
     if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
     let dataUrl: string;
     if (page.type === "cover") {
-      dataUrl = await renderCoverSpread(page, childName, parashaLabel, 1, bookFormat, []);
+      dataUrl = await renderCoverSpread(page, childName, parashaLabel, 1, bookFormat, pdfPreviews);
     } else if (page.type === "questions") {
       dataUrl = await renderQuestionsSpread(page, rtl, spreadBased);
     } else {
