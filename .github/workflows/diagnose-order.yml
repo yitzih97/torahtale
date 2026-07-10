@@ -55,3 +55,30 @@ jobs:
 
           echo "=================== PRINTIFY site_settings ==================="
           run_sql '{"query":"select key, value from site_settings where category = '"'"'integrations'"'"' and key like '"'"'printify-%'"'"' order by key;"}' | jq .
+
+      - name: Test Printify API (key + softcover blueprint lookup)
+        env:
+          PRINTIFY_API_KEY: ${{ secrets.PRINTIFY_API_KEY }}
+        run: |
+          set -uo pipefail
+          if [ -z "${PRINTIFY_API_KEY:-}" ]; then
+            echo "::error::PRINTIFY_API_KEY repo secret is EMPTY — this alone breaks order submission."
+            exit 0
+          fi
+          echo "=================== 1) List shops (validates key) ==================="
+          code=$(curl -s -o /tmp/shops.json -w "%{http_code}" \
+            "https://api.printify.com/v1/shops.json" \
+            -H "Authorization: Bearer ${PRINTIFY_API_KEY}")
+          echo "HTTP $code"
+          if [ "$code" = "401" ] || [ "$code" = "403" ]; then
+            echo "::error::Printify key REJECTED ($code) — this is why submit fails at the variants lookup."
+          fi
+          jq -r 'if type=="array" then map({id,title}) else . end' /tmp/shops.json 2>/dev/null | head -40 || cat /tmp/shops.json | head -c 400
+          echo
+          echo "=================== 2) Softcover blueprint 2733 / provider 28 variants ==================="
+          code=$(curl -s -o /tmp/var.json -w "%{http_code}" \
+            "https://api.printify.com/v1/catalog/blueprints/2733/print_providers/28/variants.json" \
+            -H "Authorization: Bearer ${PRINTIFY_API_KEY}")
+          echo "HTTP $code"
+          echo "-- does configured variant 149010 exist, and what print placeholders does it expose? --"
+          jq '{total_variants: (.variants|length), v149010: (.variants[]|select(.id==149010)|{id, title, placeholders: [.placeholders[].position]})}' /tmp/var.json 2>/dev/null || { echo "raw:"; head -c 500 /tmp/var.json; }
