@@ -18,8 +18,7 @@ import { AdminOrderDetailDialog } from "@/components/admin/AdminOrderDetailDialo
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData, fetchBookFull } from "@/hooks/useAdminData";
-import { getPortionDisplay } from "@/components/wizard/TorahPortions";
-import { renderPrintCoverFront } from "@/lib/renderPrintCover";
+import { submitBookToPrintify } from "@/lib/submitToPrintify";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { format } from "date-fns";
@@ -154,47 +153,36 @@ export default function Admin() {
     // on success. Marking "approved" before that made failed submissions look done
     // (a book stuck at "approved" with no Printify order). Only commit on success;
     // on failure surface the REAL error and leave the status untouched.
-    const toastId = toast.loading(`Sending ${book.child_name || "book"} to Printify…`);
+    const toastId = toast.loading(`Rendering ${book.child_name || "book"} for print…`);
     try {
-      // Bake the cover text (Parasha big, kids small) onto the front-cover image
-      // that Printify prints — the stored cover stays text-free for the viewer.
-      let coverImage: string | undefined;
-      try {
-        const full = await fetchBookFull(book.id);
-        const pages = (full?.pages_data as any[]) || [];
-        const coverSrc = pages.find((p) => p?.type === "cover")?.image || (full?.cover_image_url as string | undefined);
-        if (coverSrc) {
-          const parasha = getPortionDisplay(book.torah_portion || (full?.torah_portion as string) || "", lang) || book.torah_portion || "";
-          coverImage = await renderPrintCoverFront(coverSrc, parasha, book.child_name || (full?.child_name as string) || "");
-        }
-      } catch (e) {
-        console.error("cover text bake failed — submitting without it:", e);
+      const full = await fetchBookFull(book.id);
+      const pages = (full?.pages_data as any[]) || [];
+      if (!pages.length) {
+        toast.error("This book has no pages to print yet.", { id: toastId, duration: 8000 });
+        return;
       }
-      const { data: pfResult, error: pfErr } = await supabase.functions.invoke("printify-submit", {
-        body: { action: "submit-order", bookId: book.id, coverImage },
+      const pt = (full as any)?.shipping_data?.bookOptions?.productType || (book as any)?.shipping_data?.bookOptions?.productType;
+      const bookFormat = pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : pt === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
+      // Render the print-ready images (cover wrap + each page WITH its caption
+      // text) and upload them to Printify, then place the order.
+      const result = await submitBookToPrintify({
+        bookId: book.id,
+        pages: pages as any,
+        childName: book.child_name || (full?.child_name as string) || "",
+        torahPortion: book.torah_portion || (full?.torah_portion as string) || "",
+        bookFormat,
+        lang,
+        onProgress: (done, total) => toast.loading(`Uploading print images… ${done}/${total}`, { id: toastId }),
       });
-      // supabase.functions.invoke returns a FunctionsHttpError for non-2xx; the
-      // real message the function threw lives in the JSON body, so read it back.
-      let errMsg = "";
-      if (pfErr) {
-        errMsg = (pfErr as any)?.message || "Request failed";
-        try {
-          const ctx = (pfErr as any)?.context;
-          const body = ctx && typeof ctx.json === "function" ? await ctx.json() : undefined;
-          if (body?.error) errMsg = body.error;
-        } catch { /* keep errMsg */ }
-      } else if (!pfResult?.success) {
-        errMsg = pfResult?.error || "Unknown Printify error";
-      }
-      if (errMsg) {
+      if (!result.success) {
         // Not marked approved — the admin sees exactly why and can retry.
-        toast.error(`Printify submit failed: ${errMsg}`, { id: toastId, duration: 12000 });
+        toast.error(`Printify submit failed: ${result.error}`, { id: toastId, duration: 12000 });
         return;
       }
       // Success: the function set status → "printing" + saved the Printify order id.
       queryClient.invalidateQueries({ queryKey: ["admin-books"] });
       toast.success(
-        pfResult?.duplicate ? "Already in Printify — order confirmed." : "Approved & sent to Printify!",
+        result.duplicate ? "Already in Printify — order confirmed." : "Approved & sent to Printify!",
         { id: toastId },
       );
     } catch (e: any) {

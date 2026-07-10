@@ -8,6 +8,7 @@ import { BookViewer, type BookPage } from "@/components/wizard/BookViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { generateBookPdf } from "@/lib/generateBookPdf";
+import { submitBookToPrintify } from "@/lib/submitToPrintify";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -447,30 +448,25 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         updated_at: new Date().toISOString(),
       } as any).eq("id", book.id);
 
-      const { data: printifyResult, error: printifyErr } = await supabase.functions.invoke("printify-submit", {
-        body: { action: "submit-order", bookId: book.id },
+      // Render the print-ready images (cover wrap + each page WITH its caption
+      // text baked in) and submit — not the raw, text-free stored illustrations.
+      const result = await submitBookToPrintify({
+        bookId: book.id,
+        pages: pages as any,
+        childName: book.child_name || "",
+        torahPortion: book.torah_portion || "",
+        bookFormat,
+        onProgress: (done, total) => toast.loading(`Uploading print images… ${done}/${total}`, { id: toastId }),
       });
-      // Pull the real message the function threw (it's in the error response body).
-      let errMsg = "";
-      if (printifyErr) {
-        errMsg = (printifyErr as any)?.message || "Request failed";
-        try {
-          const ctx = (printifyErr as any)?.context;
-          const body = ctx && typeof ctx.json === "function" ? await ctx.json() : undefined;
-          if (body?.error) errMsg = body.error;
-        } catch { /* keep errMsg */ }
-      } else if (!printifyResult?.success) {
-        errMsg = printifyResult?.error || "Unknown error";
-      }
-      if (errMsg) {
-        console.error("Printify submit error:", errMsg);
-        toast.error(`Printify submit failed: ${errMsg}`, { id: toastId, duration: 12000 });
+      if (!result.success) {
+        console.error("Printify submit error:", result.error);
+        toast.error(`Printify submit failed: ${result.error}`, { id: toastId, duration: 12000 });
         onBookUpdated();
         return; // leave the modal open so the admin can retry
       }
 
       toast.success(
-        printifyResult?.duplicate ? "Already in Printify — order confirmed." : "Book approved & sent to Printify for printing!",
+        result.duplicate ? "Already in Printify — order confirmed." : "Book approved & sent to Printify for printing!",
         { id: toastId },
       );
       onBookUpdated();

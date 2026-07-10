@@ -345,6 +345,39 @@ async function renderCoverSpread(page: BookPage, childName: string, parashaLabel
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
+/**
+ * Composite the print-ready images for Printify, in the exact order of the
+ * blueprint's print placeholders: [cover-wrap, page_1, page_2, …]. These are
+ * the SAME fully-rendered images the PDF/preview use — the cover is a 2:1
+ * wraparound (back + spine + front, with the title baked on) and every interior
+ * page has its caption text composited in. printify-submit uploads these instead
+ * of the raw, text-free stored illustrations (which was why printed books came
+ * out with no text and a mis-arranged cover).
+ *
+ * Note: these blueprints have no slot for the discussion-questions page, so it
+ * is intentionally omitted here (it never had a print image anyway).
+ */
+export async function renderPrintImages(
+  pages: BookPage[],
+  childName: string,
+  torahPortion: string,
+  rtl = false,
+  bookFormat = "",
+  lang: "en" | "he" | "yi" = "en",
+): Promise<string[]> {
+  const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
+  const spreadBased = bookFormat.startsWith("board");
+  const out: string[] = [];
+  const cover = pages.find((p) => p.type === "cover");
+  if (cover) out.push(await renderCoverSpread(cover, childName, parashaLabel));
+  let storyIdx = 0;
+  for (const page of pages) {
+    if (page.type === "cover" || page.type === "back-cover" || page.type === "questions") continue;
+    out.push(await renderStorySpread(page, storyIdx++, rtl, spreadBased));
+  }
+  return out;
+}
+
 export async function generateBookPdf(
   pages: BookPage[],
   childName: string,

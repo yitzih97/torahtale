@@ -73,12 +73,46 @@ serve(async (req) => {
       });
     }
 
+    // Upload ONE composited print image (a data URL rendered client-side with
+    // the caption text + cover wrap baked in) and return its Printify image id.
+    // The admin client calls this per image, then passes the ids to submit-order
+    // — keeping each request small instead of shipping ~21 images in one body.
+    if (action === "upload-image") {
+      if (!PRINTIFY_API_KEY) throw new Error("PRINTIFY_API_KEY not configured");
+      const src: string = body.dataUrl || "";
+      const fileName: string = body.fileName || "page.png";
+      const dataUrlMatch = /^data:image\/\w+;base64,(.+)$/.exec(src);
+      const payload = dataUrlMatch
+        ? { file_name: fileName, contents: dataUrlMatch[1] }
+        : { file_name: fileName, url: src };
+      const uploadRes = await fetch(`${PRINTIFY_BASE}/uploads/images.json`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${PRINTIFY_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!uploadRes.ok) {
+        const t = await uploadRes.text();
+        throw new Error(`Printify image upload failed [${uploadRes.status}]: ${t.slice(0, 200)}`);
+      }
+      const img = await uploadRes.json();
+      return new Response(JSON.stringify({ success: true, id: img.id }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "submit-order") {
       if (!PRINTIFY_API_KEY) throw new Error("PRINTIFY_API_KEY not configured");
       if (!shopId) throw new Error("Printify Shop ID not configured");
 
       const { bookId } = body;
       if (!bookId) throw new Error("bookId is required");
+      // Pre-uploaded, print-ready image ids (cover-wrap first, then page_1…N), in
+      // placeholder order — produced by the client via renderPrintImages + the
+      // upload-image action above. When present we use them directly and skip the
+      // raw pages_data upload (which had no text and a square, front-only cover).
+      const providedImageIds: string[] = Array.isArray(body.imageIds)
+        ? body.imageIds.filter((x: unknown) => typeof x === "string" && x)
+        : [];
 
       // Get book data
       const { data: book, error: bookErr } = await supabase
@@ -152,39 +186,49 @@ serve(async (req) => {
       const coverImageOverride: string | undefined =
         typeof body.coverImage === "string" && body.coverImage ? body.coverImage : undefined;
 
-      const imageIds: string[] = [];
-      for (const page of pages) {
-        const src = (page.type === "cover" && coverImageOverride) ? coverImageOverride : (page.imageUrl || page.image);
-        if (!src) continue;
-        const fileName = `page-${page.page || imageIds.length + 1}.png`;
-        const dataUrlMatch = /^data:image\/\w+;base64,(.+)$/.exec(src);
-        const payload = dataUrlMatch
-          ? { file_name: fileName, contents: dataUrlMatch[1] }
-          : { file_name: fileName, url: src };
-        const uploadRes = await fetch(`${PRINTIFY_BASE}/uploads/images.json`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${PRINTIFY_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-        if (uploadRes.ok) {
-          const img = await uploadRes.json();
-          imageIds.push(img.id);
-        } else {
-          console.error(`Printify image upload failed for ${fileName}:`, uploadRes.status, (await uploadRes.text()).slice(0, 200));
+      let imageIds: string[] = [];
+      if (providedImageIds.length) {
+        // Print-ready images were already uploaded (with text + cover wrap) via
+        // the upload-image action — use them as-is, in placeholder order.
+        imageIds = providedImageIds;
+      } else {
+        // Legacy fallback: upload the raw stored images (no text overlay). Kept so
+        // an older client still works, but the current admin client always sends
+        // pre-rendered imageIds.
+        for (const page of pages) {
+          const src = (page.type === "cover" && coverImageOverride) ? coverImageOverride : (page.imageUrl || page.image);
+          if (!src) continue;
+          const fileName = `page-${page.page || imageIds.length + 1}.png`;
+          const dataUrlMatch = /^data:image\/\w+;base64,(.+)$/.exec(src);
+          const payload = dataUrlMatch
+            ? { file_name: fileName, contents: dataUrlMatch[1] }
+            : { file_name: fileName, url: src };
+          const uploadRes = await fetch(`${PRINTIFY_BASE}/uploads/images.json`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${PRINTIFY_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+          if (uploadRes.ok) {
+            const img = await uploadRes.json();
+            imageIds.push(img.id);
+          } else {
+            console.error(`Printify image upload failed for ${fileName}:`, uploadRes.status, (await uploadRes.text()).slice(0, 200));
+          }
+        }
+
+        // Abort if any page image failed to upload — placing an order with a
+        // partial/blank print area would print (and charge for) a broken book.
+        const pagesWithImages = pages.filter((p: any) => p.imageUrl || p.image);
+        if (imageIds.length < pagesWithImages.length) {
+          throw new Error(
+            `Only ${imageIds.length}/${pagesWithImages.length} page images uploaded to Printify — aborting to avoid printing an incomplete book.`,
+          );
         }
       }
-
-      // Abort if any page image failed to upload — placing an order with a
-      // partial/blank print area would print (and charge for) a broken book.
-      const pagesWithImages = pages.filter((p: any) => p.imageUrl || p.image);
-      if (imageIds.length < pagesWithImages.length) {
-        throw new Error(
-          `Only ${imageIds.length}/${pagesWithImages.length} page images uploaded to Printify — aborting to avoid printing an incomplete book.`,
-        );
-      }
+      if (!imageIds.length) throw new Error("No print images to submit.");
 
       // Map each uploaded image to its real print-area placeholder. These books
       // print one image PER print area — a "Cover" plus "Page 1…N" (8×8) or
