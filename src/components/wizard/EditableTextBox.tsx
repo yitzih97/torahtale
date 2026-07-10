@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { AlignCenter, AlignLeft, AlignRight, Bold, Italic, RotateCcw, Square, SquareDashed, Type, X } from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight, Bold, Copy, Italic, RotateCcw, Sparkles, Square, SquareDashed, Type, X } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -16,11 +16,27 @@ export interface TextLayout {
   italic: boolean;
   background: boolean;
   border: boolean;
-  /** Width (px) of the white border stroked around the letters. 0 = off. */
+  /** Width (px) of the outline stroked around the letters. 0 = off. */
   outlineWidth?: number;
+  /** Colour of the letter outline stroke (defaults to white). */
+  outlineColor?: string;
+  /** Colour of the box border stroke (defaults to translucent black). */
+  borderColor?: string;
+  /** Drop a soft shadow behind the text for extra pop / readability. */
+  shadow?: boolean;
 }
 
-export const DEFAULT_FONT_FAMILY = "'Cormorant Garamond', 'Georgia', serif";
+export const DEFAULT_FONT_FAMILY = "'Inter', system-ui, sans-serif";
+
+/** Fonts that were the baked-in default before Inter. Existing books whose
+ *  captions still carry one of these (i.e. the user never picked a font) are
+ *  auto-upgraded to the new default by {@link migrateLayout}. */
+const LEGACY_DEFAULT_FONTS = [
+  "'Cormorant Garamond', 'Georgia', serif",
+];
+
+export const DEFAULT_OUTLINE_COLOR = "#ffffff";
+export const DEFAULT_BORDER_COLOR = "rgba(0,0,0,0.25)";
 
 export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   x: 6,
@@ -38,7 +54,23 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   background: false,
   border: false,
   outlineWidth: 2,
+  outlineColor: DEFAULT_OUTLINE_COLOR,
+  borderColor: DEFAULT_BORDER_COLOR,
+  shadow: false,
 };
+
+/** Bring a stored layout up to the current defaults. Books created before Inter
+ *  became the default carry the old Cormorant fontFamily inside their saved
+ *  `textLayout`; swap it for the new default so existing books pick up Inter
+ *  too (a font the user explicitly chose is left untouched). Also backfills
+ *  newer optional fields so older layouts render consistently. */
+export function migrateLayout<T extends TextLayout | undefined>(layout: T): T {
+  if (!layout) return layout;
+  const fontFamily = LEGACY_DEFAULT_FONTS.includes(layout.fontFamily)
+    ? DEFAULT_FONT_FAMILY
+    : layout.fontFamily;
+  return { ...layout, fontFamily };
+}
 
 // A thin, crisp WHITE BORDER is stroked around caption text (paint-order
 // renders it UNDER the fill so letterforms stay solid). Width comes from
@@ -88,9 +120,12 @@ interface Props {
   onLayoutChange: (l: TextLayout) => void;
   onTextChange: (t: string) => void;
   onReset?: () => void;
+  /** Apply THIS box's styling (font, colours, outline, shadow, alignment — not
+   *  its position) to every page's caption. Shown as the "Apply to all" button. */
+  onDuplicate?: (l: TextLayout) => void;
 }
 
-export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, onTextChange, onReset }: Props) => {
+export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, onTextChange, onReset, onDuplicate }: Props) => {
   const boxRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -134,10 +169,13 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
         y: Math.max(0, Math.min(95, orig.y + dyPct)),
       });
     } else {
-      onLayoutChange({
-        ...layout,
-        width: Math.max(15, Math.min(98 - layout.x, orig.width + dxPct)),
-      });
+      // Corner handle = proportional scale: the box widens AND the type grows
+      // with it, so dragging out makes the whole caption bigger (font stays
+      // clamped to the toolbar's 10–48px range).
+      const newWidth = Math.max(15, Math.min(98 - orig.x, orig.width + dxPct));
+      const ratio = orig.width > 0 ? newWidth / orig.width : 1;
+      const newFontSize = Math.max(10, Math.min(48, Math.round(orig.fontSize * ratio)));
+      onLayoutChange({ ...layout, width: newWidth, fontSize: newFontSize });
     }
   };
 
@@ -175,7 +213,7 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
           border: selected
             ? "2px dashed hsl(var(--gold))"
             : layout.border
-              ? "1px solid rgba(0,0,0,0.25)"
+              ? `1px solid ${layout.borderColor ?? DEFAULT_BORDER_COLOR}`
               : "2px dashed transparent",
           backdropFilter: layout.background ? "blur(6px)" : undefined,
           cursor: editing ? "text" : "move",
@@ -183,11 +221,13 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
           touchAction: "none",
           zIndex: selected ? 30 : 20,
           boxShadow: layout.background ? "0 4px 14px rgba(0,0,0,0.12)" : undefined,
-          // Thin white border keeps the caption readable on any scene (skipped
-          // when a solid background box already guarantees contrast, or while editing).
+          // Optional soft drop shadow behind the letters for extra pop.
+          textShadow: layout.shadow ? "0 2px 6px rgba(0,0,0,0.55)" : undefined,
+          // Thin outline keeps the caption readable on any scene (skipped when a
+          // solid background box already guarantees contrast, or while editing).
           WebkitTextStroke: editing || layout.background || !(layout.outlineWidth ?? 2)
             ? undefined
-            : `${layout.outlineWidth ?? 2}px #ffffff`,
+            : `${layout.outlineWidth ?? 2}px ${layout.outlineColor ?? DEFAULT_OUTLINE_COLOR}`,
           paintOrder: "stroke fill",
         }}
       >
@@ -267,7 +307,7 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
             />
           </div>
 
-          <div className="flex items-center gap-1 px-1 w-28" title="White outline width">
+          <div className="flex items-center gap-1 px-1 w-32" title="Outline width & colour">
             <span className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">Outline</span>
             <Slider
               value={[layout.outlineWidth ?? 2]}
@@ -275,6 +315,14 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
               max={8}
               step={0.5}
               onValueChange={([v]) => onLayoutChange({ ...layout, outlineWidth: v })}
+            />
+            <input
+              type="color"
+              value={layout.outlineColor ?? DEFAULT_OUTLINE_COLOR}
+              onChange={(e) => onLayoutChange({ ...layout, outlineColor: e.target.value })}
+              className="h-7 w-6 shrink-0 cursor-pointer rounded border border-border bg-transparent p-0"
+              aria-label="Outline color"
+              title="Outline color"
             />
           </div>
 
@@ -314,13 +362,32 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
             <AlignRight className="w-3.5 h-3.5" />
           </Toggle>
 
+          <Toggle size="sm" pressed={layout.shadow ?? false} onPressedChange={(p) => onLayoutChange({ ...layout, shadow: p })} aria-label="Text shadow" title="Text shadow">
+            <Sparkles className="w-3.5 h-3.5" />
+          </Toggle>
+
           <Toggle size="sm" pressed={layout.background} onPressedChange={(p) => onLayoutChange({ ...layout, background: p })} aria-label="Background">
             <Square className="w-3.5 h-3.5" />
           </Toggle>
-          <Toggle size="sm" pressed={layout.border} onPressedChange={(p) => onLayoutChange({ ...layout, border: p })} aria-label="Border">
-            <SquareDashed className="w-3.5 h-3.5" />
-          </Toggle>
+          <div className="flex items-center gap-0.5">
+            <Toggle size="sm" pressed={layout.border} onPressedChange={(p) => onLayoutChange({ ...layout, border: p })} aria-label="Border">
+              <SquareDashed className="w-3.5 h-3.5" />
+            </Toggle>
+            <input
+              type="color"
+              value={layout.borderColor ?? "#000000"}
+              onChange={(e) => onLayoutChange({ ...layout, borderColor: e.target.value, border: true })}
+              className="h-7 w-6 cursor-pointer rounded border border-border bg-transparent p-0"
+              aria-label="Border color"
+              title="Border color"
+            />
+          </div>
 
+          {onDuplicate && (
+            <Button size="sm" variant="ghost" onClick={() => onDuplicate(layout)} className="h-7 px-2 text-xs" title="Apply this text style to every page">
+              <Copy className="w-3 h-3" /> Apply to all
+            </Button>
+          )}
           {onReset && (
             <Button size="sm" variant="ghost" onClick={onReset} className="h-7 px-2 text-xs">
               <RotateCcw className="w-3 h-3" /> Reset

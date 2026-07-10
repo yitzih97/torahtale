@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import { BOOK_TEXT_STYLE, COVER_TAGLINE, COVER_URL, type BookPage } from "@/components/wizard/BookViewer";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
-import { DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
+import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import torahTaleIcon from "@/assets/brand/torah-tale-icon.png";
 import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png";
@@ -119,11 +119,16 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
     ctx.restore();
   }
   if (layout.border) {
-    ctx.strokeStyle = "rgba(0,0,0,0.28)";
+    ctx.strokeStyle = layout.borderColor ?? DEFAULT_BORDER_COLOR;
     ctx.lineWidth = 2;
     roundedRect(ctx, boxX, boxY, boxW, boxH, 18);
     ctx.stroke();
   }
+
+  // Optional soft drop shadow behind the letters (mirrors the on-screen
+  // textShadow). Applied to the fill pass only; cleared before the outline
+  // stroke so the white border stays crisp.
+  const shadow = !!layout.shadow;
 
   ctx.textAlign = layout.align;
   let textAnchorX = boxX + padX;
@@ -136,14 +141,33 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   // or the outline is set to 0.
   const outlineWidthRef = layout.outlineWidth ?? 2; // px at the 1024-ref container
   const outline = !layout.background && outlineWidthRef > 0;
+  const outlineColor = layout.outlineColor ?? DEFAULT_OUTLINE_COLOR;
+  const outlineLW = Math.max(1, outlineWidthRef * (fontSize / layout.fontSize));
   ctx.lineJoin = "round";
   ctx.miterLimit = 2;
   for (let i = 0; i < lines.length; i++) {
     const ly = boxY + padY + i * lineHeight;
+    // Shadow pass: paint the OUTER glyph shape once with a soft shadow enabled,
+    // then redraw the crisp outline + fill on top (mirrors CSS text-shadow).
+    if (shadow) {
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.55)";
+      ctx.shadowBlur = Math.max(2, 6 * scale);
+      ctx.shadowOffsetY = 2 * scale;
+      if (outline) {
+        ctx.strokeStyle = outlineColor;
+        ctx.lineWidth = outlineLW;
+        ctx.strokeText(lines[i], textAnchorX, ly);
+      } else {
+        ctx.fillStyle = layout.color;
+        ctx.fillText(lines[i], textAnchorX, ly);
+      }
+      ctx.restore();
+    }
     if (outline) {
-      ctx.strokeStyle = "#ffffff";
       // Scale the ref-space width to canvas pixels the same way the font is scaled.
-      ctx.lineWidth = Math.max(1, outlineWidthRef * (fontSize / layout.fontSize));
+      ctx.strokeStyle = outlineColor;
+      ctx.lineWidth = outlineLW;
       ctx.strokeText(lines[i], textAnchorX, ly);
     }
     ctx.fillStyle = layout.color;
@@ -198,7 +222,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   const img = await safeLoad(page.image);
   // Layout precedence: an admin-adjusted layout wins; otherwise auto-place the
   // text over the illustration's calmest area; otherwise the static default.
-  let layout = page.textLayout;
+  let layout = migrateLayout(page.textLayout);
   if (img) {
     drawFullImage(ctx, img, W, H);
     if (!layout) layout = computeAutoTextLayout(img, rtl, page.text) || undefined;
@@ -216,7 +240,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
 async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: boolean): Promise<string> {
   // The questions page sits on a clean, empty parchment page (no illustration)
   // so the discussion text is always easy to read.
-  const layout = page.textLayout || makeQuestionsLayout(rtl);
+  const layout = migrateLayout(page.textLayout) || makeQuestionsLayout(rtl);
   const W = spreadBased ? SPREAD_W : SPREAD_H;
   const H = SPREAD_H;
   const canvas = document.createElement("canvas");

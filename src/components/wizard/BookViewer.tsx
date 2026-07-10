@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import type { TextStyle } from "./DraggableText";
-import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, type TextLayout } from "./EditableTextBox";
+import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "./EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -118,6 +118,25 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
   const updatePage = (id: number, patch: Partial<BookPage>) => {
     onPagesChange(pages.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  };
+
+  // "Apply to all": copy the STYLE of one caption (font, size, colour, outline,
+  // border, shadow, alignment — never its position) onto every story/questions
+  // page, so the whole book matches with one click.
+  const STYLE_KEYS: (keyof TextLayout)[] = [
+    "fontFamily", "fontSize", "color", "align", "bold", "italic",
+    "background", "border", "borderColor", "outlineWidth", "outlineColor", "shadow",
+  ];
+  const applyStyleToAll = (src: TextLayout) => {
+    const stylePatch: Partial<TextLayout> = {};
+    for (const k of STYLE_KEYS) (stylePatch as any)[k] = src[k];
+    onPagesChange(pages.map((p) => {
+      if (p.type === "cover" || p.type === "back-cover") return p;
+      const base = p.textLayout || autoLayouts[p.id]
+        || (p.type === "questions" ? makeQuestionsLayout(isRtl) : makeDefaultLayout(defaultTextSide, isRtl));
+      return { ...p, textLayout: { ...base, ...stylePatch } };
+    }));
+    toast.success("Style applied to all pages");
   };
 
   const startEdit = () => {
@@ -297,7 +316,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   const renderStorySpread = () => {
     // Text precedence: the admin's manual placement wins; otherwise the layout
     // auto-computed from the illustration's clear space; otherwise the default.
-    const layout = page?.textLayout || (page ? autoLayouts[page.id] : undefined) || makeDefaultLayout(defaultTextSide, isRtl);
+    const layout = migrateLayout(page?.textLayout) || (page ? autoLayouts[page.id] : undefined) || makeDefaultLayout(defaultTextSide, isRtl);
     return (
       <div className="absolute inset-0 bg-muted">
         {page?.image ? (
@@ -340,6 +359,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
             onTextChange={(t) => updatePage(page.id, { text: t })}
             onReset={() => updatePage(page.id, { textLayout: autoLayouts[page.id] })}
+            onDuplicate={editable ? applyStyleToAll : undefined}
           />
         )}
       </div>
@@ -349,7 +369,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   const renderQuestionsSpread = () => {
     // Clean, empty parchment page (no illustration) so the discussion questions
     // are always easy to read, with a wide centered text block by default.
-    const layout = page?.textLayout || makeQuestionsLayout(isRtl);
+    const layout = migrateLayout(page?.textLayout) || makeQuestionsLayout(isRtl);
     const questionsText = (page?.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n");
     const combinedText = page?.text || questionsText;
     return (
@@ -362,6 +382,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
             onTextChange={(t) => updatePage(page.id, { text: t })}
             onReset={() => updatePage(page.id, { textLayout: makeQuestionsLayout(isRtl) })}
+            onDuplicate={editable ? applyStyleToAll : undefined}
           />
         )}
       </div>
