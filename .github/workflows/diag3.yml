@@ -1,0 +1,24 @@
+name: diag3 (one-shot)
+on:
+  workflow_dispatch: {}
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    env:
+      PRINTIFY_API_KEY: ${{ secrets.PRINTIFY_API_KEY }}
+    steps:
+      - name: inspect product image dimensions
+        run: |
+          set -uo pipefail
+          SHOP=26962304
+          PID=6a51273eb7ca88aabd057592
+          PROD=$(curl -s -H "Authorization: Bearer ${PRINTIFY_API_KEY}" "https://api.printify.com/v1/shops/${SHOP}/products/${PID}.json")
+          echo "=== placeholder -> image {name,id} ==="
+          echo "$PROD" | jq -r '.print_areas[0].placeholders[] | "\(.position): \(.images[0].name // "none") id=\(.images[0].id // "-")"'
+          echo "=== fetch upload dims for cover + page_1 ==="
+          for pos in cover page_1 page_2; do
+            IID=$(echo "$PROD" | jq -r --arg p "$pos" '.print_areas[0].placeholders[] | select(.position==$p) | .images[0].id')
+            echo "-- $pos ($IID) --"
+            curl -s -H "Authorization: Bearer ${PRINTIFY_API_KEY}" "https://api.printify.com/v1/uploads/${IID}.json" \
+              | jq '{file_name, width, height, preview_url}'
+          done
