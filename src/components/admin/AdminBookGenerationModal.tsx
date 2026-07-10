@@ -128,7 +128,12 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     }
     if (open) {
       setConfirmRegen(false);
-      setPageCount(sd.pageCount || 10);
+      // Default the length to the book's product size (softcover/hardcover → 20,
+      // board → 10) rather than a flat 10, so regenerating a softcover offers the
+      // full 20-page version by default.
+      const productType = sd.bookOptions?.productType || "softcover";
+      const productDefault = productType === "board" ? 10 : 20;
+      setPageCount(sd.pageCount || productDefault);
       // Reuse the sheets from a previous generation so retries/regens keep the
       // exact same character look across sessions.
       characterSheetsRef.current = (sd.characterSheets as Record<string, string>) || {};
@@ -890,14 +895,34 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
               <div className="text-center">
                 {confirmRegen ? (
-                  <div className="inline-flex items-center gap-2 rounded-xl border border-red-300 bg-red-50 dark:bg-red-950 px-3 py-2">
+                  <div className="inline-flex flex-col items-center gap-3 rounded-xl border border-red-300 bg-red-50 dark:bg-red-950 px-4 py-3">
                     <span className="text-xs text-red-700 dark:text-red-300 font-medium">Overwrite the entire book?</span>
-                    <Button size="sm" variant="destructive" className="h-7 rounded-lg text-xs" onClick={() => { setConfirmRegen(false); handleGenerateStory(); }}>
-                      Yes, regenerate
-                    </Button>
-                    <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs" onClick={() => setConfirmRegen(false)}>
-                      Cancel
-                    </Button>
+                    {/* Let the admin pick the length when regenerating — the book's
+                        stored count is used by default, but they can bump it here. */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-muted-foreground">Story pages:</span>
+                      {PAGE_COUNT_CHOICES.map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => setPageCount(n)}
+                          className={`rounded-full px-3 py-1 text-xs font-semibold border transition-colors ${
+                            pageCount === n
+                              ? "border-accent bg-accent/10 text-accent"
+                              : "border-border/60 text-muted-foreground hover:border-accent/40"
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="destructive" className="h-7 rounded-lg text-xs" onClick={() => { setConfirmRegen(false); handleGenerateStory(); }}>
+                        Yes, regenerate {pageCount} pages
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-7 rounded-lg text-xs" onClick={() => setConfirmRegen(false)}>
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <Button variant="ghost" size="sm" onClick={() => setConfirmRegen(true)} className="text-xs text-muted-foreground gap-1.5">
