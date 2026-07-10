@@ -193,48 +193,50 @@ serve(async (req) => {
       // placeholder positions at runtime from the catalog so we never hardcode
       // catalog slugs, and fall back to a single "front" placeholder if the lookup
       // fails — so submission never breaks.
-      let printAreas: any[] = imageIds.length > 0
-        ? [{ variant_ids: [variantId], placeholders: [{ position: "front", images: imageIds.map((id) => ({ id, x: 0.5, y: 0.5, scale: 1, angle: 0 })) }] }]
-        : [];
-      try {
-        const variantsRes = await fetch(
-          `${PRINTIFY_BASE}/catalog/blueprints/${blueprintId}/print_providers/${printProviderId}/variants.json`,
-          { headers: { Authorization: `Bearer ${PRINTIFY_API_KEY}` } },
+      // Discover the blueprint's real print-slot positions (cover, page_1, …).
+      // These photo-book blueprints have NO "front" placeholder, so a fallback
+      // to "front" always produces "Placeholder: front is invalid". If the
+      // lookup fails (almost always a bad PRINTIFY_API_KEY → 401), fail LOUDLY
+      // with the real status rather than silently building a broken product.
+      let positions: string[] = [];
+      const variantsRes = await fetch(
+        `${PRINTIFY_BASE}/catalog/blueprints/${blueprintId}/print_providers/${printProviderId}/variants.json`,
+        { headers: { Authorization: `Bearer ${PRINTIFY_API_KEY}` } },
+      );
+      if (!variantsRes.ok) {
+        const t = await variantsRes.text();
+        throw new Error(
+          `Could not load Printify print slots for blueprint ${blueprintId} [${variantsRes.status}]` +
+          (variantsRes.status === 401 || variantsRes.status === 403
+            ? " — the PRINTIFY_API_KEY is invalid or lacks scopes. Order NOT created."
+            : `: ${t.slice(0, 150)}`),
         );
-        if (variantsRes.ok) {
-          const variantsJson = await variantsRes.json();
-          const variants = variantsJson?.variants || [];
-          const variant = variants.find((v: any) => v.id === variantId) || variants[0];
-          // Auto-discover the variant id when it wasn't configured (e.g. coloring).
-          if (!variantId && variant?.id) variantId = variant.id;
-          const positions: string[] = (variant?.placeholders || []).map((ph: any) => ph.position).filter(Boolean);
-          if (positions.length && imageIds.length) {
-            // One image per placeholder, in order (cover → page/spread 1 → …).
-            const placeholders = positions
-              .map((position, idx) => ({
-                position,
-                images: imageIds[idx] ? [{ id: imageIds[idx], x: 0.5, y: 0.5, scale: 1, angle: 0 }] : [],
-              }))
-              .filter((ph) => ph.images.length > 0);
-            if (imageIds.length > positions.length) {
-              console.warn(
-                `Book has ${imageIds.length} images but blueprint ${blueprintId} exposes only ${positions.length} print slots — extra images dropped: ${imageIds.length - positions.length}.`,
-              );
-            } else if (imageIds.length < positions.length) {
-              console.warn(
-                `Book has ${imageIds.length} images for a ${positions.length}-slot blueprint ${blueprintId} — ${positions.length - imageIds.length} slot(s) will print blank.`,
-              );
-            }
-            printAreas = [{ variant_ids: [variantId], placeholders }];
-          } else {
-            console.warn(`No placeholders found for variant ${variantId} on blueprint ${blueprintId}; using single "front" placeholder.`);
-          }
-        } else {
-          console.warn(`Placeholder lookup failed [${variantsRes.status}] for blueprint ${blueprintId}; using single "front" placeholder.`);
-        }
-      } catch (e) {
-        console.error("Print-area placeholder mapping error; using single 'front' fallback:", e);
       }
+      {
+        const variantsJson = await variantsRes.json();
+        const variants = variantsJson?.variants || [];
+        const variant = variants.find((v: any) => v.id === variantId) || variants[0];
+        if (!variantId && variant?.id) variantId = variant.id;
+        positions = (variant?.placeholders || []).map((ph: any) => ph.position).filter(Boolean);
+      }
+      if (!positions.length) {
+        throw new Error(`Blueprint ${blueprintId} / variant ${variantId} exposed no print placeholders — check the Printify config. Order NOT created.`);
+      }
+      if (imageIds.length > positions.length) {
+        console.warn(`Book has ${imageIds.length} images but only ${positions.length} print slots — extra dropped.`);
+      } else if (imageIds.length < positions.length) {
+        console.warn(`Book has ${imageIds.length} images for ${positions.length} slots — ${positions.length - imageIds.length} will print blank.`);
+      }
+      // One image per placeholder, in order (cover → page 1 → …).
+      const printAreas = [{
+        variant_ids: [variantId],
+        placeholders: positions
+          .map((position, idx) => ({
+            position,
+            images: imageIds[idx] ? [{ id: imageIds[idx], x: 0.5, y: 0.5, scale: 1, angle: 0 }] : [],
+          }))
+          .filter((ph) => ph.images.length > 0),
+      }];
 
       // Reuse an existing Printify product if this book was submitted before;
       // otherwise create one. (Approval can be retried without spawning duplicates.)
