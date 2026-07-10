@@ -5,20 +5,33 @@ jobs:
   d:
     runs-on: ubuntu-latest
     env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       PRINTIFY_API_KEY: ${{ secrets.PRINTIFY_API_KEY }}
     steps:
-      - name: inspect product image dimensions
+      - name: cancel bad order, delete raw product, reset book
         run: |
           set -uo pipefail
+          REF=cjgqpusyxvltglcbnpvg
+          BOOK=36f04829-97ad-4911-bf26-92fd9957b6ce
           SHOP=26962304
+          OID=6a512938d795461524002398
           PID=6a51273eb7ca88aabd057592
-          PROD=$(curl -s -H "Authorization: Bearer ${PRINTIFY_API_KEY}" "https://api.printify.com/v1/shops/${SHOP}/products/${PID}.json")
-          echo "=== placeholder -> image {name,id} ==="
-          echo "$PROD" | jq -r '.print_areas[0].placeholders[] | "\(.position): \(.images[0].name // "none") id=\(.images[0].id // "-")"'
-          echo "=== fetch upload dims for cover + page_1 ==="
-          for pos in cover page_1 page_2; do
-            IID=$(echo "$PROD" | jq -r --arg p "$pos" '.print_areas[0].placeholders[] | select(.position==$p) | .images[0].id')
-            echo "-- $pos ($IID) --"
-            curl -s -H "Authorization: Bearer ${PRINTIFY_API_KEY}" "https://api.printify.com/v1/uploads/${IID}.json" \
-              | jq '{file_name, width, height, preview_url}'
-          done
+
+          echo "=== cancel order $OID ==="
+          curl -s -o /tmp/c.json -w "cancel HTTP %{http_code}\n" -X POST \
+            "https://api.printify.com/v1/shops/${SHOP}/orders/${OID}/cancel.json" \
+            -H "Authorization: Bearer ${PRINTIFY_API_KEY}"; head -c 200 /tmp/c.json; echo
+
+          echo "=== delete product $PID ==="
+          curl -s -o /dev/null -w "delete HTTP %{http_code}\n" -X DELETE \
+            "https://api.printify.com/v1/shops/${SHOP}/products/${PID}.json" \
+            -H "Authorization: Bearer ${PRINTIFY_API_KEY}"
+
+          echo "=== reset book (service-role) ==="
+          SR=$(curl -s "https://api.supabase.com/v1/projects/${REF}/api-keys?reveal=true" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" | jq -r '.[]|select(.name=="service_role").api_key')
+          curl -s -w "\npatch HTTP %{http_code}\n" -X PATCH "https://${REF}.supabase.co/rest/v1/books?id=eq.${BOOK}" \
+            -H "apikey: ${SR}" -H "Authorization: Bearer ${SR}" -H "Content-Type: application/json" -H "Prefer: return=representation" \
+            -d '{"printify_order_id":null,"printify_product_id":null,"order_number":null,"status":"pending_review"}' \
+            | head -c 400
+          echo
+          echo "DONE — book reset. User must hard-reload the admin tab, then re-approve."
