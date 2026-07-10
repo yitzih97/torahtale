@@ -415,13 +415,13 @@ export default function Admin() {
                                           {downloadingZip === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                                         </Button>
                                       )}
-                                      {book.has_pages && (book.status === "pending_review" || book.status === "ordered") && (
+                                      {book.has_pages && (book.status === "pending_review" || book.status === "ordered" || book.status === "approved") && (
                                         <Button
                                           variant="ghost"
                                           size="sm"
                                           className="text-[11px] h-7 px-2 text-green-600"
                                           onClick={() => approveAndSubmit(book)}
-                                          title="Approve for printing"
+                                          title={book.status === "approved" ? "Retry sending to Printify" : "Approve for printing"}
                                         >
                                           <CheckCircle2 className="w-3 h-3" />
                                         </Button>

@@ -217,9 +217,9 @@ export function AdminOrderDetailDialog({
                 {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} ZIP
               </Button>
             )}
-            {book.has_pages && (book.status === "pending_review" || book.status === "ordered") && (
+            {book.has_pages && (book.status === "pending_review" || book.status === "ordered" || book.status === "approved") && (
               <Button size="sm" variant="outline" className="h-8 text-xs text-green-600" onClick={onApprove}>
-                <CheckCircle2 className="w-3.5 h-3.5" /> Approve → Printify
+                <CheckCircle2 className="w-3.5 h-3.5" /> {book.status === "approved" ? "Retry → Printify" : "Approve → Printify"}
               </Button>
             )}
           </section>
