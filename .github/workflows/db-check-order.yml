@@ -4,13 +4,20 @@ jobs:
   chk:
     runs-on: ubuntu-latest
     steps:
-      - name: Check order printify state + logs
+      - name: All recent books + printify-submit logs
         env: { SUPABASE_ACCESS_TOKEN: "${{ secrets.SUPABASE_ACCESS_TOKEN }}" }
         run: |
           set -euo pipefail
-          API="https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/database/query"
+          REF=cjgqpusyxvltglcbnpvg
+          API="https://api.supabase.com/v1/projects/${REF}/database/query"
           q(){ jq -n --arg query "$1" '{query:$query}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-; echo; }
-          echo "== book 2faec6a0 state =="
-          q "select id, status, printify_product_id, printify_order_id, updated_at from public.books where id='2faec6a0-ee0a-429b-a092-f37f13b73c3d';"
-          echo "== any book with a printify id =="
-          q "select id, status, printify_product_id, printify_order_id from public.books where printify_product_id is not null or printify_order_id is not null;"
+          echo "== all books by updated_at =="
+          q "select id, child_name, status, shopify_order_name, printify_product_id, printify_order_id, updated_at from public.books order by updated_at desc limit 12;"
+          echo "== printify-submit function logs (last ~1h) =="
+          END=$(date -u +%s)000000
+          START=$(( $(date -u +%s) - 5400 ))000000
+          curl -s -G "https://api.supabase.com/v1/projects/${REF}/analytics/endpoints/logs.all" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            --data-urlencode "sql=select event_message, timestamp from function_edge_logs cross join unnest(metadata) as m where m.function_id is not null order by timestamp desc limit 40" \
+            --data-urlencode "iso_timestamp_start=$(date -u -d '@'$(( $(date +%s) - 5400 )) +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)" 2>&1 | head -c 2000 || echo "logs query failed"
+          echo
