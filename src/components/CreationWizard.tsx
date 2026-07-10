@@ -2289,6 +2289,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     localStorage.removeItem("torahtale_pending_order");
                     resetWizard();
                   }}
+                  onSubscribe={() => {
+                    localStorage.removeItem("torahtale_wizard_state");
+                    localStorage.removeItem("torahtale_pending_order");
+                    onClose?.();
+                    navigate("/dashboard?tab=subs");
+                  }}
                 />
               </motion.div>
             )}

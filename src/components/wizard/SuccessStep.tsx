@@ -4,6 +4,7 @@ import { ArrowRight, Mail, Plus, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { UpcomingBookCovers } from "@/components/UpcomingBookCovers";
 import celebrationPopper from "@/assets/wizard/celebration-popper.png";
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
   onGoToDashboard: () => void;
   onCreateAnother?: () => void;
   onSendToGrandparents?: () => void;
+  /** Start a weekly subscription (drives the upsell preview's CTA). */
+  onSubscribe?: () => void;
 }
 
 export const SuccessStep = ({
@@ -20,6 +23,7 @@ export const SuccessStep = ({
   onGoToDashboard,
   onCreateAnother,
   onSendToGrandparents,
+  onSubscribe,
 }: Props) => {
   const { lang } = useLanguage();
   const isHe = lang === "he" || lang === "yi";
@@ -134,6 +138,24 @@ export const SuccessStep = ({
             </Button>
           )}
         </div>
+      </motion.div>
+
+      {/* Upsell: preview the next weekly books, starring the same child(ren). */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2, duration: 0.5 }}
+        className="mt-8 pt-6 border-t border-border/40"
+      >
+        <UpcomingBookCovers
+          childNames={childName}
+          heading={isHe ? "רוצים ספר חדש כל שבוע?" : "Want a new book every week?"}
+          subtext={isHe
+            ? "הצטרפו למועדון הפרשה — ספר אישי חדש בכל שבוע, עם אותם הילדים."
+            : `Join the Parsha Club — a new personalized book every week, starring ${childName || "your kids"}.`}
+          ctaLabel={onSubscribe ? (isHe ? "מנוי שבועי" : "Start a weekly subscription") : undefined}
+          onCta={onSubscribe}
+        />
       </motion.div>
     </div>
   );

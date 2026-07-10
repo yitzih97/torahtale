@@ -15,6 +15,7 @@ import { BookCard } from "@/components/dashboard/BookCard";
 import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
 import { BookTimeline } from "@/components/dashboard/BookTimeline";
 import { UpcomingDeliveries } from "@/components/dashboard/UpcomingDeliveries";
+import { UpcomingBookCovers } from "@/components/UpcomingBookCovers";
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
 import { BookReviewDialog } from "@/components/dashboard/BookReviewDialog";
 import { generateBookZip } from "@/lib/generateBookZip";
@@ -53,7 +54,9 @@ export default function Dashboard() {
   const [openBook, setOpenBook] = useState<BookRecord | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [reviewingBook, setReviewingBook] = useState<BookRecord | null>(null);
-  const [activeTab, setActiveTab] = useState("kids");
+  const [activeTab, setActiveTab] = useState(
+    () => new URLSearchParams(window.location.search).get("tab") || "kids",
+  );
 
   // Merge kids: select two or more, choose one to keep, then decide what to do
   // with the others' books & subscriptions.
@@ -154,6 +157,8 @@ export default function Dashboard() {
   const draftBooks = books.filter((b) => b.status === "draft");
   const orderedBooks = books.filter((b) => b.status !== "draft");
   const activeSubs = subscriptions.filter((s) => s.status === "active");
+  // Kids' names for the "starring your kids" upcoming-book previews.
+  const kidNames = children.map((c) => c.name).filter(Boolean).join(" & ");
 
   const handleAddChild = async (child: AddChildResult) => {
     await addChild.mutateAsync(child);
@@ -409,9 +414,30 @@ export default function Dashboard() {
                     <Button variant="gold" onClick={() => navigate("/?start=1")} className="relative">
                       {t.dash.createAndSubscribe}
                     </Button>
+
+                    {/* Sales driver: a preview of the next 4 weekly books, each
+                        starring the user's own kids. */}
+                    <div className="relative mt-8 pt-6 border-t border-border/40">
+                      <UpcomingBookCovers
+                        childNames={kidNames}
+                        heading={`The next 4 books ${kidNames || "your kids"} could receive`}
+                        subtext="A brand-new personalized Parsha book every week — starring your kids as the heroes."
+                        ctaLabel={t.dash.createAndSubscribe}
+                        onCta={() => navigate("/?start=1")}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <>
+                    {/* Weekly subscribers: the next 4 parshiyos coming up, as
+                        covers starring their kids. */}
+                    <div className="mb-6">
+                      <UpcomingBookCovers
+                        childNames={kidNames}
+                        heading="Your next books"
+                        subtext="Coming up in your weekly Parsha Club — starring your kids."
+                      />
+                    </div>
                     <UpcomingDeliveries subscriptions={subscriptions} />
                     <div className="grid sm:grid-cols-2 gap-5">
                     {subscriptions.map((sub, i) => (
