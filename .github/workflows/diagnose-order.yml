@@ -1,0 +1,57 @@
+name: Diagnose order (one-shot)
+
+# Temporary diagnostic: looks up a book/order in the live DB via the Management
+# API (SQL endpoint) so we can see why an approved order didn't reach Printify.
+# Run: gh workflow run diagnose-order.yml -f q=1003
+# Remove this file once done.
+
+on:
+  workflow_dispatch:
+    inputs:
+      q:
+        description: "Search term (order number, name, or child name)"
+        required: true
+        default: "1003"
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query books + printify settings
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          Q: ${{ github.event.inputs.q }}
+        run: |
+          set -euo pipefail
+          REF=cjgqpusyxvltglcbnpvg
+          run_sql() {
+            curl -s -X POST \
+              "https://api.supabase.com/v1/projects/${REF}/database/query" \
+              -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "$1"
+          }
+
+          echo "=================== BOOK / ORDER MATCHES for '${Q}' ==================="
+          BOOK_SQL=$(cat <<SQL
+          select id, child_name, torah_portion, status,
+                 (paid_at is not null) as paid, paid_at,
+                 shopify_order_id, shopify_order_name, order_number,
+                 printify_product_id, printify_order_id,
+                 jsonb_array_length(coalesce(pages_data::jsonb,'[]'::jsonb)) as page_count,
+                 (shipping_data->>'quantity') as qty,
+                 (shipping_data->'bookOptions'->>'productType') as product_type,
+                 created_at, updated_at
+          from books
+          where child_name ilike '%${Q}%'
+             or coalesce(shopify_order_name,'') ilike '%${Q}%'
+             or coalesce(order_number,'')::text ilike '%${Q}%'
+             or coalesce(shopify_order_id,'')::text ilike '%${Q}%'
+          order by updated_at desc
+          limit 25;
+          SQL
+          )
+          run_sql "$(jq -n --arg q "$BOOK_SQL" '{query:$q}')" | jq .
+
+          echo "=================== PRINTIFY site_settings ==================="
+          run_sql '{"query":"select key, value from site_settings where category = '"'"'integrations'"'"' and key like '"'"'printify-%'"'"' order by key;"}' | jq .
