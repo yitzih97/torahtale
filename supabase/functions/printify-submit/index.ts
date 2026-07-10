@@ -317,7 +317,13 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          external_id: book.shopify_order_id || book.id,
+          // Printify dedupes on external_id and NEVER frees it once used — even
+          // after an order is canceled. So a canceled-then-resubmitted book would
+          // be permanently rejected (409 "Order already exists for the given
+          // external_id"). Append a per-attempt suffix so retries get a fresh id.
+          // (Our own idempotency guard on printify_order_id already prevents
+          // accidental double submits, so we don't rely on Printify's dedup.)
+          external_id: `${book.shopify_order_id || book.id}-${Date.now().toString(36)}`,
           label: book.shopify_order_name || `Torah Tale ${book.id}`,
           line_items: [{ product_id: productId, variant_id: variantId, quantity }],
           shipping_method: 1,
