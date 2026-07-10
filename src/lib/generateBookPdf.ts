@@ -230,7 +230,7 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: 
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-async function renderCoverSpread(page: BookPage, childName: string, parashaLabel: string, starringLabel: string): Promise<string> {
+async function renderCoverSpread(page: BookPage, childName: string, parashaLabel: string): Promise<string> {
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W; canvas.height = SPREAD_H;
   const ctx = canvas.getContext("2d")!;
@@ -251,28 +251,13 @@ async function renderCoverSpread(page: BookPage, childName: string, parashaLabel
     ctx.drawImage(icon, startX, centerY - iconH / 2, iconW, iconH);
     ctx.drawImage(wordmark, startX + iconW + gap, centerY - wmH / 2, wmW, wmH);
   }
+  // Back cover: brand logo (above), a subscribe invitation, and the site URL.
+  ctx.fillStyle = "#5a4a32";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-
-  // Back cover: Parasha name (big) + kids (small), mirroring the front.
-  ctx.fillStyle = "#2b2418";
-  ctx.font = `bold 66px 'Playfair Display', serif`;
-  const backTitleLines = wrapLines(ctx, parashaLabel, HALF_W - 140);
-  const backTitleY = SPREAD_H * 0.45;
-  backTitleLines.forEach((line, i) =>
-    ctx.fillText(line, HALF_W / 2, backTitleY + (i - (backTitleLines.length - 1) / 2) * 74),
-  );
-  if (starringLabel) {
-    ctx.fillStyle = "#b88a2a";
-    ctx.font = `italic 40px ${BOOK_TEXT_STYLE.fontFamily}`;
-    ctx.fillText(starringLabel, HALF_W / 2, backTitleY + backTitleLines.length * 74);
-  }
-
-  // Blurb, lower on the back cover.
-  ctx.fillStyle = "#5a4a32";
-  const tSize = 46;
+  const tSize = 54;
   ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  const cy = SPREAD_H * 0.72;
+  const cy = SPREAD_H * 0.6;
   const taglineLines = page.backCoverText && page.backCoverText.trim()
     ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
     : COVER_TAGLINE;
@@ -304,10 +289,10 @@ async function renderCoverSpread(page: BookPage, childName: string, parashaLabel
   ctx.textBaseline = "top";
   const titleLines = wrapLines(ctx, parashaLabel, HALF_W - 120);
   titleLines.forEach((line, i) => ctx.fillText(line, HALF_W + HALF_W / 2, 70 + i * 92));
-  if (starringLabel) {
+  if (childName) {
     ctx.fillStyle = "#b88a2a";
-    ctx.font = `italic 42px ${BOOK_TEXT_STYLE.fontFamily}`;
-    ctx.fillText(starringLabel, HALF_W + HALF_W / 2, 70 + titleLines.length * 92 + 18);
+    ctx.font = `italic 46px ${BOOK_TEXT_STYLE.fontFamily}`;
+    ctx.fillText(childName, HALF_W + HALF_W / 2, 70 + titleLines.length * 92 + 22);
   }
   drawGutter(ctx, SPREAD_W, SPREAD_H);
 
@@ -344,12 +329,9 @@ export async function generateBookPdf(
   bookFormat = "",
   lang: "en" | "he" | "yi" = "en",
 ): Promise<Blob> {
-  // Cover text: Parasha name is the hero, kids are the co-stars (mirrors the
-  // on-screen BookViewer). Derived from the portion + names so it's consistent.
+  // Cover text: Parasha name is the hero (big), kids are the co-stars (small),
+  // mirroring the on-screen BookViewer.
   const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
-  const starringLabel = childName
-    ? (lang === "he" ? `בכיכובם של ${childName}` : lang === "yi" ? `מיט ${childName}` : `Starring ${childName}`)
-    : "";
   // Board (6×6) is spread-based → wide 2:1 interior pages. Softcover/Hardcover
   // (8×8) are page-based → square interior pages. The cover wrap is always wide.
   const spreadBased = bookFormat.startsWith("board");
@@ -368,7 +350,7 @@ export async function generateBookPdf(
     if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
     let dataUrl: string;
     if (page.type === "cover") {
-      dataUrl = await renderCoverSpread(page, childName, parashaLabel, starringLabel);
+      dataUrl = await renderCoverSpread(page, childName, parashaLabel);
     } else if (page.type === "questions") {
       dataUrl = await renderQuestionsSpread(page, rtl, spreadBased);
     } else {

@@ -48,7 +48,7 @@ export const BOOK_TEXT_STYLE = {
   borderRadius: 18,
 };
 
-export const COVER_TAGLINE = ["Stories that inspire.", "Values that last.", "A love that grows."];
+export const COVER_TAGLINE = ["Visit our website &", "Subscribe to receive", "Weekly Parshah Stories"];
 export const COVER_URL = "torahtale.com";
 
 interface Props {
@@ -84,9 +84,6 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
   // (small). Derived from the book's portion + child names, so this applies to
   // every book — new and existing — without depending on stored cover titles.
   const parashaName = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
-  const starringLabel = childName
-    ? (lang === "he" ? `בכיכובם של ${childName}` : lang === "yi" ? `מיט ${childName}` : `Starring ${childName}`)
-    : "";
   // Default text side: over the open sky on the reading-start side.
   const defaultTextSide: "left" | "right" = isRtl ? "right" : "left";
 
@@ -236,25 +233,16 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
   const renderCoverSpread = () => (
     <div className="absolute inset-0 grid grid-cols-2">
-      {/* Back cover — left. Mirrors the front: Parasha name big, kids small,
-          then a short blurb, brand mark, and site URL. */}
+      {/* Back cover — left: brand logo, a subscribe invitation, and the site URL. */}
       <div className="relative flex flex-col items-center justify-between p-6 sm:p-8 text-center bg-[hsl(42_50%_94%)]">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
-        <div className="relative">
-          <BrandMark stacked iconClassName="h-10 w-10" wordmarkClassName="h-6" />
+        <div className="relative pt-2">
+          <BrandMark stacked iconClassName="h-12 w-12" wordmarkClassName="h-7" />
         </div>
-        <div className="relative space-y-2">
-          <h2 className="font-display font-extrabold text-primary leading-[1.05] text-xl sm:text-3xl tracking-tight">
-            {parashaName}
-          </h2>
-          {starringLabel && (
-            <p className="font-body italic text-gold text-xs sm:text-sm">{starringLabel}</p>
-          )}
-          <div className="pt-2 font-body italic text-primary/80 leading-relaxed space-y-1 text-sm sm:text-base whitespace-pre-line">
-            {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : COVER_TAGLINE)).map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-          </div>
+        <div className="relative font-body italic text-primary/80 leading-relaxed space-y-1 text-base sm:text-lg whitespace-pre-line">
+          {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : COVER_TAGLINE)).map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
         </div>
         <p className="relative font-mono text-xs tracking-[0.2em] text-gold uppercase">{COVER_URL}</p>
       </div>
@@ -274,8 +262,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
           <h1 className="font-display font-extrabold text-primary leading-[1.05] text-2xl sm:text-4xl tracking-tight">
             {parashaName}
           </h1>
-          {starringLabel && (
-            <p className="mt-1.5 font-body italic text-gold text-xs sm:text-sm">{starringLabel}</p>
+          {childName && (
+            <p className="mt-1.5 font-body italic text-gold text-sm sm:text-base">{childName}</p>
           )}
         </div>
       </div>
