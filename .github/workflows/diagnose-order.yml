@@ -20,6 +20,7 @@ jobs:
       - name: Query books + printify settings
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PRINTIFY_API_KEY: ${{ secrets.PRINTIFY_API_KEY }}
           Q: ${{ github.event.inputs.q }}
         run: |
           set -euo pipefail
@@ -59,6 +60,31 @@ jobs:
 
           echo "=================== PRINTIFY site_settings ==================="
           run_sql '{"query":"select key, value from site_settings where category = '"'"'integrations'"'"' and key like '"'"'printify-%'"'"' order by key;"}' | jq .
+
+          echo "=================== REPRODUCE PRINTIFY IMAGE UPLOAD (per page) ==================="
+          URLS_SQL="select json_agg(p->>'image') as urls from books, jsonb_array_elements(pages_data::jsonb) as p where child_name ilike '%${Q}%' and (p->>'image') like 'http%';"
+          run_sql "$(jq -n --arg q "$URLS_SQL" '{query:$q}')" | jq -r '.[0].urls[]' > /tmp/urls.txt
+          echo "image URLs to upload: $(wc -l < /tmp/urls.txt)"
+          i=0; fail=0
+          while IFS= read -r u; do
+            i=$((i+1))
+            # 1) is the image itself publicly fetchable?
+            hc=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$u")
+            # 2) can Printify ingest it by URL (the exact call printify-submit makes)?
+            body=$(jq -n --arg fn "page-$i.png" --arg url "$u" '{file_name:$fn,url:$url}')
+            pc=$(curl -s -o /tmp/up.json -w "%{http_code}" --max-time 40 \
+              -X POST "https://api.printify.com/v1/uploads/images.json" \
+              -H "Authorization: Bearer ${PRINTIFY_API_KEY}" -H "Content-Type: application/json" \
+              -d "$body")
+            note=""
+            if [ "$pc" != "200" ]; then fail=$((fail+1)); note=" <== UPLOAD FAILED: $(head -c 160 /tmp/up.json)"; fi
+            echo "page $i | image-fetch $hc | printify-upload $pc$note"
+          done < /tmp/urls.txt
+          echo "----"
+          echo "RESULT: $fail of $i image uploads failed."
+          if [ "$fail" -gt 0 ]; then
+            echo "::error::$fail image(s) fail Printify upload — submit aborts before creating the product (matches null printify_product_id)."
+          fi
 
       - name: Test Printify API (key + softcover blueprint lookup)
         env:
