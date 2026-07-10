@@ -408,6 +408,40 @@ export const getUpcomingParsha = (from: Date = new Date(), leadWeeks = 3): strin
   return "bereishit";
 };
 
+/**
+ * The stories to tease on a book's back cover (to drive subscriptions): for a
+ * Megilla, the OTHER Megillos; otherwise the next few upcoming weekly parshiyos.
+ * Returns up to `count` { value, label } entries, never including the current one.
+ */
+export const getBackCoverPreviewPortions = (
+  currentPortion: string,
+  lang: "en" | "he" | "yi" = "en",
+  count = 4,
+  from: Date = new Date(),
+): { value: string; label: string }[] => {
+  const current = TORAH_PORTIONS.find((p) => p.value === currentPortion);
+  const out: { value: string; label: string }[] = [];
+  const push = (value: string) => {
+    if (value && value !== currentPortion && !out.some((o) => o.value === value)) {
+      out.push({ value, label: getPortionDisplay(value, lang) });
+    }
+  };
+  if (current?.category === "megillot") {
+    for (const p of TORAH_PORTIONS) {
+      if (out.length >= count) break;
+      if (p.category === "megillot") push(p.value);
+    }
+  } else {
+    let d = new Date(from);
+    for (let guard = 0; out.length < count && guard < 120; guard++) {
+      push(getUpcomingParsha(d, 0));
+      d = new Date(d);
+      d.setDate(d.getDate() + 7);
+    }
+  }
+  return out.slice(0, count);
+};
+
 // ── Weekly parashah rollover: Wednesday 12:00 PM Eastern ─────────────────────
 // The wizard's auto-selected parashah rolls over every Wednesday at noon ET and
 // the on-screen countdown ticks toward that moment. We derive the Eastern wall

@@ -210,7 +210,7 @@ function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: 
   ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
 }
 
-async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, spreadBased: boolean, scale = 1): Promise<string> {
+async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, spreadBased: boolean, scale = 1, questionsText?: string): Promise<string> {
   // Board: one illustration fills the 2:1 spread. 8×8: one square page image.
   const W = spreadBased ? SPREAD_W : SPREAD_H; // square page = SPREAD_H × SPREAD_H
   const H = SPREAD_H;
@@ -238,6 +238,36 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
 
   if (spreadBased) drawGutter(ctx, W, H);
   drawTextOverlay(ctx, page.text || "", layout, W, H);
+
+  // The discussion questions ride at the bottom of the LAST story page (this
+  // print blueprint has no spare interior slot / inside-cover for them).
+  if (questionsText && questionsText.trim()) {
+    const panelH = H * 0.4;
+    const py = H - panelH;
+    ctx.save();
+    ctx.fillStyle = "rgba(250,245,232,0.94)";
+    ctx.fillRect(0, py, W, panelH);
+    ctx.strokeStyle = "rgba(0,0,0,0.14)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, py + 1); ctx.lineTo(W, py + 1); ctx.stroke();
+    const padX = W * 0.06;
+    ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillStyle = "#b88a2a";
+    const hs = Math.round(W * 0.034);
+    ctx.font = `bold ${hs}px 'Playfair Display', serif`;
+    ctx.fillText("Questions to Talk About", padX, py + H * 0.035);
+    ctx.fillStyle = "#2b2418";
+    const fs = Math.round(W * 0.026);
+    ctx.font = `${fs}px ${BOOK_TEXT_STYLE.fontFamily}`;
+    const lines = wrapLines(ctx, questionsText, W - padX * 2);
+    let qy = py + H * 0.035 + hs + Math.round(H * 0.02);
+    const lh = fs * 1.42;
+    for (const ln of lines) {
+      if (qy > H - fs) break;
+      ctx.fillText(ln, padX, qy);
+      qy += lh;
+    }
+    ctx.restore();
+  }
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
@@ -259,45 +289,119 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: 
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-async function renderCoverSpread(page: BookPage, childName: string, parashaLabel: string, scale = 1): Promise<string> {
+/** Cover-fit an image into an arbitrary rounded rect (clipped), for the back-
+ *  cover preview grid. */
+function drawImageInRect(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number, r: number) {
+  ctx.save();
+  roundedRect(ctx, x, y, w, h, r);
+  ctx.clip();
+  const ratio = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+  const dw = img.naturalWidth * ratio;
+  const dh = img.naturalHeight * ratio;
+  ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  ctx.restore();
+}
+
+export interface BackCoverPreview { label: string; url: string | null }
+
+async function renderCoverSpread(
+  page: BookPage,
+  childName: string,
+  parashaLabel: string,
+  scale = 1,
+  bookFormat = "",
+  previews: BackCoverPreview[] = [],
+): Promise<string> {
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W * scale; canvas.height = SPREAD_H * scale;
   const ctx = canvas.getContext("2d")!;
   if (scale !== 1) ctx.scale(scale, scale);
   drawPaperHalf(ctx, "left");
 
-  // Render the icon + wordmark as ONE horizontal logo lockup (the real brand
-  // logo), bigger and centered — not two separate stacked components.
+  // ── BACK COVER (left half): book name + child + a 2×2 "coming next" grid of
+  // upcoming-story teasers, to drive subscriptions. Small brand logo + URL. ──
   const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon), safeLoad(torahTaleWordmark)]);
   if (icon && wordmark) {
-    const iconH = 240;
+    const iconH = 96;
     const iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
-    const wmH = 150;
+    const wmH = 60;
     const wmW = (wordmark.naturalWidth / wordmark.naturalHeight) * wmH;
-    const gap = 28;
+    const gap = 16;
     const groupW = iconW + gap + wmW;
     const startX = HALF_W / 2 - groupW / 2;
-    const centerY = SPREAD_H * 0.26;
-    ctx.drawImage(icon, startX, centerY - iconH / 2, iconW, iconH);
-    ctx.drawImage(wordmark, startX + iconW + gap, centerY - wmH / 2, wmW, wmH);
+    const cY = 92;
+    ctx.drawImage(icon, startX, cY - iconH / 2, iconW, iconH);
+    ctx.drawImage(wordmark, startX + iconW + gap, cY - wmH / 2, wmW, wmH);
   }
-  // Back cover: brand logo (above), a subscribe invitation, and the site URL.
-  ctx.fillStyle = "#5a4a32";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const tSize = 54;
-  ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  const cy = SPREAD_H * 0.6;
-  const taglineLines = page.backCoverText && page.backCoverText.trim()
-    ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
-    : COVER_TAGLINE;
-  taglineLines.forEach((line, i) => {
-    ctx.fillText(line, HALF_W / 2, cy + (i - (taglineLines.length - 1) / 2) * (tSize * 1.35));
-  });
-  ctx.fillStyle = "#b88a2a";
-  ctx.font = `600 36px 'Inter', sans-serif`;
-  ctx.fillText(COVER_URL.toUpperCase(), HALF_W / 2, SPREAD_H * 0.9);
 
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  // Book name (parasha) + child name.
+  ctx.fillStyle = "#2b2418";
+  ctx.font = `bold 58px 'Playfair Display', serif`;
+  const backTitleLines = wrapLines(ctx, parashaLabel, HALF_W - 160);
+  let ty = 168;
+  backTitleLines.forEach((line) => { ctx.fillText(line, HALF_W / 2, ty); ty += 66; });
+  if (childName) {
+    ctx.fillStyle = "#b88a2a";
+    ctx.font = `italic 40px ${BOOK_TEXT_STYLE.fontFamily}`;
+    ctx.fillText(childName, HALF_W / 2, ty + 2);
+    ty += 58;
+  }
+
+  // "Coming up next" teaser heading.
+  ctx.fillStyle = "#5a4a32";
+  ctx.font = `600 30px 'Inter', sans-serif`;
+  const headingY = ty + 20;
+  ctx.fillText("MORE STORIES EVERY WEEK", HALF_W / 2, headingY);
+
+  // 2×2 grid of preview images (fall back to a name card when an image is missing).
+  const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
+  const gridTop = headingY + 54;
+  const gridBottom = SPREAD_H - 96;
+  const margin = 80;
+  const gapG = 34;
+  const cellW = (HALF_W - margin * 2 - gapG) / 2;
+  const cellH = (gridBottom - gridTop - gapG) / 2;
+  for (let i = 0; i < 4; i++) {
+    const col = i % 2, row = Math.floor(i / 2);
+    const cx = margin + col * (cellW + gapG);
+    const cyy = gridTop + row * (cellH + gapG);
+    const item = previews[i];
+    const pimg = previewImgs[i];
+    // Card background.
+    ctx.fillStyle = "#efe7d3";
+    roundedRect(ctx, cx, cyy, cellW, cellH, 18); ctx.fill();
+    if (pimg) {
+      drawImageInRect(ctx, pimg, cx, cyy, cellW, cellH, 18);
+    }
+    // Label band at the bottom of the cell.
+    if (item?.label) {
+      ctx.save();
+      roundedRect(ctx, cx, cyy, cellW, cellH, 18); ctx.clip();
+      const bandH2 = 62;
+      ctx.fillStyle = pimg ? "rgba(20,16,10,0.66)" : "rgba(184,138,42,0.16)";
+      ctx.fillRect(cx, cyy + cellH - bandH2, cellW, bandH2);
+      ctx.fillStyle = pimg ? "#ffffff" : "#5a4a32";
+      ctx.font = `600 26px 'Inter', sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const lbl = item.label.length > 22 ? item.label.slice(0, 21) + "…" : item.label;
+      ctx.fillText(lbl, cx + cellW / 2, cyy + cellH - bandH2 / 2);
+      ctx.restore();
+    }
+    // Thin card border.
+    ctx.strokeStyle = "rgba(0,0,0,0.12)"; ctx.lineWidth = 2;
+    roundedRect(ctx, cx, cyy, cellW, cellH, 18); ctx.stroke();
+  }
+
+  // Subscription URL footer.
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = "#b88a2a";
+  ctx.font = `700 30px 'Inter', sans-serif`;
+  ctx.fillText(`SUBSCRIBE AT ${COVER_URL.toUpperCase()}`, HALF_W / 2, SPREAD_H - 52);
+
+  // ── FRONT COVER (right half): illustration + Parasha name + child. ──
   const img = await safeLoad(page.image);
   if (img) {
     drawHalfImage(ctx, img, HALF_W);
@@ -312,7 +416,6 @@ async function renderCoverSpread(page: BookPage, childName: string, parashaLabel
   ctx.fillStyle = bandGrad;
   ctx.fillRect(HALF_W, 0, HALF_W, bandH);
 
-  // Front cover: Parasha name (big) + kids (small).
   ctx.fillStyle = "#2b2418";
   ctx.font = `bold 82px 'Playfair Display', serif`;
   ctx.textAlign = "center";
@@ -326,8 +429,10 @@ async function renderCoverSpread(page: BookPage, childName: string, parashaLabel
   }
   drawGutter(ctx, SPREAD_W, SPREAD_H);
 
-  // Spine — story title + kids' names down the center fold (mirrors the cover).
-  const spineW = SPREAD_W * 0.05;
+  // ── SPINE — width tracks the physical book thickness so the fold lands right:
+  // board books are thick, hardcover medium, softcover very thin. ──
+  const spineFrac = bookFormat.startsWith("board") ? 0.045 : bookFormat.startsWith("hardcover") ? 0.025 : 0.012;
+  const spineW = SPREAD_W * spineFrac;
   const spineX = HALF_W - spineW / 2;
   ctx.fillStyle = "#efe7d3";
   ctx.fillRect(spineX, 0, spineW, SPREAD_H);
@@ -337,16 +442,19 @@ async function renderCoverSpread(page: BookPage, childName: string, parashaLabel
   spineShade.addColorStop(1, "rgba(0,0,0,0.16)");
   ctx.fillStyle = spineShade;
   ctx.fillRect(spineX, 0, spineW, SPREAD_H);
-  const spineText = [parashaLabel, childName].filter(Boolean).join("  ·  ");
-  ctx.save();
-  ctx.translate(HALF_W, SPREAD_H / 2);
-  ctx.rotate(Math.PI / 2);
-  ctx.fillStyle = "#2b2418";
-  ctx.font = `600 40px 'Playfair Display', serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(spineText, 0, 0);
-  ctx.restore();
+  // Only letter the spine when it's physically wide enough to read.
+  if (spineW >= 60) {
+    const spineText = [parashaLabel, childName].filter(Boolean).join("  ·  ");
+    ctx.save();
+    ctx.translate(HALF_W, SPREAD_H / 2);
+    ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = "#2b2418";
+    ctx.font = `600 ${Math.min(40, spineW * 0.5)}px 'Playfair Display', serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(spineText, 0, 0);
+    ctx.restore();
+  }
 
   return canvas.toDataURL("image/jpeg", 0.92);
 }
@@ -370,6 +478,7 @@ export async function renderPrintImages(
   rtl = false,
   bookFormat = "",
   lang: "en" | "he" | "yi" = "en",
+  previews: BackCoverPreview[] = [],
 ): Promise<string[]> {
   const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   const spreadBased = bookFormat.startsWith("board");
@@ -379,11 +488,18 @@ export async function renderPrintImages(
   const PRINT_SCALE = 2;
   const out: string[] = [];
   const cover = pages.find((p) => p.type === "cover");
-  if (cover) out.push(await renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE));
-  let storyIdx = 0;
-  for (const page of pages) {
-    if (page.type === "cover" || page.type === "back-cover" || page.type === "questions") continue;
-    out.push(await renderStorySpread(page, storyIdx++, rtl, spreadBased, PRINT_SCALE));
+  if (cover) out.push(await renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews));
+
+  // The questions page has no print slot on these blueprints, so its content is
+  // composited onto the bottom of the last story page instead of being dropped.
+  const questionsPage = pages.find((p) => p.type === "questions");
+  const questionsText = questionsPage
+    ? (questionsPage.text || (questionsPage.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n"))
+    : "";
+  const stories = pages.filter((p) => p.type !== "cover" && p.type !== "back-cover" && p.type !== "questions");
+  for (let i = 0; i < stories.length; i++) {
+    const isLast = i === stories.length - 1;
+    out.push(await renderStorySpread(stories[i], i, rtl, spreadBased, PRINT_SCALE, isLast ? questionsText : undefined));
   }
   return out;
 }
@@ -417,7 +533,7 @@ export async function generateBookPdf(
     if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
     let dataUrl: string;
     if (page.type === "cover") {
-      dataUrl = await renderCoverSpread(page, childName, parashaLabel);
+      dataUrl = await renderCoverSpread(page, childName, parashaLabel, 1, bookFormat, []);
     } else if (page.type === "questions") {
       dataUrl = await renderQuestionsSpread(page, rtl, spreadBased);
     } else {

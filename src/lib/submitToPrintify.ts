@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { renderPrintImages } from "@/lib/generateBookPdf";
+import { renderPrintImages, type BackCoverPreview } from "@/lib/generateBookPdf";
+import { getBackCoverPreviewPortions } from "@/components/wizard/TorahPortions";
 import type { BookPage } from "@/components/wizard/BookViewer";
 
 export interface PrintifySubmitResult {
@@ -48,9 +49,26 @@ export async function submitBookToPrintify(opts: {
 }): Promise<PrintifySubmitResult> {
   const { bookId, pages, childName, torahPortion, bookFormat, lang = "en", rtl = false, onProgress } = opts;
 
+  // Back-cover "coming next" teasers: pick the upcoming stories (for a Megilla,
+  // the other Megillos) and fetch a cached/generated preview image for each.
+  // Fail-soft — if generation is unavailable, the cover falls back to name cards.
+  const previewPortions = getBackCoverPreviewPortions(torahPortion, lang, 4);
+  let previews: BackCoverPreview[] = previewPortions.map((p) => ({ label: p.label, url: null }));
+  try {
+    const { data } = await supabase.functions.invoke("parsha-previews", {
+      body: { portions: previewPortions.map((p) => p.value) },
+    });
+    const byPortion = new Map<string, string | null>(
+      (data?.previews || []).map((r: any) => [r.portion, r.url ?? null]),
+    );
+    previews = previewPortions.map((p) => ({ label: p.label, url: byPortion.get(p.value) ?? null }));
+  } catch (e) {
+    console.warn("parsha previews unavailable — using name cards:", e);
+  }
+
   let images: string[];
   try {
-    images = await renderPrintImages(pages, childName, torahPortion, rtl, bookFormat, lang);
+    images = await renderPrintImages(pages, childName, torahPortion, rtl, bookFormat, lang, previews);
   } catch (e: any) {
     return { success: false, error: `Could not render print images: ${e?.message || e}` };
   }
