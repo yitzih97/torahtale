@@ -1,0 +1,16 @@
+name: DB check order (one-shot)
+on: { workflow_dispatch: {} }
+jobs:
+  chk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check order printify state + logs
+        env: { SUPABASE_ACCESS_TOKEN: "${{ secrets.SUPABASE_ACCESS_TOKEN }}" }
+        run: |
+          set -euo pipefail
+          API="https://api.supabase.com/v1/projects/cjgqpusyxvltglcbnpvg/database/query"
+          q(){ jq -n --arg query "$1" '{query:$query}' | curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" --data @-; echo; }
+          echo "== book 2faec6a0 state =="
+          q "select id, status, printify_product_id, printify_order_id, updated_at from public.books where id='2faec6a0-ee0a-429b-a092-f37f13b73c3d';"
+          echo "== any book with a printify id =="
+          q "select id, status, printify_product_id, printify_order_id from public.books where printify_product_id is not null or printify_order_id is not null;"
