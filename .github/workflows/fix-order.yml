@@ -1,0 +1,72 @@
+name: Fix order 1003 (one-shot)
+
+# Two modes:
+#   mode=read  -> show the book's current printify ids + the Printify order status
+#   mode=cancel-> cancel the Printify order, delete the bad product, clear the ids
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "read | cancel"
+        required: true
+        default: "read"
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PRINTIFY_API_KEY: ${{ secrets.PRINTIFY_API_KEY }}
+      MODE: ${{ github.event.inputs.mode }}
+    steps:
+      - name: Run
+        run: |
+          set -uo pipefail
+          REF=cjgqpusyxvltglcbnpvg
+          BOOK=36f04829-97ad-4911-bf26-92fd9957b6ce
+          SHOP=26962304
+          run_sql() {
+            curl -s -X POST "https://api.supabase.com/v1/projects/${REF}/database/query" \
+              -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" -d "$1"
+          }
+
+          echo "=== current book row ==="
+          ROW=$(run_sql "{\"query\":\"select status, printify_order_id, printify_product_id, order_number from books where id = '${BOOK}'\"}")
+          echo "$ROW" | jq .
+          OID=$(echo "$ROW" | jq -r '.[0].printify_order_id // empty')
+          PID=$(echo "$ROW" | jq -r '.[0].printify_product_id // empty')
+          echo "printify_order_id=$OID  printify_product_id=$PID"
+
+          if [ -n "$OID" ]; then
+            echo "=== Printify order status ==="
+            curl -s "https://api.printify.com/v1/shops/${SHOP}/orders/${OID}.json" \
+              -H "Authorization: Bearer ${PRINTIFY_API_KEY}" \
+              | jq '{id, status, created_at, fulfilment_status: .fulfillment_status, line_items: [.line_items[]? | {product_id, variant_id, quantity}]}'
+          else
+            echo "No printify_order_id on the book."
+          fi
+
+          if [ "$MODE" = "cancel" ]; then
+            echo "=================== CANCEL MODE ==================="
+            if [ -n "$OID" ]; then
+              echo "-- cancel order $OID --"
+              code=$(curl -s -o /tmp/cancel.json -w "%{http_code}" -X POST \
+                "https://api.printify.com/v1/shops/${SHOP}/orders/${OID}/cancel.json" \
+                -H "Authorization: Bearer ${PRINTIFY_API_KEY}")
+              echo "cancel HTTP $code"; cat /tmp/cancel.json | head -c 400; echo
+              if [ "${code:0:1}" != "2" ]; then
+                echo "::error::Cancel failed ($code) — order may already be in production. NOT clearing the DB. Cancel it in the Printify dashboard, then re-run."
+                exit 1
+              fi
+            fi
+            if [ -n "$PID" ]; then
+              echo "-- delete product $PID --"
+              dcode=$(curl -s -o /tmp/del.json -w "%{http_code}" -X DELETE \
+                "https://api.printify.com/v1/shops/${SHOP}/products/${PID}.json" \
+                -H "Authorization: Bearer ${PRINTIFY_API_KEY}")
+              echo "delete-product HTTP $dcode"; head -c 300 /tmp/del.json; echo
+            fi
+            echo "-- reset book row (clear ids, status -> pending_review) --"
+            run_sql "{\"query\":\"update books set printify_order_id = null, printify_product_id = null, order_number = null, status = 'pending_review', updated_at = now() where id = '${BOOK}' returning status, printify_order_id, printify_product_id\"}" | jq .
+            echo "DONE — the book is reset. Re-approve it in the admin (it now sends text + correct cover)."
+          fi
