@@ -6,26 +6,46 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PRINTIFY_API_KEY: ${{ secrets.PRINTIFY_API_KEY }}
     steps:
-      - name: book state + edge logs
+      - name: inspect product + reproduce order placement
         run: |
           set -uo pipefail
           REF=cjgqpusyxvltglcbnpvg
           BOOK=36f04829-97ad-4911-bf26-92fd9957b6ce
+          SHOP=26962304
+          PID=6a51273eb7ca88aabd057592
           API="https://api.supabase.com/v1/projects/${REF}/database/query"
           q(){ curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" -d "$1"; }
+          pf(){ curl -s -H "Authorization: Bearer ${PRINTIFY_API_KEY}" "$@"; }
 
-          echo "=== book state ==="
-          q "{\"query\":\"select status, printify_order_id, printify_product_id, updated_at from books where id='${BOOK}'\"}" | jq .
+          echo "=== product print_areas / variants ==="
+          pf "https://api.printify.com/v1/shops/${SHOP}/products/${PID}.json" \
+            | jq '{title, visible, is_locked, variants: [.variants[] | {id, is_enabled, price}], print_areas: [.print_areas[] | {variant_ids, placeholders: [.placeholders[] | {position, imgs: (.images|length)}]}]}'
 
-          echo "=== recent edge logs (function_edge_logs) ==="
-          LOG="select f.timestamp as t, cast(coalesce(r.status_code,0) as int64) as status, f.event_message as msg from function_edge_logs f left join unnest(f.metadata) m on true left join unnest(m.response) r on true where f.timestamp > timestamp_sub(current_timestamp(), interval 2 hour) order by f.timestamp desc limit 60"
-          enc=$(jq -rn --arg s "$LOG" '$s|@uri')
-          curl -s "https://api.supabase.com/v1/projects/${REF}/analytics/endpoints/logs.all?sql=${enc}" \
-            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" | jq -r '(.result // .)[]? | "\(.t) [\(.status)] \(.msg)"' 2>/dev/null | grep -i "printify\|500\|error" | head -40 || echo "(no match / query failed)"
+          echo "=== book shipping/order fields ==="
+          ROW=$(q "{\"query\":\"select shopify_order_id, shopify_order_name, shipping_data from books where id='${BOOK}'\"}")
+          echo "$ROW" | jq '.[0] | {shopify_order_id, shopify_order_name, shipping: (.shipping_data | {firstName, lastName, email, phone, country, countryCode, province, provinceCode, state, address1, address2, city, zip, quantity, bookOptions})}'
 
-          echo "=== deno console logs (function_logs) ==="
-          LOG2="select l.timestamp as t, l.event_message as msg from function_logs l where l.timestamp > timestamp_sub(current_timestamp(), interval 2 hour) order by l.timestamp desc limit 120"
-          enc2=$(jq -rn --arg s "$LOG2" '$s|@uri')
-          curl -s "https://api.supabase.com/v1/projects/${REF}/analytics/endpoints/logs.all?sql=${enc2}" \
-            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" | jq -r '(.result // .)[]? | "\(.t) \(.msg)"' 2>/dev/null | grep -i "printify\|error\|exceed\|size\|limit" | head -40 || echo "(no match / query failed)"
+          SD=$(echo "$ROW" | jq '.[0].shipping_data')
+          EXT=$(echo "$ROW" | jq -r '.[0].shopify_order_id // empty'); [ -z "$EXT" ] && EXT="$BOOK"
+          LABEL=$(echo "$ROW" | jq -r '.[0].shopify_order_name // ("Torah Tale "+ "'"$BOOK"'")')
+          QTY=$(echo "$SD" | jq -r '(.quantity // 1)')
+          ADDR=$(echo "$SD" | jq '{first_name:(.firstName//"Customer"), last_name:(.lastName//""), email:(.email//""), phone:(.phone//""), country:(.countryCode//.country//"US"), region:(.provinceCode//.province//.state//""), address1:(.address1//""), address2:(.address2//""), city:(.city//""), zip:(.zip//"")}')
+
+          BODY=$(jq -n --arg ext "$EXT" --arg label "$LABEL" --arg pid "$PID" --argjson qty "${QTY:-1}" --argjson addr "$ADDR" \
+            '{external_id:$ext, label:$label, line_items:[{product_id:$pid, variant_id:149010, quantity:$qty}], shipping_method:1, send_shipping_notification:false, address_to:$addr}')
+          echo "=== order payload ==="; echo "$BODY" | jq '.address_to, .line_items'
+
+          echo "=== POST order (capture error; cancel if it unexpectedly succeeds) ==="
+          code=$(curl -s -o /tmp/o.json -w "%{http_code}" -X POST \
+            "https://api.printify.com/v1/shops/${SHOP}/orders.json" \
+            -H "Authorization: Bearer ${PRINTIFY_API_KEY}" -H "Content-Type: application/json" -d "$BODY")
+          echo "order HTTP $code"
+          cat /tmp/o.json
+          echo
+          if [ "${code:0:1}" = "2" ]; then
+            OID=$(jq -r '.id // empty' /tmp/o.json)
+            echo "UNEXPECTED SUCCESS — cancelling $OID to avoid a stray order"
+            curl -s -X POST "https://api.printify.com/v1/shops/${SHOP}/orders/${OID}/cancel.json" -H "Authorization: Bearer ${PRINTIFY_API_KEY}" | head -c 200
+          fi
