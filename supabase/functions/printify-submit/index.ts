@@ -147,9 +147,14 @@ serve(async (req) => {
       // endpoint only accepts a real http(s) URL via `url`, so for data URLs we
       // must send the raw base64 via `contents` instead. Hosted https images
       // still go through `url`.
+      // Optional text-baked front cover (Parasha name + kids), rendered by the
+      // admin client so Printify prints the title on the cover.
+      const coverImageOverride: string | undefined =
+        typeof body.coverImage === "string" && body.coverImage ? body.coverImage : undefined;
+
       const imageIds: string[] = [];
       for (const page of pages) {
-        const src = page.imageUrl || page.image;
+        const src = (page.type === "cover" && coverImageOverride) ? coverImageOverride : (page.imageUrl || page.image);
         if (!src) continue;
         const fileName = `page-${page.page || imageIds.length + 1}.png`;
         const dataUrlMatch = /^data:image\/\w+;base64,(.+)$/.exec(src);

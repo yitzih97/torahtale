@@ -18,6 +18,9 @@ import { AdminOrderDetailDialog } from "@/components/admin/AdminOrderDetailDialo
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData, fetchBookFull } from "@/hooks/useAdminData";
+import { getPortionDisplay } from "@/components/wizard/TorahPortions";
+import { renderPrintCoverFront } from "@/lib/renderPrintCover";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -55,6 +58,7 @@ export default function Admin() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
+  const { lang } = useLanguage();
   const {
     isAdmin, isCheckingAdmin,
     books, booksLoading,
@@ -147,8 +151,22 @@ export default function Admin() {
   const approveAndSubmit = async (book: any) => {
     updateBookStatus.mutate({ id: book.id, status: "approved" });
     try {
+      // Bake the cover text (Parasha big, kids small) onto the front-cover image
+      // that Printify prints — the stored cover stays text-free for the viewer.
+      let coverImage: string | undefined;
+      try {
+        const full = await fetchBookFull(book.id);
+        const pages = (full?.pages_data as any[]) || [];
+        const coverSrc = pages.find((p) => p?.type === "cover")?.image || (full?.cover_image_url as string | undefined);
+        if (coverSrc) {
+          const parasha = getPortionDisplay(book.torah_portion || (full?.torah_portion as string) || "", lang) || book.torah_portion || "";
+          coverImage = await renderPrintCoverFront(coverSrc, parasha, book.child_name || (full?.child_name as string) || "");
+        }
+      } catch (e) {
+        console.error("cover text bake failed — submitting without it:", e);
+      }
       const { data: pfResult, error: pfErr } = await supabase.functions.invoke("printify-submit", {
-        body: { action: "submit-order", bookId: book.id },
+        body: { action: "submit-order", bookId: book.id, coverImage },
       });
       if (pfErr) throw pfErr;
       if (pfResult?.success) {
