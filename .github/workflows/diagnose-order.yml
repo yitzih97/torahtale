@@ -86,6 +86,18 @@ jobs:
             echo "::error::$fail image(s) fail Printify upload — submit aborts before creating the product (matches null printify_product_id)."
           fi
 
+          echo "=================== EDGE FUNCTION LOGS: printify-submit (last 3 days) ==================="
+          LOG_SQL="select f.timestamp, f.event_message from function_edge_logs f cross join unnest(f.metadata) m cross join unnest(m.request) r where r.path like '%printify-submit%' and f.timestamp > timestamp_sub(current_timestamp(), interval 3 day) order by f.timestamp desc limit 50"
+          enc=$(jq -rn --arg s "$LOG_SQL" '$s|@uri')
+          curl -s "https://api.supabase.com/v1/projects/${REF}/analytics/endpoints/logs.all?sql=${enc}" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" | jq '.result // .' 2>/dev/null || echo "(edge log query failed)"
+
+          echo "=================== EDGE FUNCTION console logs (deno) ==================="
+          LOG_SQL2="select l.timestamp, l.event_message from function_logs l where l.event_message like '%printify%' and l.timestamp > timestamp_sub(current_timestamp(), interval 3 day) order by l.timestamp desc limit 50"
+          enc2=$(jq -rn --arg s "$LOG_SQL2" '$s|@uri')
+          curl -s "https://api.supabase.com/v1/projects/${REF}/analytics/endpoints/logs.all?sql=${enc2}" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" | jq '.result // .' 2>/dev/null || echo "(console log query failed)"
+
       - name: Test Printify API (key + softcover blueprint lookup)
         env:
           PRINTIFY_API_KEY: ${{ secrets.PRINTIFY_API_KEY }}
