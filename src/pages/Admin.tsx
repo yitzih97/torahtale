@@ -149,7 +149,12 @@ export default function Admin() {
 
   // Approve a reviewed book and auto-submit it to Printify.
   const approveAndSubmit = async (book: any) => {
-    updateBookStatus.mutate({ id: book.id, status: "approved" });
+    // Do NOT optimistically flip the status to "approved". Printify submission is
+    // what actually matters — the edge function itself sets the book to "printing"
+    // on success. Marking "approved" before that made failed submissions look done
+    // (a book stuck at "approved" with no Printify order). Only commit on success;
+    // on failure surface the REAL error and leave the status untouched.
+    const toastId = toast.loading(`Sending ${book.child_name || "book"} to Printify…`);
     try {
       // Bake the cover text (Parasha big, kids small) onto the front-cover image
       // that Printify prints — the stored cover stays text-free for the viewer.
@@ -168,15 +173,33 @@ export default function Admin() {
       const { data: pfResult, error: pfErr } = await supabase.functions.invoke("printify-submit", {
         body: { action: "submit-order", bookId: book.id, coverImage },
       });
-      if (pfErr) throw pfErr;
-      if (pfResult?.success) {
-        toast.success("Approved & sent to Printify!");
-      } else {
-        toast.warning(`Approved but Printify failed: ${pfResult?.error || "Unknown"}`);
+      // supabase.functions.invoke returns a FunctionsHttpError for non-2xx; the
+      // real message the function threw lives in the JSON body, so read it back.
+      let errMsg = "";
+      if (pfErr) {
+        errMsg = (pfErr as any)?.message || "Request failed";
+        try {
+          const ctx = (pfErr as any)?.context;
+          const body = ctx && typeof ctx.json === "function" ? await ctx.json() : undefined;
+          if (body?.error) errMsg = body.error;
+        } catch { /* keep errMsg */ }
+      } else if (!pfResult?.success) {
+        errMsg = pfResult?.error || "Unknown Printify error";
       }
+      if (errMsg) {
+        // Not marked approved — the admin sees exactly why and can retry.
+        toast.error(`Printify submit failed: ${errMsg}`, { id: toastId, duration: 12000 });
+        return;
+      }
+      // Success: the function set status → "printing" + saved the Printify order id.
+      queryClient.invalidateQueries({ queryKey: ["admin-books"] });
+      toast.success(
+        pfResult?.duplicate ? "Already in Printify — order confirmed." : "Approved & sent to Printify!",
+        { id: toastId },
+      );
     } catch (e: any) {
       console.error("Printify error:", e);
-      toast.warning("Approved but Printify auto-submit failed.");
+      toast.error(`Printify submit failed: ${e?.message || "unexpected error"}`, { id: toastId, duration: 12000 });
     }
   };
 

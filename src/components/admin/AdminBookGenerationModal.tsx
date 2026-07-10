@@ -432,35 +432,51 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
   const handleApprove = async () => {
     setSaving(true);
+    const toastId = toast.loading("Sending to Printify…");
     try {
+      // Persist the latest edits, but DON'T claim "approved" yet — approval only
+      // means something once Printify accepts the order (the edge function flips
+      // the book to "printing" on success). Keep it at pending_review so a failed
+      // submit is obvious instead of a book stuck at "approved" with no order.
       await supabase.from("books").update({
         pages_data: pages as any,
         story_data: { ...(storyData || book.story_data || {}), characterSheets: characterSheetsRef.current, characters: storyCharactersRef.current, _storyCharacterSheets: storyCharacterSheetsRef.current },
         cover_image_url: pages[0]?.image || null,
         art_style: ART_STYLE,
-        status: "approved",
+        status: "pending_review",
         updated_at: new Date().toISOString(),
       } as any).eq("id", book.id);
 
-      try {
-        const { data: printifyResult, error: printifyErr } = await supabase.functions.invoke("printify-submit", {
-          body: { action: "submit-order", bookId: book.id },
-        });
-        if (printifyErr) throw printifyErr;
-        if (printifyResult?.success) {
-          toast.success("Book approved & sent to Printify for printing!");
-        } else {
-          toast.warning(`Approved but Printify submission failed: ${printifyResult?.error || "Unknown error"}`);
-        }
-      } catch (pfErr: any) {
-        console.error("Printify submit error:", pfErr);
-        toast.warning("Approved but Printify auto-submit failed. You can retry from the orders tab.");
+      const { data: printifyResult, error: printifyErr } = await supabase.functions.invoke("printify-submit", {
+        body: { action: "submit-order", bookId: book.id },
+      });
+      // Pull the real message the function threw (it's in the error response body).
+      let errMsg = "";
+      if (printifyErr) {
+        errMsg = (printifyErr as any)?.message || "Request failed";
+        try {
+          const ctx = (printifyErr as any)?.context;
+          const body = ctx && typeof ctx.json === "function" ? await ctx.json() : undefined;
+          if (body?.error) errMsg = body.error;
+        } catch { /* keep errMsg */ }
+      } else if (!printifyResult?.success) {
+        errMsg = printifyResult?.error || "Unknown error";
+      }
+      if (errMsg) {
+        console.error("Printify submit error:", errMsg);
+        toast.error(`Printify submit failed: ${errMsg}`, { id: toastId, duration: 12000 });
+        onBookUpdated();
+        return; // leave the modal open so the admin can retry
       }
 
+      toast.success(
+        printifyResult?.duplicate ? "Already in Printify — order confirmed." : "Book approved & sent to Printify for printing!",
+        { id: toastId },
+      );
       onBookUpdated();
       onClose();
-    } catch {
-      toast.error("Failed to approve");
+    } catch (e: any) {
+      toast.error(`Failed to submit: ${e?.message || "unexpected error"}`, { id: toastId, duration: 12000 });
     } finally {
       setSaving(false);
     }
