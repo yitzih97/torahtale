@@ -1,0 +1,31 @@
+name: diag2 (one-shot)
+on:
+  workflow_dispatch: {}
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - name: book state + edge logs
+        run: |
+          set -uo pipefail
+          REF=cjgqpusyxvltglcbnpvg
+          BOOK=36f04829-97ad-4911-bf26-92fd9957b6ce
+          API="https://api.supabase.com/v1/projects/${REF}/database/query"
+          q(){ curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" -d "$1"; }
+
+          echo "=== book state ==="
+          q "{\"query\":\"select status, printify_order_id, printify_product_id, updated_at from books where id='${BOOK}'\"}" | jq .
+
+          echo "=== recent edge logs (function_edge_logs) ==="
+          LOG="select f.timestamp as t, cast(coalesce(r.status_code,0) as int64) as status, f.event_message as msg from function_edge_logs f left join unnest(f.metadata) m on true left join unnest(m.response) r on true where f.timestamp > timestamp_sub(current_timestamp(), interval 2 hour) order by f.timestamp desc limit 60"
+          enc=$(jq -rn --arg s "$LOG" '$s|@uri')
+          curl -s "https://api.supabase.com/v1/projects/${REF}/analytics/endpoints/logs.all?sql=${enc}" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" | jq -r '(.result // .)[]? | "\(.t) [\(.status)] \(.msg)"' 2>/dev/null | grep -i "printify\|500\|error" | head -40 || echo "(no match / query failed)"
+
+          echo "=== deno console logs (function_logs) ==="
+          LOG2="select l.timestamp as t, l.event_message as msg from function_logs l where l.timestamp > timestamp_sub(current_timestamp(), interval 2 hour) order by l.timestamp desc limit 120"
+          enc2=$(jq -rn --arg s "$LOG2" '$s|@uri')
+          curl -s "https://api.supabase.com/v1/projects/${REF}/analytics/endpoints/logs.all?sql=${enc2}" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" | jq -r '(.result // .)[]? | "\(.t) \(.msg)"' 2>/dev/null | grep -i "printify\|error\|exceed\|size\|limit" | head -40 || echo "(no match / query failed)"
