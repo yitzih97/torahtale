@@ -1,0 +1,20 @@
+name: Diagnose order (one-shot)
+
+# Temporary: inspect Printify blueprint 2733 (softcover 8x8) print-area geometry
+# so we can composite the right images (cover wrap vs square front, page sizes).
+on:
+  workflow_dispatch: {}
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Printify blueprint 2733 print areas & placeholder dimensions
+        env:
+          PRINTIFY_API_KEY: ${{ secrets.PRINTIFY_API_KEY }}
+        run: |
+          set -uo pipefail
+          echo "=== variant 149010 placeholders WITH width/height ==="
+          curl -s "https://api.printify.com/v1/catalog/blueprints/2733/print_providers/28/variants.json" \
+            -H "Authorization: Bearer ${PRINTIFY_API_KEY}" \
+            | jq '.variants[] | select(.id==149010) | {id, title, placeholders: [.placeholders[] | {position, width, height}]}'
