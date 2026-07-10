@@ -1,0 +1,26 @@
+name: diag4 (one-shot)
+on:
+  workflow_dispatch: {}
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - name: page structure
+        run: |
+          set -uo pipefail
+          REF=cjgqpusyxvltglcbnpvg
+          BOOK=36f04829-97ad-4911-bf26-92fd9957b6ce
+          API="https://api.supabase.com/v1/projects/${REF}/database/query"
+          q(){ curl -s -X POST "$API" -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" -H "Content-Type: application/json" -d "$1"; }
+
+          echo "=== page types in order ==="
+          q "{\"query\":\"select ord, p->>'type' as type, (p->>'image') is not null as has_img, left(coalesce(p->>'text',''),40) as text_preview, (p->'questions') is not null as has_questions from books, jsonb_array_elements(pages_data::jsonb) with ordinality as t(p,ord) where id='${BOOK}' order by ord\"}" | jq -r '.[] | "\(.ord) \(.type) img=\(.has_img) q=\(.has_questions) | \(.text_preview)"'
+
+          echo "=== counts by type ==="
+          q "{\"query\":\"select p->>'type' as type, count(*) from books, jsonb_array_elements(pages_data::jsonb) as p where id='${BOOK}' group by 1 order by 1\"}" | jq .
+
+          echo "=== top-level keys on book (story_data etc.) ==="
+          q "{\"query\":\"select jsonb_object_keys(to_jsonb(b)) as k from books b where id='${BOOK}'\"}" | jq -r '.[].k' | tr '\n' ' '
+          echo
