@@ -582,6 +582,7 @@ export default function Dashboard() {
           childName={viewingBook.child_name || ""}
           torahPortion={viewingBook.torah_portion || ""}
           artStyle={viewingBook.art_style || "3d-pixar"}
+          language={viewingBook.language || "english"}
           pages={bookPages}
           bookFormat={(() => {
             const pt = (viewingBook.shipping_data as any)?.bookOptions?.productType;

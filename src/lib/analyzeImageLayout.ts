@@ -155,13 +155,14 @@ export function computeAutoTextLayout(
     if (!best) return null;
 
     const { c, fontSize } = best;
-    // Consistent, readable styling on EVERY page: bold dark text with a light
-    // outline halo (applied by the renderer), no background box — so captions
-    // look the same across all pages/scenes instead of some boxed, some not.
+    // Consistent, readable styling on EVERY page: inherit the shared default
+    // (bold WHITE with a soft drop shadow, no outline, no background box) so
+    // captions look the same across all pages/scenes. Only position + size are
+    // derived from the image's clear space.
     return {
       ...DEFAULT_TEXT_LAYOUT,
       x: c.x, y: c.y, width: c.width, align: c.align,
-      fontSize, color: "#2b2418", bold: true, background: false,
+      fontSize, bold: true, background: false,
     } as TextLayout;
   } catch {
     return null;

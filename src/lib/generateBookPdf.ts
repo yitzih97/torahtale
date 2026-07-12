@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { BOOK_TEXT_STYLE, COVER_TAGLINE, COVER_URL, type BookPage } from "@/components/wizard/BookViewer";
+import { BOOK_TEXT_STYLE, COVER_URL, getCoverTagline, type BookPage } from "@/components/wizard/BookViewer";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
@@ -311,6 +311,7 @@ async function renderCoverSpread(
   scale = 1,
   bookFormat = "",
   previews: BackCoverPreview[] = [],
+  lang: "en" | "he" | "yi" = "en",
 ): Promise<string> {
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W * scale; canvas.height = SPREAD_H * scale;
@@ -359,7 +360,7 @@ async function renderCoverSpread(
   const cy = SPREAD_H * 0.68;
   const taglineLines = page.backCoverText && page.backCoverText.trim()
     ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
-    : COVER_TAGLINE;
+    : getCoverTagline(lang);
   taglineLines.forEach((line, i) => {
     ctx.fillText(line, HALF_W / 2, cy + (i - (taglineLines.length - 1) / 2) * (tSize * 1.35));
   });
@@ -464,7 +465,7 @@ export async function renderPrintImages(
   const out: string[] = [];
   const cover = pages.find((p) => p.type === "cover");
   const previews = backCoverPreviews(pages, lang);
-  if (cover) out.push(await renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews));
+  if (cover) out.push(await renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews, lang));
 
   // The questions page has no print slot on these blueprints, so its content is
   // composited onto the bottom of the last story page instead of being dropped.
@@ -510,7 +511,7 @@ export async function generateBookPdf(
     if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
     let dataUrl: string;
     if (page.type === "cover") {
-      dataUrl = await renderCoverSpread(page, childName, parashaLabel, 1, bookFormat, pdfPreviews);
+      dataUrl = await renderCoverSpread(page, childName, parashaLabel, 1, bookFormat, pdfPreviews, lang);
     } else if (page.type === "questions") {
       dataUrl = await renderQuestionsSpread(page, rtl, spreadBased);
     } else {

@@ -6,6 +6,7 @@ import { ArrowRight, Pencil, Download, Loader2 } from "lucide-react";
 import { generateBookPdf } from "@/lib/generateBookPdf";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { bookLanguageCode, isBookRtl } from "./TorahPortions";
 
 interface Props {
   open: boolean;
@@ -13,6 +14,8 @@ interface Props {
   childName: string;
   torahPortion: string;
   artStyle: string;
+  /** The BOOK's language — cover + captions render in it, not the UI language. */
+  language?: string;
   pages: BookPage[];
   /** "board-6x6" | "softcover-8x8" | "hardcover-8x8" — drives spread vs page layout. */
   bookFormat?: string;
@@ -20,14 +23,17 @@ interface Props {
   onReorder?: () => void;
 }
 
-export const BookViewerModal = ({ open, onClose, childName, torahPortion, artStyle, pages, bookFormat, onEdit, onReorder }: Props) => {
+export const BookViewerModal = ({ open, onClose, childName, torahPortion, artStyle, language, pages, bookFormat, onEdit, onReorder }: Props) => {
   const [downloading, setDownloading] = useState(false);
-  const { dir, lang } = useLanguage();
+  const { dir, lang: uiLang } = useLanguage();
+  // The book's own language wins over the viewer's UI language.
+  const lang = language ? bookLanguageCode(language) : uiLang;
+  const rtl = language ? isBookRtl(language) : dir === "rtl";
 
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
-      const blob = await generateBookPdf(pages, childName, torahPortion, dir === "rtl", bookFormat, lang);
+      const blob = await generateBookPdf(pages, childName, torahPortion, rtl, bookFormat, lang);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -49,7 +55,7 @@ export const BookViewerModal = ({ open, onClose, childName, torahPortion, artSty
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
         <div className="p-6 sm:p-8">
-          <BookViewer childName={childName} torahPortion={torahPortion} artStyle={artStyle} pages={pages} onPagesChange={() => {}} generationContext={{ bookFormat }} />
+          <BookViewer childName={childName} torahPortion={torahPortion} artStyle={artStyle} language={language} pages={pages} onPagesChange={() => {}} generationContext={{ bookFormat }} />
           <div className="flex gap-3 mt-6 pt-6 border-t border-border">
             <Button
               variant="outline"

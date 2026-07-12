@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getPortionDisplay } from "./TorahPortions";
+import { getPortionDisplay, bookLanguageCode, isBookRtl } from "./TorahPortions";
 
 export interface BookPage {
   id: number;
@@ -53,10 +53,23 @@ export const BOOK_TEXT_STYLE = {
 export const COVER_TAGLINE = ["Visit our website &", "Subscribe to receive", "Weekly Parshah Stories"];
 export const COVER_URL = "torahtale.com";
 
+/** Back-cover subscribe invitation, localized to the BOOK's language. Falls back
+ *  to English. The site URL stays as-is (it's a domain). */
+export const COVER_TAGLINE_BY_LANG: Record<"en" | "he" | "yi", string[]> = {
+  en: COVER_TAGLINE,
+  he: ["בקרו באתר שלנו", "והירשמו לקבלת", "סיפורי פרשת השבוע"],
+  yi: ["באזוכט אונדזער וועבזייטל", "און אבאנירט צו באקומען", "וועכנטלעכע פרשה מעשיות"],
+};
+export const getCoverTagline = (lang: "en" | "he" | "yi"): string[] =>
+  COVER_TAGLINE_BY_LANG[lang] || COVER_TAGLINE;
+
 interface Props {
   childName: string;
   torahPortion: string;
   artStyle: string;
+  /** The BOOK's language ("english" | "hebrew" | "yiddish"). Cover + captions
+   *  render in this language regardless of the admin/customer UI language. */
+  language?: string;
   pages: BookPage[];
   onPagesChange: (pages: BookPage[]) => void;
   /** When true (admin), shows editing/regen controls. Customer views are read-only. */
@@ -80,9 +93,14 @@ interface Props {
   };
 }
 
-export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesChange, editable = false, generationContext }: Props) => {
-  const { dir, lang } = useLanguage();
-  const isRtl = dir === "rtl";
+export const BookViewer = ({ childName, torahPortion, artStyle, language, pages, onPagesChange, editable = false, generationContext }: Props) => {
+  const { dir: uiDir, lang: uiLang } = useLanguage();
+  // Cover text and captions follow the BOOK's own language (Hebrew/Yiddish
+  // books read RTL and show Hebrew parsha names) — not the viewer's UI language.
+  // Fall back to the UI language for legacy callers that don't pass one.
+  const lang = language ? bookLanguageCode(language) : uiLang;
+  const isRtl = language ? isBookRtl(language) : uiDir === "rtl";
+  const dir = isRtl ? "rtl" : "ltr";
 
   // Cover text: the Parasha name is the hero (big), the kids are the co-stars
   // (small). Derived from the book's portion + child names, so this applies to
@@ -254,14 +272,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
 
   /* ── Renderers ───────────────────────────────────────────────────── */
 
-  // Spine label — the Parasha/story title + kids' names, printed down the book's
-  // edge (mirrors the front cover). Falls back to portion + child name.
-  const spineLabel = (() => {
-    const title = page?.coverTitle?.trim();
-    const sub = page?.coverSubtitle?.trim();
-    if (title) return sub ? `${title}  ${sub}` : title;
-    return `${torahPortion || "Torah Tale"}${childName ? ` — ${childName}` : ""}`;
-  })();
+  // Spine label — the localized Parasha name + kids' names, printed down the
+  // book's edge (mirrors the front cover, so it follows the book's language).
+  const spineLabel = `${parashaName}${childName ? `  ${childName}` : ""}`;
 
   const renderCoverSpread = () => (
     <div className="absolute inset-0 grid grid-cols-2">
@@ -271,8 +284,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
         <div className="relative pt-2">
           <BrandMark stacked iconClassName="h-12 w-12" wordmarkClassName="h-7" />
         </div>
-        <div className="relative font-body italic text-primary/80 leading-relaxed space-y-1 text-base sm:text-lg whitespace-pre-line">
-          {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : COVER_TAGLINE)).map((line, i) => (
+        <div className="relative font-body italic text-primary/80 leading-relaxed space-y-1 text-base sm:text-lg whitespace-pre-line" dir={dir}>
+          {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : getCoverTagline(lang))).map((line, i) => (
             <p key={i}>{line}</p>
           ))}
         </div>
@@ -290,7 +303,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, pages, onPagesCh
             <BookOpen className="w-10 h-10 text-muted-foreground" />
           </div>
         )}
-        <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-10 bg-gradient-to-b from-white/90 via-white/60 to-transparent text-center">
+        <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-10 bg-gradient-to-b from-white/90 via-white/60 to-transparent text-center" dir={dir}>
           <h1 className="font-display font-extrabold text-primary leading-[1.05] text-2xl sm:text-4xl tracking-tight">
             {parashaName}
           </h1>

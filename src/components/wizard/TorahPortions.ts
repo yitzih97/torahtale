@@ -273,6 +273,17 @@ const prettifySlug = (value: string): string =>
     .join(" ");
 
 /** Language-aware display: English label for "en", Hebrew sub for "he"/"yi". */
+/** Map a book's stored `language` ("english" | "hebrew" | "yiddish") to the
+ *  short display code + text direction. Book text (incl. the cover) must follow
+ *  the BOOK's own language, not the viewer's UI language. */
+export const bookLanguageCode = (language?: string | null): "en" | "he" | "yi" => {
+  const l = (language || "").toLowerCase();
+  if (l.startsWith("he")) return "he";
+  if (l.startsWith("yi")) return "yi";
+  return "en";
+};
+export const isBookRtl = (language?: string | null): boolean => bookLanguageCode(language) !== "en";
+
 export const getPortionDisplay = (value: string, lang: "en" | "he" | "yi"): string => {
   if (!value) return "";
   const found = TORAH_PORTIONS.find((p) => p.value === value);

@@ -16,7 +16,7 @@ import {
   BookOpen, Sparkles, FileDown, Package, PenLine, Image as ImageIcon,
   AlertTriangle, ChevronRight, Wand2, Baby, Palette, Languages, Layers,
 } from "lucide-react";
-import { getPortionDisplay } from "@/components/wizard/TorahPortions";
+import { getPortionDisplay, bookLanguageCode, isBookRtl, getBackCoverPreviewPortions } from "@/components/wizard/TorahPortions";
 
 type Phase = "idle" | "character" | "story" | "storyReview" | "images" | "done";
 
@@ -247,6 +247,12 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           type: "questions", questions,
         });
       }
+      // Back-cover teasers: the next 4 upcoming parshiyos, rendered as cover-style
+      // thumbnails starring the same kids. Generated WITH the book (in the images
+      // phase) so they show on the back cover instead of empty boxes.
+      for (const { value } of getBackCoverPreviewPortions(book.torah_portion, bookLanguageCode(book.language))) {
+        allPages.push({ id: pageId++, text: "", image: null, imageLoading: false, type: "preview", portion: value });
+      }
       setPages(allPages);
       return allPages;
     } catch (err: any) {
@@ -270,18 +276,22 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       characterSheet: characterSheetsRef.current[c.name] || null,
     }));
     const primaryChildName = childDescriptions[0]?.name || book.child_name;
+    // A "preview" page is a cover-style teaser for a DIFFERENT (upcoming) parsha,
+    // still starring these kids — so it uses that portion + a "cover" pageType and
+    // drops this story's recurring characters.
+    const isPreview = pg.type === "preview";
     // Recurring Torah characters named on this page (all of them on the cover).
     const text = String(pg.text || "").toLowerCase();
-    const storyCharacterRefs = (storyCharactersRef.current || [])
+    const storyCharacterRefs = isPreview ? [] : (storyCharactersRef.current || [])
       .filter((ch) => ch?.name && (pg.type === "cover" || text.includes(ch.name.toLowerCase())))
       .map((ch) => ({ name: ch.name, description: ch.description || "", sheet: storyCharacterSheetsRef.current[ch.name] || null }));
     return {
       childName: book.child_name,
       artStyle: ART_STYLE,
-      torahPortion: book.torah_portion,
+      torahPortion: isPreview ? pg.portion : book.torah_portion,
       bookFormat,
-      pageType: pg.type,
-      pageNumber,
+      pageType: isPreview ? "cover" : pg.type,
+      pageNumber: isPreview ? undefined : pageNumber,
       characterSheet: characterSheetsRef.current[primaryChildName] || null,
       referenceImage: childDescriptions[0]?.photoUrl || null,
       childDescription: childDescriptions[0]?.description || "",
@@ -456,6 +466,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         childName: book.child_name || "",
         torahPortion: book.torah_portion || "",
         bookFormat,
+        lang: bookLanguageCode(book.language),
+        rtl: isBookRtl(book.language),
         onProgress: (done, total) => toast.loading(`Uploading print images… ${done}/${total}`, { id: toastId }),
       });
       if (!result.success) {
@@ -502,7 +514,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     try {
       const pt = (book as any)?.shipping_data?.bookOptions?.productType;
       const fmt = pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : pt === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
-      const blob = await generateBookPdf(pages as any, book.child_name || "book", book.torah_portion || "", false, fmt);
+      const blob = await generateBookPdf(pages as any, book.child_name || "book", book.torah_portion || "", isBookRtl(book.language), fmt, bookLanguageCode(book.language));
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -833,6 +845,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 childName={book?.child_name || ""}
                 torahPortion={book?.torah_portion || ""}
                 artStyle={ART_STYLE}
+                language={book?.language || "english"}
                 pages={pages}
                 onPagesChange={setPages}
                 editable

@@ -44,19 +44,19 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   width: 42,
   fontFamily: DEFAULT_FONT_FAMILY,
   fontSize: 20,
-  color: "#2b2418",
+  color: "#ffffff",
   align: "left",
-  // Captions are BOLD with a crisp white border (see READ_STROKE) by default so
-  // they stay readable on any scene — no cream box needed. Box background/border
+  // Captions are BOLD WHITE with a soft drop shadow by default so they stay
+  // readable on any scene — no outline, no cream box. Outline/background/border
   // remain toggleable from the toolbar for special cases.
   bold: true,
   italic: false,
   background: false,
   border: false,
-  outlineWidth: 2,
+  outlineWidth: 0,
   outlineColor: DEFAULT_OUTLINE_COLOR,
   borderColor: DEFAULT_BORDER_COLOR,
-  shadow: false,
+  shadow: true,
 };
 
 /** Bring a stored layout up to the current defaults. Books created before Inter
@@ -110,6 +110,10 @@ export function makeQuestionsLayout(rtl = false): TextLayout {
     y: 10,
     width: 80,
     align: rtl ? "right" : "left",
+    // The questions page is a clean cream parchment (no illustration), so the
+    // white caption default would be invisible — keep it dark with no shadow.
+    color: "#2b2418",
+    shadow: false,
   };
 }
 
