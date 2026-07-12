@@ -298,9 +298,10 @@ No markdown, no explanation, just the JSON object.`;
         try {
           // Claude Fable 5: thinking is always on (no `thinking` param) and sampling
           // params (temperature) are rejected — the admin story-temperature setting
-          // only applies to the Gemini path. The server-side fallback re-serves the
-          // rare safety-classifier refusal on Opus 4.8 inside the same call.
-          const isFable = storyModel.startsWith("claude-fable");
+          // only applies to the Gemini path. We deliberately do NOT use the server-side
+          // Opus 4.8 fallback: running two models inside one HTTP request doubled the
+          // latency and was the main cause of blowing the edge wall-clock limit. A Fable
+          // refusal or stall now degrades to the fast Gemini fallback below instead.
           const headers: Record<string, string> = {
             "Content-Type": "application/json",
             "x-api-key": ANTHROPIC_API_KEY,
@@ -308,19 +309,21 @@ No markdown, no explanation, just the JSON object.`;
           };
           const reqBody: Record<string, unknown> = {
             model: storyModel,
-            max_tokens: 16000,
+            // A 20-page children's story is ~4–6k output tokens. 16000 only allowed
+            // a slow long tail that pushed the request past the edge wall-clock limit.
+            max_tokens: 10000,
             system: systemPrompt,
             messages: [{ role: "user", content: userPrompt }],
             output_config: { format: { type: "json_schema", schema: bookSchema } },
           };
-          if (isFable) {
-            headers["anthropic-beta"] = "server-side-fallback-2026-06-01";
-            reqBody.fallbacks = [{ model: "claude-opus-4-8" }];
-          }
           // Bounded so a slow generation degrades to the Gemini fallback instead of
-          // blowing the edge wall-clock budget of the generate-book orchestrator.
+          // blowing the edge wall-clock budget. Supabase kills any Edge Function that
+          // hasn't responded within 150s (request idle timeout) and returns a gateway
+          // timeout WITHOUT our CORS headers — which the browser surfaces as the opaque
+          // "Failed to send a request to the Edge Function". Budget: 75s (Claude) + ~30s
+          // (Gemini fallback) + overhead stays comfortably under 150s.
           const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 110_000);
+          const timer = setTimeout(() => controller.abort(), 75_000);
           let aResp: Response;
           try {
             aResp = await fetch("https://api.anthropic.com/v1/messages", {
