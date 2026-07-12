@@ -118,8 +118,11 @@ serve(async (req) => {
     // square front-cover image either way (the back cover is composited
     // separately). So just use the format's own page/cover spec.
     const isSpreadFormat = (bookFormat || "").startsWith("board");
+    const isColoringFmt = (bookFormat || "").startsWith("coloring");
     const dims = specs
-      ? (isCover ? [specs.cover[1], specs.cover[1]] : specs.page)
+      // Bound 8×8/board covers are a SQUARE front-cover image (back composited
+      // separately). The coloring book has a single 8.5×11 PORTRAIT front cover.
+      ? (isCover ? (isColoringFmt ? specs.cover : [specs.cover[1], specs.cover[1]]) : specs.page)
       : null;
 
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
@@ -185,11 +188,13 @@ serve(async (req) => {
       "graphic-novel": "graphic novel illustration with bold confident ink linework, dramatic dynamic composition with cinematic camera angles, rich flat color palette with halftone textures and cross-hatching details, high contrast lighting with deep shadows, premium print-quality detail",
     };
 
-    // Standalone coloring book: render clean black-and-white line art instead of
-    // the full-color illustration style.
+    // Standalone coloring book: the COVER is a normal full-color illustration
+    // (attractive on the shelf), but every INTERIOR page is clean black-and-white
+    // line art the child colors in. So line art applies to non-cover pages only.
     const isColoring = (bookFormat || "").startsWith("coloring");
-    const coloringStyle = "clean black-and-white line-art coloring-book page: bold, smooth, evenly-weighted black outlines on a pure white background, NO color, NO grayscale shading, NO fills, NO gradients, generous open white areas for a child to color in, simple and friendly shapes, thick clear contours";
-    const styleDesc = isColoring ? coloringStyle : (styleMap[artStyle] || styleMap.cartoon);
+    const isColoringPage = isColoring && !isCover;
+    const coloringStyle = "clean black-and-white line-art coloring-book page: bold, smooth, evenly-weighted PURE BLACK outlines on a PURE WHITE background. Absolutely NO color, NO grayscale, NO shading, NO shadows, NO fills, NO gradients, NO tints anywhere — every shape is left OPEN and WHITE inside for a child to color. Simple, friendly shapes with thick clear contours; hair, clothing, skin and every object are drawn as EMPTY white outlines only.";
+    const styleDesc = isColoringPage ? coloringStyle : (styleMap[artStyle] || styleMap.cartoon);
 
     // Short human-readable name for the chosen style, used in the style-lock
     // clause below.
@@ -199,7 +204,7 @@ serve(async (req) => {
       realistic: "photograph",
       "graphic-novel": "graphic-novel illustration",
     };
-    const styleName = isColoring ? "black-and-white line-art coloring page" : (styleNameMap[artStyle] || styleNameMap.cartoon);
+    const styleName = isColoringPage ? "black-and-white line-art coloring page" : (styleNameMap[artStyle] || styleNameMap.cartoon);
 
     let imagePrompt: string;
 
@@ -233,8 +238,8 @@ serve(async (req) => {
     // overlaid (hero-style). Board books are wide 2:1 spreads; 8×8 books are
     // single square pages — compose each accordingly.
     if (!isCover && !prompt) {
-      imagePrompt += isColoring
-        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Fill the page with a clear, friendly black-and-white line drawing of the scene for a child to color — bold clean outlines only, pure white background, NO color, NO shading, NO grey, NO fills. Keep details simple and the shapes large and open. Absolutely NO text, letters, or words in the image.`
+      imagePrompt += isColoringPage
+        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Draw the whole scene as a clean black-and-white LINE DRAWING for a child to color — bold black OUTLINES ONLY on a pure white page. Every character and object is drawn as empty white shapes with black contours: NO color, NO grey, NO shading, NO shadows, NO fills or tints ANYWHERE (hair, clothing, skin and objects must all be left white inside). Keep details simple and the shapes large and open. Absolutely NO text, letters, or words in the image.`
         : isSpreadFormat
         ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration painted as ONE SINGLE CONTINUOUS SCENE — one sky, one horizon, one consistent lighting direction from the top edge to the bottom edge. Arrange it as a cinematic scene with the main character(s) toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and stay easy to read. Do NOT center the subject so tightly that there is no breathing room. The calm areas must be fully painted parts of the SAME scene (its own open sky, soft landscape) with the same palette and lighting — never an empty strip, solid bar, blank panel, or a SECOND sky pasted along an edge; there must be NO horizontal seam or visible line where the top of the image meets the rest — clouds, light, and color must flow continuously from the very top edge down into the scene. Absolutely NO text, letters, or words in the image.`
         : ` COMPOSITION: This is a single SQUARE page illustration and it must be FULL-BLEED: ONE SINGLE CONTINUOUS painted scene filling the entire square edge-to-edge, composed in one pass with ONE sky, ONE horizon, and ONE consistent lighting direction. NEVER paint a separate strip, solid-color bar, blank panel, frame, border, or a SECOND sky at the top or bottom — there must be NO horizontal seam, edge, or visible line where the upper part of the image looks attached or pasted onto the scene below; clouds, light, and colors must flow continuously and seamlessly from the very top edge down into the scene. Compose the scene so its OWN natural upper portion is calm and quiet (the scene's sky with soft clouds, gentle light rays, or distant landscape — same palette, lighting, and texture as everything below, just lower-detail, with no faces or story details up there). Keep all characters and action in the middle and lower portions of the frame. A few lines of story text will later be overlaid on that calm upper area, so it must genuinely be part of the SAME scene — never a bar, box, or panel. Absolutely NO text, letters, or words in the image.`;
@@ -265,7 +270,7 @@ serve(async (req) => {
 
     // Front-cover composition: every child centered, full-bodied, never cropped.
     if (pageType === "cover" && !prompt) {
-      imagePrompt += ` COVER COMPOSITION (CRITICAL): This is the FRONT COVER — compose a SQUARE image. Feature ALL of the book's child characters together as the central subject, posed close together and CENTERED in the frame, each child's FULL body visible (head, hands, and feet all inside the frame). Leave generous empty margin/padding on all four sides around the whole group so that NO character and no part of any character is cropped, cut off, or touching any edge of the image. If there are multiple children, balance them symmetrically around the center — do not push any child to the edge. Keep the upper area a little clearer so the title can sit over the top without covering faces. COVER AGE ACCURACY (CRITICAL): render every child at their EXACT stated age with true proportions and height — the SAME ages and relative sizes as the interior pages. A 1-year-old is a small baby/toddler, clearly smaller than a 3-year-old. NEVER draw the children older, taller, or more mature on the cover than their stated ages.`;
+      imagePrompt += ` COVER COMPOSITION (CRITICAL): This is the FRONT COVER — compose a ${isColoringFmt ? "TALL 8.5×11 PORTRAIT" : "SQUARE"} full-color image. Feature ALL of the book's child characters together as the central subject, posed close together and CENTERED in the frame, each child's FULL body visible (head, hands, and feet all inside the frame). Leave generous empty margin/padding on all four sides around the whole group so that NO character and no part of any character is cropped, cut off, or touching any edge of the image. If there are multiple children, balance them symmetrically around the center — do not push any child to the edge. Keep the upper area a little clearer so the title can sit over the top without covering faces. COVER AGE ACCURACY (CRITICAL): render every child at their EXACT stated age with true proportions and height — the SAME ages and relative sizes as the interior pages. A 1-year-old is a small baby/toddler, clearly smaller than a 3-year-old. NEVER draw the children older, taller, or more mature on the cover than their stated ages.`;
     }
 
     // Inject per-child descriptions for multi-child books
@@ -385,6 +390,12 @@ serve(async (req) => {
     if (refItems.length > 4) {
       cappedRefs = [...refItems.filter((r) => !r.isPhoto), ...refItems.filter((r) => r.isPhoto)].slice(0, 4);
     }
+    // Coloring-book INTERIOR pages must be pure line art. The character sheets/
+    // photos are full-COLOR, and attaching them makes the model reproduce those
+    // colors (a coloured dress inside the outlines). Drop the refs so the model
+    // follows the "empty white shapes" prompt; the text description still keeps
+    // each child roughly on-model. (The colored cover keeps its refs.)
+    if (isColoringPage) cappedRefs = [];
     if (cappedRefs.length > 0) {
       const legend = cappedRefs
         .map((r, i) => `Image ${i + 1} = ${r.name}${r.isPhoto ? " (a REAL PHOTO of this child — match their exact face shape, eye colour and shape, eyebrows, skin tone, and hair from it. FACE AND HAIR ONLY — never copy the clothing in this photo)" : " (this child's OFFICIAL CHARACTER SHEET — it defines their permanent look INCLUDING the exact outfit: reproduce the SAME clothing, colors, head covering and styling shown on the sheet)"}`)
@@ -454,7 +465,7 @@ serve(async (req) => {
     // there is always a clean, low-detail zone waiting for the text.
 
     // Final, most-salient reminder — image models weight the end of the prompt heavily.
-    if (!isColoring && cappedRefs.length > 0) {
+    if (!isColoringPage && cappedRefs.length > 0) {
       imagePrompt += ` \n\nFINAL CHECK BEFORE RENDERING (highest priority, overrides everything else): (1) each named child appears EXACTLY ONCE in the image — no duplicates, no twins, no reflections, no second copy in the background; (2) each child's hair color and hair style EXACTLY match their character sheet; (3) each child wears EXACTLY the outfit shown on their character sheet.`;
     }
 

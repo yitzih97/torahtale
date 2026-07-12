@@ -359,8 +359,10 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   // Coloring-book cover: a single 8.5×11 portrait front cover (line-art image +
   // title band), matching the print output — no wraparound back/spine.
   const renderColoringCover = () => {
-    const frontTitle = page?.coverTitle?.trim() || parashaName;
-    const frontSubtitle = page?.coverSubtitle?.trim() || childName;
+    // Localized single-language topic name + kids' names (like the other books),
+    // not the story's generated bilingual title/subtitle.
+    const frontTitle = parashaName;
+    const frontSubtitle = childName;
     return (
       <div className="absolute inset-0 bg-white">
         {page?.image ? (

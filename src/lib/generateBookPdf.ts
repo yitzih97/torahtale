@@ -532,8 +532,10 @@ async function renderPortraitCover(
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, bandH);
 
-  const frontTitle = page.coverTitle?.trim() || parashaLabel;
-  const frontSub = page.coverSubtitle?.trim() || childName;
+  // Coloring cover shows the localized single-language topic name + the kids'
+  // names (like the other books) — NOT the story's generated bilingual title.
+  const frontTitle = parashaLabel;
+  const frontSub = childName;
   ctx.save();
   ctx.direction = rtl ? "rtl" : "ltr";
   ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
