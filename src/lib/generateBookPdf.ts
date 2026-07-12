@@ -13,6 +13,14 @@ const SPREAD_W = 2400;
 const SPREAD_H = 1200;
 const HALF_W = SPREAD_W / 2;
 
+/** Board (6×6) prints as wide 2:1 spreads; softcover/hardcover (8×8) print as
+ *  separate square pages. A "board" book with far more pages than the 10-spread
+ *  blueprint holds was mis-flagged, so fall back to page-based square. */
+function isSpreadBased(bookFormat: string, pages: BookPage[]): boolean {
+  const storyCount = pages.filter((p) => p.type === "story" || !p.type).length;
+  return bookFormat.startsWith("board") && storyCount <= 12;
+}
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -84,8 +92,11 @@ function drawPaperFull(ctx: CanvasRenderingContext2D, W: number, H: number) {
 
 /** Composite a text overlay using the page's TextLayout. Coords are % of the
  *  canvas (W×H). */
-function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: TextLayout, W: number, H: number) {
+function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: TextLayout, W: number, H: number, rtl = false) {
   if (!text) return;
+  // Hebrew/Yiddish need an explicit paragraph direction so sentence-final
+  // punctuation (. , ? !) and list numbers land at the correct visual end.
+  ctx.direction = rtl ? "rtl" : "ltr";
   // layout.fontSize and padding are absolute px defined against a 1024px-wide
   // reference container (see EditableTextBox / TextLayout). Scale them by the
   // canvas width so the PDF matches the on-screen preview 1:1.
@@ -237,7 +248,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   if (!layout) layout = makeDefaultLayout(rtl ? "right" : "left", rtl);
 
   if (spreadBased) drawGutter(ctx, W, H);
-  drawTextOverlay(ctx, page.text || "", layout, W, H);
+  drawTextOverlay(ctx, page.text || "", layout, W, H, rtl);
 
   // The discussion questions ride at the bottom of the LAST story page (this
   // print blueprint has no spare interior slot / inside-cover for them).
@@ -250,11 +261,13 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
     ctx.strokeStyle = "rgba(0,0,0,0.14)"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(0, py + 1); ctx.lineTo(W, py + 1); ctx.stroke();
     const padX = W * 0.06;
-    ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.direction = rtl ? "rtl" : "ltr";
+    const anchorX = rtl ? W - padX : padX;
+    ctx.textAlign = rtl ? "right" : "left"; ctx.textBaseline = "top";
     ctx.fillStyle = "#b88a2a";
     const hs = Math.round(W * 0.034);
     ctx.font = `bold ${hs}px 'Playfair Display', serif`;
-    ctx.fillText("Questions to Talk About", padX, py + H * 0.035);
+    ctx.fillText(rtl ? "פֿראגן צום רעדן" : "Questions to Talk About", anchorX, py + H * 0.035);
     ctx.fillStyle = "#2b2418";
     const fs = Math.round(W * 0.026);
     ctx.font = `${fs}px ${BOOK_TEXT_STYLE.fontFamily}`;
@@ -263,7 +276,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
     const lh = fs * 1.42;
     for (const ln of lines) {
       if (qy > H - fs) break;
-      ctx.fillText(ln, padX, qy);
+      ctx.fillText(ln, anchorX, qy);
       qy += lh;
     }
     ctx.restore();
@@ -285,7 +298,7 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: 
   if (spreadBased) drawGutter(ctx, W, H);
   const questions = page.questions || [];
   const formatted = page.text || questions.map((q) => `${q.number}. ${q.question}`).join("\n\n");
-  drawTextOverlay(ctx, formatted, layout, W, H);
+  drawTextOverlay(ctx, formatted, layout, W, H, rtl);
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
@@ -317,6 +330,9 @@ async function renderCoverSpread(
   canvas.width = SPREAD_W * scale; canvas.height = SPREAD_H * scale;
   const ctx = canvas.getContext("2d")!;
   if (scale !== 1) ctx.scale(scale, scale);
+  // Hebrew/Yiddish cover text renders RTL; the site URL stays LTR (a domain).
+  const rtl = lang !== "en";
+  const rtlDir: CanvasDirection = rtl ? "rtl" : "ltr";
   drawPaperHalf(ctx, "left");
 
   // ── BACK COVER (left half): brand logo, a single row of 4 small "coming next"
@@ -357,6 +373,7 @@ async function renderCoverSpread(
       const g = ctx.createLinearGradient(tx, rowY, tx, rowY + bandH);
       g.addColorStop(0, "rgba(0,0,0,0.62)"); g.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = g; ctx.fillRect(tx, rowY, thumb, bandH);
+      ctx.direction = rtlDir;
       ctx.textAlign = "center"; ctx.textBaseline = "top";
       ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
       ctx.fillStyle = "#ffffff";
@@ -374,8 +391,9 @@ async function renderCoverSpread(
     roundedRect(ctx, tx, rowY, thumb, thumb, 12); ctx.stroke();
   }
 
-  // Subscribe invitation + site URL.
+  // Subscribe invitation (localized → RTL) + site URL (a domain → always LTR).
   ctx.fillStyle = "#5a4a32";
+  ctx.direction = rtlDir;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const tSize = 54;
@@ -387,6 +405,7 @@ async function renderCoverSpread(
   taglineLines.forEach((line, i) => {
     ctx.fillText(line, HALF_W / 2, cy + (i - (taglineLines.length - 1) / 2) * (tSize * 1.35));
   });
+  ctx.direction = "ltr";
   ctx.fillStyle = "#b88a2a";
   ctx.font = `600 36px 'Inter', sans-serif`;
   ctx.fillText(COVER_URL.toUpperCase(), HALF_W / 2, SPREAD_H * 0.9);
@@ -411,6 +430,7 @@ async function renderCoverSpread(
   const frontTitle = page.coverTitle?.trim() || parashaLabel;
   const frontSub = page.coverSubtitle?.trim() || childName;
   ctx.save();
+  ctx.direction = rtlDir;
   ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
   ctx.fillStyle = "#ffffff";
   ctx.font = `800 82px 'Inter', sans-serif`;
@@ -445,6 +465,7 @@ async function renderCoverSpread(
     ctx.save();
     ctx.translate(HALF_W, SPREAD_H / 2);
     ctx.rotate(Math.PI / 2);
+    ctx.direction = rtlDir;
     ctx.fillStyle = "#2b2418";
     ctx.font = `600 ${Math.min(40, spineW * 0.5)}px 'Playfair Display', serif`;
     ctx.textAlign = "center";
@@ -487,7 +508,7 @@ export async function renderPrintImages(
   lang: "en" | "he" | "yi" = "en",
 ): Promise<string[]> {
   const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
-  const spreadBased = bookFormat.startsWith("board");
+  const spreadBased = isSpreadBased(bookFormat, pages);
   // Render at 2× our 1200-based canvas so the output matches the Printify print
   // slots natively (pages 2400², cover ~4800×2400) instead of letting Printify
   // upscale a 1200px image — text and the cover wrap come out crisp (~300 DPI).
@@ -524,7 +545,7 @@ export async function generateBookPdf(
   const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   // Board (6×6) is spread-based → wide 2:1 interior pages. Softcover/Hardcover
   // (8×8) are page-based → square interior pages. The cover wrap is always wide.
-  const spreadBased = bookFormat.startsWith("board");
+  const spreadBased = isSpreadBased(bookFormat, pages);
   const pdfPreviews = backCoverPreviews(pages, lang);
   const renderable = pages.filter((p) => p.type !== "back-cover" && p.type !== "preview");
   const WIDE: [number, number] = [356, 178]; // mm — 2:1 cover/spread

@@ -123,7 +123,11 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
 
   // Board books (6×6) are spread-based: one wide illustration per open spread.
   // Softcover/Hardcover (8×8) are page-based: one square illustration per page.
-  const spreadBased = (generationContext?.bookFormat || "").startsWith("board");
+  // A genuine board book is 10 spreads; a "board" book carrying far more pages
+  // was mis-flagged (softcover/hardcover run 20/24 pages), so treat it as
+  // page-based (separate square pages) rather than wide spreads.
+  const storyCount = pages.filter((p) => p.type === "story" || !p.type).length;
+  const spreadBased = (generationContext?.bookFormat || "").startsWith("board") && storyCount <= 12;
 
   // Hide any legacy "back-cover" pages — the cover spread renders both sides.
   const displayPages = pages.filter((p) => p.type !== "back-cover");
@@ -463,6 +467,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             layout={layout}
             text={page.text || ""}
             containerRef={spreadRef}
+            rtl={isRtl}
             onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
             onTextChange={(t) => updatePage(page.id, { text: t })}
             onReset={() => updatePage(page.id, { textLayout: autoLayouts[page.id] })}
@@ -486,6 +491,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             layout={layout}
             text={combinedText}
             containerRef={spreadRef}
+            rtl={isRtl}
             onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
             onTextChange={(t) => updatePage(page.id, { text: t })}
             onReset={() => updatePage(page.id, { textLayout: makeQuestionsLayout(isRtl) })}

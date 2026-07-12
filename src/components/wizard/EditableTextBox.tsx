@@ -132,9 +132,12 @@ interface Props {
   /** Apply THIS box's styling (font, colours, outline, shadow, alignment — not
    *  its position) to every page's caption. Shown as the "Apply to all" button. */
   onDuplicate?: (l: TextLayout) => void;
+  /** The book's text direction. RTL (Hebrew/Yiddish) needs an explicit paragraph
+   *  direction so sentence-final punctuation (. , ? !) lands at the correct end. */
+  rtl?: boolean;
 }
 
-export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, onTextChange, onReset, onDuplicate }: Props) => {
+export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, onTextChange, onReset, onDuplicate, rtl = false }: Props) => {
   const boxRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -199,6 +202,7 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
     <>
       <div
         ref={boxRef}
+        dir={rtl ? "rtl" : "ltr"}
         onPointerDown={(e) => onPointerDown(e, "move")}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -243,6 +247,7 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
         {editing ? (
           <textarea
             autoFocus
+            dir={rtl ? "rtl" : "ltr"}
             value={text}
             onChange={(e) => onTextChange(e.target.value)}
             onBlur={() => setEditing(false)}
