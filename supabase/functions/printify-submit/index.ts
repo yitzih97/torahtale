@@ -129,14 +129,36 @@ serve(async (req) => {
       }
 
       // Idempotency: if this book already has a Printify order, don't place a
-      // second one (e.g. an admin double-clicking Approve). Return the existing.
+      // second one (e.g. an admin double-clicking Approve). BUT verify the order
+      // still exists first — an earlier attempt may have saved an id for an order
+      // that was later deleted (or never fully created), and a blind dedup would
+      // then block re-submission forever ("says confirmed, but nothing in
+      // Printify"). Only re-create when Printify says the order is truly gone
+      // (404); never on a transient/auth error, to avoid duplicate orders.
       if (book.printify_order_id) {
-        return new Response(JSON.stringify({
-          success: true,
-          productId: book.printify_product_id,
-          orderId: book.printify_order_id,
-          duplicate: true,
-        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        let orderStillExists = true;
+        try {
+          const checkRes = await fetch(
+            `${PRINTIFY_BASE}/shops/${shopId}/orders/${book.printify_order_id}.json`,
+            { headers: { Authorization: `Bearer ${PRINTIFY_API_KEY}` } },
+          );
+          if (checkRes.status === 404) orderStillExists = false;
+        } catch (_e) { /* transient — keep the id, treat as duplicate */ }
+
+        if (orderStillExists) {
+          return new Response(JSON.stringify({
+            success: true,
+            productId: book.printify_product_id,
+            orderId: book.printify_order_id,
+            duplicate: true,
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        console.warn(
+          `Printify order ${book.printify_order_id} for book ${bookId} not found (404) — clearing the stale id and re-creating.`,
+        );
+        await supabase.from("books")
+          .update({ printify_order_id: null, printify_product_id: null })
+          .eq("id", bookId);
       }
 
       const pages = (book.pages_data as any[]) || [];

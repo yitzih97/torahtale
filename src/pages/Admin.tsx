@@ -560,8 +560,11 @@ export default function Admin() {
           onClose={() => setGeneratingBook(null)}
           book={generatingBook}
           onBookUpdated={() => {
-            // Refresh book list
-            window.location.reload();
+            // Soft-refresh the list — a full window.location.reload() here wiped
+            // the Printify success/error toast before the admin could read it
+            // (approve calls this on BOTH success and failure), making a failed
+            // submit look like "nothing happened / no order".
+            queryClient.invalidateQueries({ queryKey: ["admin-books"] });
           }}
         />
       )}
