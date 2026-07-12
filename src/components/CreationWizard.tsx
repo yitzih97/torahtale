@@ -248,11 +248,46 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
   const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
 
-  // Keep story pageCount in sync with the chosen book format (board=10, softcover=20, hardcover=24)
+  // Keep story pageCount in sync with the chosen book format
+  // (board=10, softcover=20, hardcover=24, coloring=24)
   useEffect(() => {
     const target = getStoryPageCount(bookOptions);
     setData((d) => (d.pageCount === target ? d : { ...d, pageCount: target }));
   }, [bookOptions]);
+
+  // The book row is created at the step-9 login gate — one step BEFORE the
+  // product-type picker (step 10) — so it's inserted with the DEFAULT softcover
+  // options. Once the row exists, keep its stored bookOptions/pageCount in sync
+  // when the user actually picks a type; otherwise story_data (what the admin
+  // generation modal + downstream generation read) stays stuck on softcover.
+  useEffect(() => {
+    if (!user || !savedBookId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: row } = await supabase
+          .from("books")
+          .select("story_data, shipping_data")
+          .eq("id", savedBookId)
+          .maybeSingle();
+        if (cancelled || !row) return;
+        const sd = (row.story_data as any) || {};
+        const shp = (row.shipping_data as any) || {};
+        if (sd.bookOptions?.productType === bookOptions.productType && sd.pageCount === data.pageCount) return;
+        await supabase
+          .from("books")
+          .update({
+            story_data: { ...sd, bookOptions, pageCount: data.pageCount },
+            shipping_data: { ...shp, bookOptions },
+          } as any)
+          .eq("id", savedBookId);
+      } catch (e) {
+        console.warn("Failed to sync book options to the saved book:", e);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, savedBookId, bookOptions, data.pageCount]);
 
 
   

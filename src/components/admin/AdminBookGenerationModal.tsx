@@ -65,12 +65,16 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const childDescriptions: any[] = useMemo(() => sd.childDescriptions || [], [sd.childDescriptions]);
 
   const bookFormat = useMemo(() => {
-    const opts = sd.bookOptions || {};
+    // The product type can live in shipping_data (written at checkout) OR
+    // story_data (written at the step-9 insert). Prefer whichever actually
+    // carries a productType so a coloring/hardcover/board choice isn't lost.
+    const shipOpts = (book?.shipping_data as any)?.bookOptions;
+    const opts = (shipOpts?.productType ? shipOpts : sd.bookOptions) || {};
     return opts.productType === "hardcover"
       ? `hardcover-${opts.hardcoverSize || "8x8"}`
       : opts.productType === "board" ? "board-6x6"
       : opts.productType === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
-  }, [sd.bookOptions]);
+  }, [sd.bookOptions, book?.shipping_data]);
 
   // Persist pages to the books row (used by both auto-save and manual Save).
   const persistPages = useCallback(
