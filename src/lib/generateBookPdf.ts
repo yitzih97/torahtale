@@ -13,12 +13,37 @@ const SPREAD_W = 2400;
 const SPREAD_H = 1200;
 const HALF_W = SPREAD_W / 2;
 
+// Coloring book: 8.5×11 PORTRAIT line-art pages (ratio 8.5:11), at the same
+// ~150dpi logical scale as the other formats.
+const COLOR_W = 1275;
+const COLOR_H = 1650;
+
+/** Interior page layout for a book format:
+ *   • "spread"   — board (6×6): one wide 2:1 illustration per open spread.
+ *   • "portrait" — coloring (8.5×11): one tall line-art page.
+ *   • "square"   — softcover/hardcover (8×8): one square page.  */
+type LayoutMode = "spread" | "portrait" | "square";
+
 /** Board (6×6) prints as wide 2:1 spreads; softcover/hardcover (8×8) print as
- *  separate square pages. A "board" book with far more pages than the 10-spread
- *  blueprint holds was mis-flagged, so fall back to page-based square. */
+ *  separate square pages; coloring (8.5×11) prints as tall portrait pages. A
+ *  "board" book with far more pages than the 10-spread blueprint holds was
+ *  mis-flagged, so fall back to page-based square. */
 function isSpreadBased(bookFormat: string, pages: BookPage[]): boolean {
   const storyCount = pages.filter((p) => p.type === "story" || !p.type).length;
   return bookFormat.startsWith("board") && storyCount <= 12;
+}
+
+function layoutMode(bookFormat: string, pages: BookPage[]): LayoutMode {
+  if (isSpreadBased(bookFormat, pages)) return "spread";
+  if ((bookFormat || "").startsWith("coloring")) return "portrait";
+  return "square";
+}
+
+/** Interior canvas dimensions (logical px, before print scale) for a mode. */
+function interiorDims(mode: LayoutMode): [number, number] {
+  if (mode === "spread") return [SPREAD_W, SPREAD_H];
+  if (mode === "portrait") return [COLOR_W, COLOR_H];
+  return [SPREAD_H, SPREAD_H];
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -221,10 +246,9 @@ function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: 
   ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
 }
 
-async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, spreadBased: boolean, scale = 1, questionsText?: string): Promise<string> {
-  // Board: one illustration fills the 2:1 spread. 8×8: one square page image.
-  const W = spreadBased ? SPREAD_W : SPREAD_H; // square page = SPREAD_H × SPREAD_H
-  const H = SPREAD_H;
+async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, mode: LayoutMode, scale = 1, questionsText?: string): Promise<string> {
+  // Board: 2:1 spread. 8×8: square page. Coloring: 8.5×11 portrait page.
+  const [W, H] = interiorDims(mode);
 
   // `scale` renders at a higher backing resolution (used for print — the Printify
   // page slot is 2400², double our 1200 base) while keeping every coordinate/font
@@ -246,8 +270,11 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
     ctx.fillRect(0, 0, W, H);
   }
   if (!layout) layout = makeDefaultLayout(rtl ? "right" : "left", rtl);
+  // Coloring pages are line art on WHITE — the white caption default would be
+  // invisible, so force dark text with no shadow and a soft cream backing box.
+  if (mode === "portrait") layout = { ...layout, color: "#2b2418", shadow: false, background: true };
 
-  if (spreadBased) drawGutter(ctx, W, H);
+  if (mode === "spread") drawGutter(ctx, W, H);
   drawTextOverlay(ctx, page.text || "", layout, W, H, rtl);
 
   // The discussion questions ride at the bottom of the LAST story page (this
@@ -284,18 +311,17 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
-async function renderQuestionsSpread(page: BookPage, rtl: boolean, spreadBased: boolean, scale = 1): Promise<string> {
+async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutMode, scale = 1): Promise<string> {
   // The questions page sits on a clean, empty parchment page (no illustration)
   // so the discussion text is always easy to read.
   const layout = migrateLayout(page.textLayout) || makeQuestionsLayout(rtl);
-  const W = spreadBased ? SPREAD_W : SPREAD_H;
-  const H = SPREAD_H;
+  const [W, H] = interiorDims(mode);
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
   if (scale !== 1) ctx.scale(scale, scale);
   drawPaperFull(ctx, W, H);
-  if (spreadBased) drawGutter(ctx, W, H);
+  if (mode === "spread") drawGutter(ctx, W, H);
   const questions = page.questions || [];
   const formatted = page.text || questions.map((q) => `${q.number}. ${q.question}`).join("\n\n");
   drawTextOverlay(ctx, formatted, layout, W, H, rtl);
@@ -477,6 +503,57 @@ async function renderCoverSpread(
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
+/** Coloring-book cover: a single 8.5×11 PORTRAIT front cover — the line-art
+ *  cover image full-bleed with the book name + kids in white over a dark top
+ *  gradient. Coloring books aren't perfect-bound, so there's no wraparound
+ *  back/spine like the 8×8 books. */
+async function renderPortraitCover(
+  page: BookPage,
+  childName: string,
+  parashaLabel: string,
+  scale = 1,
+  lang: "en" | "he" | "yi" = "en",
+): Promise<string> {
+  const W = COLOR_W, H = COLOR_H;
+  const canvas = document.createElement("canvas");
+  canvas.width = W * scale; canvas.height = H * scale;
+  const ctx = canvas.getContext("2d")!;
+  if (scale !== 1) ctx.scale(scale, scale);
+  const rtl = lang !== "en";
+
+  const img = await safeLoad(page.image);
+  if (img) drawFullImage(ctx, img, W, H);
+  else { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H); }
+
+  const bandH = H * 0.22;
+  const g = ctx.createLinearGradient(0, 0, 0, bandH);
+  g.addColorStop(0, "rgba(0,0,0,0.55)");
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, bandH);
+
+  const frontTitle = page.coverTitle?.trim() || parashaLabel;
+  const frontSub = page.coverSubtitle?.trim() || childName;
+  ctx.save();
+  ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  const titleSize = Math.round(W * 0.075);
+  ctx.font = `800 ${titleSize}px 'Inter', sans-serif`;
+  const titleLines = wrapLines(ctx, frontTitle, W - 90);
+  titleLines.forEach((line, i) => ctx.fillText(line, W / 2, 50 + i * (titleSize * 1.15)));
+  if (frontSub) {
+    const subSize = Math.round(W * 0.045);
+    ctx.font = `500 ${subSize}px 'Inter', sans-serif`;
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.fillText(frontSub, W / 2, 50 + titleLines.length * (titleSize * 1.15) + 14);
+  }
+  ctx.restore();
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
+
 /**
  * Composite the print-ready images for Printify, in the exact order of the
  * blueprint's print placeholders: [cover-wrap, page_1, page_2, …]. These are
@@ -508,7 +585,7 @@ export async function renderPrintImages(
   lang: "en" | "he" | "yi" = "en",
 ): Promise<string[]> {
   const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
-  const spreadBased = isSpreadBased(bookFormat, pages);
+  const mode = layoutMode(bookFormat, pages);
   // Render at 2× our 1200-based canvas so the output matches the Printify print
   // slots natively (pages 2400², cover ~4800×2400) instead of letting Printify
   // upscale a 1200px image — text and the cover wrap come out crisp (~300 DPI).
@@ -516,7 +593,9 @@ export async function renderPrintImages(
   const out: string[] = [];
   const cover = pages.find((p) => p.type === "cover");
   const previews = backCoverPreviews(pages, lang);
-  if (cover) out.push(await renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews, lang));
+  if (cover) out.push(await (mode === "portrait"
+    ? renderPortraitCover(cover, childName, parashaLabel, PRINT_SCALE, lang)
+    : renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews, lang)));
 
   // The questions page has no print slot on these blueprints, so its content is
   // composited onto the bottom of the last story page instead of being dropped.
@@ -527,7 +606,7 @@ export async function renderPrintImages(
   const stories = pages.filter((p) => p.type === "story" || !p.type);
   for (let i = 0; i < stories.length; i++) {
     const isLast = i === stories.length - 1;
-    out.push(await renderStorySpread(stories[i], i, rtl, spreadBased, PRINT_SCALE, isLast ? questionsText : undefined));
+    out.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE, isLast ? questionsText : undefined));
   }
   return out;
 }
@@ -543,30 +622,39 @@ export async function generateBookPdf(
   // Cover text: Parasha name is the hero (big), kids are the co-stars (small),
   // mirroring the on-screen BookViewer.
   const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
-  // Board (6×6) is spread-based → wide 2:1 interior pages. Softcover/Hardcover
-  // (8×8) are page-based → square interior pages. The cover wrap is always wide.
-  const spreadBased = isSpreadBased(bookFormat, pages);
+  // Board (6×6) → wide 2:1 spreads. Softcover/Hardcover (8×8) → square pages.
+  // Coloring (8.5×11) → tall portrait line-art pages with a portrait front cover.
+  const mode = layoutMode(bookFormat, pages);
   const pdfPreviews = backCoverPreviews(pages, lang);
   const renderable = pages.filter((p) => p.type !== "back-cover" && p.type !== "preview");
   const WIDE: [number, number] = [356, 178]; // mm — 2:1 cover/spread
   const SQUARE: [number, number] = [178, 178]; // mm — single 8×8 page
-  const interior: [number, number] = spreadBased ? WIDE : SQUARE;
+  const LETTER: [number, number] = [215.9, 279.4]; // mm — 8.5×11 portrait coloring page
+  const interior: [number, number] = mode === "spread" ? WIDE : mode === "portrait" ? LETTER : SQUARE;
+  // Bound 8×8/board books have a wide wraparound cover; the coloring book has a
+  // single portrait front cover the same size as its pages.
+  const coverFmt: [number, number] = mode === "portrait" ? LETTER : WIDE;
 
-  // First page (cover) is always wide; initialise the doc to it.
-  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: WIDE });
+  const pdf = new jsPDF({
+    orientation: coverFmt[0] >= coverFmt[1] ? "landscape" : "portrait",
+    unit: "mm",
+    format: coverFmt,
+  });
 
   let storyIdx = 0;
   for (let i = 0; i < renderable.length; i++) {
     const page = renderable[i];
-    const fmt: [number, number] = page.type === "cover" ? WIDE : interior;
+    const fmt: [number, number] = page.type === "cover" ? coverFmt : interior;
     if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
     let dataUrl: string;
     if (page.type === "cover") {
-      dataUrl = await renderCoverSpread(page, childName, parashaLabel, 1, bookFormat, pdfPreviews, lang);
+      dataUrl = mode === "portrait"
+        ? await renderPortraitCover(page, childName, parashaLabel, 1, lang)
+        : await renderCoverSpread(page, childName, parashaLabel, 1, bookFormat, pdfPreviews, lang);
     } else if (page.type === "questions") {
-      dataUrl = await renderQuestionsSpread(page, rtl, spreadBased);
+      dataUrl = await renderQuestionsSpread(page, rtl, mode);
     } else {
-      dataUrl = await renderStorySpread(page, storyIdx, rtl, spreadBased);
+      dataUrl = await renderStorySpread(page, storyIdx, rtl, mode);
       storyIdx += 1;
     }
     try {

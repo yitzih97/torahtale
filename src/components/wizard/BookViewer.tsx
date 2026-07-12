@@ -128,6 +128,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   // page-based (separate square pages) rather than wide spreads.
   const storyCount = pages.filter((p) => p.type === "story" || !p.type).length;
   const spreadBased = (generationContext?.bookFormat || "").startsWith("board") && storyCount <= 12;
+  // Coloring book (8.5×11): tall portrait line-art pages + a portrait front
+  // cover (no wraparound back/spine like the bound 8×8 books).
+  const isColoring = (generationContext?.bookFormat || "").startsWith("coloring");
 
   // Hide any legacy "back-cover" pages — the cover spread renders both sides.
   const displayPages = pages.filter((p) => p.type !== "back-cover");
@@ -289,7 +292,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   };
 
   const getPageLabel = () => {
-    if (pageType === "cover") return "Cover (Back · Front)";
+    if (pageType === "cover") return isColoring ? "Front Cover" : "Cover (Back · Front)";
     if (pageType === "questions") return "Discussion Page";
     if (pageType === "preview") return `Back-cover teaser · ${getPortionDisplay(page?.portion || "", lang) || page?.portion || ""}`;
     const storyPages = displayPages.filter((p) => p.type === "story");
@@ -352,6 +355,32 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   // Spine label — the localized Parasha name + kids' names, printed down the
   // book's edge (mirrors the front cover, so it follows the book's language).
   const spineLabel = `${parashaName}${childName ? `  ${childName}` : ""}`;
+
+  // Coloring-book cover: a single 8.5×11 portrait front cover (line-art image +
+  // title band), matching the print output — no wraparound back/spine.
+  const renderColoringCover = () => {
+    const frontTitle = page?.coverTitle?.trim() || parashaName;
+    const frontSubtitle = page?.coverSubtitle?.trim() || childName;
+    return (
+      <div className="absolute inset-0 bg-white">
+        {page?.image ? (
+          <img src={page.image} alt={page.coverTitle || ""} className="absolute inset-0 w-full h-full object-cover" />
+        ) : page?.imageLoading ? (
+          <BookLoadingSkeleton type="cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="w-10 h-10 text-muted-foreground" /></div>
+        )}
+        <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-12 bg-gradient-to-b from-black/55 via-black/25 to-transparent text-center" dir={dir}>
+          <h1 className="font-extrabold text-white leading-[1.05] text-2xl sm:text-4xl tracking-tight" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>
+            {frontTitle}
+          </h1>
+          {frontSubtitle && (
+            <p className="mt-1.5 text-white/90 text-sm sm:text-lg" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{frontSubtitle}</p>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const renderCoverSpread = () => {
     // Front cover text defaults to the localized parsha name + kids, but an admin
@@ -427,7 +456,10 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   const renderStorySpread = () => {
     // Text precedence: the admin's manual placement wins; otherwise the layout
     // auto-computed from the illustration's clear space; otherwise the default.
-    const layout = migrateLayout(page?.textLayout) || (page ? autoLayouts[page.id] : undefined) || makeDefaultLayout(defaultTextSide, isRtl);
+    let layout = migrateLayout(page?.textLayout) || (page ? autoLayouts[page.id] : undefined) || makeDefaultLayout(defaultTextSide, isRtl);
+    // Coloring pages are line art on WHITE — the white caption default would be
+    // invisible, so force dark text with a soft cream backing box.
+    if (isColoring) layout = { ...layout, color: "#2b2418", shadow: false, background: true };
     return (
       <div className="absolute inset-0 bg-muted">
         {page?.image ? (
@@ -535,20 +567,22 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   return (
     <div className="space-y-4">
       {/* Page/Spread frame — wide (2:1) for the cover wrap and board spreads;
-          square for page-based 8×8 single pages. */}
+          tall (8.5:11) for coloring pages; square for page-based 8×8 pages. */}
       <div
         ref={spreadRef}
         className={`relative w-full rounded-book overflow-hidden bg-secondary shadow-soft-lg ${
-          pageType === "cover" || spreadBased ? "aspect-[2/1]" : "aspect-square"
+          isColoring ? "aspect-[85/110]"
+            : pageType === "cover" || spreadBased ? "aspect-[2/1]"
+            : "aspect-square"
         }`}
       >
-        {pageType === "cover" && renderCoverSpread()}
+        {pageType === "cover" && (isColoring ? renderColoringCover() : renderCoverSpread())}
         {pageType === "story" && renderStorySpread()}
         {pageType === "questions" && renderQuestionsSpread()}
         {pageType === "preview" && renderPreview()}
 
         {/* Center gutter — only on the cover wrap and board two-page spreads */}
-        {(pageType === "cover" || spreadBased) && (
+        {((pageType === "cover" && !isColoring) || spreadBased) && (
           <div className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 w-2 bg-gradient-to-r from-black/0 via-black/40 to-black/0" />
         )}
 
