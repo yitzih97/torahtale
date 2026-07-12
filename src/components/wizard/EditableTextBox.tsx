@@ -24,6 +24,9 @@ export interface TextLayout {
   borderColor?: string;
   /** Drop a soft shadow behind the text for extra pop / readability. */
   shadow?: boolean;
+  /** Line spacing multiplier (defaults to 1.5). Higher = airier — used to make
+   *  the discussion-questions page more readable and fill the page. */
+  lineHeight?: number;
 }
 
 export const DEFAULT_FONT_FAMILY = "'Inter', system-ui, sans-serif";
@@ -107,13 +110,15 @@ export function makeQuestionsLayout(rtl = false): TextLayout {
   return {
     ...DEFAULT_TEXT_LAYOUT,
     x: 10,
-    y: 10,
+    y: 8,
     width: 80,
     align: rtl ? "right" : "left",
     // The questions page is a clean cream parchment (no illustration), so the
     // white caption default would be invisible — keep it dark with no shadow.
     color: "#2b2418",
     shadow: false,
+    // Airier line spacing so the questions breathe and fill the whole page.
+    lineHeight: 2.3,
   };
 }
 
@@ -210,7 +215,7 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
           textAlign: layout.align,
           fontWeight,
           fontStyle,
-          lineHeight: 1.5,
+          lineHeight: layout.lineHeight ?? 1.5,
           padding: layout.background || layout.border ? "14px 18px" : "4px 6px",
           background: layout.background ? "rgba(252, 247, 236, 0.94)" : "transparent",
           borderRadius: 14,
@@ -251,6 +256,7 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
               outline: "none",
               resize: "vertical",
               font: "inherit",
+              lineHeight: "inherit",
               color: "inherit",
               textAlign: layout.align,
             }}

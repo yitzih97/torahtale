@@ -63,6 +63,18 @@ export const COVER_TAGLINE_BY_LANG: Record<"en" | "he" | "yi", string[]> = {
 export const getCoverTagline = (lang: "en" | "he" | "yi"): string[] =>
   COVER_TAGLINE_BY_LANG[lang] || COVER_TAGLINE;
 
+/** Cover text styling — the book name + kids render in Inter, white, with a soft
+ *  drop shadow (matching the story captions) over the illustration. */
+export const COVER_FONT = "'Inter', system-ui, sans-serif";
+export const COVER_TEXT_SHADOW = "0 2px 8px rgba(0,0,0,0.6)";
+
+/** "Coming next" heading above the back-cover teasers, per book language. */
+export const COMING_NEXT_LABEL: Record<"en" | "he" | "yi", string> = {
+  en: "Coming next",
+  he: "בקרוב",
+  yi: "קומט נאכדעם",
+};
+
 interface Props {
   childName: string;
   torahPortion: string;
@@ -115,6 +127,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
 
   // Hide any legacy "back-cover" pages — the cover spread renders both sides.
   const displayPages = pages.filter((p) => p.type !== "back-cover");
+  // The "coming next" teasers, shown as editable mini-covers ON the back cover
+  // (and still navigable as their own pages for full editing).
+  const previewPages = pages.filter((p) => p.type === "preview");
 
   const [currentPage, setCurrentPage] = useState(0);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -174,10 +189,12 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
 
   const startCoverEdit = () => {
     if (!page) return;
-    setCoverTitleDraft(page.coverTitle || "");
-    setCoverSubtitleDraft(page.coverSubtitle || "");
+    // Pre-fill with what's actually shown (localized parsha name + kids) so the
+    // admin edits from the visible text rather than a blank field.
+    setCoverTitleDraft(page.coverTitle?.trim() || parashaName);
+    setCoverSubtitleDraft(page.coverSubtitle?.trim() || childName);
     setBackTextDraft(
-      page.backCoverText && page.backCoverText.trim() ? page.backCoverText : COVER_TAGLINE.join("\n"),
+      page.backCoverText && page.backCoverText.trim() ? page.backCoverText : getCoverTagline(lang).join("\n"),
     );
     setCoverEditOpen(true);
   };
@@ -202,28 +219,37 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
       "3d-pixar": "3D Pixar-style CGI render, warm lighting",
       "graphic-novel": "graphic novel, bold ink lines, flat colors",
     };
+    const previewPortion = page.type === "preview" ? (getPortionDisplay(page.portion || "", lang) || page.portion || "") : "";
     const desc = page.type === "cover"
       ? `Book cover for "${page.coverTitle}". ${page.coverSubtitle || ""}`
-      : page.text;
-    const defaultPrompt = `A beautiful children's book illustration that fills a 2:1 landscape spread. ${desc}. Characters: children named ${childName}. Torah story: ${torahPortion}. Style: ${styleMap[artStyle] || styleMap.cartoon}. Composition: subject centered, with breathing room on both halves so text can sit over one side. Safe for children, warm magical atmosphere, vibrant colors.`;
+      : page.type === "preview"
+        ? `Front cover for ${previewPortion}`
+        : page.text;
+    const storyRef = page.type === "preview" ? previewPortion : torahPortion;
+    const defaultPrompt = `A beautiful children's book illustration that fills a 2:1 landscape spread. ${desc}. Characters: children named ${childName}. Torah story: ${storyRef}. Style: ${styleMap[artStyle] || styleMap.cartoon}. Composition: subject centered, with breathing room on both halves so text can sit over one side. Safe for children, warm magical atmosphere, vibrant colors.`;
     setCustomPrompt(defaultPrompt);
     setShowPromptEditor(true);
   };
 
-  const regenImage = async (prompt?: string) => {
-    if (!page) return;
-    setRegeneratingId(page.id);
+  const regenImage = async (prompt?: string, target?: BookPage) => {
+    const tgt = target || page;
+    if (!tgt) return;
+    setRegeneratingId(tgt.id);
     setShowPromptEditor(false);
     try {
       const finalPrompt = prompt || customPrompt;
-      const targetType = page.type || "story";
+      // A "preview" teaser is a cover for a DIFFERENT (upcoming) parsha — render it
+      // as a cover for that portion, without this story's recurring characters.
+      const isPreview = tgt.type === "preview";
+      const targetType = isPreview ? "cover" : (tgt.type || "story");
+      const effPortion = isPreview ? (tgt.portion || torahPortion) : torahPortion;
       const storyPages = pages.filter((p) => p.type === "story");
-      const pageNumber = targetType === "story" ? storyPages.findIndex((p) => p.id === page.id) + 1 : undefined;
+      const pageNumber = tgt.type === "story" ? storyPages.findIndex((p) => p.id === tgt.id) + 1 : undefined;
       // Recurring Torah characters named on this page (all on the cover) — pass
       // their fixed descriptions + sheets so a single-page regen keeps them
       // looking the same as the rest of the book.
-      const pageTextLc = String(page.text || "").toLowerCase();
-      const storyCharacterRefs = (generationContext?.storyCharacters || [])
+      const pageTextLc = String(tgt.text || "").toLowerCase();
+      const storyCharacterRefs = isPreview ? [] : (generationContext?.storyCharacters || [])
         .filter((ch) => ch?.name && (targetType === "cover" || pageTextLc.includes(ch.name.toLowerCase())))
         .map((ch) => ({ name: ch.name, description: ch.description || "", sheet: ch.sheet || null }));
       const { data, error } = await supabase.functions.invoke("generate-image", {
@@ -233,11 +259,11 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             : undefined,
           childName,
           artStyle,
-          torahPortion,
+          torahPortion: effPortion,
           bookFormat: generationContext?.bookFormat,
           pageType: targetType,
           pageNumber,
-          pageText: page.text,
+          pageText: tgt.text,
           childDescription: generationContext?.childDescription,
           referenceImage: generationContext?.referenceImage,
           characterSheet: generationContext?.characterSheet,
@@ -248,7 +274,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      updatePage(page.id, { image: data.imageUrl });
+      updatePage(tgt.id, { image: data.imageUrl });
       toast.success("Image regenerated!");
     } catch (err: any) {
       console.error("Image regen failed:", err);
@@ -272,24 +298,88 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
 
   /* ── Renderers ───────────────────────────────────────────────────── */
 
+  // One "coming next" teaser, styled like a miniature front cover (illustration
+  // + localized parsha name + kids). In editable mode each can be regenerated in
+  // place, or opened as its own page for a full Custom-Prompt edit.
+  const renderMiniCover = (pv: BookPage) => {
+    const pvLabel = getPortionDisplay(pv.portion || "", lang) || pv.portion || "";
+    const pvIdx = displayPages.findIndex((p) => p.id === pv.id);
+    const regenning = regeneratingId === pv.id;
+    return (
+      <button
+        key={pv.id}
+        type="button"
+        onClick={() => { if (editable && pvIdx >= 0) setCurrentPage(pvIdx); }}
+        title={editable ? `Open & edit — ${pvLabel}` : pvLabel}
+        className={`group relative block aspect-square w-full overflow-hidden rounded-md bg-muted shadow-soft-sm ring-1 ring-black/10 ${editable ? "cursor-pointer" : "cursor-default"}`}
+      >
+        {pv.image ? (
+          <img src={pv.image} alt={pvLabel} crossOrigin="anonymous" className="absolute inset-0 h-full w-full object-cover" />
+        ) : pv.imageLoading ? (
+          <BookLoadingSkeleton type="story" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="h-4 w-4 text-muted-foreground" /></div>
+        )}
+        {/* Mini front-cover text band */}
+        <div className="absolute inset-x-0 top-0 px-0.5 pb-2 pt-0.5 bg-gradient-to-b from-black/65 to-transparent text-center" dir={dir}>
+          <p className="font-extrabold leading-tight text-white text-[6px] sm:text-[8px]" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{pvLabel}</p>
+          {childName && (
+            <p className="leading-tight text-white/85 text-[5px] sm:text-[6px]" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{childName}</p>
+          )}
+        </div>
+        {regenning && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/45"><RefreshCw className="h-3.5 w-3.5 animate-spin text-white" /></div>
+        )}
+        {editable && !regenning && (
+          <span
+            role="button"
+            tabIndex={-1}
+            onClick={(e) => { e.stopPropagation(); if (regeneratingId === null) regenImage(undefined, pv); }}
+            title="Regenerate this teaser"
+            className="absolute bottom-0.5 right-0.5 flex items-center justify-center rounded-full bg-black/65 p-0.5 text-white opacity-0 transition-opacity hover:bg-black/85 group-hover:opacity-100"
+          >
+            <RefreshCw className="h-2.5 w-2.5" />
+          </span>
+        )}
+      </button>
+    );
+  };
+
   // Spine label — the localized Parasha name + kids' names, printed down the
   // book's edge (mirrors the front cover, so it follows the book's language).
   const spineLabel = `${parashaName}${childName ? `  ${childName}` : ""}`;
 
-  const renderCoverSpread = () => (
+  const renderCoverSpread = () => {
+    // Front cover text defaults to the localized parsha name + kids, but an admin
+    // edit (coverTitle/coverSubtitle) overrides it.
+    const frontTitle = page?.coverTitle?.trim() || parashaName;
+    const frontSubtitle = page?.coverSubtitle?.trim() || childName;
+    return (
     <div className="absolute inset-0 grid grid-cols-2">
-      {/* Back cover — left: brand logo, a subscribe invitation, and the site URL. */}
-      <div className="relative flex flex-col items-center justify-between p-6 sm:p-8 text-center bg-[hsl(42_50%_94%)]">
+      {/* Back cover — left: brand logo, the 4 "coming next" teaser mini-covers,
+          a subscribe invitation, and the site URL. */}
+      <div className="relative flex flex-col items-center justify-between gap-2 p-3 sm:p-5 text-center bg-[hsl(42_50%_94%)]">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
-        <div className="relative pt-2">
-          <BrandMark stacked iconClassName="h-12 w-12" wordmarkClassName="h-7" />
+        <div className="relative pt-1">
+          <BrandMark stacked iconClassName="h-9 w-9 sm:h-11 sm:w-11" wordmarkClassName="h-5 sm:h-6" />
         </div>
-        <div className="relative font-body italic text-primary/80 leading-relaxed space-y-1 text-base sm:text-lg whitespace-pre-line" dir={dir}>
+
+        {/* "Coming next" teaser mini-covers (each looks like a front cover). */}
+        {previewPages.length > 0 && (
+          <div className="relative w-full">
+            <p className="mb-1 text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/60">{COMING_NEXT_LABEL[lang]}</p>
+            <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
+              {previewPages.slice(0, 4).map((pv) => renderMiniCover(pv))}
+            </div>
+          </div>
+        )}
+
+        <div className="relative font-body italic text-primary/80 leading-snug space-y-0.5 text-xs sm:text-sm whitespace-pre-line" dir={dir}>
           {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : getCoverTagline(lang))).map((line, i) => (
             <p key={i}>{line}</p>
           ))}
         </div>
-        <p className="relative font-mono text-xs tracking-[0.2em] text-gold uppercase">{COVER_URL}</p>
+        <p className="relative font-mono text-[10px] sm:text-xs tracking-[0.2em] text-gold uppercase">{COVER_URL}</p>
       </div>
 
       {/* Front cover — right */}
@@ -303,12 +393,12 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             <BookOpen className="w-10 h-10 text-muted-foreground" />
           </div>
         )}
-        <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-10 bg-gradient-to-b from-white/90 via-white/60 to-transparent text-center" dir={dir}>
-          <h1 className="font-display font-extrabold text-primary leading-[1.05] text-2xl sm:text-4xl tracking-tight">
-            {parashaName}
+        <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-12 bg-gradient-to-b from-black/55 via-black/25 to-transparent text-center" dir={dir}>
+          <h1 className="font-extrabold text-white leading-[1.05] text-2xl sm:text-4xl tracking-tight" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>
+            {frontTitle}
           </h1>
-          {childName && (
-            <p className="mt-1.5 font-body italic text-gold text-sm sm:text-base">{childName}</p>
+          {frontSubtitle && (
+            <p className="mt-1.5 text-white/90 text-sm sm:text-lg" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{frontSubtitle}</p>
           )}
         </div>
       </div>
@@ -327,7 +417,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         </span>
       </div>
     </div>
-  );
+    );
+  };
 
   const renderStorySpread = () => {
     // Text precedence: the admin's manual placement wins; otherwise the layout
@@ -417,9 +508,18 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         ) : (
           <BookLoadingSkeleton type="story" />
         )}
-        <div className="absolute inset-x-0 top-0 flex justify-center p-2">
-          <span className="rounded-full bg-black/55 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-            Coming next: {label}
+        {/* Front-cover-style title band (matches the real front cover). */}
+        <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-12 bg-gradient-to-b from-black/55 via-black/25 to-transparent text-center" dir={dir}>
+          <h1 className="font-extrabold text-white leading-[1.05] text-2xl sm:text-4xl tracking-tight" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>
+            {label}
+          </h1>
+          {childName && (
+            <p className="mt-1.5 text-white/90 text-sm sm:text-lg" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{childName}</p>
+          )}
+        </div>
+        <div className="absolute inset-x-0 bottom-0 flex justify-center p-2">
+          <span className="rounded-full bg-black/55 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur">
+            {COMING_NEXT_LABEL[lang]}
           </span>
         </div>
       </div>

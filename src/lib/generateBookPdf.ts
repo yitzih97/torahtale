@@ -104,7 +104,7 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   const padY = (hasPad ? 14 : 4) * scale;
   const maxTextW = boxW - padX * 2;
   const lines = wrapLines(ctx, text, maxTextW);
-  const lineHeight = fontSize * 1.5;
+  const lineHeight = fontSize * (layout.lineHeight ?? 1.5);
   const textH = lines.length * lineHeight;
   const boxH = textH + padY * 2;
 
@@ -347,6 +347,29 @@ async function renderCoverSpread(
     roundedRect(ctx, tx, rowY, thumb, thumb, 12); ctx.fill();
     const pimg = previewImgs[i];
     if (pimg) drawImageInRect(ctx, pimg, tx, rowY, thumb, thumb, 12);
+    // Mini front-cover text (localized parsha name + kids), matching the
+    // on-screen teaser — white Inter with a soft shadow over a top gradient.
+    const pv = previews[i];
+    if (pv?.label) {
+      ctx.save();
+      roundedRect(ctx, tx, rowY, thumb, thumb, 12); ctx.clip();
+      const bandH = thumb * 0.44;
+      const g = ctx.createLinearGradient(tx, rowY, tx, rowY + bandH);
+      g.addColorStop(0, "rgba(0,0,0,0.62)"); g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g; ctx.fillRect(tx, rowY, thumb, bandH);
+      ctx.textAlign = "center"; ctx.textBaseline = "top";
+      ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `700 22px 'Inter', sans-serif`;
+      const lbl = wrapLines(ctx, pv.label, thumb - 16).slice(0, 2);
+      lbl.forEach((ln, li) => ctx.fillText(ln, tx + thumb / 2, rowY + 8 + li * 26));
+      if (childName) {
+        ctx.font = `500 16px 'Inter', sans-serif`;
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.fillText(childName, tx + thumb / 2, rowY + 10 + lbl.length * 26);
+      }
+      ctx.restore();
+    }
     ctx.strokeStyle = "rgba(0,0,0,0.30)"; ctx.lineWidth = 2;
     roundedRect(ctx, tx, rowY, thumb, thumb, 12); ctx.stroke();
   }
@@ -376,24 +399,31 @@ async function renderCoverSpread(
     ctx.fillStyle = "#dcd2bd";
     ctx.fillRect(HALF_W, 0, HALF_W, SPREAD_H);
   }
-  const bandH = SPREAD_H * 0.28;
+  // Book name (big) + kids (small) in white Inter with a soft shadow, over a
+  // dark top gradient — mirrors the on-screen front cover.
+  const bandH = SPREAD_H * 0.30;
   const bandGrad = ctx.createLinearGradient(HALF_W, 0, HALF_W, bandH);
-  bandGrad.addColorStop(0, "rgba(255,255,255,0.94)");
-  bandGrad.addColorStop(1, "rgba(255,255,255,0)");
+  bandGrad.addColorStop(0, "rgba(0,0,0,0.55)");
+  bandGrad.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = bandGrad;
   ctx.fillRect(HALF_W, 0, HALF_W, bandH);
 
-  ctx.fillStyle = "#2b2418";
-  ctx.font = `bold 82px 'Playfair Display', serif`;
+  const frontTitle = page.coverTitle?.trim() || parashaLabel;
+  const frontSub = page.coverSubtitle?.trim() || childName;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `800 82px 'Inter', sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  const titleLines = wrapLines(ctx, parashaLabel, HALF_W - 120);
+  const titleLines = wrapLines(ctx, frontTitle, HALF_W - 120);
   titleLines.forEach((line, i) => ctx.fillText(line, HALF_W + HALF_W / 2, 70 + i * 92));
-  if (childName) {
-    ctx.fillStyle = "#b88a2a";
-    ctx.font = `italic 46px ${BOOK_TEXT_STYLE.fontFamily}`;
-    ctx.fillText(childName, HALF_W + HALF_W / 2, 70 + titleLines.length * 92 + 22);
+  if (frontSub) {
+    ctx.font = `500 46px 'Inter', sans-serif`;
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.fillText(frontSub, HALF_W + HALF_W / 2, 70 + titleLines.length * 92 + 22);
   }
+  ctx.restore();
   drawGutter(ctx, SPREAD_W, SPREAD_H);
 
   // ── SPINE — width tracks the physical book thickness so the fold lands right:
