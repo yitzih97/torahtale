@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
+import { generateId } from "@/lib/utils";
 
 /* ── preset images ── */
 import presetBoyCartoon from "@/assets/presets/boy-cartoon.jpg";
@@ -157,7 +158,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
     setUploading(true);
     try {
       const ext = photoFile.name.split(".").pop() || "jpg";
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const path = `${user.id}/${generateId()}.${ext}`;
       const { error } = await supabase.storage.from("child-photos").upload(path, photoFile);
       if (error) throw error;
       const { data: signed } = await supabase.storage.from("child-photos").createSignedUrl(path, 60 * 60 * 24 * 365);
