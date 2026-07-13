@@ -230,7 +230,14 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       if (storyErr) throw storyErr;
       if (abortRef.current) return null;
 
-      setStoryData(storyResult);
+      // Merge onto the existing story_data instead of replacing it. generate-story
+      // only returns the story (cover/pages/characters/backCover) — it does NOT
+      // return the book "recipe" fields (childDescriptions, childrenInfo,
+      // bookOptions, pageCount). Replacing wholesale dropped childDescriptions on
+      // every regenerate, which then left illustration with no per-child reference
+      // and printed generic kids instead of the real ones. Spread sd first so those
+      // recipe fields (and the reused character sheets) survive.
+      setStoryData({ ...sd, ...storyResult });
       storyCharactersRef.current = Array.isArray(storyResult.characters) ? storyResult.characters : [];
       const cover = storyResult.cover || { title: `${book.child_name}'s Torah Adventure`, subtitle: "" };
       const questions = storyResult.backCover?.questions || storyResult.questions || [];
@@ -271,7 +278,18 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
   const buildImageBody = useCallback((pg: BookPage, pageNumber?: number) => {
     const characterSheetsMap = { ...characterSheetsRef.current };
-    const childRefs = childDescriptions.map((c: any) => ({
+    // Effective child references. Normally these come from childDescriptions, but
+    // if that list is missing (an older book, or one whose recipe was dropped by a
+    // past regenerate) fall back to the character-sheet names so the saved sheets
+    // are still applied to every page — otherwise the sheet lookup below misses
+    // (it would key on the combined "Adina & Ari" instead of "Ari"/"Adina") and
+    // the pages print generic kids that ignore the real likenesses.
+    const effectiveChildren: any[] = childDescriptions.length
+      ? childDescriptions
+      : Object.keys(characterSheetsRef.current || {}).map((name) => ({
+          name, age: undefined, gender: undefined, description: "", photoUrl: null,
+        }));
+    const childRefs = effectiveChildren.map((c: any) => ({
       name: c.name,
       age: c.age,
       gender: c.gender,
@@ -279,7 +297,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       photoUrl: c.photoUrl || null,
       characterSheet: characterSheetsRef.current[c.name] || null,
     }));
-    const primaryChildName = childDescriptions[0]?.name || book.child_name;
+    const primaryChildName = effectiveChildren[0]?.name || book.child_name;
     // A "preview" page is a cover-style teaser for a DIFFERENT (upcoming) parsha,
     // still starring these kids — so it uses that portion + a "cover" pageType and
     // drops this story's recurring characters.
@@ -297,8 +315,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       pageType: isPreview ? "cover" : pg.type,
       pageNumber: isPreview ? undefined : pageNumber,
       characterSheet: characterSheetsRef.current[primaryChildName] || null,
-      referenceImage: childDescriptions[0]?.photoUrl || null,
-      childDescription: childDescriptions[0]?.description || "",
+      referenceImage: effectiveChildren[0]?.photoUrl || null,
+      childDescription: effectiveChildren[0]?.description || "",
       characterSheets: characterSheetsMap,
       childRefs,
       storyCharacterRefs,

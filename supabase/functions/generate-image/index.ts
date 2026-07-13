@@ -366,11 +366,19 @@ serve(async (req) => {
     // (previously only the primary photo was sent, so secondary children drifted).
     // The character sheet is a lossy gpt-image reinterpretation, so the real photo
     // takes priority whenever both exist.
-    const refChildren: any[] = childRefsList.length > 0
-      ? childRefsList
-      : [{ name: childName, photoUrl: null, characterSheet }];
     const sheetMap: Record<string, string> = (characterSheets && typeof characterSheets === "object")
       ? (characterSheets as Record<string, string>) : {};
+    // Prefer the explicit per-child refs from the client. If none were sent but we
+    // DO have character sheets, rebuild the refs from the sheet names so the saved
+    // likenesses still anchor every page — otherwise the single fallback below
+    // keys the sheet on the combined childName ("Adina & Ari") and finds nothing,
+    // printing generic kids. Last resort: a single nameless child.
+    const sheetNames = Object.keys(sheetMap);
+    const refChildren: any[] = childRefsList.length > 0
+      ? childRefsList
+      : sheetNames.length > 0
+        ? sheetNames.map((name) => ({ name, photoUrl: null, characterSheet: sheetMap[name] }))
+        : [{ name: childName, photoUrl: null, characterSheet }];
     const refItems: { name: string; src: string; isPhoto: boolean }[] = [];
     for (const c of refChildren) {
       const isSingle = refChildren.length === 1;
