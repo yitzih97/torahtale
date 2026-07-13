@@ -13,11 +13,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
+import imgChumash from "@/assets/collections/chumash.webp";
+import imgNeviim from "@/assets/collections/neviim.webp";
+import imgKesuvim from "@/assets/collections/kesuvim.webp";
+import imgMegillos from "@/assets/collections/megillos.webp";
+import imgYamimTovim from "@/assets/collections/yamim-tovim.webp";
+import imgMiddos from "@/assets/collections/middos.webp";
+import imgComplete from "@/assets/collections/complete.webp";
+
 const ease = [0.16, 1, 0.3, 1] as const;
 
 interface Collection {
   key: string;
   icon: LucideIcon;
+  image: string;
   name: string;
   blurb: string;
   books: string;
@@ -28,14 +37,15 @@ interface Collection {
 
 // Mock bundle catalog — front-end only for now (no live checkout). Requests are
 // sent to the admin as messages so pricing/fulfilment can be handled by hand.
+// Book counts match the story catalog (TorahPortions by category).
 const COLLECTIONS: Collection[] = [
-  { key: "chumash", icon: BookOpen, name: "The Chumash Collection", blurb: "Every weekly parsha across all five Chumashim — Bereishis through Devarim — a full year of personalized parsha storybooks.", books: "54 books", priceUsd: 349, priceIls: 1290 },
-  { key: "neviim", icon: Landmark, name: "The Nevi'im Collection", blurb: "The heroes and prophets of Tanach — Yehoshua, Shoftim, Shmuel, Melachim and more brought to life for your kinderlach.", books: "21 books", priceUsd: 179, priceIls: 660 },
-  { key: "kesuvim", icon: ScrollText, name: "The Kesuvim Collection", blurb: "Timeless stories and lessons from the Writings — Tehillim, Mishlei, Daniel, Divrei HaYamim and beyond.", books: "13 books", priceUsd: 119, priceIls: 440 },
-  { key: "megillos", icon: Scroll, name: "The Megillos Collection", blurb: "All five Megillos — Esther, Rus, Shir HaShirim, Eicha and Koheles — one keepsake set.", books: "5 books", priceUsd: 59, priceIls: 220 },
-  { key: "yamim-tovim", icon: Sparkles, name: "The Yamim Tovim Collection", blurb: "A story for every Yom Tov — Rosh Hashanah, Yom Kippur, Sukkos, Chanukah, Purim, Pesach and Shavuos.", books: "9 books", priceUsd: 89, priceIls: 330 },
-  { key: "middos", icon: HeartHandshake, name: "The Middos Collection", blurb: "Character-building adventures — chesed, emes, kibud av va'em, savlanus and more middos tovos.", books: "10 books", priceUsd: 99, priceIls: 360 },
-  { key: "complete-tanach", icon: Library, name: "The Complete Tanach Collection", blurb: "The ultimate library — every Chumash, Nevi'im, Kesuvim, Megillos, Yamim Tovim and Middos book, all starring your child. Our very best value.", books: "110+ books", priceUsd: 899, priceIls: 3290, featured: true },
+  { key: "chumash", icon: BookOpen, image: imgChumash, name: "The Chumash Collection", blurb: "Every weekly parsha across all five Chumashim — Bereishis through Devarim — a full year of personalized parsha storybooks.", books: "54 books", priceUsd: 349, priceIls: 1290 },
+  { key: "neviim", icon: Landmark, image: imgNeviim, name: "The Nevi'im Collection", blurb: "The heroes and prophets of Tanach — Yehoshua, Shoftim, Shmuel, Melachim and more brought to life for your kinderlach.", books: "25 books", priceUsd: 179, priceIls: 660 },
+  { key: "kesuvim", icon: ScrollText, image: imgKesuvim, name: "The Kesuvim Collection", blurb: "Timeless stories and lessons from the Writings — Tehillim, Mishlei, Daniel, Divrei HaYamim and beyond.", books: "21 books", priceUsd: 149, priceIls: 550 },
+  { key: "megillos", icon: Scroll, image: imgMegillos, name: "The Megillos Collection", blurb: "All five Megillos — Esther, Rus, Shir HaShirim, Eicha and Koheles — one keepsake set.", books: "5 books", priceUsd: 49, priceIls: 180 },
+  { key: "yamim-tovim", icon: Sparkles, image: imgYamimTovim, name: "The Yamim Tovim Collection", blurb: "A story for every Yom Tov — Rosh Hashanah, Yom Kippur, Sukkos, Chanukah, Purim, Pesach, Shavuos and more.", books: "15 books", priceUsd: 109, priceIls: 400 },
+  { key: "middos", icon: HeartHandshake, image: imgMiddos, name: "The Middos Collection", blurb: "Character-building adventures — chesed, emes, kibud av va'em, savlanus and more middos tovos.", books: "10 books", priceUsd: 79, priceIls: 290 },
+  { key: "complete", icon: Library, image: imgComplete, name: "The Complete Collection", blurb: "The ultimate library — every Chumash, Nevi'im, Kesuvim, Megillos, Yamim Tovim and Middos book, all starring your child. Our very best value.", books: "130 books", priceUsd: 799, priceIls: 2950, featured: true },
 ];
 
 export const CollectionsSection = () => {
@@ -120,12 +130,17 @@ export const CollectionsSection = () => {
                 }`}
               >
                 {c.featured && (
-                  <span className="absolute -top-3 right-5 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-foreground shadow-soft-sm">
+                  <span className="absolute -top-3 right-5 z-10 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-foreground shadow-soft-sm">
                     Best value
                   </span>
                 )}
-                <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${c.featured ? "bg-accent text-accent-foreground" : "bg-accent/10 text-accent"}`}>
-                  <Icon className="h-6 w-6" />
+                {/* Generated collection image (Higgsfield), full-bleed card header */}
+                <div className="relative -mx-6 -mt-6 mb-4 overflow-hidden rounded-t-3xl">
+                  <img src={c.image} alt={c.name} loading="lazy" className="h-44 w-full object-cover" />
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent" />
+                  <div className="absolute bottom-2.5 left-3 flex h-9 w-9 items-center justify-center rounded-xl bg-card/95 text-accent shadow-soft-sm backdrop-blur">
+                    <Icon className="h-5 w-5" />
+                  </div>
                 </div>
                 <h3 className="font-display text-lg font-bold text-primary">{c.name}</h3>
                 <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-accent">{c.books}</p>
