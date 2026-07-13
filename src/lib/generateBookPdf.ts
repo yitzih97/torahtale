@@ -480,10 +480,13 @@ function drawCoverFurniture(
 /** How the personalized story title reads on the cover (magenta line). Falls back
  *  to the child's name if no creative title was generated. Returns an optional
  *  small child line only when the child isn't already named in the title. */
-function coverTitleParts(coverTitle: string | undefined, childName: string): { title: string; childLine?: string } {
+function coverTitleParts(coverTitle: string | undefined, childName: string, parashaLabel = ""): { title: string; childLine?: string } {
   const t = (coverTitle || "").trim();
   const child = (childName || "").trim();
-  if (!t) return { title: child };
+  // No creative title, or it just repeats the parsha (older/impersonal books):
+  // use the child's name as the magenta line instead of duplicating the gold
+  // parsha title above it.
+  if (!t || t.toLowerCase() === parashaLabel.trim().toLowerCase()) return { title: child || t };
   const named = child && t.toLowerCase().includes(child.split(/[&,]/)[0].trim().toLowerCase());
   return { title: t, childLine: named || !child ? undefined : child };
 }
@@ -595,7 +598,7 @@ async function renderCoverSpread(
   // drawn over the illustration (right half). Uses coverTitle as the personalized
   // magenta line (falls back to the child's name), the localized parasha as the
   // gold title.
-  const { title: frontTitle, childLine } = coverTitleParts(page.coverTitle, childName);
+  const { title: frontTitle, childLine } = coverTitleParts(page.coverTitle, childName, parashaLabel);
   ctx.save();
   ctx.translate(HALF_W, 0);
   drawCoverFurniture(ctx, HALF_W, SPREAD_H, {
