@@ -37,6 +37,7 @@ import { ImageCropDialog } from "./ImageCropDialog";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FamilyPhotoDialog, type ReviewedPerson } from "./wizard/FamilyPhotoDialog";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
+import { generateId } from "@/lib/utils";
 
 
 
@@ -80,7 +81,7 @@ export interface ChildProfile {
 }
 
 const createChild = (): ChildProfile => ({
-  id: crypto.randomUUID(),
+  id: generateId(),
   name: "",
   age: "",
   gender: "",
@@ -590,7 +591,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
 
   const handleFamilyPhotoConfirm = (people: ReviewedPerson[]) => {
     const newChildren: ChildProfile[] = people.map((p) => ({
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: p.name,
       age: p.age,
       gender: p.gender,

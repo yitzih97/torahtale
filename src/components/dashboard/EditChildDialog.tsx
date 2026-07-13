@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
+import { generateId } from "@/lib/utils";
 
 const AGE_BRACKETS = [
   { min: 2, label: "2-3", desc: "Toddler", emoji: "👶" },
@@ -71,7 +72,7 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
     setUploading(true);
     try {
       const ext = photoFile.name.split(".").pop() || "jpg";
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const path = `${user.id}/${generateId()}.${ext}`;
       const { error } = await supabase.storage.from("child-photos").upload(path, photoFile);
       if (error) throw error;
       const { data: signed } = await supabase.storage
