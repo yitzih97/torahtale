@@ -133,19 +133,33 @@ serve(async (req) => {
       // still exists first — an earlier attempt may have saved an id for an order
       // that was later deleted (or never fully created), and a blind dedup would
       // then block re-submission forever ("says confirmed, but nothing in
-      // Printify"). Only re-create when Printify says the order is truly gone
-      // (404); never on a transient/auth error, to avoid duplicate orders.
+      // Printify"). Re-create only when Printify says the order is gone (404) or
+      // canceled; never on a transient/auth error, to avoid duplicate orders.
       if (book.printify_order_id) {
-        let orderStillExists = true;
+        // The saved order only counts as a live duplicate if Printify still has it
+        // AND it hasn't been canceled. Two cases mean "re-create instead":
+        //   • 404 — the order was deleted / never fully created.
+        //   • canceled — the common flow where an admin cancels the order in
+        //     Printify, regenerates the book, and re-approves. A canceled order is
+        //     NOT a 404 (Printify keeps returning 200 for it), so the old "still
+        //     exists?" check treated it as a duplicate and blocked re-submission
+        //     forever ("order is already in Printify").
+        let orderIsLiveDuplicate = true;
         try {
           const checkRes = await fetch(
             `${PRINTIFY_BASE}/shops/${shopId}/orders/${book.printify_order_id}.json`,
             { headers: { Authorization: `Bearer ${PRINTIFY_API_KEY}` } },
           );
-          if (checkRes.status === 404) orderStillExists = false;
+          if (checkRes.status === 404) {
+            orderIsLiveDuplicate = false;
+          } else if (checkRes.ok) {
+            const existingOrder = await checkRes.json();
+            const st = String(existingOrder?.status || "").toLowerCase();
+            if (st.includes("cancel")) orderIsLiveDuplicate = false; // canceled / canceled-by-provider
+          }
         } catch (_e) { /* transient — keep the id, treat as duplicate */ }
 
-        if (orderStillExists) {
+        if (orderIsLiveDuplicate) {
           return new Response(JSON.stringify({
             success: true,
             productId: book.printify_product_id,
@@ -154,11 +168,16 @@ serve(async (req) => {
           }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
         console.warn(
-          `Printify order ${book.printify_order_id} for book ${bookId} not found (404) — clearing the stale id and re-creating.`,
+          `Printify order ${book.printify_order_id} for book ${bookId} is gone or canceled — clearing the stale product+order ids and re-creating with the current images.`,
         );
         await supabase.from("books")
           .update({ printify_order_id: null, printify_product_id: null })
           .eq("id", bookId);
+        // Also clear the in-memory copy so the product step below builds a FRESH
+        // product from the newly-rendered images instead of reusing the previous
+        // product (which would reprint the old pages).
+        book.printify_order_id = null;
+        book.printify_product_id = null;
       }
 
       const pages = (book.pages_data as any[]) || [];
@@ -304,9 +323,36 @@ serve(async (req) => {
           .filter((ph) => ph.images.length > 0),
       }];
 
-      // Reuse an existing Printify product if this book was submitted before;
-      // otherwise create one. (Approval can be retried without spawning duplicates.)
+      // Ensure a Printify product exists whose print areas match the CURRENT
+      // images. If the book was submitted before we reuse its product id, but we
+      // ALWAYS refresh its print areas first — otherwise a re-approval after the
+      // book was regenerated reprints whatever images were baked in last time
+      // (the reused product keeps its old pages). Create a fresh product when
+      // there's none, or if refreshing the old one fails (e.g. it was deleted).
+      const productBody = {
+        title: `${book.child_name}'s Torah Tale - ${book.torah_portion}`,
+        description: `Personalized Torah story for ${book.child_name}`,
+        blueprint_id: blueprintId,
+        print_provider_id: printProviderId,
+        variants: [{ id: variantId, price, is_enabled: true }],
+        print_areas: printAreas,
+      };
       let productId: string | null = book.printify_product_id || null;
+      if (productId) {
+        // Refresh the existing product's images/variant to the current render.
+        const updRes = await fetch(`${PRINTIFY_BASE}/shops/${shopId}/products/${productId}.json`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${PRINTIFY_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ variants: productBody.variants, print_areas: printAreas }),
+        });
+        if (!updRes.ok) {
+          const errText = await updRes.text();
+          console.warn(
+            `Printify update product ${productId} failed [${updRes.status}]: ${errText.slice(0, 150)} — creating a new product instead.`,
+          );
+          productId = null; // fall through to create a fresh product
+        }
+      }
       if (!productId) {
         const productRes = await fetch(`${PRINTIFY_BASE}/shops/${shopId}/products.json`, {
           method: "POST",
@@ -314,14 +360,7 @@ serve(async (req) => {
             Authorization: `Bearer ${PRINTIFY_API_KEY}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            title: `${book.child_name}'s Torah Tale - ${book.torah_portion}`,
-            description: `Personalized Torah story for ${book.child_name}`,
-            blueprint_id: blueprintId,
-            print_provider_id: printProviderId,
-            variants: [{ id: variantId, price, is_enabled: true }],
-            print_areas: printAreas,
-          }),
+          body: JSON.stringify(productBody),
         });
         if (!productRes.ok) {
           const errText = await productRes.text();

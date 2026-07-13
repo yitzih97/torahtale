@@ -79,7 +79,17 @@ serve(async (req) => {
       "order:shipment:delivered": "delivered",
     };
 
-    const newStatus = statusMap[type];
+    // A cancellation arrives as an order:updated with a canceled status in the
+    // payload (Printify has no dedicated cancel event). Without this, a cancel was
+    // mapped straight to "printing" — leaving the book looking in-production and
+    // its printify_order_id set, which then blocked re-approval. Detect it
+    // defensively from wherever the status lives and self-heal instead.
+    const resourceStatus = String(
+      resource?.data?.status ?? resource?.status ?? event?.data?.status ?? "",
+    ).toLowerCase();
+    const isCancellation = resourceStatus.includes("cancel");
+
+    const newStatus = isCancellation ? "pending_review" : statusMap[type];
     if (!newStatus || !resource?.id) {
       return new Response(JSON.stringify({ received: true, action: "ignored" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -93,10 +103,18 @@ serve(async (req) => {
       .limit(1);
 
     if (books && books.length > 0) {
-      await supabase.from("books").update({
+      const update: Record<string, unknown> = {
         status: newStatus,
         updated_at: new Date().toISOString(),
-      }).eq("id", books[0].id);
+      };
+      if (isCancellation) {
+        // Free the Printify references so the admin can regenerate + re-approve
+        // and get a fresh product/order (with the new images) rather than a
+        // "already in Printify" dead end.
+        update.printify_order_id = null;
+        update.printify_product_id = null;
+      }
+      await supabase.from("books").update(update).eq("id", books[0].id);
     }
 
     return new Response(JSON.stringify({ received: true, status: newStatus }), {
