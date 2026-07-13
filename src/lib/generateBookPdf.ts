@@ -556,6 +556,120 @@ async function renderPortraitCover(
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
+/** Coloring books have no printed back cover, so the LAST page doubles as the
+ *  back matter: the Torah Tale logo, up to 10 discussion questions, the
+ *  subscribe invitation, and the 4 "coming next" teaser thumbnails — everything
+ *  that would otherwise live on a back cover. 8.5×11 portrait. */
+async function renderColoringBackMatter(
+  page: BookPage,
+  childName: string,
+  previews: BackCoverPreview[],
+  lang: "en" | "he" | "yi",
+  scale = 1,
+): Promise<string> {
+  const W = COLOR_W, H = COLOR_H;
+  const rtl = lang !== "en";
+  const canvas = document.createElement("canvas");
+  canvas.width = W * scale; canvas.height = H * scale;
+  const ctx = canvas.getContext("2d")!;
+  if (scale !== 1) ctx.scale(scale, scale);
+  drawPaperFull(ctx, W, H);
+  const padX = W * 0.08;
+  let y = H * 0.035;
+
+  // ── Logo (icon + wordmark), centered ──
+  const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon), safeLoad(torahTaleWordmark)]);
+  if (icon && wordmark) {
+    const iconH = 84, iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
+    const wmH = 50, wmW = (wordmark.naturalWidth / wordmark.naturalHeight) * wmH;
+    const gap = 16, groupW = iconW + gap + wmW, startX = W / 2 - groupW / 2;
+    ctx.drawImage(icon, startX, y, iconW, iconH);
+    ctx.drawImage(wordmark, startX + iconW + gap, y + (iconH - wmH) / 2, wmW, wmH);
+    y += iconH + 28;
+  }
+
+  // ── Up to 10 discussion questions ──
+  const allQ = (page.questions && page.questions.length)
+    ? page.questions.map((q) => `${q.number}. ${q.question}`)
+    : (page.text || "").split("\n").map((s) => s.trim()).filter(Boolean);
+  const questions = allQ.slice(0, 10);
+  ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.textAlign = rtl ? "right" : "left";
+  ctx.textBaseline = "top";
+  const anchorX = rtl ? W - padX : padX;
+  ctx.fillStyle = "#b88a2a";
+  ctx.font = `bold 38px 'Playfair Display', serif`;
+  ctx.fillText(rtl ? "פֿראגן צום רעדן" : "Questions to Talk About", anchorX, y);
+  y += 54;
+  ctx.fillStyle = "#2b2418";
+  const qf = 27;
+  ctx.font = `${qf}px ${BOOK_TEXT_STYLE.fontFamily}`;
+  for (const q of questions) {
+    for (const ln of wrapLines(ctx, q, W - padX * 2)) { ctx.fillText(ln, anchorX, y); y += qf * 1.32; }
+    y += 5;
+  }
+
+  // ── Subscribe invitation (localized → RTL); URL stays LTR ──
+  y = Math.max(y + 18, H * 0.66);
+  ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#5a4a32";
+  const tSize = 32;
+  ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
+  const taglineLines = page.backCoverText && page.backCoverText.trim()
+    ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
+    : getCoverTagline(lang);
+  taglineLines.forEach((line, i) => ctx.fillText(line, W / 2, y + i * (tSize * 1.3)));
+  y += taglineLines.length * (tSize * 1.3) + 22;
+
+  // ── "Coming next" teaser thumbnails (mini front covers) ──
+  const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
+  const thumb = 235, tgap = 22;
+  const rowW = 4 * thumb + 3 * tgap;
+  const rowX = W / 2 - rowW / 2;
+  for (let i = 0; i < 4; i++) {
+    const tx = rowX + i * (thumb + tgap);
+    ctx.fillStyle = "#efe7d3";
+    roundedRect(ctx, tx, y, thumb, thumb, 12); ctx.fill();
+    const pimg = previewImgs[i];
+    if (pimg) drawImageInRect(ctx, pimg, tx, y, thumb, thumb, 12);
+    const pv = previews[i];
+    if (pv?.label) {
+      ctx.save();
+      roundedRect(ctx, tx, y, thumb, thumb, 12); ctx.clip();
+      const bandH = thumb * 0.44;
+      const g = ctx.createLinearGradient(tx, y, tx, y + bandH);
+      g.addColorStop(0, "rgba(0,0,0,0.62)"); g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g; ctx.fillRect(tx, y, thumb, bandH);
+      ctx.direction = rtl ? "rtl" : "ltr";
+      ctx.textAlign = "center"; ctx.textBaseline = "top";
+      ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `700 24px 'Inter', sans-serif`;
+      const lbl = wrapLines(ctx, pv.label, thumb - 18).slice(0, 2);
+      lbl.forEach((ln, li) => ctx.fillText(ln, tx + thumb / 2, y + 9 + li * 28));
+      if (childName) {
+        ctx.font = `500 18px 'Inter', sans-serif`;
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.fillText(childName, tx + thumb / 2, y + 11 + lbl.length * 28);
+      }
+      ctx.restore();
+    }
+    ctx.strokeStyle = "rgba(0,0,0,0.28)"; ctx.lineWidth = 2;
+    roundedRect(ctx, tx, y, thumb, thumb, 12); ctx.stroke();
+  }
+  y += thumb + 26;
+
+  // ── Site URL ──
+  ctx.direction = "ltr";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#b88a2a";
+  ctx.font = `600 26px 'Inter', sans-serif`;
+  ctx.fillText(COVER_URL.toUpperCase(), W / 2, Math.min(y, H - 46));
+
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
+
 /**
  * Composite the print-ready images for Printify, in the exact order of the
  * blueprint's print placeholders: [cover-wrap, page_1, page_2, …]. These are
@@ -599,8 +713,9 @@ export async function renderPrintImages(
     ? renderPortraitCover(cover, childName, parashaLabel, PRINT_SCALE, lang)
     : renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews, lang)));
 
-  // The questions page has no print slot on these blueprints, so its content is
-  // composited onto the bottom of the last story page instead of being dropped.
+  // Bound 8×8/board blueprints have no questions slot, so the questions ride at
+  // the bottom of the last story page. Coloring books instead get a dedicated
+  // back-matter page (below), since they have no back cover for the teasers.
   const questionsPage = pages.find((p) => p.type === "questions");
   const questionsText = questionsPage
     ? (questionsPage.text || (questionsPage.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n"))
@@ -608,7 +723,12 @@ export async function renderPrintImages(
   const stories = pages.filter((p) => p.type === "story" || !p.type);
   for (let i = 0; i < stories.length; i++) {
     const isLast = i === stories.length - 1;
-    out.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE, isLast ? questionsText : undefined));
+    const composite = mode !== "portrait" && isLast ? questionsText : undefined;
+    out.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE, composite));
+  }
+  // Coloring: append the back-matter page (logo + 10 questions + subscribe + teasers).
+  if (mode === "portrait" && questionsPage) {
+    out.push(await renderColoringBackMatter(questionsPage, childName, previews, lang, PRINT_SCALE));
   }
   return out;
 }
@@ -654,7 +774,11 @@ export async function generateBookPdf(
         ? await renderPortraitCover(page, childName, parashaLabel, 1, lang)
         : await renderCoverSpread(page, childName, parashaLabel, 1, bookFormat, pdfPreviews, lang);
     } else if (page.type === "questions") {
-      dataUrl = await renderQuestionsSpread(page, rtl, mode);
+      // Coloring books have no back cover — the questions page becomes the back
+      // matter (logo + up to 10 questions + subscribe + teaser thumbnails).
+      dataUrl = mode === "portrait"
+        ? await renderColoringBackMatter(page, childName, pdfPreviews, lang)
+        : await renderQuestionsSpread(page, rtl, mode);
     } else {
       dataUrl = await renderStorySpread(page, storyIdx, rtl, mode);
       storyIdx += 1;

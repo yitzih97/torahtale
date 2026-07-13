@@ -390,12 +390,10 @@ serve(async (req) => {
     if (refItems.length > 4) {
       cappedRefs = [...refItems.filter((r) => !r.isPhoto), ...refItems.filter((r) => r.isPhoto)].slice(0, 4);
     }
-    // Coloring-book INTERIOR pages must be pure line art. The character sheets/
-    // photos are full-COLOR, and attaching them makes the model reproduce those
-    // colors (a coloured dress inside the outlines). Drop the refs so the model
-    // follows the "empty white shapes" prompt; the text description still keeps
-    // each child roughly on-model. (The colored cover keeps its refs.)
-    if (isColoringPage) cappedRefs = [];
+    // NOTE: coloring INTERIOR pages KEEP the character-sheet refs (so the kids
+    // stay consistent page-to-page). The sheets are full-color, which can bleed
+    // colour into the line art — that's scrubbed out afterwards by forcing the
+    // finished coloring page to pure black-and-white (see toLineArt below).
     if (cappedRefs.length > 0) {
       const legend = cappedRefs
         .map((r, i) => `Image ${i + 1} = ${r.name}${r.isPhoto ? " (a REAL PHOTO of this child — match their exact face shape, eye colour and shape, eyebrows, skin tone, and hair from it. FACE AND HAIR ONLY — never copy the clothing in this photo)" : " (this child's OFFICIAL CHARACTER SHEET — it defines their permanent look INCLUDING the exact outfit: reproduce the SAME clothing, colors, head covering and styling shown on the sheet)"}`)
@@ -488,6 +486,33 @@ serve(async (req) => {
       } catch (e) {
         console.error("upscaleForPrint failed (returning original):", e);
         return b64;
+      }
+    };
+
+    // Force a finished coloring page to pure black-and-white line art. Even with
+    // the (full-color) character sheet attached for consistency, the model can
+    // leave colour/tints inside the outlines. A luminance threshold keeps the
+    // dark OUTLINES black and whitens everything else (fills, tints, stray light
+    // rays) — leaving clean empty shapes for a child to color. Fail-open.
+    const toLineArt = async (dataUrl: string): Promise<string> => {
+      try {
+        const m = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (!m) return dataUrl;
+        const { Image } = await import("https://deno.land/x/imagescript@1.2.17/mod.ts");
+        const img = await Image.decode(Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0)));
+        const bmp = img.bitmap; // RGBA, mutated in place
+        const LO = 60, HI = 125; // < LO → black line, > HI → white, soft ramp between
+        for (let i = 0; i < bmp.length; i += 4) {
+          const lum = 0.299 * bmp[i] + 0.587 * bmp[i + 1] + 0.114 * bmp[i + 2];
+          const v = lum <= LO ? 0 : lum >= HI ? 255 : Math.round(((lum - LO) / (HI - LO)) * 255);
+          bmp[i] = bmp[i + 1] = bmp[i + 2] = v;
+          bmp[i + 3] = 255;
+        }
+        const out = await img.encodeJPEG(92);
+        return `data:image/jpeg;base64,${bufferToBase64(out.buffer)}`;
+      } catch (e) {
+        console.error("toLineArt failed (returning original):", e);
+        return dataUrl;
       }
     };
 
@@ -767,6 +792,10 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
         }
       }
     }
+
+    // Coloring interior pages: scrub any residual colour to pure line art so the
+    // page is genuinely "empty of color" for the child to fill in.
+    if (isColoringPage) finalImageUrl = await toLineArt(finalImageUrl);
 
     // Move the finished image into object storage and return its URL, so the
     // caller (generate-book) stores a short URL in pages_data instead of a
