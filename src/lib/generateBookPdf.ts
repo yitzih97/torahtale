@@ -5,6 +5,7 @@ import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeD
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import torahTaleIcon from "@/assets/brand/torah-tale-icon.png";
 import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png";
+import { COVER_NAVY, COVER_GOLD, COVER_MAGENTA, FRONT_TAGLINE, coverTitleParts } from "@/lib/coverBranding";
 
 /* Spread = 2:1 landscape sheet. Image fills one half, text composited
    per page from BookPage.textLayout. */
@@ -318,10 +319,6 @@ export interface BackCoverPreview { label: string; url: string | null }
  * gold PARSHA title, a magenta personalized story title, and a bottom tagline.
  * Shared by the 8×8/hardcover/board wraparound and the coloring portrait cover. */
 
-const COVER_NAVY = "#122140";
-const COVER_GOLD = "#e3c169";
-const COVER_MAGENTA = "#8f2b52";
-const FRONT_TAGLINE = "A Personalized Parsha Adventure";
 
 // Cinzel is used only on the print canvas (no DOM node uses it), so make sure the
 // weights are actually loaded before we draw or canvas silently falls back.
@@ -475,20 +472,6 @@ function drawCoverFurniture(
     ctx.restore();
   }
   ctx.direction = "ltr";
-}
-
-/** How the personalized story title reads on the cover (magenta line). Falls back
- *  to the child's name if no creative title was generated. Returns an optional
- *  small child line only when the child isn't already named in the title. */
-function coverTitleParts(coverTitle: string | undefined, childName: string, parashaLabel = ""): { title: string; childLine?: string } {
-  const t = (coverTitle || "").trim();
-  const child = (childName || "").trim();
-  // No creative title, or it just repeats the parsha (older/impersonal books):
-  // use the child's name as the magenta line instead of duplicating the gold
-  // parsha title above it.
-  if (!t || t.toLowerCase() === parashaLabel.trim().toLowerCase()) return { title: child || t };
-  const named = child && t.toLowerCase().includes(child.split(/[&,]/)[0].trim().toLowerCase());
-  return { title: t, childLine: named || !child ? undefined : child };
 }
 
 async function renderCoverSpread(
