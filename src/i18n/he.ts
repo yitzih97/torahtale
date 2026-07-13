@@ -4,6 +4,7 @@ export const he: typeof en = {
   // Navbar
   nav: {
     home: "דף הבית",
+    collections: "אוספים",
     howItWorks: "איך זה עובד",
     pricing: "מחירים",
     gallery: "גלריה",

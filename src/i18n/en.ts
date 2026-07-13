@@ -2,6 +2,7 @@ export const en = {
   // Navbar
   nav: {
     home: "Home",
+    collections: "Collections",
     howItWorks: "How It Works",
     pricing: "Pricing",
     gallery: "Gallery",

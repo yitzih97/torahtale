@@ -25,6 +25,7 @@ const SUBJECT_LABELS: Record<string, string> = {
   technical: "Technical",
   feedback: "Feedback",
   partnership: "Partnership",
+  collection: "Collection Request",
 };
 
 const statusColor = (s: string) =>

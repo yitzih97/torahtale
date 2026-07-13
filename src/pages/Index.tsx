@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { ProductsSection } from "@/components/ProductsSection";
+import { CollectionsSection } from "@/components/CollectionsSection";
 import { HowItWorks } from "@/components/HowItWorks";
 import { WhyTorahTale } from "@/components/WhyTorahTale";
 import { GalleryReviewsSection } from "@/components/GalleryReviewsSection";
@@ -47,6 +48,7 @@ const Index = () => {
       <Navbar onStart={goToCreate} transparentHero={false} />
       <HeroSection onStart={goToCreate} />
       <ProductsSection onStart={goToCreate} />
+      <CollectionsSection />
       <HowItWorks />
       <WhyTorahTale />
       <GalleryReviewsSection />
