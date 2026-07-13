@@ -311,6 +311,183 @@ function drawImageInRect(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x
 
 export interface BackCoverPreview { label: string; url: string | null }
 
+/* ─────────────── Cover "furniture": frame + majestic typography ───────────────
+ * Draws the branded cover chrome over an already-drawn illustration, in the
+ * current logical coordinate space (origin 0,0, size W×H): a navy filigree frame
+ * with gold keylines + corner flourishes, the "TORAH TALE" brand, a big engraved
+ * gold PARSHA title, a magenta personalized story title, and a bottom tagline.
+ * Shared by the 8×8/hardcover/board wraparound and the coloring portrait cover. */
+
+const COVER_NAVY = "#122140";
+const COVER_GOLD = "#e3c169";
+const COVER_MAGENTA = "#8f2b52";
+const FRONT_TAGLINE = "A Personalized Parsha Adventure";
+
+// Cinzel is used only on the print canvas (no DOM node uses it), so make sure the
+// weights are actually loaded before we draw or canvas silently falls back.
+async function ensureCoverFonts() {
+  try {
+    const f: any = (document as any).fonts;
+    if (!f) return;
+    await Promise.all([
+      f.load("700 120px Cinzel"), f.load("600 40px Cinzel"),
+      f.load("600 60px 'Cormorant Garamond'"), f.load("italic 500 40px 'Cormorant Garamond'"),
+    ]);
+    await f.ready;
+  } catch { /* fall back to whatever is available */ }
+}
+
+function goldFill(ctx: CanvasRenderingContext2D, baselineY: number, capH: number): CanvasGradient {
+  const g = ctx.createLinearGradient(0, baselineY - capH * 0.92, 0, baselineY + capH * 0.12);
+  g.addColorStop(0, "#fff6d5"); g.addColorStop(0.28, "#f6df97"); g.addColorStop(0.5, "#e7be5c");
+  g.addColorStop(0.72, "#c9992f"); g.addColorStop(1, "#a9791f");
+  return g;
+}
+
+// One line of engraved gold caps (deep shadow → dark bevel → gold face → highlight).
+function engravedLine(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, font: string, capH: number) {
+  ctx.save();
+  ctx.font = font; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillText(text, cx + 3, y + 4);
+  ctx.fillStyle = "#5b3d0e"; ctx.fillText(text, cx, y + 2);
+  ctx.fillStyle = goldFill(ctx, y, capH);
+  ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+  ctx.fillText(text, cx, y);
+  ctx.shadowColor = "transparent";
+  ctx.lineWidth = Math.max(1, capH * 0.012); ctx.strokeStyle = "rgba(255,250,225,0.5)"; ctx.strokeText(text, cx, y);
+  ctx.restore();
+}
+
+const letterSpace = (s: string, n = 2) => s.split("").join(" ".repeat(n));
+
+// Centered ornament:  ·——❦——·
+function coverFlourish(ctx: CanvasRenderingContext2D, cx: number, y: number, w: number, color: string) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx - w / 2, y); ctx.lineTo(cx - 16, y); ctx.moveTo(cx + 16, y); ctx.lineTo(cx + w / 2, y); ctx.stroke();
+  ctx.font = "22px 'Cormorant Garamond', serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("❦", cx, y);
+  ctx.beginPath(); ctx.arc(cx - w / 2, y, 2.6, 0, 7); ctx.arc(cx + w / 2, y, 2.6, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+function cornerFiligree(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, rot: number, color: string) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(0, s); ctx.quadraticCurveTo(0, 0, s, 0);
+  ctx.moveTo(s * 0.28, s); ctx.quadraticCurveTo(s * 0.28, s * 0.28, s, s * 0.28); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(s * 0.55, s * 0.1); ctx.quadraticCurveTo(s * 0.82, 0, s * 0.92, s * 0.22);
+  ctx.quadraticCurveTo(s * 0.7, s * 0.2, s * 0.55, s * 0.1); ctx.fillStyle = color; ctx.fill();
+  ctx.restore();
+}
+
+/** Draw the branded frame + typography for a W×H cover at the current origin. The
+ *  caller must have already drawn the illustration. */
+function drawCoverFurniture(
+  ctx: CanvasRenderingContext2D, W: number, H: number,
+  opts: { brand?: string; parsha: string; title?: string; childLine?: string; tagline?: string; rtl?: boolean },
+) {
+  const gold = COVER_GOLD, U = W; // size unit
+  const dir: CanvasDirection = opts.rtl ? "rtl" : "ltr";
+
+  // Legibility scrims: darken the top (title area) and soften the bottom (tagline).
+  let g = ctx.createLinearGradient(0, 0, 0, H * 0.5);
+  g.addColorStop(0, "rgba(8,14,30,0.82)"); g.addColorStop(0.55, "rgba(8,14,30,0.32)"); g.addColorStop(1, "rgba(8,14,30,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.5);
+  g = ctx.createLinearGradient(0, H * 0.82, 0, H);
+  g.addColorStop(0, "rgba(8,14,30,0)"); g.addColorStop(1, "rgba(8,14,30,0.72)");
+  ctx.fillStyle = g; ctx.fillRect(0, H * 0.82, W, H * 0.18);
+
+  // Navy frame band + gold double keyline + corner filigree.
+  const m = Math.round(U * 0.028), bw = Math.round(U * 0.02);
+  ctx.strokeStyle = COVER_NAVY; ctx.lineWidth = bw;
+  ctx.strokeRect(m + bw / 2, m + bw / 2, W - 2 * m - bw, H - 2 * m - bw);
+  const gi = m + bw + Math.round(U * 0.007);
+  ctx.strokeStyle = gold; ctx.lineWidth = 2; ctx.strokeRect(gi, gi, W - 2 * gi, H - 2 * gi);
+  ctx.strokeStyle = "rgba(227,193,105,0.5)"; ctx.lineWidth = 1;
+  ctx.strokeRect(gi + 5, gi + 5, W - 2 * gi - 10, H - 2 * gi - 10);
+  const cs = U * 0.05, ci = gi + 10;
+  cornerFiligree(ctx, ci, ci, cs, 0, gold);
+  cornerFiligree(ctx, W - ci, ci, cs, Math.PI / 2, gold);
+  cornerFiligree(ctx, W - ci, H - ci, cs, Math.PI, gold);
+  cornerFiligree(ctx, ci, H - ci, cs, -Math.PI / 2, gold);
+
+  ctx.direction = dir;
+  const top = m + bw;
+  // Brand.
+  if (opts.brand) {
+    ctx.save(); ctx.fillStyle = gold; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    ctx.font = `600 ${Math.round(U * 0.028)}px 'Cinzel', serif`;
+    ctx.fillText(letterSpace(opts.brand.toUpperCase(), 2), W / 2, top + U * 0.062);
+    coverFlourish(ctx, W / 2, top + U * 0.084, U * 0.15, gold);
+    ctx.restore();
+  }
+  // Parsha — big engraved gold, fit + wrap to ≤2 lines.
+  const maxTW = W * 0.82;
+  const fit = (t: string, base: number) => {
+    let f = base; ctx.font = `700 ${f}px 'Cinzel', serif`;
+    while (ctx.measureText(t).width > maxTW && f > U * 0.05) { f -= 4; ctx.font = `700 ${f}px 'Cinzel', serif`; }
+    return f;
+  };
+  const words = (opts.parsha || "").toUpperCase().split(" ");
+  let l1 = (opts.parsha || "").toUpperCase(), l2 = "";
+  let fs = fit(l1, U * 0.125);
+  if (fs < U * 0.08 && words.length > 1) {
+    l1 = words.slice(0, -1).join(" "); l2 = words.slice(-1).join(" ");
+    fs = Math.min(fit(l1, U * 0.125), fit(l2, U * 0.125));
+  }
+  const tFont = `700 ${fs}px 'Cinzel', serif`;
+  let ty = top + U * 0.062 + U * 0.11;
+  engravedLine(ctx, l1, W / 2, ty, tFont, fs);
+  if (l2) { ty += fs * 1.02; engravedLine(ctx, l2, W / 2, ty, tFont, fs); }
+
+  // Divider + magenta personalized title.
+  coverFlourish(ctx, W / 2, ty + U * 0.045, U * 0.2, gold);
+  if (opts.title) {
+    ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    const mfs = Math.round(U * 0.055);
+    ctx.font = `600 ${mfs}px 'Cormorant Garamond', serif`;
+    const lines = wrapLines(ctx, opts.title, W * 0.78);
+    let my = ty + U * 0.045 + U * 0.06;
+    lines.forEach((ln, i) => {
+      const yy = my + i * mfs * 1.02;
+      ctx.shadowColor = "rgba(0,0,0,0.55)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
+      ctx.fillStyle = "#f4c9dc"; ctx.fillText(ln, W / 2, yy + 2);
+      ctx.shadowColor = "transparent"; ctx.fillStyle = COVER_MAGENTA; ctx.fillText(ln, W / 2, yy);
+    });
+    my += lines.length * mfs * 1.02;
+    if (opts.childLine) {
+      const cfs = Math.round(U * 0.032);
+      ctx.font = `italic 500 ${cfs}px 'Cormorant Garamond', serif`;
+      ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+      ctx.fillStyle = "rgba(255,240,214,0.95)"; ctx.fillText(opts.childLine, W / 2, my + U * 0.01);
+    }
+    ctx.restore();
+  }
+  // Bottom tagline.
+  if (opts.tagline) {
+    ctx.save(); ctx.fillStyle = gold; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    ctx.font = `italic 500 ${Math.round(U * 0.03)}px 'Cormorant Garamond', serif`;
+    ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+    ctx.fillText(opts.tagline, W / 2, H - (m + bw) - U * 0.052);
+    ctx.shadowColor = "transparent";
+    coverFlourish(ctx, W / 2, H - (m + bw) - U * 0.03, U * 0.17, gold);
+    ctx.restore();
+  }
+  ctx.direction = "ltr";
+}
+
+/** How the personalized story title reads on the cover (magenta line). Falls back
+ *  to the child's name if no creative title was generated. Returns an optional
+ *  small child line only when the child isn't already named in the title. */
+function coverTitleParts(coverTitle: string | undefined, childName: string): { title: string; childLine?: string } {
+  const t = (coverTitle || "").trim();
+  const child = (childName || "").trim();
+  if (!t) return { title: child };
+  const named = child && t.toLowerCase().includes(child.split(/[&,]/)[0].trim().toLowerCase());
+  return { title: t, childLine: named || !child ? undefined : child };
+}
+
 async function renderCoverSpread(
   page: BookPage,
   childName: string,
@@ -320,6 +497,7 @@ async function renderCoverSpread(
   previews: BackCoverPreview[] = [],
   lang: "en" | "he" | "yi" = "en",
 ): Promise<string> {
+  await ensureCoverFonts();
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W * scale; canvas.height = SPREAD_H * scale;
   const ctx = canvas.getContext("2d")!;
@@ -412,31 +590,22 @@ async function renderCoverSpread(
     ctx.fillStyle = "#dcd2bd";
     ctx.fillRect(HALF_W, 0, HALF_W, SPREAD_H);
   }
-  // Book name (big) + kids (small) in white Inter with a soft shadow, over a
-  // dark top gradient — mirrors the on-screen front cover.
-  const bandH = SPREAD_H * 0.30;
-  const bandGrad = ctx.createLinearGradient(HALF_W, 0, HALF_W, bandH);
-  bandGrad.addColorStop(0, "rgba(0,0,0,0.55)");
-  bandGrad.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = bandGrad;
-  ctx.fillRect(HALF_W, 0, HALF_W, bandH);
-
-  const frontTitle = page.coverTitle?.trim() || parashaLabel;
-  const frontSub = page.coverSubtitle?.trim() || childName;
+  // Front cover chrome: navy filigree frame, "Torah Tale" brand, big engraved
+  // gold PARSHA title, magenta personalized story title, and a bottom tagline —
+  // drawn over the illustration (right half). Uses coverTitle as the personalized
+  // magenta line (falls back to the child's name), the localized parasha as the
+  // gold title.
+  const { title: frontTitle, childLine } = coverTitleParts(page.coverTitle, childName);
   ctx.save();
-  ctx.direction = rtlDir;
-  ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
-  ctx.fillStyle = "#ffffff";
-  ctx.font = `800 82px 'Inter', sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  const titleLines = wrapLines(ctx, frontTitle, HALF_W - 120);
-  titleLines.forEach((line, i) => ctx.fillText(line, HALF_W + HALF_W / 2, 70 + i * 92));
-  if (frontSub) {
-    ctx.font = `500 46px 'Inter', sans-serif`;
-    ctx.fillStyle = "rgba(255,255,255,0.92)";
-    ctx.fillText(frontSub, HALF_W + HALF_W / 2, 70 + titleLines.length * 92 + 22);
-  }
+  ctx.translate(HALF_W, 0);
+  drawCoverFurniture(ctx, HALF_W, SPREAD_H, {
+    brand: "Torah Tale",
+    parsha: parashaLabel,
+    title: frontTitle,
+    childLine,
+    tagline: FRONT_TAGLINE,
+    rtl,
+  });
   ctx.restore();
   drawGutter(ctx, SPREAD_W, SPREAD_H);
 
@@ -482,6 +651,7 @@ async function renderPortraitCover(
   scale = 1,
   lang: "en" | "he" | "yi" = "en",
 ): Promise<string> {
+  await ensureCoverFonts();
   const W = COLOR_W, H = COLOR_H;
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
@@ -493,34 +663,16 @@ async function renderPortraitCover(
   if (img) drawFullImage(ctx, img, W, H);
   else { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H); }
 
-  const bandH = H * 0.22;
-  const g = ctx.createLinearGradient(0, 0, 0, bandH);
-  g.addColorStop(0, "rgba(0,0,0,0.55)");
-  g.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, bandH);
-
-  // Coloring cover shows the localized single-language topic name + the kids'
-  // names (like the other books) — NOT the story's generated bilingual title.
-  const frontTitle = parashaLabel;
-  const frontSub = childName;
-  ctx.save();
-  ctx.direction = rtl ? "rtl" : "ltr";
-  ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
-  ctx.fillStyle = "#ffffff";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  const titleSize = Math.round(W * 0.075);
-  ctx.font = `800 ${titleSize}px 'Inter', sans-serif`;
-  const titleLines = wrapLines(ctx, frontTitle, W - 90);
-  titleLines.forEach((line, i) => ctx.fillText(line, W / 2, 50 + i * (titleSize * 1.15)));
-  if (frontSub) {
-    const subSize = Math.round(W * 0.045);
-    ctx.font = `500 ${subSize}px 'Inter', sans-serif`;
-    ctx.fillStyle = "rgba(255,255,255,0.92)";
-    ctx.fillText(frontSub, W / 2, 50 + titleLines.length * (titleSize * 1.15) + 14);
-  }
-  ctx.restore();
+  // Same branded chrome as the bound books. Coloring covers show the localized
+  // parasha name (gold) + the kids' names (magenta) rather than the story's
+  // generated bilingual title.
+  drawCoverFurniture(ctx, W, H, {
+    brand: "Torah Tale",
+    parsha: parashaLabel,
+    title: childName,
+    tagline: FRONT_TAGLINE,
+    rtl,
+  });
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 

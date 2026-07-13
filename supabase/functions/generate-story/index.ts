@@ -195,8 +195,8 @@ ${templateGuidance}
 You MUST respond with ONLY a valid JSON object with this exact structure:
 {
   "cover": {
-    "title": "The book title",
-    "subtitle": "A short subtitle or tagline"
+    "title": "A short, poetic, PERSONALIZED book title that names the hero child AND evokes THIS parsha — e.g. 'Adina and the Great Teivah', 'Moshe and the Sea That Split', 'Dovid and the Hidden Light'. 2 to 6 words, warm and storybook-magical. Name the (first) child. Do NOT put the parsha label itself in the title (e.g. not 'Parshas Noach') — that is displayed separately in gold.",
+    "subtitle": "A short evocative tagline, a few words"
   },
   "pages": [
     { "page": 1, "text": "Story text for page 1" },
