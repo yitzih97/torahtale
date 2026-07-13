@@ -246,7 +246,7 @@ function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: 
   ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
 }
 
-async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, mode: LayoutMode, scale = 1, questionsText?: string): Promise<string> {
+async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, mode: LayoutMode, scale = 1): Promise<string> {
   // Board: 2:1 spread. 8×8: square page. Coloring: 8.5×11 portrait page.
   const [W, H] = interiorDims(mode);
 
@@ -276,38 +276,6 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
 
   if (mode === "spread") drawGutter(ctx, W, H);
   drawTextOverlay(ctx, page.text || "", layout, W, H, rtl);
-
-  // The discussion questions ride at the bottom of the LAST story page (this
-  // print blueprint has no spare interior slot / inside-cover for them).
-  if (questionsText && questionsText.trim()) {
-    const panelH = H * 0.4;
-    const py = H - panelH;
-    ctx.save();
-    ctx.fillStyle = "rgba(250,245,232,0.94)";
-    ctx.fillRect(0, py, W, panelH);
-    ctx.strokeStyle = "rgba(0,0,0,0.14)"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(0, py + 1); ctx.lineTo(W, py + 1); ctx.stroke();
-    const padX = W * 0.06;
-    ctx.direction = rtl ? "rtl" : "ltr";
-    const anchorX = rtl ? W - padX : padX;
-    ctx.textAlign = rtl ? "right" : "left"; ctx.textBaseline = "top";
-    ctx.fillStyle = "#b88a2a";
-    const hs = Math.round(W * 0.034);
-    ctx.font = `bold ${hs}px 'Playfair Display', serif`;
-    ctx.fillText(rtl ? "פֿראגן צום רעדן" : "Questions to Talk About", anchorX, py + H * 0.035);
-    ctx.fillStyle = "#2b2418";
-    const fs = Math.round(W * 0.026);
-    ctx.font = `${fs}px ${BOOK_TEXT_STYLE.fontFamily}`;
-    const lines = wrapLines(ctx, questionsText, W - padX * 2);
-    let qy = py + H * 0.035 + hs + Math.round(H * 0.02);
-    const lh = fs * 1.42;
-    for (const ln of lines) {
-      if (qy > H - fs) break;
-      ctx.fillText(ln, anchorX, qy);
-      qy += lh;
-    }
-    ctx.restore();
-  }
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
@@ -679,8 +647,9 @@ async function renderColoringBackMatter(
  * of the raw, text-free stored illustrations (which was why printed books came
  * out with no text and a mis-arranged cover).
  *
- * Note: these blueprints have no slot for the discussion-questions page, so it
- * is intentionally omitted here (it never had a print image anyway).
+ * The discussion-questions page is rendered as its own clean page (matching the
+ * on-screen PDF), filling the trailing interior slot — earlier it was composited
+ * onto the last story illustration, which overlapped the art.
  */
 /** Pull the back-cover teasers from the generated "preview" pages (each carries
  *  an upcoming `portion` + its generated cover `image`). Label is derived from
@@ -713,22 +682,20 @@ export async function renderPrintImages(
     ? renderPortraitCover(cover, childName, parashaLabel, PRINT_SCALE, lang)
     : renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews, lang)));
 
-  // Bound 8×8/board blueprints have no questions slot, so the questions ride at
-  // the bottom of the last story page. Coloring books instead get a dedicated
-  // back-matter page (below), since they have no back cover for the teasers.
   const questionsPage = pages.find((p) => p.type === "questions");
-  const questionsText = questionsPage
-    ? (questionsPage.text || (questionsPage.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n"))
-    : "";
   const stories = pages.filter((p) => p.type === "story" || !p.type);
   for (let i = 0; i < stories.length; i++) {
-    const isLast = i === stories.length - 1;
-    const composite = mode !== "portrait" && isLast ? questionsText : undefined;
-    out.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE, composite));
+    out.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE));
   }
-  // Coloring: append the back-matter page (logo + 10 questions + subscribe + teasers).
-  if (mode === "portrait" && questionsPage) {
-    out.push(await renderColoringBackMatter(questionsPage, childName, previews, lang, PRINT_SCALE));
+  // The discussion questions get their OWN page — matching the on-screen PDF.
+  // Bound 8×8/board books have a trailing interior page slot for it (Printify was
+  // leaving that page blank while the questions were composited onto the last
+  // story illustration, overlapping the art). Coloring books get a dedicated
+  // back-matter page instead (they have no back cover for the teasers).
+  if (questionsPage) {
+    out.push(mode === "portrait"
+      ? await renderColoringBackMatter(questionsPage, childName, previews, lang, PRINT_SCALE)
+      : await renderQuestionsSpread(questionsPage, rtl, mode, PRINT_SCALE));
   }
   return out;
 }
