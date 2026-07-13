@@ -248,6 +248,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [data, setData] = useState<WizardData>(initialData);
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
   const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
+  const [savedBookId, setSavedBookId] = useState<string | null>(null);
 
   // Keep story pageCount in sync with the chosen book format
   // (board=10, softcover=20, hardcover=24, coloring=24)
@@ -298,7 +299,6 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   // Step-6 drill-down: "mode" (parsha vs. different story) → "category" → "stories"
   const [portionView, setPortionView] = useState<"mode" | "category" | "stories">("mode");
   const [styleSubStep, setStyleSubStep] = useState<"art" | "format">("art");
-  const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [bookOptionsChosenEarly, setBookOptionsChosenEarly] = useState(false);
