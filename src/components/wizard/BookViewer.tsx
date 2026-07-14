@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, RefreshCw, X, Wand2, Sparkles, BookOpen, Pencil } from "lucide-react";
+import { ChevronLeft, ChevronRight, RefreshCw, X, Wand2, Sparkles, BookOpen, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -161,6 +161,23 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
 
   const updatePage = (id: number, patch: Partial<BookPage>) => {
     onPagesChange(pages.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  };
+
+  // Drop a single story page — e.g. to bring an older book's interior page
+  // count back down to its Printify blueprint's print-slot capacity (a book
+  // generated before a page-budget fix can carry one extra image and get
+  // rejected at submit time). Story pages only — never the cover or the
+  // discussion-questions page.
+  const deletePage = (id: number) => {
+    const storyPages = pages.filter((p) => p.type === "story" || !p.type);
+    if (storyPages.length <= 1) {
+      toast.error("Can't delete the last story page");
+      return;
+    }
+    if (!window.confirm("Delete this page? This can't be undone (you can Quick Regen a fresh page in its place instead).")) return;
+    onPagesChange(pages.filter((p) => p.id !== id));
+    setCurrentPage((p) => Math.max(0, p - 1));
+    toast.success("Page deleted");
   };
 
   // "Apply to all": copy the STYLE of one caption (font, size, colour, outline,
@@ -735,6 +752,17 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         >
           <Wand2 className="w-3.5 h-3.5" /> Custom Prompt
         </Button>
+        {pageType === "story" && page && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => deletePage(page.id)}
+            disabled={regeneratingId !== null}
+            className="text-xs col-span-1 sm:col-span-3 text-destructive hover:text-destructive"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Delete Page
+          </Button>
+        )}
       </div>
       )}
 
