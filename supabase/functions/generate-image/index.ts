@@ -193,7 +193,7 @@ serve(async (req) => {
     // line art the child colors in. So line art applies to non-cover pages only.
     const isColoring = (bookFormat || "").startsWith("coloring");
     const isColoringPage = isColoring && !isCover;
-    const coloringStyle = "clean black-and-white line-art coloring-book page: bold, smooth, evenly-weighted PURE BLACK outlines on a PURE WHITE background. Absolutely NO color, NO grayscale, NO shading, NO shadows, NO fills, NO gradients, NO tints anywhere — every shape is left OPEN and WHITE inside for a child to color. Simple, friendly shapes with thick clear contours; hair, clothing, skin and every object are drawn as EMPTY white outlines only.";
+    const coloringStyle = "premium professional coloring-book illustration, in the polished style of a published children's activity book — NOT a rough sketch or a bare, oversimplified doodle. PURE BLACK line art on a PURE WHITE background. Absolutely NO color, NO grayscale, NO shading, NO shadows, NO fills, NO gradients, NO tints anywhere — every shape is left OPEN and WHITE inside for a child to color. Rich, confident detail: varied line weight (bold outer silhouette contours, finer inner lines for texture and depth), and a fully-realized background filling the page — never large areas of flat empty white space around the subject. Render texture and pattern purely through line work (fabric folds and pleats, hair strands, foliage, wood grain, brickwork, clouds) so the page feels complete and engaging, while every shape stays large enough, clean, and fully closed so a child can still color it easily.";
     const styleDesc = isColoringPage ? coloringStyle : (styleMap[artStyle] || styleMap.cartoon);
 
     // Short human-readable name for the chosen style, used in the style-lock
@@ -239,7 +239,7 @@ serve(async (req) => {
     // single square pages — compose each accordingly.
     if (!isCover && !prompt) {
       imagePrompt += isColoringPage
-        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Draw the whole scene as a clean black-and-white LINE DRAWING for a child to color — bold black OUTLINES ONLY on a pure white page. Every character and object is drawn as empty white shapes with black contours: NO color, NO grey, NO shading, NO shadows, NO fills or tints ANYWHERE (hair, clothing, skin and objects must all be left white inside). Keep details simple and the shapes large and open. Absolutely NO text, letters, or words in the image.`
+        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page, illustrated to PUBLISHED-BOOK QUALITY — rich and detailed, not a bare or minimal sketch. Draw the full scene as a black-and-white LINE DRAWING for a child to color — confident black OUTLINES ONLY on a pure white page, with a fully-illustrated background (setting, props, environmental detail) so the whole page feels complete, not empty white space around a lone subject. Every character and object is drawn as empty white shapes with black contours: NO color, NO grey, NO shading, NO shadows, NO fills or tints ANYWHERE (hair, clothing, skin and objects must all be left white inside). Use varied line weight — bold outer contours, finer inner detail lines for texture (hair strands, fabric folds, foliage, patterns) — while keeping every shape large enough and fully closed so it stays easy to color. Absolutely NO text, letters, or words in the image.`
         : isSpreadFormat
         ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration painted as ONE SINGLE CONTINUOUS SCENE — one sky, one horizon, one consistent lighting direction from the top edge to the bottom edge. Arrange it as a cinematic scene with the main character(s) toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and stay easy to read. Do NOT center the subject so tightly that there is no breathing room. The calm areas must be fully painted parts of the SAME scene (its own open sky, soft landscape) with the same palette and lighting — never an empty strip, solid bar, blank panel, or a SECOND sky pasted along an edge; there must be NO horizontal seam or visible line where the top of the image meets the rest — clouds, light, and color must flow continuously from the very top edge down into the scene. Absolutely NO text, letters, or words in the image.`
         : ` COMPOSITION: This is a single SQUARE page illustration and it must be FULL-BLEED: ONE SINGLE CONTINUOUS painted scene filling the entire square edge-to-edge, composed in one pass with ONE sky, ONE horizon, and ONE consistent lighting direction. NEVER paint a separate strip, solid-color bar, blank panel, frame, border, or a SECOND sky at the top or bottom — there must be NO horizontal seam, edge, or visible line where the upper part of the image looks attached or pasted onto the scene below; clouds, light, and colors must flow continuously and seamlessly from the very top edge down into the scene. Compose the scene so its OWN natural upper portion is calm and quiet (the scene's sky with soft clouds, gentle light rays, or distant landscape — same palette, lighting, and texture as everything below, just lower-detail, with no faces or story details up there). Keep all characters and action in the middle and lower portions of the frame. A few lines of story text will later be overlaid on that calm upper area, so it must genuinely be part of the SAME scene — never a bar, box, or panel. Absolutely NO text, letters, or words in the image.`;
@@ -516,8 +516,10 @@ serve(async (req) => {
           bmp[i] = bmp[i + 1] = bmp[i + 2] = v;
           bmp[i + 3] = 255;
         }
-        const out = await img.encodeJPEG(92);
-        return `data:image/jpeg;base64,${bufferToBase64(out.buffer)}`;
+        // PNG (lossless) — JPEG's compression artifacts (ringing/haloing) are
+        // especially visible on hard black-on-white line-art edges.
+        const out = await img.encode();
+        return `data:image/png;base64,${bufferToBase64(out.buffer)}`;
       } catch (e) {
         console.error("toLineArt failed (returning original):", e);
         return dataUrl;
@@ -546,14 +548,21 @@ serve(async (req) => {
               imageBlobs.push({ blob: new Blob([bin], { type: p.inlineData.mimeType }), name: `ref-${imageBlobs.length}.${ext}` });
             }
           }
-          const size = "1024x1024"; // square pages; upscaled for print after
+          // Coloring books are portrait 8.5×11 (cover included) — a square
+          // render gets stretched/cropped into that shape later, softening
+          // detail. Every other format prints as a square page.
+          const size = isColoring ? "1024x1536" : "1024x1024";
+          // Coloring pages are the ones reported as low quality — request the
+          // top quality tier for them specifically (other formats stay at the
+          // existing "medium" tier rather than doubling cost/latency broadly).
+          const quality = isColoring ? "high" : "medium";
           let openaiResp: Response;
           if (imageBlobs.length > 0) {
             const fd = new FormData();
             fd.append("model", requestedImageModel);
             fd.append("prompt", imagePrompt);
             fd.append("size", size);
-            fd.append("quality", "medium");
+            fd.append("quality", quality);
             fd.append("output_format", "jpeg"); // small JPEG straight from the model — no in-edge re-encoding
             fd.append("output_compression", "80");
             fd.append("n", "1");
@@ -567,7 +576,7 @@ serve(async (req) => {
             openaiResp = await fetchWithTimeout("https://api.openai.com/v1/images/generations", {
               method: "POST",
               headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
-              body: JSON.stringify({ model: requestedImageModel, prompt: imagePrompt, size, quality: "medium", output_format: "jpeg", output_compression: 80, n: 1 }),
+              body: JSON.stringify({ model: requestedImageModel, prompt: imagePrompt, size, quality, output_format: "jpeg", output_compression: 80, n: 1 }),
             }, 90_000);
           }
           if (openaiResp.ok) {
@@ -741,10 +750,16 @@ serve(async (req) => {
           .filter((c: any) => c?.name && c?.age)
           .map((c: any) => `${c.name} is ${c.age} years old`)
           .join("; ") || "ages as shown on the sheets";
-        qaParts.push({ text: `You are a strict QA inspector for a children's book. Image 1 is a GENERATED book page. The following ${usableSheets.length} image(s) are the OFFICIAL character sheet(s) for the hero child(ren): ${names}. Inspect the generated page for ONLY these defects:
+        // Image 1 is a colorless line-art page for coloring books — the sheets
+        // are still full-color, so a color-based hair check would ALWAYS "fail"
+        // (there's no color at all to compare). Judge hair by STYLE/shape instead.
+        const hairDefectLine = isColoringPage
+          ? "2) hairMismatch — a hero child's hair STYLE or length clearly differs from their character sheet (e.g. short hair on the page but long/braided on the sheet). Ignore color — this page has none."
+          : "2) hairMismatch — a hero child's hair COLOR clearly differs from their character sheet (e.g. blonde on the page but brown on the sheet).";
+        qaParts.push({ text: `You are a strict QA inspector for a children's book. Image 1 is a GENERATED book page${isColoringPage ? " (a black-and-white LINE-ART coloring page — judge shapes/silhouettes only, ignore that it has no color)" : ""}. The following ${usableSheets.length} image(s) are the OFFICIAL character sheet(s) for the hero child(ren): ${names}. Inspect the generated page for ONLY these defects:
 1) duplicate — the SAME hero child appears more than once in the page (a twin, clone, mirror or extra copy of the same child).
-2) hairMismatch — a hero child's hair COLOR clearly differs from their character sheet (e.g. blonde on the page but brown on the sheet).
-3) outfitMismatch — a hero child's clothing clearly differs from the outfit on their character sheet (e.g. modern t-shirt instead of the sheet outfit).
+${hairDefectLine}
+3) outfitMismatch — a hero child's clothing shape/style clearly differs from the outfit on their character sheet (e.g. modern t-shirt instead of the sheet outfit).
 4) ageMismatch — a hero child looks CLEARLY older or younger than their real age (${agesLine}) — e.g. drawn as a teenager or grown child when they should be a toddler.
 5) styleMismatch — the page is clearly NOT rendered as a ${styleName} (e.g. a flat 2D cartoon or a real photograph when it must be a 3D CGI render).
 6) flatBand — a flat, solid-color, EMPTY horizontal band or strip (top or bottom) that looks like a blank text box or pasted-on panel, OR a visible horizontal SEAM where the top region does not continue the same scene — e.g. TWO different skies, a straight line where two images appear joined, or mismatched lighting/palette between a top strip and the rest of the image.
@@ -768,7 +783,9 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
         const v = JSON.parse(m[0]);
         const issues: string[] = [];
         if (v.duplicate) issues.push("the same hero child appeared MORE THAN ONCE — render each named child EXACTLY ONCE, with no duplicate anywhere in the scene");
-        if (v.hairMismatch) issues.push("a hero child's HAIR COLOR did not match the character sheet — copy the exact hair color and shade from the sheet");
+        if (v.hairMismatch) issues.push(isColoringPage
+          ? "a hero child's HAIR STYLE/length did not match the character sheet — copy the exact hair style and length from the sheet"
+          : "a hero child's HAIR COLOR did not match the character sheet — copy the exact hair color and shade from the sheet");
         if (v.outfitMismatch) issues.push("a hero child's OUTFIT did not match the character sheet — dress them in exactly the outfit shown on the sheet");
         if (v.ageMismatch) issues.push(`a hero child was drawn at the WRONG AGE — render each child at their exact stated age (${agesLine}) with true proportions, never older or younger`);
         if (v.styleMismatch) issues.push(`the page was NOT rendered in the required art style — the final image must be a ${styleName}, matching every other page of the book`);
@@ -787,7 +804,7 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
     const qaStartedAt = Date.now();
     let finalImageUrl = await generateOnce();
 
-    if (!isColoring && sheetRefs.length > 0 && Date.now() - qaStartedAt < 75_000) {
+    if (sheetRefs.length > 0 && Date.now() - qaStartedAt < 75_000) {
       const issues = await qaCheck(finalImageUrl);
       if (issues) {
         console.warn("QA gate rejected page — regenerating once:", issues);
