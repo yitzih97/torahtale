@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPortionDisplay, bookLanguageCode, isBookRtl } from "./TorahPortions";
+import { COVER_NAVY, COVER_GOLD, COVER_MAGENTA, FRONT_TAGLINE, coverTitleParts } from "@/lib/coverBranding";
 
 export interface BookPage {
   id: number;
@@ -356,13 +357,84 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   // book's edge (mirrors the front cover, so it follows the book's language).
   const spineLabel = `${parashaName}${childName ? `  ${childName}` : ""}`;
 
+  // Majestic front-cover chrome — navy filigree frame, gold engraved parsha
+  // title, magenta personalized title/child line, gold tagline. Shared with
+  // the print/PDF renderer (generateBookPdf.ts) via coverBranding.ts so this
+  // on-screen preview always matches what actually gets printed.
+  const renderCoverChrome = (title?: string, childLine?: string) => (
+    <div className="absolute inset-0 pointer-events-none" dir={dir}>
+      <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-[rgba(8,14,30,0.82)] via-[rgba(8,14,30,0.32)] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-[18%] bg-gradient-to-t from-[rgba(8,14,30,0.72)] to-transparent" />
+
+      {/* Navy frame + gold double keyline */}
+      <div className="absolute" style={{ inset: "3%", border: `6px solid ${COVER_NAVY}` }} />
+      <div className="absolute" style={{ inset: "4.6%", border: `2px solid ${COVER_GOLD}` }} />
+      <div className="absolute" style={{ inset: "5.1%", border: "1px solid rgba(227,193,105,0.5)" }} />
+
+      {/* Corner flourishes */}
+      <span className="absolute top-[6%] left-[6%] text-sm sm:text-lg" style={{ color: COVER_GOLD }}>❦</span>
+      <span className="absolute top-[6%] right-[6%] text-sm sm:text-lg" style={{ color: COVER_GOLD }}>❦</span>
+      <span className="absolute bottom-[6%] right-[6%] text-sm sm:text-lg" style={{ color: COVER_GOLD }}>❦</span>
+      <span className="absolute bottom-[6%] left-[6%] text-sm sm:text-lg" style={{ color: COVER_GOLD }}>❦</span>
+
+      <div className="absolute inset-x-0 top-[7%] text-center px-3">
+        <p className="font-semibold uppercase tracking-[0.3em] text-[9px] sm:text-sm" style={{ fontFamily: "'Cinzel', serif", color: COVER_GOLD }}>
+          Torah Tale
+        </p>
+        <div className="mt-1 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
+          <span className="h-px w-5 sm:w-6 bg-current opacity-70" /><span>❦</span><span className="h-px w-5 sm:w-6 bg-current opacity-70" />
+        </div>
+      </div>
+
+      <div className="absolute inset-x-0 top-[15%] sm:top-[16%] text-center px-4">
+        <h1
+          className="font-bold uppercase leading-tight text-lg sm:text-3xl"
+          style={{
+            fontFamily: "'Cinzel', serif",
+            backgroundImage: "linear-gradient(180deg, #fff6d5 0%, #f6df97 28%, #e7be5c 50%, #c9992f 72%, #a9791f 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            color: "transparent",
+            textShadow: "0 2px 3px rgba(0,0,0,0.45)",
+          }}
+        >
+          {parashaName.toUpperCase()}
+        </h1>
+        <div className="mt-1.5 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
+          <span className="h-px w-7 sm:w-8 bg-current opacity-70" /><span>❦</span><span className="h-px w-7 sm:w-8 bg-current opacity-70" />
+        </div>
+        {title && (
+          <p
+            className="mt-1.5 italic font-semibold text-sm sm:text-xl"
+            style={{ fontFamily: "'Cormorant Garamond', serif", color: COVER_MAGENTA, textShadow: "0 2px 6px rgba(0,0,0,0.5)" }}
+          >
+            {title}
+          </p>
+        )}
+        {childLine && (
+          <p
+            className="mt-0.5 italic text-[11px] sm:text-base"
+            style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,240,214,0.95)", textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}
+          >
+            {childLine}
+          </p>
+        )}
+      </div>
+
+      <div className="absolute inset-x-0 bottom-[6%] text-center px-3">
+        <div className="mb-1 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
+          <span className="h-px w-5 sm:w-6 bg-current opacity-70" /><span>❦</span><span className="h-px w-5 sm:w-6 bg-current opacity-70" />
+        </div>
+        <p className="italic text-[9px] sm:text-sm" style={{ fontFamily: "'Cormorant Garamond', serif", color: COVER_GOLD, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
+          {FRONT_TAGLINE}
+        </p>
+      </div>
+    </div>
+  );
+
   // Coloring-book cover: a single 8.5×11 portrait front cover (line-art image +
   // title band), matching the print output — no wraparound back/spine.
   const renderColoringCover = () => {
-    // Localized single-language topic name + kids' names (like the other books),
-    // not the story's generated bilingual title/subtitle.
-    const frontTitle = parashaName;
-    const frontSubtitle = childName;
     return (
       <div className="absolute inset-0 bg-white">
         {page?.image ? (
@@ -372,23 +444,17 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         ) : (
           <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="w-10 h-10 text-muted-foreground" /></div>
         )}
-        <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-12 bg-gradient-to-b from-black/55 via-black/25 to-transparent text-center" dir={dir}>
-          <h1 className="font-extrabold text-white leading-[1.05] text-2xl sm:text-4xl tracking-tight" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>
-            {frontTitle}
-          </h1>
-          {frontSubtitle && (
-            <p className="mt-1.5 text-white/90 text-sm sm:text-lg" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{frontSubtitle}</p>
-          )}
-        </div>
+        {renderCoverChrome(childName)}
       </div>
     );
   };
 
   const renderCoverSpread = () => {
-    // Front cover text defaults to the localized parsha name + kids, but an admin
-    // edit (coverTitle/coverSubtitle) overrides it.
-    const frontTitle = page?.coverTitle?.trim() || parashaName;
-    const frontSubtitle = page?.coverSubtitle?.trim() || childName;
+    // Front cover text: the gold parsha title always shows; the magenta
+    // personalized title/child line follow the same coverTitleParts logic as
+    // the print renderer (falls back to the child's name when there's no
+    // creative title, or it just repeats the parsha).
+    const { title: frontTitle, childLine } = coverTitleParts(page?.coverTitle, childName, parashaName);
     return (
     <div className="absolute inset-0 grid grid-cols-2">
       {/* Back cover — left: brand logo, the 4 "coming next" teaser mini-covers,
@@ -428,14 +494,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             <BookOpen className="w-10 h-10 text-muted-foreground" />
           </div>
         )}
-        <div className="absolute inset-x-0 top-0 px-4 pt-5 pb-12 bg-gradient-to-b from-black/55 via-black/25 to-transparent text-center" dir={dir}>
-          <h1 className="font-extrabold text-white leading-[1.05] text-2xl sm:text-4xl tracking-tight" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>
-            {frontTitle}
-          </h1>
-          {frontSubtitle && (
-            <p className="mt-1.5 text-white/90 text-sm sm:text-lg" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{frontSubtitle}</p>
-          )}
-        </div>
+        {renderCoverChrome(frontTitle, childLine)}
       </div>
 
       {/* Spine — story title + kids' names down the center fold */}

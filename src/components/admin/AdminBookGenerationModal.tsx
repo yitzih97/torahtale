@@ -214,6 +214,14 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     setStatusText("Writing the story…");
     try {
       const portionLabel = book.torah_portion ? getPortionDisplay(book.torah_portion, "en") : "";
+      // The discussion-questions page prints as its OWN interior page (see
+      // renderQuestionsSpread), not composited onto the last story page. Each
+      // Printify blueprint's interior capacity is fixed at `pageCount` slots
+      // (Cover + pageCount PAGES — see PAGES_BY_TYPE), so one of those slots
+      // must go to the questions page: request one fewer story page here or
+      // the questions page overflows the print product's slot count and gets
+      // silently dropped at submit time.
+      const storyPageCount = Math.max(1, pageCount - 1);
       const { data: storyResult, error: storyErr } = await supabase.functions.invoke("generate-story", {
         body: {
           childName: book.child_name,
@@ -224,7 +232,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           torahPortionLabel: portionLabel || book.torah_portion,
           artStyle: ART_STYLE,
           language: book.language || "english",
-          pageCount,
+          pageCount: storyPageCount,
         },
       });
       if (storyErr) throw storyErr;
