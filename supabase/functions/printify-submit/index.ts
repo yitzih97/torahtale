@@ -184,6 +184,22 @@ serve(async (req) => {
       if (!pages.length) throw new Error("Book has no pages");
 
       const shipping = (book.shipping_data as any) || {};
+      // Admin-created ("manual") orders never went through Shopify checkout, so
+      // shipping_data was never filled in — Printify then holds the order with
+      // "Please complete the shipping address." Fall back to the shop's default
+      // address ONLY when there's no shopify_order_id (i.e. this book was pushed
+      // straight to Printify from the admin dashboard, not paid for by a real
+      // customer) and no address is already on file. A real Shopify order always
+      // has its own shipping_data from the webhook, so this never overrides one.
+      if (!book.shopify_order_id && !shipping.address1) {
+        shipping.address1 = "10300 Sleepy Brook Way";
+        shipping.city = "Boca Raton";
+        shipping.state = shipping.state || "FL";
+        shipping.provinceCode = shipping.provinceCode || "FL";
+        shipping.zip = "33428";
+        shipping.country = shipping.country || "US";
+        shipping.countryCode = shipping.countryCode || "US";
+      }
       const opts = shipping.bookOptions || {};
       const quantity = Math.max(1, parseInt(shipping.quantity) || 1);
 
