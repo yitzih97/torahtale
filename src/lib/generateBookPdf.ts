@@ -257,6 +257,12 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
+  // The source AI image is native-resolution (well under the print canvas
+  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // smoothing for that resample, which reads as blur/softness. Use the best
+  // available resampling filter instead.
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   if (scale !== 1) ctx.scale(scale, scale);
 
   const img = await safeLoad(page.image);
@@ -277,7 +283,11 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
 
   if (mode === "spread") drawGutter(ctx, W, H);
   drawTextOverlay(ctx, page.text || "", layout, W, H, rtl);
-  return canvas.toDataURL("image/jpeg", 0.92);
+  // Coloring pages are pure black-on-white line art — JPEG's block compression
+  // artifacts (ringing/haloing) are especially visible on hard edges like
+  // these, so export losslessly. Painted illustrations stay JPEG (smaller,
+  // and JPEG's loss is imperceptible on continuous-tone art).
+  return mode === "portrait" ? canvas.toDataURL("image/png") : canvas.toDataURL("image/jpeg", 0.92);
 }
 
 async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutMode, scale = 1): Promise<string> {
@@ -288,6 +298,12 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
+  // The source AI image is native-resolution (well under the print canvas
+  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // smoothing for that resample, which reads as blur/softness. Use the best
+  // available resampling filter instead.
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   if (scale !== 1) ctx.scale(scale, scale);
   drawPaperFull(ctx, W, H);
   if (mode === "spread") drawGutter(ctx, W, H);
@@ -487,6 +503,12 @@ async function renderCoverSpread(
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W * scale; canvas.height = SPREAD_H * scale;
   const ctx = canvas.getContext("2d")!;
+  // The source AI image is native-resolution (well under the print canvas
+  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // smoothing for that resample, which reads as blur/softness. Use the best
+  // available resampling filter instead.
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   if (scale !== 1) ctx.scale(scale, scale);
   // Hebrew/Yiddish cover text renders RTL; the site URL stays LTR (a domain).
   const rtl = lang !== "en";
@@ -642,6 +664,12 @@ async function renderPortraitCover(
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
+  // The source AI image is native-resolution (well under the print canvas
+  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // smoothing for that resample, which reads as blur/softness. Use the best
+  // available resampling filter instead.
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   if (scale !== 1) ctx.scale(scale, scale);
   const rtl = lang !== "en";
 
@@ -678,6 +706,12 @@ async function renderColoringBackMatter(
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
+  // The source AI image is native-resolution (well under the print canvas
+  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // smoothing for that resample, which reads as blur/softness. Use the best
+  // available resampling filter instead.
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   if (scale !== 1) ctx.scale(scale, scale);
   drawPaperFull(ctx, W, H);
   const padX = W * 0.08;
@@ -889,7 +923,11 @@ export async function generateBookPdf(
       storyIdx += 1;
     }
     try {
-      pdf.addImage(dataUrl, "JPEG", 0, 0, fmt[0], fmt[1]);
+      // Coloring interior pages are exported as PNG (see renderStorySpread) —
+      // jsPDF needs the format arg to match the actual encoding, not just the
+      // page type.
+      const imgFormat = dataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
+      pdf.addImage(dataUrl, imgFormat, 0, 0, fmt[0], fmt[1]);
     } catch {
       pdf.setFillColor(240, 240, 240);
       pdf.rect(0, 0, fmt[0], fmt[1], "F");
