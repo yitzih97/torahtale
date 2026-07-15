@@ -60,7 +60,12 @@ export async function submitBookToPrintify(opts: {
 
   const imageIds: string[] = [];
   for (let i = 0; i < images.length; i++) {
-    const fileName = i === 0 ? "cover.jpg" : `page-${i}.jpg`;
+    // Coloring interior pages render as lossless PNG (see renderStorySpread in
+    // generateBookPdf.ts) — the extension must match the actual encoding, not
+    // just assume JPEG, since Printify may use it to decide how to decode the
+    // upload.
+    const ext = images[i].startsWith("data:image/png") ? "png" : "jpg";
+    const fileName = i === 0 ? `cover.${ext}` : `page-${i}.${ext}`;
     const { data, error } = await supabase.functions.invoke("printify-submit", {
       body: { action: "upload-image", dataUrl: images[i], fileName },
     });
