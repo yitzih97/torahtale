@@ -630,6 +630,14 @@ serve(async (req) => {
       for (let modelTry = 0; modelTry < 2 && !modelDone; modelTry++) {
         let attempt: Response;
         try {
+          // Gemini 3 image models default to ~1K output (≈928×1152) unless asked
+          // for more — and our print canvases run up to 2550×3300, so that 1K
+          // source was getting stretched ~2.5-3x on every page, the real cause
+          // of soft/blurry pages no amount of resampling quality can fully hide.
+          // Request 2K explicitly on the gemini-3 family (gemini-2.5-flash-image
+          // doesn't support it — omit there rather than risk a rejected request).
+          const generationConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
+          if (model.startsWith("gemini-3")) generationConfig.imageConfig = { imageSize: "2K" };
           attempt = await fetchWithTimeout(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
             {
@@ -637,7 +645,7 @@ serve(async (req) => {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 contents: [{ role: "user", parts }],
-                generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+                generationConfig,
               }),
             },
             PROVIDER_TIMEOUT_MS,
@@ -673,7 +681,7 @@ serve(async (req) => {
 
         const retryableModelError =
           attempt.status === 404 ||
-          (attempt.status === 400 && /not found|not supported|generatecontent|responsemodalities/i.test(body));
+          (attempt.status === 400 && /not found|not supported|generatecontent|responsemodalities|imageconfig|imagesize/i.test(body));
 
         if (!retryableModelError) {
           throw new Error(`Gemini image generation error [${attempt.status}]`);
