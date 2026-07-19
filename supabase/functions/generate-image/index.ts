@@ -193,7 +193,7 @@ serve(async (req) => {
     // line art the child colors in. So line art applies to non-cover pages only.
     const isColoring = (bookFormat || "").startsWith("coloring");
     const isColoringPage = isColoring && !isCover;
-    const coloringStyle = "premium professional coloring-book illustration, in the polished style of a published children's activity book — NOT a rough sketch or a bare, oversimplified doodle. PURE BLACK line art on a PURE WHITE background. Absolutely NO color, NO grayscale, NO shading, NO shadows, NO fills, NO gradients, NO tints anywhere — every shape is left OPEN and WHITE inside for a child to color. Rich, confident detail: varied line weight (bold outer silhouette contours, finer inner lines for texture and depth), and a fully-realized background filling the page — never large areas of flat empty white space around the subject. Render texture and pattern purely through line work (fabric folds and pleats, hair strands, foliage, wood grain, brickwork, clouds) so the page feels complete and engaging, while every shape stays large enough, clean, and fully closed so a child can still color it easily.";
+    const coloringStyle = "clean, elegant black-and-white line-art coloring-book page, in the style of a professionally published children's coloring book. PURE BLACK outlines on a PURE WHITE background. This MUST be LOW-INK and genuinely easy to color: use clean, smooth, evenly-weighted OUTLINES only, with generous OPEN WHITE space inside every shape and across the page. Absolutely NO shading, NO cross-hatching, NO hatching, NO stippling, NO dotted or scribbled textures, NO gray tones, NO solid black fills, NO blacked-in or filled areas, NO dark, night, or heavily-detailed ink-heavy backgrounds — every region (hair, clothing, skin, sky, ground, objects) is left OPEN and WHITE inside for a child to color. Suggest form with a few confident contour lines rather than dense detail; the finished page should read as mostly white paper with tasteful, uncluttered black outlines.";
     const styleDesc = isColoringPage ? coloringStyle : (styleMap[artStyle] || styleMap.cartoon);
 
     // Short human-readable name for the chosen style, used in the style-lock
@@ -239,7 +239,7 @@ serve(async (req) => {
     // single square pages — compose each accordingly.
     if (!isCover && !prompt) {
       imagePrompt += isColoringPage
-        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page, illustrated to PUBLISHED-BOOK QUALITY — rich and detailed, not a bare or minimal sketch. Draw the full scene as a black-and-white LINE DRAWING for a child to color — confident black OUTLINES ONLY on a pure white page, with a fully-illustrated background (setting, props, environmental detail) so the whole page feels complete, not empty white space around a lone subject. Every character and object is drawn as empty white shapes with black contours: NO color, NO grey, NO shading, NO shadows, NO fills or tints ANYWHERE (hair, clothing, skin and objects must all be left white inside). Use varied line weight — bold outer contours, finer inner detail lines for texture (hair strands, fabric folds, foliage, patterns) — while keeping every shape large enough and fully closed so it stays easy to color. Absolutely NO text, letters, or words in the image.`
+        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Draw the scene as CLEAN black OUTLINE line art on a mostly-white page — outlines only, with large OPEN white areas for a child to color. You may include a simple, uncluttered background (a few key setting elements), but keep it airy and light: NO shading, NO hatching, NO stippling, NO solid black fills, NO blacked-in shapes, NO dark or night skies, NO dense textures or busy patterns that would waste ink. Every shape — hair, clothing, skin, sky, ground, props — is an EMPTY white outline. Favor fewer, cleaner lines over heavy detail. Absolutely NO text, letters, or words in the image.`
         : isSpreadFormat
         ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration painted as ONE SINGLE CONTINUOUS SCENE — one sky, one horizon, one consistent lighting direction from the top edge to the bottom edge. Arrange it as a cinematic scene with the main character(s) toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and stay easy to read. Do NOT center the subject so tightly that there is no breathing room. The calm areas must be fully painted parts of the SAME scene (its own open sky, soft landscape) with the same palette and lighting — never an empty strip, solid bar, blank panel, or a SECOND sky pasted along an edge; there must be NO horizontal seam or visible line where the top of the image meets the rest — clouds, light, and color must flow continuously from the very top edge down into the scene. Absolutely NO text, letters, or words in the image.`
         : ` COMPOSITION: This is a single SQUARE page illustration and it must be FULL-BLEED: ONE SINGLE CONTINUOUS painted scene filling the entire square edge-to-edge, composed in one pass with ONE sky, ONE horizon, and ONE consistent lighting direction. NEVER paint a separate strip, solid-color bar, blank panel, frame, border, or a SECOND sky at the top or bottom — there must be NO horizontal seam, edge, or visible line where the upper part of the image looks attached or pasted onto the scene below; clouds, light, and colors must flow continuously and seamlessly from the very top edge down into the scene. Compose the scene so its OWN natural upper portion is calm and quiet (the scene's sky with soft clouds, gentle light rays, or distant landscape — same palette, lighting, and texture as everything below, just lower-detail, with no faces or story details up there). Keep all characters and action in the middle and lower portions of the frame. A few lines of story text will later be overlaid on that calm upper area, so it must genuinely be part of the SAME scene — never a bar, box, or panel. Absolutely NO text, letters, or words in the image.`;
@@ -509,7 +509,11 @@ serve(async (req) => {
         const { Image } = await import("https://deno.land/x/imagescript@1.2.17/mod.ts");
         const img = await Image.decode(Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0)));
         const bmp = img.bitmap; // RGBA, mutated in place
-        const LO = 60, HI = 125; // < LO → black line, > HI → white, soft ramp between
+        // < LO → black line, > HI → white, soft ramp between (for anti-aliased
+        // edges). HI is kept low so light/mid grays (residual soft shading the
+        // model may add) snap to pure white rather than printing as ink-costing
+        // halftone — the page stays clean and cheap to print.
+        const LO = 60, HI = 100;
         for (let i = 0; i < bmp.length; i += 4) {
           const lum = 0.299 * bmp[i] + 0.587 * bmp[i + 1] + 0.114 * bmp[i + 2];
           const v = lum <= LO ? 0 : lum >= HI ? 255 : Math.round(((lum - LO) / (HI - LO)) * 255);
@@ -636,8 +640,14 @@ serve(async (req) => {
           // of soft/blurry pages no amount of resampling quality can fully hide.
           // Request 2K explicitly on the gemini-3 family (gemini-2.5-flash-image
           // doesn't support it — omit there rather than risk a rejected request).
+          // EXCEPTION: coloring interior pages stay at 1K. They're post-processed
+          // to pure B&W line art by toLineArt (an ImageScript full-image decode +
+          // per-pixel pass + re-encode), which at 2K's ~4x pixel count blows the
+          // edge worker's CPU/memory budget → an uncatchable 546 kill → the page
+          // just fails. Line art is thresholded to black-on-white anyway, so 2K's
+          // extra color detail buys nothing here.
           const generationConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
-          if (model.startsWith("gemini-3")) generationConfig.imageConfig = { imageSize: "2K" };
+          if (model.startsWith("gemini-3") && !isColoringPage) generationConfig.imageConfig = { imageSize: "2K" };
           attempt = await fetchWithTimeout(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
             {

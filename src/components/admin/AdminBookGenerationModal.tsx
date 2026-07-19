@@ -360,19 +360,30 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         statuses[idx] = "generating";
         setPageStatuses([...statuses]);
         const t0 = Date.now();
-        try {
-          // Do NOT pass `prompt` — the edge function honors admin per-page
-          // templates, the global image-prompt-template, and master rules.
-          const { data: imgData } = await supabase.functions.invoke("generate-image", {
-            body: buildImageBody(working[idx], storyNumbers.get(idx)),
-          });
-          const url = imgData?.imageUrl || null;
-          working[idx] = { ...working[idx], image: url, imageLoading: false };
-          statuses[idx] = url ? "done" : "failed";
-        } catch {
-          working[idx] = { ...working[idx], image: working[idx].image || null, imageLoading: false };
-          statuses[idx] = "failed";
+        // A single generation can fail transiently — a provider timeout, a burst
+        // 429, or the edge worker hitting its CPU/memory limit on a heavy page.
+        // Retry a couple of times (fresh edge invocation each time, with a short
+        // backoff) before giving up, so a blip doesn't leave the admin to
+        // manually re-generate. Do NOT pass `prompt` — the edge function honors
+        // admin per-page templates, the global image-prompt-template, and master
+        // rules.
+        let url: string | null = null;
+        const MAX_ATTEMPTS = 3;
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS && !url && !abortRef.current; attempt++) {
+          try {
+            const { data: imgData } = await supabase.functions.invoke("generate-image", {
+              body: buildImageBody(working[idx], storyNumbers.get(idx)),
+            });
+            url = imgData?.imageUrl || null;
+          } catch {
+            url = null;
+          }
+          if (!url && attempt < MAX_ATTEMPTS && !abortRef.current) {
+            await new Promise((r) => setTimeout(r, attempt * 2000)); // 2s, then 4s
+          }
         }
+        working[idx] = { ...working[idx], image: url || working[idx].image || null, imageLoading: false };
+        statuses[idx] = url ? "done" : "failed";
         imageDurationsRef.current.push(Date.now() - t0);
         setPageStatuses([...statuses]);
         setDoneImages(statuses.filter((s) => s === "done").length);
