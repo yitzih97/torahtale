@@ -31,6 +31,27 @@ export interface TextLayout {
 
 export const DEFAULT_FONT_FAMILY = "'Inter', system-ui, sans-serif";
 
+/** The 8 resize handles: 4 corners + 4 edge midpoints. */
+type HandleId = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
+
+// Placement + cursor for each resize handle, relative to the (absolutely
+// positioned) text box. Corners sit at the four corners; side handles at the
+// edge midpoints. Diagonal cursors on corners, straight cursors on sides.
+const RESIZE_HANDLES: {
+  id: HandleId;
+  style: React.CSSProperties;
+  cursor: string;
+}[] = [
+  { id: "nw", style: { top: -8, left: -8 }, cursor: "nwse-resize" },
+  { id: "n", style: { top: -8, left: "50%", transform: "translateX(-50%)" }, cursor: "ns-resize" },
+  { id: "ne", style: { top: -8, right: -8 }, cursor: "nesw-resize" },
+  { id: "e", style: { top: "50%", right: -8, transform: "translateY(-50%)" }, cursor: "ew-resize" },
+  { id: "se", style: { bottom: -8, right: -8 }, cursor: "nwse-resize" },
+  { id: "s", style: { bottom: -8, left: "50%", transform: "translateX(-50%)" }, cursor: "ns-resize" },
+  { id: "sw", style: { bottom: -8, left: -8 }, cursor: "nesw-resize" },
+  { id: "w", style: { top: "50%", left: -8, transform: "translateY(-50%)" }, cursor: "ew-resize" },
+];
+
 /** Fonts that were the baked-in default before Inter. Existing books whose
  *  captions still carry one of these (i.e. the user never picked a font) are
  *  auto-upgraded to the new default by {@link migrateLayout}. */
@@ -141,7 +162,7 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
   const boxRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState(false);
   const [editing, setEditing] = useState(false);
-  const dragRef = useRef<{ mode: "move" | "resize" | null; startX: number; startY: number; orig: TextLayout } | null>(null);
+  const dragRef = useRef<{ mode: "move" | "resize" | null; handle?: HandleId; startX: number; startY: number; orig: TextLayout } | null>(null);
 
   // Click-outside deselect
   useEffect(() => {
@@ -158,14 +179,14 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  const onPointerDown = (e: React.PointerEvent, mode: "move" | "resize") => {
+  const onPointerDown = (e: React.PointerEvent, mode: "move" | "resize", handle?: HandleId) => {
     if (editing) return;
     if (!containerRef.current) return;
     e.preventDefault();
     e.stopPropagation();
     setSelected(true);
     (e.target as Element).setPointerCapture?.(e.pointerId);
-    dragRef.current = { mode, startX: e.clientX, startY: e.clientY, orig: { ...layout } };
+    dragRef.current = { mode, handle, startX: e.clientX, startY: e.clientY, orig: { ...layout } };
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -180,15 +201,46 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
         x: Math.max(0, Math.min(100 - layout.width, orig.x + dxPct)),
         y: Math.max(0, Math.min(95, orig.y + dyPct)),
       });
-    } else {
-      // Corner handle = proportional scale: the box widens AND the type grows
-      // with it, so dragging out makes the whole caption bigger (font stays
-      // clamped to the toolbar's 10–48px range).
-      const newWidth = Math.max(15, Math.min(98 - orig.x, orig.width + dxPct));
-      const ratio = orig.width > 0 ? newWidth / orig.width : 1;
-      const newFontSize = Math.max(10, Math.min(48, Math.round(orig.fontSize * ratio)));
-      onLayoutChange({ ...layout, width: newWidth, fontSize: newFontSize });
+      return;
     }
+    // Resize: 8 handles (4 corners + 4 sides). The layout has no explicit
+    // height (the box auto-sizes to its text), so vertical edges map to font
+    // size instead. Left/right edges reflow the text column width; corners
+    // scale width AND font together (proportional); top/bottom edges scale
+    // only the font. Left-side handles also move x so the box grows from the
+    // dragged edge; y stays put so the box always grows downward predictably.
+    const h = dragRef.current.handle ?? "se";
+    const onLeft = h === "w" || h === "nw" || h === "sw";
+    const onRight = h === "e" || h === "ne" || h === "se";
+    const onTop = h === "n" || h === "ne" || h === "nw";
+    const onBottom = h === "s" || h === "se" || h === "sw";
+    const isCorner = h.length === 2;
+
+    let newX = orig.x;
+    let newWidth = orig.width;
+    if (onRight) {
+      newWidth = Math.min(98 - orig.x, orig.width + dxPct);
+    } else if (onLeft) {
+      newX = orig.x + dxPct;
+      newWidth = orig.width - dxPct;
+      if (newX < 0) { newWidth += newX; newX = 0; } // clamp at the left wall
+    }
+    newWidth = Math.max(15, newWidth);
+    newX = Math.max(0, Math.min(100 - newWidth, newX));
+
+    let newFontSize = orig.fontSize;
+    if (isCorner) {
+      // Proportional scale: font tracks the width change.
+      const ratio = orig.width > 0 ? newWidth / orig.width : 1;
+      newFontSize = Math.max(10, Math.min(48, Math.round(orig.fontSize * ratio)));
+    } else if (onTop || onBottom) {
+      // Pure vertical edge → font size only. Dragging the bottom edge DOWN or
+      // the top edge UP makes the text bigger.
+      const dir = onBottom ? 1 : -1;
+      newFontSize = Math.max(10, Math.min(48, Math.round(orig.fontSize + dir * dyPct * 0.8)));
+    }
+
+    onLayoutChange({ ...layout, x: newX, width: newWidth, fontSize: newFontSize });
   };
 
   const onPointerUp = () => {
@@ -270,23 +322,24 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
           <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{text || "Double-click to edit"}</div>
         )}
 
-        {selected && !editing && (
+        {selected && !editing && RESIZE_HANDLES.map((hnd) => (
           <div
-            onPointerDown={(e) => onPointerDown(e, "resize")}
+            key={hnd.id}
+            onPointerDown={(e) => onPointerDown(e, "resize", hnd.id)}
             style={{
               position: "absolute",
-              right: -8,
-              bottom: -8,
-              width: 16,
-              height: 16,
-              borderRadius: 8,
+              width: 14,
+              height: 14,
+              borderRadius: 7,
               background: "hsl(var(--gold))",
               border: "2px solid white",
-              cursor: "nwse-resize",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
               touchAction: "none",
+              cursor: hnd.cursor,
+              ...hnd.style,
             }}
           />
-        )}
+        ))}
       </div>
 
       {selected && (
