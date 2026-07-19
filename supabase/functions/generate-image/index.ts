@@ -400,8 +400,8 @@ serve(async (req) => {
     }
     // NOTE: coloring INTERIOR pages KEEP the character-sheet refs (so the kids
     // stay consistent page-to-page). The sheets are full-color, which can bleed
-    // colour into the line art — that's scrubbed out afterwards by forcing the
-    // finished coloring page to pure black-and-white (see toLineArt below).
+    // colour into the line art — that's scrubbed out on the client, which
+    // thresholds the finished coloring page to pure black-and-white.
     if (cappedRefs.length > 0) {
       const legend = cappedRefs
         .map((r, i) => `Image ${i + 1} = ${r.name}${r.isPhoto ? " (a REAL PHOTO of this child — match their exact face shape, eye colour and shape, eyebrows, skin tone, and hair from it. FACE AND HAIR ONLY — never copy the clothing in this photo)" : " (this child's OFFICIAL CHARACTER SHEET — it defines their permanent look INCLUDING the exact outfit: reproduce the SAME clothing, colors, head covering and styling shown on the sheet)"}`)
@@ -502,67 +502,12 @@ serve(async (req) => {
     // leave colour/tints inside the outlines. A luminance threshold keeps the
     // dark OUTLINES black and whitens everything else (fills, tints, stray light
     // rays) — leaving clean empty shapes for a child to color. Fail-open.
-    const toLineArt = async (dataUrl: string): Promise<string> => {
-      try {
-        const m = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
-        if (!m) return dataUrl;
-        const { Image } = await import("https://deno.land/x/imagescript@1.2.17/mod.ts");
-        const img = await Image.decode(Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0)));
-        const bmp = img.bitmap; // RGBA, mutated in place
-        // < LO → black line, > HI → white, soft ramp between (for anti-aliased
-        // edges). HI is kept low so light/mid grays (residual soft shading the
-        // model may add) snap to pure white rather than printing as ink-costing
-        // halftone — the page stays clean and cheap to print.
-        const LO = 60, HI = 100;
-        for (let i = 0; i < bmp.length; i += 4) {
-          const lum = 0.299 * bmp[i] + 0.587 * bmp[i + 1] + 0.114 * bmp[i + 2];
-          const v = lum <= LO ? 0 : lum >= HI ? 255 : Math.round(((lum - LO) / (HI - LO)) * 255);
-          bmp[i] = bmp[i + 1] = bmp[i + 2] = v;
-          bmp[i + 3] = 255;
-        }
-
-        // Hollow out large SOLID-BLACK FILLS (dark clothing the model insists on
-        // filling in — black boots, dark pants, hair) so they print as colorable
-        // OUTLINES instead of ink-heavy blobs. A separable erosion by radius R
-        // marks every pixel whose whole (2R+1)² neighborhood is black — i.e. a
-        // pixel deep inside a solid region, never part of a thin outline (an
-        // outline ≤2R px wide has no such interior). Those interiors are whitened,
-        // leaving each fill as an ~R-px rim. Guarded so a failure here still
-        // yields the thresholded line art. Validated on synthetic fixtures.
-        try {
-          const W = img.width, H = img.height;
-          const black = new Uint8Array(W * H);
-          for (let p = 0, i = 0; p < W * H; p++, i += 4) black[p] = bmp[i] < 128 ? 1 : 0;
-          const R = 4;
-          const eroH = new Uint8Array(W * H);
-          for (let y = 0; y < H; y++) {
-            const row = y * W;
-            for (let x = 0; x < W; x++) {
-              let all: 0 | 1 = 1;
-              for (let dx = -R; dx <= R; dx++) { const xx = x + dx; if (xx < 0 || xx >= W || !black[row + xx]) { all = 0; break; } }
-              eroH[row + x] = all;
-            }
-          }
-          for (let y = 0; y < H; y++) {
-            for (let x = 0; x < W; x++) {
-              let all = true;
-              for (let dy = -R; dy <= R; dy++) { const yy = y + dy; if (yy < 0 || yy >= H || !eroH[yy * W + x]) { all = false; break; } }
-              if (all) { const i = (y * W + x) * 4; bmp[i] = bmp[i + 1] = bmp[i + 2] = 255; }
-            }
-          }
-        } catch (e) {
-          console.error("fill-hollowing skipped:", e);
-        }
-
-        // PNG (lossless) — JPEG's compression artifacts (ringing/haloing) are
-        // especially visible on hard black-on-white line-art edges.
-        const out = await img.encode();
-        return `data:image/png;base64,${bufferToBase64(out.buffer)}`;
-      } catch (e) {
-        console.error("toLineArt failed (returning original):", e);
-        return dataUrl;
-      }
-    };
+    // NOTE: coloring pages are converted to clean black-and-white line art on
+    // the CLIENT now (src/lib/lineArt.ts), not here. Doing the ImageScript
+    // decode + threshold + fill-hollowing + re-encode on the edge blew the
+    // worker's CPU/memory budget at 2K (an uncatchable 546 kill) and forced
+    // coloring pages down to a soft 1K. The edge now just stores the raw 2K
+    // generation and the browser does the conversion where there's no limit.
 
     // One full generation attempt (OpenAI primary → Gemini fallback). Reads the
     // current `parts` array, so the QA gate can amend the prompt and re-run it.
@@ -674,14 +619,11 @@ serve(async (req) => {
           // of soft/blurry pages no amount of resampling quality can fully hide.
           // Request 2K explicitly on the gemini-3 family (gemini-2.5-flash-image
           // doesn't support it — omit there rather than risk a rejected request).
-          // EXCEPTION: coloring interior pages stay at 1K. They're post-processed
-          // to pure B&W line art by toLineArt (an ImageScript full-image decode +
-          // per-pixel pass + re-encode), which at 2K's ~4x pixel count blows the
-          // edge worker's CPU/memory budget → an uncatchable 546 kill → the page
-          // just fails. Line art is thresholded to black-on-white anyway, so 2K's
-          // extra color detail buys nothing here.
+          // Coloring pages get 2K too now — their line-art conversion runs on the
+          // client (off the edge), so there's no longer an edge-side reason to
+          // keep them small, and crisp lines need the resolution.
           const generationConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
-          if (model.startsWith("gemini-3") && !isColoringPage) generationConfig.imageConfig = { imageSize: "2K" };
+          if (model.startsWith("gemini-3")) generationConfig.imageConfig = { imageSize: "2K" };
           attempt = await fetchWithTimeout(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
             {
@@ -870,9 +812,9 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
       }
     }
 
-    // Coloring interior pages: scrub any residual colour to pure line art so the
-    // page is genuinely "empty of color" for the child to fill in.
-    if (isColoringPage) finalImageUrl = await toLineArt(finalImageUrl);
+    // Coloring interior pages are stored as the raw 2K generation; the browser
+    // converts them to clean B&W line art at display/print time (see
+    // src/lib/lineArt.ts) — off the edge, where 2K processing is safe.
 
     // Move the finished image into object storage and return its URL, so the
     // caller (generate-book) stores a short URL in pages_data instead of a
