@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, RefreshCw, X, Wand2, Sparkles, BookOpen, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPortionDisplay, bookLanguageCode, isBookRtl } from "./TorahPortions";
 import { COVER_NAVY, COVER_GOLD, COVER_MAGENTA, FRONT_TAGLINE, coverTitleParts } from "@/lib/coverBranding";
+import { toLineArtDataURL } from "@/lib/lineArt";
 
 export interface BookPage {
   id: number;
@@ -158,6 +159,22 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   const safeIndex = Math.min(currentPage, Math.max(displayPages.length - 1, 0));
   const page = displayPages[safeIndex];
   const pageType = page?.type || "story";
+
+  // Coloring interior pages are stored as the raw 2K colour generation; convert
+  // the current one to clean B&W line art in the browser so the preview matches
+  // what actually prints (the same conversion runs in generateBookPdf). Only
+  // interior story pages — the coloring cover stays full colour.
+  const isColoringStoryPage = isColoring && !!page && (page.type === "story" || !page.type);
+  const [lineArtSrc, setLineArtSrc] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (isColoringStoryPage && page?.image) {
+      toLineArtDataURL(page.image).then((url) => { if (!cancelled) setLineArtSrc(url); });
+    } else {
+      setLineArtSrc(null);
+    }
+    return () => { cancelled = true; };
+  }, [isColoringStoryPage, page?.id, page?.image]);
 
   const updatePage = (id: number, patch: Partial<BookPage>) => {
     onPagesChange(pages.map((p) => (p.id === id ? { ...p, ...patch } : p)));
@@ -538,12 +555,15 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
     // Coloring pages are line art on WHITE — the white caption default would be
     // invisible, so force dark text with a soft cream backing box.
     if (isColoring) layout = { ...layout, color: "#2b2418", shadow: false, background: true };
+    // For coloring story pages show the B&W line-art conversion (falling back to
+    // the raw colour image until it's ready); every other page shows as-is.
+    const displaySrc = isColoringStoryPage ? (lineArtSrc ?? page?.image) : page?.image;
     return (
       <div className="absolute inset-0 bg-muted">
         {page?.image ? (
           <motion.img
-            key={`${page.id}-${page.image?.slice(-20)}`}
-            src={page.image}
+            key={`${page.id}-${(displaySrc ?? "").slice(-20)}`}
+            src={displaySrc}
             alt={getPageLabel()}
             crossOrigin="anonymous"
             onLoad={(e) => {

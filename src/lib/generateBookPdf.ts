@@ -3,6 +3,7 @@ import { BOOK_TEXT_STYLE, COVER_URL, getCoverTagline, type BookPage } from "@/co
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
+import { applyLineArt } from "@/lib/lineArt";
 import torahTaleIcon from "@/assets/brand/torah-tale-icon.png";
 import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png";
 import { COVER_NAVY, COVER_GOLD, COVER_MAGENTA, FRONT_TAGLINE, coverTitleParts } from "@/lib/coverBranding";
@@ -272,6 +273,16 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   if (img) {
     drawFullImage(ctx, img, W, H);
     if (!layout) layout = computeAutoTextLayout(img, rtl, page.text) || undefined;
+    // Coloring interior pages are generated in full colour at 2K (crisp) and
+    // converted to clean B&W line art HERE on the client — this conversion used
+    // to run in the edge function but couldn't handle 2K. Do it on the drawn
+    // canvas before the caption goes on top.
+    if (mode === "portrait") {
+      const cw = canvas.width, ch = canvas.height;
+      const id = ctx.getImageData(0, 0, cw, ch);
+      applyLineArt(id.data, cw, ch);
+      ctx.putImageData(id, 0, 0);
+    }
   } else {
     ctx.fillStyle = "#dcd2bd";
     ctx.fillRect(0, 0, W, H);
