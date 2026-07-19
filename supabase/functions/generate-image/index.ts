@@ -700,7 +700,15 @@ serve(async (req) => {
     }
 
     if (!imageUrl) {
-      throw new Error("No image returned from Gemini");
+      // A blocked generation comes back OK-status but with no image and a
+      // safety/blocked finishReason (Gemini's image-safety filter). Tag it so
+      // the caller can retry with a softened, child-friendly prompt instead of
+      // failing the page outright — this is the usual cause of certain scenes
+      // (e.g. Tisha B'Av churban: fire, siege, mourning) failing every time.
+      const fr = String(data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason || "");
+      const err = new Error(`No image returned from Gemini${fr ? ` (${fr})` : ""}`) as Error & { safetyBlocked?: boolean };
+      err.safetyBlocked = !!data.promptFeedback?.blockReason || /SAFETY|PROHIBITED|BLOCK|RECITATION/i.test(fr);
+      throw err;
     }
 
     return imageUrl;
@@ -796,7 +804,24 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
     };
 
     const qaStartedAt = Date.now();
-    let finalImageUrl = await generateOnce();
+    let finalImageUrl: string;
+    try {
+      finalImageUrl = await generateOnce();
+    } catch (e) {
+      // If the generation was blocked by the image-safety filter, retry ONCE
+      // with a softened, explicitly child-friendly prompt. Torah scenes of
+      // churban/plagues/war (Tisha B'Av, Va'era, Beshalach…) depict destruction
+      // that trips the filter even though the book wants a gentle, symbolic,
+      // kid-safe rendering — so ask for exactly that and try again.
+      if ((e as { safetyBlocked?: boolean })?.safetyBlocked) {
+        console.warn("Generation blocked by safety filter — retrying with a softened prompt.");
+        imagePrompt += ` \n\nIMPORTANT: Render this GENTLY and symbolically for a young child's storybook — absolutely NO fire, flames, smoke, weapons, blood, injury, death, rubble of bodies, or frightening/graphic imagery. Keep it calm, wholesome, tasteful, and hopeful; suggest sad or difficult moments softly (a lone tear, a quiet embrace, distant simple buildings) rather than depicting any violence or destruction.`;
+        parts[parts.length - 1] = { text: imagePrompt };
+        finalImageUrl = await generateOnce();
+      } else {
+        throw e;
+      }
+    }
 
     if (sheetRefs.length > 0 && Date.now() - qaStartedAt < 75_000) {
       const issues = await qaCheck(finalImageUrl);
