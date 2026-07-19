@@ -193,7 +193,7 @@ serve(async (req) => {
     // line art the child colors in. So line art applies to non-cover pages only.
     const isColoring = (bookFormat || "").startsWith("coloring");
     const isColoringPage = isColoring && !isCover;
-    const coloringStyle = "clean, elegant black-and-white line-art coloring-book page, in the style of a professionally published children's coloring book. PURE BLACK outlines on a PURE WHITE background. This MUST be LOW-INK and genuinely easy to color: use clean, smooth, evenly-weighted OUTLINES only, with generous OPEN WHITE space inside every shape and across the page. Absolutely NO shading, NO cross-hatching, NO hatching, NO stippling, NO dotted or scribbled textures, NO gray tones, NO solid black fills, NO blacked-in or filled areas, NO dark, night, or heavily-detailed ink-heavy backgrounds — every region (hair, clothing, skin, sky, ground, objects) is left OPEN and WHITE inside for a child to color. Suggest form with a few confident contour lines rather than dense detail; the finished page should read as mostly white paper with tasteful, uncluttered black outlines.";
+    const coloringStyle = "clean, elegant black-and-white line-art coloring-book page, in the style of a professionally published children's coloring book. PURE BLACK outlines on a PURE WHITE background. This MUST be LOW-INK and genuinely easy to color: use clean, smooth, evenly-weighted OUTLINES only, with generous OPEN WHITE space inside every shape and across the page. Absolutely NO shading, NO cross-hatching, NO hatching, NO stippling, NO dotted or scribbled textures, NO gray tones, NO solid black fills, NO blacked-in or filled areas, NO dark, night, or heavily-detailed ink-heavy backgrounds — every region (hair, clothing, skin, sky, ground, objects) is left OPEN and WHITE inside for a child to color. Suggest form with a few confident contour lines rather than dense detail; the finished page should read as mostly white paper with tasteful, uncluttered black outlines. CRITICAL: draw EVERYTHING as open white outlines, INCLUDING items that are normally dark — boots, shoes, sandals, hats, belts, hair, and dark clothing (pants, coats) must be OUTLINED and left WHITE inside, NEVER filled in black or solid. There must be zero solid-black or filled-in areas anywhere on the page.";
     const styleDesc = isColoringPage ? coloringStyle : (styleMap[artStyle] || styleMap.cartoon);
 
     // Short human-readable name for the chosen style, used in the style-lock
@@ -239,7 +239,7 @@ serve(async (req) => {
     // single square pages — compose each accordingly.
     if (!isCover && !prompt) {
       imagePrompt += isColoringPage
-        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Draw the scene as CLEAN black OUTLINE line art on a mostly-white page — outlines only, with large OPEN white areas for a child to color. You may include a simple, uncluttered background (a few key setting elements), but keep it airy and light: NO shading, NO hatching, NO stippling, NO solid black fills, NO blacked-in shapes, NO dark or night skies, NO dense textures or busy patterns that would waste ink. Every shape — hair, clothing, skin, sky, ground, props — is an EMPTY white outline. Favor fewer, cleaner lines over heavy detail. Absolutely NO text, letters, or words in the image.`
+        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Draw the scene as CLEAN black OUTLINE line art on a mostly-white page — outlines only, with large OPEN white areas for a child to color. You may include a simple, uncluttered background (a few key setting elements), but keep it airy and light: NO shading, NO hatching, NO stippling, NO solid black fills, NO blacked-in shapes, NO dark or night skies, NO dense textures or busy patterns that would waste ink. Every shape — hair, clothing, skin, sky, ground, props — is an EMPTY white outline. Items that are normally dark (boots, shoes, hats, belts, hair, dark pants or coats) must ALSO be drawn as OUTLINES left WHITE inside — NEVER filled solid black. There must be zero filled-in or solid-black areas. Favor fewer, cleaner lines over heavy detail. Absolutely NO text, letters, or words in the image.`
         : isSpreadFormat
         ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration painted as ONE SINGLE CONTINUOUS SCENE — one sky, one horizon, one consistent lighting direction from the top edge to the bottom edge. Arrange it as a cinematic scene with the main character(s) toward the lower portion and one side of the frame, leaving a generous calm area of open sky or soft, uncluttered negative space across the top and the opposite side so a short paragraph of story text can be overlaid there and stay easy to read. Do NOT center the subject so tightly that there is no breathing room. The calm areas must be fully painted parts of the SAME scene (its own open sky, soft landscape) with the same palette and lighting — never an empty strip, solid bar, blank panel, or a SECOND sky pasted along an edge; there must be NO horizontal seam or visible line where the top of the image meets the rest — clouds, light, and color must flow continuously from the very top edge down into the scene. Absolutely NO text, letters, or words in the image.`
         : ` COMPOSITION: This is a single SQUARE page illustration and it must be FULL-BLEED: ONE SINGLE CONTINUOUS painted scene filling the entire square edge-to-edge, composed in one pass with ONE sky, ONE horizon, and ONE consistent lighting direction. NEVER paint a separate strip, solid-color bar, blank panel, frame, border, or a SECOND sky at the top or bottom — there must be NO horizontal seam, edge, or visible line where the upper part of the image looks attached or pasted onto the scene below; clouds, light, and colors must flow continuously and seamlessly from the very top edge down into the scene. Compose the scene so its OWN natural upper portion is calm and quiet (the scene's sky with soft clouds, gentle light rays, or distant landscape — same palette, lighting, and texture as everything below, just lower-detail, with no faces or story details up there). Keep all characters and action in the middle and lower portions of the frame. A few lines of story text will later be overlaid on that calm upper area, so it must genuinely be part of the SAME scene — never a bar, box, or panel. Absolutely NO text, letters, or words in the image.`;
@@ -520,6 +520,40 @@ serve(async (req) => {
           bmp[i] = bmp[i + 1] = bmp[i + 2] = v;
           bmp[i + 3] = 255;
         }
+
+        // Hollow out large SOLID-BLACK FILLS (dark clothing the model insists on
+        // filling in — black boots, dark pants, hair) so they print as colorable
+        // OUTLINES instead of ink-heavy blobs. A separable erosion by radius R
+        // marks every pixel whose whole (2R+1)² neighborhood is black — i.e. a
+        // pixel deep inside a solid region, never part of a thin outline (an
+        // outline ≤2R px wide has no such interior). Those interiors are whitened,
+        // leaving each fill as an ~R-px rim. Guarded so a failure here still
+        // yields the thresholded line art. Validated on synthetic fixtures.
+        try {
+          const W = img.width, H = img.height;
+          const black = new Uint8Array(W * H);
+          for (let p = 0, i = 0; p < W * H; p++, i += 4) black[p] = bmp[i] < 128 ? 1 : 0;
+          const R = 4;
+          const eroH = new Uint8Array(W * H);
+          for (let y = 0; y < H; y++) {
+            const row = y * W;
+            for (let x = 0; x < W; x++) {
+              let all: 0 | 1 = 1;
+              for (let dx = -R; dx <= R; dx++) { const xx = x + dx; if (xx < 0 || xx >= W || !black[row + xx]) { all = 0; break; } }
+              eroH[row + x] = all;
+            }
+          }
+          for (let y = 0; y < H; y++) {
+            for (let x = 0; x < W; x++) {
+              let all = true;
+              for (let dy = -R; dy <= R; dy++) { const yy = y + dy; if (yy < 0 || yy >= H || !eroH[yy * W + x]) { all = false; break; } }
+              if (all) { const i = (y * W + x) * 4; bmp[i] = bmp[i + 1] = bmp[i + 2] = 255; }
+            }
+          }
+        } catch (e) {
+          console.error("fill-hollowing skipped:", e);
+        }
+
         // PNG (lossless) — JPEG's compression artifacts (ringing/haloing) are
         // especially visible on hard black-on-white line-art edges.
         const out = await img.encode();
