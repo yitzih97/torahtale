@@ -368,9 +368,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
           <div className="absolute inset-x-0 top-0 h-2/3 bg-gradient-to-b from-[rgba(8,14,30,0.72)] via-[rgba(8,14,30,0.22)] to-transparent" />
           <div className="absolute" style={{ inset: "5%", border: `1.5px solid ${COVER_NAVY}` }} />
           <div className="absolute" style={{ inset: "8%", border: `0.75px solid ${COVER_GOLD}` }} />
-          <div className="absolute inset-x-0 top-[7%] px-1 text-center">
+          <div className="absolute inset-x-0 top-[6%] px-1 text-center">
             <p
-              className="font-bold uppercase leading-tight text-[7px] sm:text-[9px]"
+              className="font-bold uppercase leading-tight text-[5px] sm:text-[6px]"
               style={{
                 fontFamily: "'Cinzel', serif",
                 backgroundImage: "linear-gradient(180deg,#fff6d5,#e7be5c 55%,#a9791f)",
@@ -382,7 +382,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             </p>
             {childName && (
               <p
-                className="italic font-semibold leading-tight text-[6px] sm:text-[7px]"
+                className="italic font-semibold leading-tight text-[4px] sm:text-[5px]"
                 style={{ fontFamily: "'Cormorant Garamond', serif", color: COVER_MAGENTA, textShadow: "0 1px 3px rgba(0,0,0,0.55)" }}
               >
                 {childName}

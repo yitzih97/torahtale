@@ -486,8 +486,12 @@ serve(async (req) => {
     // there is always a clean, low-detail zone waiting for the text.
 
     // Final, most-salient reminder — image models weight the end of the prompt heavily.
-    if (!isColoringPage && cappedRefs.length > 0) {
-      imagePrompt += ` \n\nFINAL CHECK BEFORE RENDERING (highest priority, overrides everything else): (1) each named child appears EXACTLY ONCE in the image — no duplicates, no twins, no reflections, no second copy in the background; (2) each child's hair color and hair style EXACTLY match their character sheet; (3) each child wears EXACTLY the outfit shown on their character sheet.`;
+    if (cappedRefs.length > 0) {
+      const hasSheet = cappedRefs.some((r) => !r.isPhoto);
+      imagePrompt += ` \n\nFINAL CHECK BEFORE RENDERING (highest priority, overrides everything else): (1) each named child appears EXACTLY ONCE in the image — no duplicates, no twins, no reflections, no second copy in the background; (2) each child's hair color and hair style EXACTLY match their character sheet.`;
+      if (hasSheet) {
+        imagePrompt += ` (3) OUTFIT LOCK — dress each child in the EXACT SAME outfit shown on their character sheet: the same garments, the same colors, the same head covering, the same shoes. This is one page of an existing book, so their clothing must be IDENTICAL to every other page. Do NOT design new, different, or "scene-appropriate" clothing and do NOT let the story setting change what they wear — copy the outfit straight from the sheet.`;
+      }
     }
 
     parts.push({ text: imagePrompt });
