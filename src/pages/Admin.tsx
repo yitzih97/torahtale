@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import {
   Package, Truck, Wand2, Users, BookOpen, CalendarHeart,
   Settings, Eye, Download, Search, ShieldCheck, Mail, MapPin,
-  Clock, Loader2, AlertTriangle, CheckCircle2, Play, Maximize2,
+  Clock, Loader2, AlertTriangle, CheckCircle2, Play, Maximize2, DollarSign,
 } from "lucide-react";
 import { AdminOrderDetailDialog } from "@/components/admin/AdminOrderDetailDialog";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
@@ -64,7 +64,7 @@ export default function Admin() {
     profiles, profilesLoading,
     children,
     subscriptions, subscriptionsLoading,
-    updateBookStatus, updateSubscriptionStatus,
+    updateBookStatus, markBookPaid, updateSubscriptionStatus,
   } = useAdminData();
 
   const [generatingBook, setGeneratingBook] = useState<any>(null);
@@ -401,6 +401,24 @@ export default function Admin() {
                                           title="Download images (ZIP)"
                                         >
                                           {downloadingZip === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                                        </Button>
+                                      )}
+                                      {!book.paid_at && !book.shopify_order_id && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="text-[11px] h-7 px-2 text-amber-600"
+                                          disabled={markBookPaid.isPending}
+                                          onClick={() => {
+                                            if (!window.confirm("Mark this book as PAID? This lets it be sent to Printify without a Shopify payment — use only for test/comp/manual orders.")) return;
+                                            markBookPaid.mutate({ id: book.id }, {
+                                              onSuccess: () => toast.success("Book marked as paid"),
+                                              onError: (e: any) => toast.error(e?.message || "Could not mark paid"),
+                                            });
+                                          }}
+                                          title="Mark paid (admin override for test/manual orders)"
+                                        >
+                                          <DollarSign className="w-3 h-3" />
                                         </Button>
                                       )}
                                       {book.has_pages && (book.status === "pending_review" || book.status === "ordered" || book.status === "approved") && (
