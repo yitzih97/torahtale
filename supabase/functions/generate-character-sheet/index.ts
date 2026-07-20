@@ -79,7 +79,7 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
-    const { childName, age, gender, artStyle, description, referenceImage, bookId } = await req.json();
+    const { childName, age, gender, artStyle, description, referenceImage, bookId, torahPortion } = await req.json();
 
     const ageNum = parseInt(age) || 5;
     let ageDesc = "child";
@@ -123,14 +123,14 @@ CHARACTER DETAILS:
 - ${descPart}
 - Art style: ${style}
 
-CANONICAL OUTFIT — LOCKED WARDROBE (this exact outfit will be reproduced on EVERY page of a printed book, so treat it as the character's permanent costume):
+CANONICAL OUTFIT — LOCKED WARDROBE (this exact outfit will be reproduced on EVERY page of a printed book, so treat it as the character's permanent costume). The child has travelled into the Torah story${torahPortion ? ` of Parshas ${torahPortion}` : ""}, so dress them in modest, PERIOD-AUTHENTIC clothing for that biblical era — NOT modern clothing:
 ${gender === "boy"
   ? (isUnder3Boy
-      ? "- A simple modest toddler outfit: a soft cream or light-blue shirt with dark soft trousers. The same exact outfit in every view."
-      : "- A crisp white button-down shirt, dark navy trousers, black shoes, a dark yarmulke, tzitzis strings visible at the sides, and neat peyos. The same exact outfit in every view.")
-  : "- ONE modest dress in a single soft color (dusty rose or muted blue), long sleeves past the elbow, skirt well below the knee, a simple matching headband, and modest shoes. The same exact dress in every view."}
+      ? "- A simple modest biblical-era toddler tunic/robe in a soft cream or light earthy tone, with simple leather sandals. The same exact outfit in every view."
+      : "- A flowing ankle-length biblical tunic/robe in a warm earthy tone (cream, tan, or soft brown) with a simple cloth sash at the waist, a modest era-appropriate cloth head-covering over the head, visible peyos (sidelocks), tzitzis strings at the sides, and simple leather sandals. The same exact outfit in every view.")
+  : "- ONE modest, flowing biblical-era dress/robe in a single soft color (dusty rose or muted blue), long sleeves past the elbow, an ankle-length skirt, a simple matching cloth headband (no hair covering for an unmarried girl), and simple leather sandals. The same exact dress in every view."}
 - If the appearance description above explicitly requests specific clothing, honor that instead — but keep it identical in every view.
-- NEVER modern casual wear: no t-shirts, no logos or prints, no jeans, no sneakers, no baseball caps.
+- NEVER modern clothing: no button-down shirts, no trousers/pants, no modern dresses, no t-shirts, no logos or prints, no jeans, no sneakers, no baseball caps.
 
 CRITICAL CONSISTENCY RULES:
 - Every view must show the EXACT SAME character — identical face shape, nose, eyes, eyebrows, mouth, hair color, hair style, skin tone, and body proportions.

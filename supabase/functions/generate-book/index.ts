@@ -313,6 +313,7 @@ async function generate(bookId: string) {
             artStyle: book.art_style || "cartoon",
             description: child.description || "",
             referenceImage: photoUrl,
+            torahPortion: book.torah_portion,
           });
           if (sheet?.imageUrl) sheets[child.name] = sheet.imageUrl;
         } catch (e) {
