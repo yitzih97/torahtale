@@ -334,6 +334,13 @@ async function generate(bookId: string) {
     // a chunk of this pass, hand the story off to a fresh worker instead.
     if (!pages && Date.now() - start > 25_000) { await persist(); await reinvoke(bookId); return; }
     if (!pages) {
+      // Reserve one interior print slot for the discussion-questions page: the
+      // Printify blueprint has exactly `pageCount` interior slots (Cover +
+      // pageCount PAGES), and the questions page takes one, so ask for one fewer
+      // story page — and hard-cap below in case the LLM overshoots — or the book
+      // ends up over the slot count and Printify submit hard-fails ("22 vs 21").
+      const pageCount = sdState.pageCount || 20;
+      const storyPageCount = Math.max(1, pageCount - 1);
       const story = await callFn("generate-story", {
         childName: book.child_name,
         childrenInfo: sdState.childrenInfo || book.child_name,
@@ -343,7 +350,7 @@ async function generate(bookId: string) {
         torahPortionLabel: book.torah_portion,
         artStyle: book.art_style,
         language: book.language || "english",
-        pageCount: sdState.pageCount || 20,
+        pageCount: storyPageCount,
       });
 
       const cover = story.cover || { title: `${book.child_name}'s Torah Adventure`, subtitle: "" };
@@ -352,7 +359,7 @@ async function generate(bookId: string) {
       let pageId = 0;
       pages = [];
       pages.push({ id: pageId++, text: cover.title, image: null, type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle });
-      for (const p of (story.pages || [])) pages.push({ id: pageId++, text: p.text, image: null, type: "story" });
+      for (const p of (story.pages || []).slice(0, storyPageCount)) pages.push({ id: pageId++, text: p.text, image: null, type: "story" });
       if (questions.length > 0) {
         const qText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
         pages.push({ id: pageId++, text: qText, image: null, type: "questions", questions });

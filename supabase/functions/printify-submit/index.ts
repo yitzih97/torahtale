@@ -324,13 +324,16 @@ serve(async (req) => {
         throw new Error(`Blueprint ${blueprintId} / variant ${variantId} exposed no print placeholders — check the Printify config. Order NOT created.`);
       }
       if (imageIds.length > positions.length) {
-        // Images are pushed in page order (cover → story pages → discussion
-        // questions last) — silently truncating here would always drop the
-        // highest-index image, i.e. the discussion-questions page. Abort
-        // instead of printing (and charging for) a book missing its last page.
-        throw new Error(
-          `Book has ${imageIds.length} images but blueprint ${blueprintId} / variant ${variantId} only exposes ${positions.length} print slots — the last ${imageIds.length - positions.length} page(s) would be dropped. Order NOT created.`,
-        );
+        // Images are pushed in page order: cover → story pages → discussion
+        // questions LAST. An over-budget book (e.g. an older one generated
+        // before the page-count was capped) would otherwise either fail the
+        // order or drop its questions page. Trim to fit by dropping the EXCESS
+        // STORY pages from the end while PRESERVING the cover (first) and the
+        // questions page (last), so the printed book keeps its key pages.
+        const overflow = imageIds.length - positions.length;
+        const last = imageIds[imageIds.length - 1];
+        console.warn(`Book has ${imageIds.length} images for ${positions.length} slots — trimming ${overflow} story page(s) from the end, keeping cover + questions.`);
+        imageIds = [...imageIds.slice(0, positions.length - 1), last];
       } else if (imageIds.length < positions.length) {
         console.warn(`Book has ${imageIds.length} images for ${positions.length} slots — ${positions.length - imageIds.length} will print blank.`);
       }
