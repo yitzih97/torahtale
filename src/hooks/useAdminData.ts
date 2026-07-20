@@ -138,6 +138,21 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-books"] }),
   });
 
+  // Admin override: stamp a book as paid so it can be sent to Printify without
+  // a Shopify order (test/comp/manual prints). printify-submit refuses books
+  // that have neither a shopify_order_id nor paid_at, so this is the deliberate
+  // way to clear that guard.
+  const markBookPaid = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase
+        .from("books")
+        .update({ paid_at: new Date().toISOString(), updated_at: new Date().toISOString() } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-books"] }),
+  });
+
   const updateSubscriptionStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const updates: any = { status, updated_at: new Date().toISOString() };
@@ -163,6 +178,7 @@ export function useAdminData() {
     subscriptions: allSubscriptionsQuery.data || [],
     subscriptionsLoading: allSubscriptionsQuery.isLoading,
     updateBookStatus,
+    markBookPaid,
     updateSubscriptionStatus,
   };
 }
