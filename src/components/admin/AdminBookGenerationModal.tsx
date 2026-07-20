@@ -140,8 +140,15 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       const productDefault = productType === "board" ? 10 : 20;
       setPageCount(sd.pageCount || productDefault);
       // Reuse the sheets from a previous generation so retries/regens keep the
-      // exact same character look across sessions.
-      characterSheetsRef.current = (sd.characterSheets as Record<string, string>) || {};
+      // exact same character look across sessions. Admin-generated books save
+      // them under `characterSheets`; the subscription generator (generate-book)
+      // saves them under `_characterSheets` — accept EITHER, or a single-page
+      // regen of a subscription book loads no sheets and the kids come out
+      // inconsistent.
+      characterSheetsRef.current =
+        (sd.characterSheets as Record<string, string>) ||
+        (sd._characterSheets as Record<string, string>) ||
+        {};
       storyCharactersRef.current = (sd.characters as Array<{ name: string; description: string }>) || [];
       storyCharacterSheetsRef.current = (sd._storyCharacterSheets as Record<string, string>) || {};
     }
@@ -903,7 +910,14 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                   characterSheet: characterSheetsRef.current[childDescriptions[0]?.name || book?.child_name] || null,
                   characterSheets: { ...characterSheetsRef.current },
                   bookFormat,
-                  childRefs: childDescriptions.map((c: any) => ({
+                  // Fall back to the saved character-sheet names when
+                  // childDescriptions is missing (e.g. a subscription book that
+                  // stored sheets but not descriptions) so a single-page regen
+                  // still attaches each child's sheet and keeps them consistent.
+                  childRefs: (childDescriptions.length
+                    ? childDescriptions
+                    : Object.keys(characterSheetsRef.current).map((name) => ({ name, age: undefined, gender: undefined, description: "", photoUrl: null }))
+                  ).map((c: any) => ({
                     name: c.name,
                     age: c.age,
                     gender: c.gender,
