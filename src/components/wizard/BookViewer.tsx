@@ -362,12 +362,33 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         ) : (
           <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="h-4 w-4 text-muted-foreground" /></div>
         )}
-        {/* Mini front-cover text band */}
-        <div className="absolute inset-x-0 top-0 px-0.5 pb-2 pt-0.5 bg-gradient-to-b from-black/65 to-transparent text-center" dir={dir}>
-          <p className="font-extrabold leading-tight text-white text-[6px] sm:text-[8px]" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{pvLabel}</p>
-          {childName && (
-            <p className="leading-tight text-white/85 text-[5px] sm:text-[6px]" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{childName}</p>
-          )}
+        {/* Mini front-cover, styled like the real branded cover: navy keyline
+            frame, gold engraved parsha title, magenta child line. */}
+        <div className="pointer-events-none absolute inset-0" dir={dir}>
+          <div className="absolute inset-x-0 top-0 h-2/3 bg-gradient-to-b from-[rgba(8,14,30,0.72)] via-[rgba(8,14,30,0.22)] to-transparent" />
+          <div className="absolute" style={{ inset: "5%", border: `1.5px solid ${COVER_NAVY}` }} />
+          <div className="absolute" style={{ inset: "8%", border: `0.75px solid ${COVER_GOLD}` }} />
+          <div className="absolute inset-x-0 top-[7%] px-1 text-center">
+            <p
+              className="font-bold uppercase leading-tight text-[7px] sm:text-[9px]"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                backgroundImage: "linear-gradient(180deg,#fff6d5,#e7be5c 55%,#a9791f)",
+                WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
+                textShadow: "0 1px 1px rgba(0,0,0,0.4)",
+              }}
+            >
+              {pvLabel}
+            </p>
+            {childName && (
+              <p
+                className="italic font-semibold leading-tight text-[6px] sm:text-[7px]"
+                style={{ fontFamily: "'Cormorant Garamond', serif", color: COVER_MAGENTA, textShadow: "0 1px 3px rgba(0,0,0,0.55)" }}
+              >
+                {childName}
+              </p>
+            )}
+          </div>
         </div>
         {regenning && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/45"><RefreshCw className="h-3.5 w-3.5 animate-spin text-white" /></div>
