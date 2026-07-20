@@ -125,6 +125,21 @@ serve(async (req) => {
       ? (isCover ? (isColoringFmt ? specs.cover : [specs.cover[1], specs.cover[1]]) : specs.page)
       : null;
 
+    // ASPECT RATIO — request it from the model, not just as a text hint. Gemini
+    // only accepts a fixed set of ratios, so snap the target dims to the nearest
+    // one; the canvas crops the small remainder to the exact print size. Without
+    // this the model returned whatever framing it liked (often square), so a
+    // regenerated board spread came back square while its siblings were wide —
+    // the "ratios don't match after regenerate" bug. A single source of truth
+    // per format means EVERY page (first pass or retry) gets the same framing.
+    const ASPECTS: [string, number][] = [
+      ["1:1", 1], ["4:5", 0.8], ["3:4", 0.75], ["2:3", 2 / 3], ["9:16", 0.5625],
+      ["5:4", 1.25], ["4:3", 4 / 3], ["3:2", 1.5], ["16:9", 16 / 9], ["21:9", 21 / 9],
+    ];
+    const aspectRatio = dims
+      ? ASPECTS.reduce((best, o) => Math.abs(o[1] - dims[0] / dims[1]) < Math.abs(best[1] - dims[0] / dims[1]) ? o : best)[0]
+      : null;
+
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
@@ -531,10 +546,10 @@ serve(async (req) => {
               imageBlobs.push({ blob: new Blob([bin], { type: p.inlineData.mimeType }), name: `ref-${imageBlobs.length}.${ext}` });
             }
           }
-          // Coloring books are portrait 8.5×11 (cover included) — a square
-          // render gets stretched/cropped into that shape later, softening
-          // detail. Every other format prints as a square page.
-          const size = isColoring ? "1024x1536" : "1024x1024";
+          // Match the OpenAI size to the format's aspect so a page isn't rendered
+          // square and then heavily cropped: coloring is portrait (8.5×11), board
+          // is a wide spread (~2:1), everything else is a square page.
+          const size = isColoring ? "1024x1536" : isSpreadFormat ? "1536x1024" : "1024x1024";
           // Coloring pages are the ones reported as low quality — request the
           // top quality tier for them specifically (other formats stay at the
           // existing "medium" tier rather than doubling cost/latency broadly).
@@ -623,7 +638,9 @@ serve(async (req) => {
           // client (off the edge), so there's no longer an edge-side reason to
           // keep them small, and crisp lines need the resolution.
           const generationConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
-          if (model.startsWith("gemini-3")) generationConfig.imageConfig = { imageSize: "2K" };
+          if (model.startsWith("gemini-3")) {
+            generationConfig.imageConfig = { imageSize: "2K", ...(aspectRatio ? { aspectRatio } : {}) };
+          }
           attempt = await fetchWithTimeout(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,
             {
@@ -667,7 +684,7 @@ serve(async (req) => {
 
         const retryableModelError =
           attempt.status === 404 ||
-          (attempt.status === 400 && /not found|not supported|generatecontent|responsemodalities|imageconfig|imagesize/i.test(body));
+          (attempt.status === 400 && /not found|not supported|generatecontent|responsemodalities|imageconfig|imagesize|aspectratio/i.test(body));
 
         if (!retryableModelError) {
           throw new Error(`Gemini image generation error [${attempt.status}]`);

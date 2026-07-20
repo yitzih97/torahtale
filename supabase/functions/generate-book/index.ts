@@ -60,7 +60,7 @@ async function callFn(name: string, body: unknown) {
 }
 
 async function callImageWithRetry(body: unknown): Promise<string | null> {
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     // Cool-off before the retry — an immediate re-fire against a rate-limited
     // provider just burns the attempt and forces another full pass later.
     if (attempt > 0) await new Promise((r) => setTimeout(r, 6_000));
@@ -428,7 +428,11 @@ async function generate(bookId: string) {
 
     const noProgress = madeProgress === 0 ? (sdState._noProgress || 0) + 1 : 0;
     sdState = { ...sdState, _noProgress: noProgress };
-    if (noProgress >= 2 || pass >= MAX_PASSES) {
+    // Keep retrying the still-missing pages across fresh workers. Only give up
+    // after several consecutive passes make ZERO progress (a genuinely stuck
+    // page) so a transient burst of rate-limits/timeouts doesn't leave a
+    // subscriber's book with blank pages that an admin has to fix by hand.
+    if (noProgress >= 4 || pass >= MAX_PASSES) {
       console.warn(`generate-book: ${remaining} image(s) still missing for ${bookId} after retries — finalizing partial (admin can regenerate)`);
       await finalize();
       return;

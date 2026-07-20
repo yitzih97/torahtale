@@ -501,6 +501,58 @@ function drawCoverFurniture(
   ctx.direction = "ltr";
 }
 
+/** Draw one "coming next" teaser thumbnail styled like the real branded front
+ *  cover — navy keyline frame, engraved gold parsha title, magenta child line —
+ *  instead of a plain white text band. Shared by the bound-book back cover and
+ *  the coloring-book back matter so both match the front cover. */
+function drawMiniCover(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | null,
+  label: string,
+  childName: string,
+  x: number, y: number, size: number,
+  rtl: boolean,
+) {
+  const r = Math.max(8, size * 0.06);
+  ctx.fillStyle = "#efe7d3";
+  roundedRect(ctx, x, y, size, size, r); ctx.fill();
+  if (img) drawImageInRect(ctx, img, x, y, size, size, r);
+
+  ctx.save();
+  roundedRect(ctx, x, y, size, size, r); ctx.clip();
+  // Top scrim for title legibility over the illustration.
+  const g = ctx.createLinearGradient(x, y, x, y + size * 0.6);
+  g.addColorStop(0, "rgba(8,14,30,0.72)"); g.addColorStop(0.6, "rgba(8,14,30,0.16)"); g.addColorStop(1, "rgba(8,14,30,0)");
+  ctx.fillStyle = g; ctx.fillRect(x, y, size, size * 0.6);
+  // Navy frame + gold keyline (mirrors drawCoverFurniture, scaled down).
+  const m = size * 0.05;
+  ctx.strokeStyle = COVER_NAVY; ctx.lineWidth = Math.max(1.5, size * 0.012);
+  ctx.strokeRect(x + m, y + m, size - 2 * m, size - 2 * m);
+  ctx.strokeStyle = COVER_GOLD; ctx.lineWidth = Math.max(0.75, size * 0.006);
+  const gi = m + size * 0.028;
+  ctx.strokeRect(x + gi, y + gi, size - 2 * gi, size - 2 * gi);
+  // Parsha title — engraved gold caps, wrapped to ≤2 lines.
+  ctx.direction = rtl ? "rtl" : "ltr";
+  const fs = Math.round(size * 0.11);
+  const titleFont = `700 ${fs}px 'Cinzel', serif`;
+  ctx.font = titleFont;
+  const lines = wrapLines(ctx, (label || "").toUpperCase(), size - size * 0.2).slice(0, 2);
+  let ty = y + size * 0.15 + fs;
+  for (const ln of lines) { engravedLine(ctx, ln, x + size / 2, ty, titleFont, fs); ty += fs * 1.05; }
+  // Child line — magenta italic.
+  if (childName) {
+    const cfs = Math.round(size * 0.078);
+    ctx.font = `italic 600 ${cfs}px 'Cormorant Garamond', serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    ctx.shadowColor = "rgba(0,0,0,0.55)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
+    ctx.fillStyle = COVER_MAGENTA; ctx.fillText(childName, x + size / 2, ty + cfs * 0.15);
+    ctx.shadowColor = "transparent";
+  }
+  ctx.restore();
+  ctx.strokeStyle = "rgba(0,0,0,0.30)"; ctx.lineWidth = 2;
+  roundedRect(ctx, x, y, size, size, r); ctx.stroke();
+}
+
 async function renderCoverSpread(
   page: BookPage,
   childName: string,
@@ -550,36 +602,7 @@ async function renderCoverSpread(
   const rowY = SPREAD_H * 0.38;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    ctx.fillStyle = "#efe7d3";
-    roundedRect(ctx, tx, rowY, thumb, thumb, 12); ctx.fill();
-    const pimg = previewImgs[i];
-    if (pimg) drawImageInRect(ctx, pimg, tx, rowY, thumb, thumb, 12);
-    // Mini front-cover text (localized parsha name + kids), matching the
-    // on-screen teaser — white Inter with a soft shadow over a top gradient.
-    const pv = previews[i];
-    if (pv?.label) {
-      ctx.save();
-      roundedRect(ctx, tx, rowY, thumb, thumb, 12); ctx.clip();
-      const bandH = thumb * 0.44;
-      const g = ctx.createLinearGradient(tx, rowY, tx, rowY + bandH);
-      g.addColorStop(0, "rgba(0,0,0,0.62)"); g.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = g; ctx.fillRect(tx, rowY, thumb, bandH);
-      ctx.direction = rtlDir;
-      ctx.textAlign = "center"; ctx.textBaseline = "top";
-      ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
-      ctx.fillStyle = "#ffffff";
-      ctx.font = `700 22px 'Inter', sans-serif`;
-      const lbl = wrapLines(ctx, pv.label, thumb - 16).slice(0, 2);
-      lbl.forEach((ln, li) => ctx.fillText(ln, tx + thumb / 2, rowY + 8 + li * 26));
-      if (childName) {
-        ctx.font = `500 16px 'Inter', sans-serif`;
-        ctx.fillStyle = "rgba(255,255,255,0.9)";
-        ctx.fillText(childName, tx + thumb / 2, rowY + 10 + lbl.length * 26);
-      }
-      ctx.restore();
-    }
-    ctx.strokeStyle = "rgba(0,0,0,0.30)"; ctx.lineWidth = 2;
-    roundedRect(ctx, tx, rowY, thumb, thumb, 12); ctx.stroke();
+    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, rowY, thumb, rtl);
   }
 
   // Subscribe invitation (localized → RTL) + site URL (a domain → always LTR).
@@ -714,6 +737,9 @@ async function renderColoringBackMatter(
 ): Promise<string> {
   const W = COLOR_W, H = COLOR_H;
   const rtl = lang !== "en";
+  // The branded teaser thumbnails use canvas-only fonts (Cinzel/Cormorant), so
+  // make sure they're loaded before drawing or the canvas silently falls back.
+  await ensureCoverFonts();
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
@@ -780,34 +806,7 @@ async function renderColoringBackMatter(
   const rowX = W / 2 - rowW / 2;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    ctx.fillStyle = "#efe7d3";
-    roundedRect(ctx, tx, y, thumb, thumb, 12); ctx.fill();
-    const pimg = previewImgs[i];
-    if (pimg) drawImageInRect(ctx, pimg, tx, y, thumb, thumb, 12);
-    const pv = previews[i];
-    if (pv?.label) {
-      ctx.save();
-      roundedRect(ctx, tx, y, thumb, thumb, 12); ctx.clip();
-      const bandH = thumb * 0.44;
-      const g = ctx.createLinearGradient(tx, y, tx, y + bandH);
-      g.addColorStop(0, "rgba(0,0,0,0.62)"); g.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = g; ctx.fillRect(tx, y, thumb, bandH);
-      ctx.direction = rtl ? "rtl" : "ltr";
-      ctx.textAlign = "center"; ctx.textBaseline = "top";
-      ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
-      ctx.fillStyle = "#ffffff";
-      ctx.font = `700 24px 'Inter', sans-serif`;
-      const lbl = wrapLines(ctx, pv.label, thumb - 18).slice(0, 2);
-      lbl.forEach((ln, li) => ctx.fillText(ln, tx + thumb / 2, y + 9 + li * 28));
-      if (childName) {
-        ctx.font = `500 18px 'Inter', sans-serif`;
-        ctx.fillStyle = "rgba(255,255,255,0.9)";
-        ctx.fillText(childName, tx + thumb / 2, y + 11 + lbl.length * 28);
-      }
-      ctx.restore();
-    }
-    ctx.strokeStyle = "rgba(0,0,0,0.28)"; ctx.lineWidth = 2;
-    roundedRect(ctx, tx, y, thumb, thumb, 12); ctx.stroke();
+    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, y, thumb, rtl);
   }
   y += thumb + 26;
 
