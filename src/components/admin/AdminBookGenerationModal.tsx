@@ -256,7 +256,14 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         id: pageId++, text: cover.title, image: null, imageLoading: false,
         type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle,
       });
-      for (const p of storyResult.pages || []) {
+      // Cap the story pages to the reserved count. The LLM is ASKED for
+      // storyPageCount pages but doesn't always obey (it returned 20 when asked
+      // for 19), and every extra page pushes the total over the Printify
+      // blueprint's print-slot count — which now hard-fails the order at submit
+      // ("22 images but 21 print slots"). Slicing here guarantees the budget:
+      // cover + storyPageCount story pages + questions page = the blueprint's
+      // slot count, so the questions page always fits.
+      for (const p of (storyResult.pages || []).slice(0, storyPageCount)) {
         allPages.push({ id: pageId++, text: p.text, image: null, imageLoading: false, type: "story" });
       }
       if (questions.length > 0) {

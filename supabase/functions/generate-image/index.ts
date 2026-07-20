@@ -803,24 +803,39 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
       }
     };
 
+    const isSafetyBlocked = (e: unknown) => !!(e as { safetyBlocked?: boolean })?.safetyBlocked;
+
     const qaStartedAt = Date.now();
+    // Torah scenes of churban/plagues/war (Tisha B'Av, Va'era, Beshalach…)
+    // depict destruction that trips Gemini's image-safety filter even though the
+    // book wants a gentle, kid-safe rendering. On a block, retry with escalating
+    // softening: first ask for a gentle/symbolic version of the SAME scene, then
+    // — if still blocked — abandon the scene entirely for a calm, generic image
+    // of the children, so a blocked page never hard-fails (500) the whole page.
+    const SAFETY_ESCALATIONS = [
+      ` \n\nIMPORTANT: Render this GENTLY and symbolically for a young child's storybook — absolutely NO fire, flames, smoke, weapons, blood, injury, death, rubble of bodies, or frightening/graphic imagery. Keep it calm, wholesome, tasteful, and hopeful; suggest sad or difficult moments softly (a lone tear, a quiet embrace, distant simple buildings) rather than depicting any violence or destruction.`,
+      ` \n\nDO NOT depict the difficult event at all. Instead draw ONLY the hero child(ren) standing quietly and thoughtfully in a calm, peaceful, entirely non-violent setting with soft light — a gentle, hopeful, wholesome scene suitable for a young child. Nothing frightening, nothing on fire, no destruction, no weapons, no people in distress.`,
+    ];
     let finalImageUrl: string;
     try {
       finalImageUrl = await generateOnce();
     } catch (e) {
-      // If the generation was blocked by the image-safety filter, retry ONCE
-      // with a softened, explicitly child-friendly prompt. Torah scenes of
-      // churban/plagues/war (Tisha B'Av, Va'era, Beshalach…) depict destruction
-      // that trips the filter even though the book wants a gentle, symbolic,
-      // kid-safe rendering — so ask for exactly that and try again.
-      if ((e as { safetyBlocked?: boolean })?.safetyBlocked) {
+      if (!isSafetyBlocked(e)) throw e;
+      let recovered: string | undefined;
+      for (const escalation of SAFETY_ESCALATIONS) {
         console.warn("Generation blocked by safety filter — retrying with a softened prompt.");
-        imagePrompt += ` \n\nIMPORTANT: Render this GENTLY and symbolically for a young child's storybook — absolutely NO fire, flames, smoke, weapons, blood, injury, death, rubble of bodies, or frightening/graphic imagery. Keep it calm, wholesome, tasteful, and hopeful; suggest sad or difficult moments softly (a lone tear, a quiet embrace, distant simple buildings) rather than depicting any violence or destruction.`;
+        imagePrompt += escalation;
         parts[parts.length - 1] = { text: imagePrompt };
-        finalImageUrl = await generateOnce();
-      } else {
-        throw e;
+        try {
+          recovered = await generateOnce();
+          break;
+        } catch (e2) {
+          if (!isSafetyBlocked(e2)) throw e2;
+          // else: still blocked — escalate to the next, more neutral prompt
+        }
       }
+      if (recovered === undefined) throw e; // exhausted escalations (rare)
+      finalImageUrl = recovered;
     }
 
     if (sheetRefs.length > 0 && Date.now() - qaStartedAt < 75_000) {
