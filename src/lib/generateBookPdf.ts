@@ -865,7 +865,17 @@ export async function renderPrintImages(
     : renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews, lang)));
 
   const questionsPage = pages.find((p) => p.type === "questions");
-  const stories = pages.filter((p) => p.type === "story" || !p.type);
+  // Each Printify blueprint has a fixed interior capacity (Cover + N PAGES).
+  // The discussion-questions page must take the LAST interior slot, so cap the
+  // story pages to leave room for it — dropping the trailing story page(s) when
+  // a book was generated with too many (older/subscription books). This is what
+  // keeps the order within the blueprint's slot count so submit doesn't fail.
+  const interiorCapacity = bookFormat.startsWith("hardcover") ? 24
+    : bookFormat.startsWith("board") ? 10
+    : bookFormat.startsWith("coloring") ? 24
+    : 20; // softcover
+  const maxStories = Math.max(1, interiorCapacity - (questionsPage ? 1 : 0));
+  const stories = pages.filter((p) => p.type === "story" || !p.type).slice(0, maxStories);
   for (let i = 0; i < stories.length; i++) {
     out.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE));
   }
