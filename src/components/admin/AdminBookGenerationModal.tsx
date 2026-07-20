@@ -179,6 +179,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             artStyle: ART_STYLE,
             description: child.description || "",
             referenceImage: child.photoUrl || null,
+            torahPortion: book.torah_portion,
           },
         });
         if (!sheetErr && sheetData?.imageUrl) {
