@@ -531,17 +531,18 @@ function drawMiniCover(
   ctx.strokeStyle = COVER_GOLD; ctx.lineWidth = Math.max(0.75, size * 0.006);
   const gi = m + size * 0.028;
   ctx.strokeRect(x + gi, y + gi, size - 2 * gi, size - 2 * gi);
-  // Parsha title — engraved gold caps, wrapped to ≤2 lines.
+  // Parsha title — engraved gold caps, wrapped to ≤2 lines. Kept small so it
+  // fits neatly inside the little thumbnail instead of dominating it.
   ctx.direction = rtl ? "rtl" : "ltr";
-  const fs = Math.round(size * 0.11);
+  const fs = Math.round(size * 0.072);
   const titleFont = `700 ${fs}px 'Cinzel', serif`;
   ctx.font = titleFont;
-  const lines = wrapLines(ctx, (label || "").toUpperCase(), size - size * 0.2).slice(0, 2);
-  let ty = y + size * 0.15 + fs;
-  for (const ln of lines) { engravedLine(ctx, ln, x + size / 2, ty, titleFont, fs); ty += fs * 1.05; }
+  const lines = wrapLines(ctx, (label || "").toUpperCase(), size - size * 0.22).slice(0, 2);
+  let ty = y + size * 0.13 + fs;
+  for (const ln of lines) { engravedLine(ctx, ln, x + size / 2, ty, titleFont, fs); ty += fs * 1.1; }
   // Child line — magenta italic.
   if (childName) {
-    const cfs = Math.round(size * 0.078);
+    const cfs = Math.round(size * 0.055);
     ctx.font = `italic 600 ${cfs}px 'Cormorant Garamond', serif`;
     ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
     ctx.shadowColor = "rgba(0,0,0,0.55)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
