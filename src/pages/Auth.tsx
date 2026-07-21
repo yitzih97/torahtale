@@ -31,6 +31,9 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  // Set when a sign-in fails because the email was never confirmed — shows the
+  // resend-confirmation notice above the form.
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -52,12 +55,33 @@ export default function Auth() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
+    if (!error) {
+      setUnconfirmedEmail(null);
       toast.success(t.auth.welcomeBackToast);
       navigate(next);
+      return;
     }
+    // Signing in before clicking the confirmation link (or after it expired):
+    // surface a resend option instead of a dead-end error.
+    const unconfirmed = (error as { code?: string }).code === "email_not_confirmed" || /not confirmed/i.test(error.message);
+    if (unconfirmed) {
+      setUnconfirmedEmail(email);
+      toast.error(t.auth.emailNotConfirmed);
+    } else {
+      toast.error(error.message);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!unconfirmedEmail) return;
+    setLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: unconfirmedEmail,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setLoading(false);
+    if (error) toast.error(error.message); else toast.success(t.auth.confirmationResent);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -127,6 +151,20 @@ export default function Auth() {
         </div>
 
         <div className="p-5 sm:p-8 md:p-10 rounded-[2rem] bg-card/60 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.1)_inset]">
+          {unconfirmedEmail && mode === "login" && (
+            <div className="mb-4 sm:mb-6 rounded-2xl border-2 border-accent/25 bg-accent/5 p-4 text-center space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center mx-auto">
+                <Mail className="w-5 h-5 text-accent" />
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {t.auth.emailNotConfirmedNotice}{" "}
+                <span className="font-semibold text-foreground" dir="ltr">{unconfirmedEmail}</span>
+              </p>
+              <Button type="button" variant="outline" className="w-full rounded-xl h-10 border-border/40 bg-background/70 hover:bg-background font-semibold" onClick={handleResendConfirmation} disabled={loading}>
+                {t.auth.resendConfirmation}
+              </Button>
+            </div>
+          )}
           {/* Google first — the default, primary sign-in. */}
           {mode !== "forgot" && (
             <>

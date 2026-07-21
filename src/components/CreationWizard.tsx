@@ -562,7 +562,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setLoginLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPassword });
     setLoginLoading(false);
-    if (error) { toast.error(error.message); } else { toast.success("Welcome back!"); }
+    if (!error) { toast.success("Welcome back!"); return; }
+    // Signing in before clicking the confirmation link (or after it expired):
+    // pop the check-your-email panel so they can resend instead of a dead end.
+    const unconfirmed = (error as { code?: string }).code === "email_not_confirmed" || /not confirmed/i.test(error.message);
+    if (unconfirmed) {
+      setConfirmEmailPendingFor(loginEmail);
+      toast.error(t.wizard.emailNotConfirmed);
+    } else {
+      toast.error(error.message);
+    }
   };
 
   const handleWizardSignup = async (e: React.FormEvent) => {

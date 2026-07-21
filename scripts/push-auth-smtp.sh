@@ -23,7 +23,8 @@ resp=$(jq -n --arg pass "$RESEND_API_KEY" \
     smtp_pass: $pass,
     smtp_admin_email: "noreply@torahtale.com",
     smtp_sender_name: "TorahTale",
-    smtp_max_frequency: 1
+    smtp_max_frequency: 60,
+    rate_limit_email_sent: 200
   }' \
   | curl -s -X PATCH "$API" \
       -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
