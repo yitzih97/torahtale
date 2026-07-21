@@ -28,10 +28,13 @@ jobs:
         run: |
           set -euo pipefail
           sql="select timestamp, event_message from function_logs where timestamp > timestamp_sub(current_timestamp(), interval ${MINUTES} minute) order by timestamp desc limit 200"
-          curl -sG "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
+          resp=$(curl -sG "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-            --data-urlencode "sql=${sql}" \
-          | jq -r '.result[]? | "\(.timestamp)  \(.event_message)"' \
+            --data-urlencode "sql=${sql}")
+          if ! jq -e '.result | length > 0' >/dev/null 2>&1 <<<"$resp"; then
+            echo "No rows — raw response:"; echo "${resp:0:800}"; exit 0
+          fi
+          jq -r '.result[] | "\(.timestamp)  \(.event_message)"' <<<"$resp" \
           | { if [ -n "$SEARCH" ]; then grep -i -- "$SEARCH" || echo "(no matching lines)"; else cat; fi }
 
       - name: Edge request statuses (non-200 highlighted)
