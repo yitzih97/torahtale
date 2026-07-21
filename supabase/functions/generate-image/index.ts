@@ -254,7 +254,7 @@ serve(async (req) => {
         .replace("{torahPortion}", torahPortion || "Torah")
         .replace("{styleDesc}", styleDesc);
     } else {
-      imagePrompt = `Create a breathtaking, high-resolution children's book illustration of a frum Yiddishe child named ${childName} immersed in a vivid scene from the Torah story "${torahPortion}". ${styleDesc}. IMPORTANT VISUAL QUALITY: Ultra-detailed environment with rich background elements — lush landscapes, dramatic skies, atmospheric lighting with golden sunbeams and volumetric rays, visible texture on every surface (stone, fabric, wood, foliage). Cinematic composition with dynamic camera angle. Every page should feel like a frame from an award-winning animated film. CHARACTER RULES: Boys aged 3+ MUST have peyos (sidelocks), yarmulke/kippah, and visible tzitzis. Boys UNDER 3 (pre-upsherin) MUST NOT wear a yarmulke/kippah, MUST NOT have peyos, and MUST NOT have tzitzis — render them as simple toddlers in modest clothing only — UNLESS a reference photo or character sheet for that child clearly shows those items, in which case match the reference exactly. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements, no crosses or church symbols, no text or words in the image. Safe for children, warm and magical atmosphere with vibrant saturated colors. NO text, NO letters, NO words anywhere in the image.`;
+      imagePrompt = `Create a breathtaking, high-resolution children's book illustration of a Jewish child named ${childName} immersed in a vivid scene from the Torah story "${torahPortion}". ${styleDesc}. IMPORTANT VISUAL QUALITY: Ultra-detailed environment with rich background elements — lush landscapes, dramatic skies, atmospheric lighting with golden sunbeams and volumetric rays, visible texture on every surface (stone, fabric, wood, foliage). Cinematic composition with dynamic camera angle. Every page should feel like a frame from an award-winning animated film. CHARACTER RULES (match the REAL child): every star child must be immediately recognizable as the child in their reference photo/character sheet — same face shape, same hair color and style, and the same EXACT skin tone (NEVER lighten or darken a child's complexion; a darker-skinned child stays exactly as dark as their photo shows). Do NOT add a yarmulke/kippah, peyos (sidelocks), or tzitzis to ANY star child unless those exact items are clearly visible in their reference photo/character sheet or explicitly requested in their description — a boy whose photo shows no peyos has NO peyos in the book, and a boy whose photo shows no kippah has NO kippah. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements, no crosses or church symbols, no text or words in the image. Safe for children, warm and magical atmosphere with vibrant saturated colors. NO text, NO letters, NO words anywhere in the image.`;
     }
 
     // Append dimension instructions for Printify print-ready output
@@ -322,22 +322,25 @@ serve(async (req) => {
     }
 
     if (!prompt && childRefsList.length > 0) {
-      const toddlerRules = childRefsList
-        .filter((c: any) => c?.gender === "boy" && Number(c?.age) < 3)
+      // Religious garb is PHOTO-DRIVEN for every star boy (not just toddlers):
+      // a kippah/peyos/tzitzis appears only if his photo/sheet/description has it.
+      const boyGarbRules = childRefsList
+        .filter((c: any) => c?.gender === "boy")
         .map((c: any) => {
           const cDesc = String(c?.description || "").toLowerCase();
           const cMentionsFrumGarb = /kippah|kipa|yarmulke|peyos|payos|peyot|tzitzis|tzitzit/.test(cDesc);
+          const under3 = Number(c?.age) < 3;
           return cMentionsFrumGarb
-            ? `- ${c.name}: keep him clearly under age 3 with real toddler proportions; include ONLY the specific religious items explicitly requested in his description, and do not add any others.`
-            : `- ${c.name}: he is under age 3 and pre-upsherin; DO NOT add a yarmulke/kippah, peyos, or tzitzis unless those exact items are clearly visible in his attached photo or reference sheet.`;
+            ? `- ${c.name}: include ONLY the specific religious items explicitly requested in his description, and do not add any others.${under3 ? " Keep him clearly under age 3 with real toddler proportions." : ""}`
+            : `- ${c.name}: DO NOT add a yarmulke/kippah, peyos, or tzitzis — none of these appear in his reference; draw him exactly as his photo/sheet shows.${under3 ? " Keep him clearly under age 3 with real toddler proportions." : ""}`;
         });
-      if (toddlerRules.length > 0) {
-        imagePrompt += ` AGE-SPECIFIC CHILD RULES:\n${toddlerRules.join("\n")}`;
+      if (boyGarbRules.length > 0) {
+        imagePrompt += ` CHILD-SPECIFIC APPEARANCE RULES:\n${boyGarbRules.join("\n")}`;
       }
-    } else if (!prompt && isPrimaryToddlerBoy) {
+    } else if (!prompt && inferredGender === "boy") {
       imagePrompt += mentionsFrumGarb
-        ? " PRIMARY CHILD RULE: This boy is under age 3. Keep true toddler proportions and only include the specific religious items explicitly requested in the description."
-        : " PRIMARY CHILD RULE: This boy is under age 3 and pre-upsherin. Do NOT add a yarmulke/kippah, peyos, or tzitzis unless those exact items are clearly visible in the attached photo or reference sheet.";
+        ? ` PRIMARY CHILD RULE: include ONLY the specific religious items explicitly requested in the description, and do not add any others.${isPrimaryToddlerBoy ? " He is under age 3 — keep true toddler proportions." : ""}`
+        : ` PRIMARY CHILD RULE: DO NOT add a yarmulke/kippah, peyos, or tzitzis to this boy unless those exact items are clearly visible in the attached photo or reference sheet.${isPrimaryToddlerBoy ? " He is under age 3 — keep true toddler proportions." : ""}`;
     }
 
     // Inject MASTER BOOK RULES (apply to every page of every book)
@@ -357,7 +360,7 @@ serve(async (req) => {
 
     // NON-NEGOTIABLE MODESTY & TZNIUS MASTER RULES — always applied, even on explicit prompt, regen, or admin edit.
     imagePrompt += ` \n\nNON-NEGOTIABLE MODESTY & TZNIUS MASTER RULES (apply to EVERY character in EVERY illustration without exception, including background, crowd, and incidental figures):
-- ALL Jewish male characters (Avraham/Abraham, Yitzchak/Isaac, Yaakov/Jacob, Moshe/Moses, Aharon/Aaron, Yosef/Joseph, the Shevatim/tribes, kohanim, talmidim, and any other Jewish men or boys age 3+) MUST have their heads fully covered at all times — with a kippah/yarmulke, turban, head wrap, hat, or tallis over the head as appropriate to the biblical era. NEVER show a Jewish man or boy (age 3+) bareheaded.
+- ALL Jewish male characters FROM THE TORAH NARRATIVE (Avraham/Abraham, Yitzchak/Isaac, Yaakov/Jacob, Moshe/Moses, Aharon/Aaron, Yosef/Joseph, the Shevatim/tribes, kohanim, talmidim, and any other Torah-story Jewish men or boys age 3+) MUST have their heads fully covered at all times — with a kippah/yarmulke, turban, head wrap, hat, or tallis over the head as appropriate to the biblical era. NEVER show a Torah-narrative Jewish man or boy (age 3+) bareheaded. EXCEPTION — the modern STAR CHILDREN (the named kids rendered from reference photos/character sheets) are NOT covered by this bullet: each star child wears ONLY what their own photo/sheet shows; NEVER add a kippah, head covering, peyos, or tzitzis to a star child who does not have them in their reference.
 - ALL female characters (main, secondary, and background — Jewish or not) MUST be dressed with full tznius/modesty: long sleeves past the elbow, necklines fully covering the collarbone, skirts/dresses fully covering the knees, no tight or form-fitting clothing, no cleavage, no bare shoulders, no bare midriff, no bare legs. Married women MUST have hair fully covered (tichel, snood, or sheitel).
 - ABSOLUTELY NO nudity, partial nudity, half-dressed figures, undergarments, swimwear, or revealing clothing on ANY character anywhere in the image — not on main characters, not on background figures, not on crowds, not on infants beyond a simple modest wrap, not on statues or art within the scene.
 - ALL male characters in the scene (even non-Jewish background figures) must be modestly clothed with covered torso, shoulders, and legs to at least the knee. This includes giants, warriors, kings, and villains (Og, Golias, Paroh, soldiers, guards): ALWAYS fully dressed with a shirt/tunic covering the chest and torso — NEVER bare-chested, NEVER shirtless, NEVER open-robed.
@@ -368,9 +371,10 @@ serve(async (req) => {
     imagePrompt += ` \n\nNON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES (apply to EVERY illustration without exception):
 - Each named child character must appear EXACTLY ONCE in the image. NEVER duplicate, clone, mirror, twin, or repeat the same child anywhere in the scene — not in the foreground, not in the background, not as a reflection, not as a second copy. One child = one single figure on the page.
 - A child's clothing comes ONLY from their character reference sheet and the modesty rules above. DO NOT copy the clothing, outfit, colors, prints, logos, brand marks, or accessories from any attached real-life PHOTOGRAPH of the child — a photograph is a guide to the child's FACE and HAIR ONLY, never to their wardrobe.
-- WARDROBE LOCK: the star children have travelled INTO the Torah story's biblical era, so dress each child in modest, PERIOD-AUTHENTIC clothing for that era — flowing tunics/robes, sashes, era-appropriate cloth head coverings, simple sandals — kept the SAME on EVERY page and in EVERY scene. Match the outfit on their character sheet where it is already era-appropriate; never restyle, recolor, or swap the outfit between pages.
+- WARDROBE LOCK: the star children have travelled INTO the Torah story's biblical era, so dress each child in modest, PERIOD-AUTHENTIC clothing for that era — flowing tunics/robes, sashes, simple sandals — kept the SAME on EVERY page and in EVERY scene (a head covering on a star child ONLY if their own photo/character sheet shows one). Match the outfit on their character sheet where it is already era-appropriate; never restyle, recolor, or swap the outfit between pages.
 - NEVER dress the star child in MODERN clothing — no button-down shirts, no trousers/pants, no modern dresses, no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics. Even if a reference shows modern clothing, render period-authentic biblical clothing instead.
-- HAIR & FEATURE LOCK: each child's hair COLOR, hair style, eye color, and skin tone must EXACTLY match their character sheet on every page. If the sheet shows brown hair, the hair is that exact same brown on every single page — never blonde, never a different shade, never a different style.
+- HAIR & FEATURE LOCK: each child's hair COLOR, hair style, eye color, and skin tone must EXACTLY match their character sheet on every page. If the sheet shows brown hair, the hair is that exact same brown on every single page — never blonde, never a different shade, never a different style. SKIN TONE IS IDENTITY: reproduce each child's complexion EXACTLY as their photo/sheet shows — never lighter, never darker, never averaged toward a generic tone; siblings with different complexions keep their DIFFERENT complexions.
+- BABIES SIT: any child aged 1 or younger must ALWAYS be depicted SITTING (on the ground, on a blanket, on a lap) or held in someone's arms — NEVER standing, walking, or running. A 1-year-old cannot stand unassisted in these illustrations.
 - STAR CHILDREN ONLY — NO PARENTS: the star child(ren) experience the story ON THEIR OWN. NEVER add their parents, Tatty, Mommy, bubby, zeidy, siblings not named in this book, teachers, or any other modern-day family adults to the scene — not holding them, not reading to them, not standing behind them. The ONLY adults allowed are figures from the Torah narrative itself (Moshe, Avraham, the meraglim, Paroh, soldiers, etc.) when the scene depicts them. If the page text mentions Tatty/Mommy, still show ONLY the star child(ren) in the illustration.
 - KAVOD HASEFORIM — NEVER place a sefer, book, chumash, or siddur on the floor or ground. Books are ALWAYS held respectfully in hands, or resting on a table, shtender, bookshelf, or bimah — never lying on a rug, floor, or the ground, never scattered, never stepped over.
 - ONE SEAMLESS IMAGE: the illustration must be one single continuous scene with one sky and one lighting scheme — never two skies, never a horizontal seam, and never a strip that looks pasted on at the top or bottom.`;
@@ -679,7 +683,13 @@ serve(async (req) => {
           // keep them small, and crisp lines need the resolution.
           const generationConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
           if (model.startsWith("gemini-3")) {
-            generationConfig.imageConfig = { imageSize: "2K", ...(aspectRatio ? { aspectRatio } : {}) };
+            // 2K renders take 40-80s+ and were the cause of slow books and
+            // timed-out pages, so only the COVER (the print surface where
+            // sharpness matters most) pays for 2K; interior pages render at the
+            // default 1K, which is fast and was the original reliable behavior.
+            const wants2K = pageType === "cover";
+            const imageConfig = { ...(wants2K ? { imageSize: "2K" } : {}), ...(aspectRatio ? { aspectRatio } : {}) };
+            if (Object.keys(imageConfig).length > 0) generationConfig.imageConfig = imageConfig;
           }
           attempt = await fetchWithTimeout(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GOOGLE_AI_API_KEY}`,

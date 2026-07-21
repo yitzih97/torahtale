@@ -106,14 +106,16 @@ serve(async (req) => {
         ? mentionsFrumGarb
           ? "a young toddler in modest clothing, keeping true toddler proportions; include ONLY the specific religious items explicitly requested in the description and keep them identical in every view"
           : "a young toddler in simple modest clothing with true pre-upsherin toddler proportions — NO yarmulke/kippah, NO peyos, NO tzitzis unless those exact items are clearly visible in the attached reference photo"
-        : "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
+        : mentionsFrumGarb
+          ? "in modest clothing; include ONLY the specific religious items explicitly requested in the description (yarmulke/kippah, peyos, tzitzis) and keep them identical in every view"
+          : "in modest clothing — do NOT add a yarmulke/kippah, peyos (sidelocks), or tzitzis unless those exact items are clearly visible in the attached reference photo; draw his head and hair exactly as the photo shows"
       : "modest dress with long sleeves and long skirt below the knee, no head covering for unmarried girls, tznius appearance";
 
     const descPart = description
       ? `Physical appearance: ${description}.`
       : "cheerful, bright-eyed expression, friendly smile.";
 
-    const prompt = `Create a detailed CHARACTER MODEL SHEET for a ${ageNum}-year-old frum Yiddishe ${gender} ${ageDesc} named ${childName || "child"}.
+    const prompt = `Create a detailed CHARACTER MODEL SHEET for a ${ageNum}-year-old Jewish ${gender} ${ageDesc} named ${childName || "child"}.
 
 LAYOUT: A single image containing a grid with: FRONT VIEW (full body), 3/4 VIEW (full body), SIDE PROFILE (head and shoulders), and 2 FACIAL EXPRESSIONS (happy, surprised). All views arranged neatly on the same white sheet.
 
@@ -127,7 +129,7 @@ CANONICAL OUTFIT — LOCKED WARDROBE (this exact outfit will be reproduced on EV
 ${gender === "boy"
   ? (isUnder3Boy
       ? "- A simple modest biblical-era toddler tunic/robe in a soft cream or light earthy tone, with simple leather sandals. The same exact outfit in every view."
-      : "- A flowing ankle-length biblical tunic/robe in a warm earthy tone (cream, tan, or soft brown) with a simple cloth sash at the waist, a modest era-appropriate cloth head-covering over the head, visible peyos (sidelocks), tzitzis strings at the sides, and simple leather sandals. The same exact outfit in every view.")
+      : `- A flowing ankle-length biblical tunic/robe in a warm earthy tone (cream, tan, or soft brown) with a simple cloth sash at the waist${mentionsFrumGarb ? ", a modest era-appropriate cloth head-covering over the head, visible peyos (sidelocks), tzitzis strings at the sides," : ""} and simple leather sandals.${mentionsFrumGarb ? "" : " Add a head-covering, peyos, or tzitzis ONLY if those exact items are clearly visible in the attached reference photo — otherwise bare head and no religious garb, exactly like the photo."} The same exact outfit in every view.`)
   : "- ONE modest, flowing biblical-era dress/robe in a single soft color (dusty rose or muted blue), long sleeves past the elbow, an ankle-length skirt, a simple matching cloth headband (no hair covering for an unmarried girl), and simple leather sandals. The same exact dress in every view."}
 - If the appearance description above explicitly requests specific clothing, honor that instead — but keep it identical in every view.
 - NEVER modern clothing: no button-down shirts, no trousers/pants, no modern dresses, no t-shirts, no logos or prints, no jeans, no sneakers, no baseball caps.
@@ -136,12 +138,12 @@ CRITICAL CONSISTENCY RULES:
 - Every view must show the EXACT SAME character — identical face shape, nose, eyes, eyebrows, mouth, hair color, hair style, skin tone, and body proportions.
 - The child must read as EXACTLY ${ageNum} years old in every view — never older, never younger. Preserve the same head size, body scale, height impression, and toddler/child proportions in every panel.
 - Clothing must be identical in every view — same colors, same patterns, same fit.
-- ${gender === "boy" ? (isUnder3Boy ? (mentionsFrumGarb ? "The child is under 3. Keep him a real toddler. Only include the specific religious items explicitly requested in the description, and keep them identical in every view." : "The child is under 3 and pre-upsherin. Do NOT draw a yarmulke/kippah, do NOT draw peyos, and do NOT draw tzitzis unless they are clearly visible in the attached reference photo. Show a simple toddler hairstyle. Must be consistent in every view.") : "The yarmulke, peyos, and tzitzis must be clearly visible and consistent in every view.") : "The modest dress must be the same in every view — same color, same sleeves, same length."}
+- ${gender === "boy" ? (isUnder3Boy ? (mentionsFrumGarb ? "The child is under 3. Keep him a real toddler. Only include the specific religious items explicitly requested in the description, and keep them identical in every view." : "The child is under 3 and pre-upsherin. Do NOT draw a yarmulke/kippah, do NOT draw peyos, and do NOT draw tzitzis unless they are clearly visible in the attached reference photo. Show a simple toddler hairstyle. Must be consistent in every view.") : (mentionsFrumGarb ? "The requested religious items (yarmulke/peyos/tzitzis) must be clearly visible and consistent in every view." : "Include a yarmulke/kippah, peyos, or tzitzis ONLY if clearly visible in the attached reference photo — otherwise none; whatever appears must be consistent in every view.")) : "The modest dress must be the same in every view — same color, same sleeves, same length."}
 - This sheet will be used as a reference to generate consistent illustrations across a children's book. The character must be recognizable in every single view.
 
 BACKGROUND: Clean solid white background. No environments, no props, no text labels.
 
-${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial features, face shape, hair color, hair texture, eye color, and skin tone from the attached reference photo as closely as possible, while rendering in the specified art style. The illustrated character should be immediately recognizable as the same child in the photo. The photo is for FACE and HAIR likeness ONLY — do NOT copy the clothing from the photo; dress the character in the canonical outfit above. If this is a boy under 3, use the photo for likeness first and ONLY keep a kippah, peyos, or tzitzis if they are clearly visible in the photo or explicitly requested in the description.` : ""}`;
+${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial features, face shape, hair color, hair texture, eye color, and skin tone from the attached reference photo as closely as possible, while rendering in the specified art style. SKIN TONE IS IDENTITY: reproduce the child's actual complexion EXACTLY as the photo shows — never lighter, never darker, never a generic tone. The illustrated character should be immediately recognizable as the same child in the photo. The photo is for FACE and HAIR likeness ONLY — do NOT copy the clothing from the photo; dress the character in the canonical outfit above. Use the photo for likeness first and include a kippah, peyos, or tzitzis ONLY if they are clearly visible in the photo or explicitly requested in the description — never add them otherwise.` : ""}`;
 
     const parts: any[] = [];
 
