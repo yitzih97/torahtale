@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
+import { describeFunctionsError } from "@/lib/functionsError";
 import type { TextStyle } from "./DraggableText";
 import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "./EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
@@ -296,33 +297,51 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
       const storyCharacterRefs = isPreview ? [] : (generationContext?.storyCharacters || [])
         .filter((ch) => ch?.name && (targetType === "cover" || pageTextLc.includes(ch.name.toLowerCase())))
         .map((ch) => ({ name: ch.name, description: ch.description || "", sheet: ch.sheet || null }));
-      const { data, error } = await supabase.functions.invoke("generate-image", {
-        body: {
-          promptAdditions: finalPrompt
-            ? `${finalPrompt}. NON-NEGOTIABLE: preserve the exact same child face, age, body size, clothing, and all age-specific rules from the existing book across this regenerated page.`
-            : undefined,
-          childName,
-          artStyle,
-          torahPortion: effPortion,
-          bookFormat: generationContext?.bookFormat,
-          pageType: targetType,
-          pageNumber,
-          pageText: tgt.text,
-          childDescription: generationContext?.childDescription,
-          referenceImage: generationContext?.referenceImage,
-          characterSheet: generationContext?.characterSheet,
-          characterSheets: generationContext?.characterSheets,
-          childRefs: generationContext?.childRefs,
-          storyCharacterRefs,
-        },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      updatePage(tgt.id, { image: data.imageUrl });
+      const body = {
+        promptAdditions: finalPrompt
+          ? `${finalPrompt}. NON-NEGOTIABLE: preserve the exact same child face, age, body size, clothing, and all age-specific rules from the existing book across this regenerated page.`
+          : undefined,
+        childName,
+        artStyle,
+        torahPortion: effPortion,
+        bookFormat: generationContext?.bookFormat,
+        pageType: targetType,
+        outfitVariant: isPreview ? tgt.outfit || undefined : undefined,
+        pageNumber,
+        pageText: tgt.text,
+        childDescription: generationContext?.childDescription,
+        referenceImage: generationContext?.referenceImage,
+        characterSheet: generationContext?.characterSheet,
+        characterSheets: generationContext?.characterSheets,
+        childRefs: generationContext?.childRefs,
+        storyCharacterRefs,
+      };
+      // Same resilience as the batch generator: transient failures (provider
+      // blips, edge CPU limits, burst 429s) get fresh attempts with a backoff,
+      // and the FINAL error shown is the edge function's real message — not
+      // supabase-js's generic "non-2xx status code".
+      const MAX_ATTEMPTS = 3;
+      let imageUrl: string | null = null;
+      let lastErr = "Failed to regenerate image.";
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS && !imageUrl; attempt++) {
+        const { data, error } = await supabase.functions.invoke("generate-image", { body });
+        if (error) lastErr = await describeFunctionsError(error);
+        else if (data?.error) lastErr = String(data.error);
+        else if (data?.imageUrl) imageUrl = data.imageUrl;
+        if (!imageUrl && attempt < MAX_ATTEMPTS) await new Promise((r) => setTimeout(r, attempt * 2500));
+      }
+      if (!imageUrl) throw new Error(lastErr);
+      updatePage(tgt.id, { image: imageUrl });
       toast.success("Image regenerated!");
     } catch (err: any) {
       console.error("Image regen failed:", err);
-      toast.error(err?.message || "Failed to regenerate image.");
+      const msg = err?.message || "Failed to regenerate image.";
+      toast.error(
+        /401|unauthoriz|jwt|token/i.test(msg)
+          ? `${msg} — your admin session may have expired; refresh the page and sign in again.`
+          : msg,
+        { duration: 10000 },
+      );
     } finally {
       setRegeneratingId(null);
     }

@@ -1,0 +1,47 @@
+name: Fetch edge function logs
+
+# The live project's dashboard isn't visible to our Supabase account, so this is
+# the only window into edge-function logs. Run it from the Actions tab (or
+# `gh workflow run edge-logs.yml -f minutes=60`) and read the run output.
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "How many minutes back to fetch"
+        default: "60"
+      search:
+        description: "Only show log lines containing this text (optional)"
+        default: ""
+
+env:
+  PROJECT_REF: cjgqpusyxvltglcbnpvg
+
+jobs:
+  logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Function console logs
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          MINUTES: ${{ inputs.minutes }}
+          SEARCH: ${{ inputs.search }}
+        run: |
+          set -euo pipefail
+          sql="select timestamp, event_message from function_logs where timestamp > timestamp_sub(current_timestamp(), interval ${MINUTES} minute) order by timestamp desc limit 200"
+          curl -sG "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            --data-urlencode "sql=${sql}" \
+          | jq -r '.result[]? | "\(.timestamp)  \(.event_message)"' \
+          | { if [ -n "$SEARCH" ]; then grep -i -- "$SEARCH" || echo "(no matching lines)"; else cat; fi }
+
+      - name: Edge request statuses (non-200 highlighted)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          MINUTES: ${{ inputs.minutes }}
+        run: |
+          set -euo pipefail
+          sql="select timestamp, event_message from edge_logs where timestamp > timestamp_sub(current_timestamp(), interval ${MINUTES} minute) and event_message like '%functions/v1%' order by timestamp desc limit 200"
+          curl -sG "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            --data-urlencode "sql=${sql}" \
+          | jq -r '.result[]? | "\(.timestamp)  \(.event_message)"' | head -100
