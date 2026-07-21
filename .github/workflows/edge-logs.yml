@@ -43,7 +43,7 @@ jobs:
           MINUTES: ${{ inputs.minutes }}
         run: |
           set -euo pipefail
-          sql="select timestamp, event_message from function_edge_logs where timestamp > timestamp_sub(current_timestamp(), interval ${MINUTES} minute) order by timestamp desc limit 200"
+          sql="select timestamp, event_message from edge_logs where timestamp > timestamp_sub(current_timestamp(), interval ${MINUTES} minute) order by timestamp desc limit 30"
           resp=$(curl -sG "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
             --data-urlencode "sql=${sql}")
