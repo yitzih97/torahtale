@@ -537,7 +537,15 @@ serve(async (req) => {
     // path goes through images/edits for likeness and falls back to Gemini on
     // error or when OpenAI is unavailable.
     const requestedImageModel = customImageModel || "gemini-3.1-flash-image-preview";
-    const isOpenAI = /^(gpt-image|dall-e)/i.test(requestedImageModel);
+    // The front cover always carries the MOST reference images of any page in
+    // the book (every recurring Torah character is attached, not just the ones
+    // mentioned on a given page, capped at 4) plus a title-safe-area scene —
+    // the single most complex generation in the book. That combination is what
+    // was failing against OpenAI's images/edits endpoint while ordinary pages
+    // (fewer/no side-character refs) succeeded. Keep the cover on the same
+    // Gemini pipeline the rest of the book already relies on instead of ever
+    // routing it through OpenAI.
+    const isOpenAI = !isCover && /^(gpt-image|dall-e)/i.test(requestedImageModel);
     if (isOpenAI) {
       const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
       if (OPENAI_API_KEY) {
@@ -608,7 +616,12 @@ serve(async (req) => {
     }
     // ============= END OPENAI; fall through to Gemini fallback =============
 
-    const imageModels = (customImageModel && !isOpenAI)
+    // Only seed the Gemini list with customImageModel when it's actually a
+    // Gemini-style name — for a cover forced off OpenAI (isOpenAI false above
+    // even though the requested model is an OpenAI one), customImageModel would
+    // otherwise be an OpenAI model name that Google's endpoint can't serve.
+    const customIsGemini = typeof customImageModel === "string" && !/^(gpt-image|dall-e)/i.test(customImageModel);
+    const imageModels = (customImageModel && customIsGemini)
       ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-3.1-flash-image"]
       : [
           "gemini-3.1-flash-image-preview",
