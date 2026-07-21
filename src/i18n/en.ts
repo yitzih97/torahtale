@@ -65,8 +65,8 @@ export const en = {
   // Why Torah Tale (homepage features)
   whyUs: {
     label: "Why Torah Tale",
-    title: "Made with yiras Shamayim,",
-    titleAccent: "designed around your child",
+    title: "Made with Torah values,",
+    titleAccent: "Designed around your child",
     subtitle: "Every book is built to become a keepsake — kosher content, beautiful art, and your child at the very heart of the Torah story.",
     features: [
       { title: "Tznius & Halachically Mindful", desc: "Every illustration and storyline is crafted to frum standards — modest dress, authentic settings, and Torah-true details on every page." },

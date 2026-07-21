@@ -42,14 +42,8 @@ export const TestimonialsSection = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, ease }} className="text-center mb-16">
           <span className="text-sm font-semibold text-accent mb-3 block tracking-wider uppercase">What Parents Say</span>
           <h2 className="font-heading text-3xl lg:text-5xl font-bold text-foreground leading-tight">
-            Loved at Bedtime,<br />Treasured L'Doros
+            Loved at Bedtime,<br />Treasured Generations
           </h2>
-          <div className="flex items-center justify-center gap-2 mt-5">
-            <div className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, j) => <Star key={j} className="w-4 h-4 fill-accent text-accent" />)}
-            </div>
-            <span className="text-sm text-muted-foreground">4.9/5 from 500+ reviews</span>
-          </div>
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
