@@ -43,11 +43,11 @@ jobs:
           MINUTES: ${{ inputs.minutes }}
         run: |
           set -euo pipefail
-          sql="select timestamp, response.status_code as status, request.method as method, request.path as path from edge_logs cross join unnest(metadata) as m cross join unnest(m.request) as request cross join unnest(m.response) as response where timestamp > timestamp_sub(current_timestamp(), interval ${MINUTES} minute) and request.path like '%/functions/v1/%' order by timestamp desc limit 200"
+          sql="select timestamp, response.status_code as status, request.method as method, m.execution_time_ms as ms, event_message from function_edge_logs cross join unnest(metadata) as m cross join unnest(m.request) as request cross join unnest(m.response) as response where timestamp > timestamp_sub(current_timestamp(), interval ${MINUTES} minute) order by timestamp desc limit 200"
           resp=$(curl -sG "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
             --data-urlencode "sql=${sql}")
           if ! jq -e '.result | length > 0' >/dev/null 2>&1 <<<"$resp"; then
             echo "No rows — raw response:"; echo "${resp:0:800}"; exit 0
           fi
-          jq -r '.result[] | "\(.timestamp)  \(.status)  \(.method)  \(.path)"' <<<"$resp" | head -100
+          jq -r '.result[] | "\(.timestamp)  \(.status)  \(.method)  \(.ms)ms  \(.event_message)"' <<<"$resp" | head -100
