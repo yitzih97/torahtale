@@ -9,6 +9,10 @@ const corsHeaders = {
 };
 
 const PROVIDER_TIMEOUT_MS = 40_000;
+// Image GENERATION calls get a much longer leash: 2K renders with several
+// reference images attached routinely take 40-80s, and aborting them at 40s was
+// the top cause of "failed pages" (both Gemini models "timed out" per book).
+const IMAGE_GEN_TIMEOUT_MS = 90_000;
 
 async function requireUser(req: Request): Promise<Response | null> {
   const authHeader = req.headers.get("authorization");
@@ -629,7 +633,7 @@ serve(async (req) => {
     // otherwise be an OpenAI model name that Google's endpoint can't serve.
     const customIsGemini = typeof customImageModel === "string" && !/^(gpt-image|dall-e)/i.test(customImageModel);
     const imageModels = (customImageModel && customIsGemini)
-      ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-3.1-flash-image"]
+      ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-3.1-flash-image", "gemini-2.5-flash-image"]
       : [
           "gemini-3.1-flash-image-preview",
           "gemini-3.1-flash-image",
@@ -675,7 +679,7 @@ serve(async (req) => {
                 generationConfig,
               }),
             },
-            PROVIDER_TIMEOUT_MS,
+            IMAGE_GEN_TIMEOUT_MS,
           );
         } catch (e) {
           const isTimeout = e instanceof DOMException && e.name === "AbortError";
@@ -716,6 +720,36 @@ serve(async (req) => {
         break; // model unavailable — next model
       }
       if (response) break;
+    }
+
+    // RESCUE PASS: if every model TIMED OUT (Gemini running slow — 2K renders
+    // with reference images can outlast even the long timeout), try once more at
+    // the default 1K size, which renders much faster. A slightly softer page
+    // beats a failed one, and the admin can regenerate it at full quality later.
+    if (!response && !saw429 && lastErrorStatus === 504) {
+      const rescueModel = [...new Set(imageModels)][0];
+      const rescueConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
+      if (rescueModel.startsWith("gemini-3") && aspectRatio) rescueConfig.imageConfig = { aspectRatio };
+      try {
+        const rescue = await fetchWithTimeout(
+          `https://generativelanguage.googleapis.com/v1beta/models/${rescueModel}:generateContent?key=${GOOGLE_AI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: rescueConfig }),
+          },
+          60_000,
+        );
+        if (rescue.ok) {
+          response = rescue;
+          selectedModel = rescueModel;
+          console.log(`Rescued page at default resolution with ${rescueModel} after 2K timeouts.`);
+        } else {
+          console.error(`1K rescue attempt failed: ${rescue.status} ${(await rescue.text()).slice(0, 200)}`);
+        }
+      } catch (e) {
+        console.error("1K rescue attempt failed too:", e);
+      }
     }
 
     if (!response) {
