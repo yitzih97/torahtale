@@ -293,10 +293,10 @@ export const getPortionDisplay = (value: string, lang: "en" | "he" | "yi"): stri
 
 /**
  * Weekly Torah portion reading schedule.
- * Maps a Saturday date (YYYY-MM-DD) to the parashah value(s) read that Shabbat.
+ * Maps a Saturday date (YYYY-MM-DD) to the parsha value(s) read that Shabbat.
  */
 const PARSHA_CALENDAR: Record<string, string> = {
-  // Diaspora weekly parashah, generated from the Hebcal sedrot API (i=off).
+  // Diaspora weekly parsha, generated from the Hebcal sedrot API (i=off).
   // Double parshiyos are labelled with the combined slug (e.g. matot-masei) so a
   // combined week sells ONE book covering both. Keyed by the Shabbos (Saturday) date.
   "2024-01-06": "shemot", "2024-01-13": "vaera", "2024-01-20": "bo", "2024-01-27": "beshalach",
@@ -399,7 +399,7 @@ const PARSHA_CALENDAR: Record<string, string> = {
 };
 
 /**
- * Returns the parashah read `leadWeeks` weeks after `from` (default: 3 weeks from
+ * Returns the parsha read `leadWeeks` weeks after `from` (default: 3 weeks from
  * now, the production lead time). Pass a future Monday to find the portion a
  * subscription book released that day will cover — mirrors the server-side
  * supabase/functions/_shared/parsha.ts used by the release job.
@@ -453,8 +453,8 @@ export const getBackCoverPreviewPortions = (
   return out.slice(0, count);
 };
 
-// ── Weekly parashah rollover: Wednesday 12:00 PM Eastern ─────────────────────
-// The wizard's auto-selected parashah rolls over every Wednesday at noon ET and
+// ── Weekly parsha rollover: Wednesday 12:00 PM Eastern ─────────────────────
+// The wizard's auto-selected parsha rolls over every Wednesday at noon ET and
 // the on-screen countdown ticks toward that moment. We derive the Eastern wall
 // clock of any instant via toLocaleString (DST-safe, no date library): `et` is a
 // Date whose LOCAL fields mirror the America/New_York clock, and `offset`
@@ -475,9 +475,9 @@ export const getNextParshaRollover = (from: Date = new Date()): Date => {
 };
 
 /**
- * The parashah to suggest as "this week" in the creation wizard.
+ * The parsha to suggest as "this week" in the creation wizard.
  *
- * A parashah "week" runs from one Wednesday-noon-ET rollover to the next: from
+ * A parsha "week" runs from one Wednesday-noon-ET rollover to the next: from
  * Wednesday noon ET we point at the coming Shabbat and hold it through the
  * following Wednesday noon, then roll forward. (Unlike getUpcomingParsha, which
  * adds a multi-week production lead used by the subscription release job — this
@@ -488,11 +488,11 @@ export const getNextParshaRollover = (from: Date = new Date()): Date => {
  */
 export const getCurrentParsha = (from: Date = new Date()): string => {
   const { et } = easternClock(from);
-  // Anchor on the most recent Wednesday-noon-ET rollover, then show the parashah
+  // Anchor on the most recent Wednesday-noon-ET rollover, then show the parsha
   // of the Shabbat of the FOLLOWING week (rollover + 10 days). This gives a
-  // production lead: once Wednesday noon passes we advance to next week's parashah.
+  // production lead: once Wednesday noon passes we advance to next week's parsha.
   // e.g. Thu 2026-07-02 (past Wed 07-01 noon) -> Shabbat 07-11 = matot-masei;
-  // it flips to the next parashah at Wed 07-08 noon ET.
+  // it flips to the next parsha at Wed 07-08 noon ET.
   const rollover = new Date(et);
   rollover.setDate(et.getDate() - ((et.getDay() - 3 + 7) % 7)); // this/most-recent Wednesday
   rollover.setHours(12, 0, 0, 0);

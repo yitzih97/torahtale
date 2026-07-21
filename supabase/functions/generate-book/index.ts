@@ -377,7 +377,7 @@ async function generate(bookId: string) {
     }
 
     // ── Phase B2: reference sheets for recurring Torah-story characters (once) ──
-    // Each named non-hero character (Moshe, Dovid, Golias, …) gets one fixed
+    // Each named non-star character (Moshe, Dovid, Golias, …) gets one fixed
     // reference so they look identical on every page they appear. Bounded +
     // resumable; fully fail-open — a book still generates without them.
     const storyChars: Array<{ name: string; description: string }> =

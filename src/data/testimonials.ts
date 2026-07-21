@@ -10,8 +10,8 @@ export interface Testimonial {
 
 export const TESTIMONIALS: Testimonial[] = [
   { name: "Chaya Leah Friedman", location: "Brooklyn, NY", text: "My daughter's face when she saw herself as the heroine of the Purim story — mamash a kiddush Hashem. The kinderlach ask for it every Leil Shabbos.", rating: 5 },
-  { name: "Avi Rosenberg", location: "Lakewood, NJ", text: "We subscribed to the Parashah Club. Every Leil Shabbos our son reads his new personalized book at the tish. The whole mishpacha loves it.", rating: 5 },
-  { name: "Rivky Weinberg", location: "Monsey, NY", text: "The illustrations are stunning and completely tznius — peyos, tzitzis, everything just right. The AI captured the parasha perfectly.", rating: 5 },
+  { name: "Avi Rosenberg", location: "Lakewood, NJ", text: "We subscribed to the Parsha Club. Every Leil Shabbos our son reads his new personalized book at the tish. The whole family loves it.", rating: 5 },
+  { name: "Rivky Weinberg", location: "Monsey, NY", text: "The illustrations are stunning and completely tznius — peyos, tzitzis, everything just right. The AI captured the parsha perfectly.", rating: 5 },
   { name: "Shaindy Klein", location: "Boro Park, NY", text: "My son didn't believe it was really him in the sefer until he saw his own face holding the luchos. He hasn't stopped showing his rebbi.", rating: 5 },
   { name: "Dovid Mandel", location: "Passaic, NJ", text: "Worth every penny. The print quality is gorgeous, the hardcover feels like a real keepsake we'll pass down.", rating: 5 },
   { name: "Esty Greenbaum", location: "Cleveland, OH", text: "We ordered for our twins and each got their own story. The faces actually look like them — I was shocked.", rating: 5 },
@@ -30,7 +30,7 @@ export const TESTIMONIALS: Testimonial[] = [
   { name: "Moshe Davidson", location: "Houston, TX", text: "Living out of town, this brings so much Yiddishkeit into our home. The kids feel connected to the parsha all week.", rating: 5 },
   { name: "Faigy Stern", location: "Montreal, QC", text: "The Hebrew option is wonderful for our chinuch. My son reads the loshon hakodesh proudly to his zaidy.", rating: 5 },
   { name: "Yehuda Brenner", location: "Boro Park, NY", text: "Customer service helped me get it before Yom Tov when I ordered late. Above and beyond. Menschlich people.", rating: 5 },
-  { name: "Suri Feldman", location: "Monsey, NY", text: "My daughter who never sat for stories now begs for 'her book.' Seeing herself as the hero changed everything.", rating: 5 },
+  { name: "Suri Feldman", location: "Monsey, NY", text: "My daughter who never sat for stories now begs for 'her book.' Seeing herself as the star changed everything.", rating: 5 },
   { name: "Eli Kaplan", location: "Detroit, MI", text: "The Yosef coat of colors edition is so vivid. The colors practically glow off the page. Stunning craftsmanship.", rating: 5 },
   { name: "Nechama Wolf", location: "Memphis, TN", text: "We use it to prepare the kids for the parsha each week. They walk into the seuda already knowing the story.", rating: 5 },
   { name: "Berel Lieberman", location: "Crown Heights, NY", text: "A gift that keeps giving. My son is prouder of this book than any toy he owns. Pure nachas.", rating: 5 },

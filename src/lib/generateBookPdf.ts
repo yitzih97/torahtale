@@ -557,7 +557,7 @@ function drawMiniCover(
 async function renderCoverSpread(
   page: BookPage,
   childName: string,
-  parashaLabel: string,
+  parshaLabel: string,
   scale = 1,
   bookFormat = "",
   previews: BackCoverPreview[] = [],
@@ -625,7 +625,7 @@ async function renderCoverSpread(
   ctx.font = `600 36px 'Inter', sans-serif`;
   ctx.fillText(COVER_URL.toUpperCase(), HALF_W / 2, SPREAD_H * 0.9);
 
-  // ── FRONT COVER (right half): illustration + Parasha name + child. ──
+  // ── FRONT COVER (right half): illustration + Parsha name + child. ──
   const img = await safeLoad(page.image);
   if (img) {
     drawHalfImage(ctx, img, HALF_W);
@@ -636,14 +636,14 @@ async function renderCoverSpread(
   // Front cover chrome: navy filigree frame, "Torah Tale" brand, big engraved
   // gold PARSHA title, magenta personalized story title, and a bottom tagline —
   // drawn over the illustration (right half). Uses coverTitle as the personalized
-  // magenta line (falls back to the child's name), the localized parasha as the
+  // magenta line (falls back to the child's name), the localized parsha as the
   // gold title.
-  const { title: frontTitle, childLine } = coverTitleParts(page.coverTitle, childName, parashaLabel);
+  const { title: frontTitle, childLine } = coverTitleParts(page.coverTitle, childName, parshaLabel);
   ctx.save();
   ctx.translate(HALF_W, 0);
   drawCoverFurniture(ctx, HALF_W, SPREAD_H, {
     brand: "Torah Tale",
-    parsha: parashaLabel,
+    parsha: parshaLabel,
     title: frontTitle,
     childLine,
     tagline: FRONT_TAGLINE,
@@ -667,7 +667,7 @@ async function renderCoverSpread(
   ctx.fillRect(spineX, 0, spineW, SPREAD_H);
   // Only letter the spine when it's physically wide enough to read.
   if (spineW >= 60) {
-    const spineText = [parashaLabel, childName].filter(Boolean).join("  ·  ");
+    const spineText = [parshaLabel, childName].filter(Boolean).join("  ·  ");
     ctx.save();
     ctx.translate(HALF_W, SPREAD_H / 2);
     ctx.rotate(Math.PI / 2);
@@ -690,7 +690,7 @@ async function renderCoverSpread(
 async function renderPortraitCover(
   page: BookPage,
   childName: string,
-  parashaLabel: string,
+  parshaLabel: string,
   scale = 1,
   lang: "en" | "he" | "yi" = "en",
 ): Promise<string> {
@@ -713,11 +713,11 @@ async function renderPortraitCover(
   else { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H); }
 
   // Same branded chrome as the bound books. Coloring covers show the localized
-  // parasha name (gold) + the kids' names (magenta) rather than the story's
+  // parsha name (gold) + the kids' names (magenta) rather than the story's
   // generated bilingual title.
   drawCoverFurniture(ctx, W, H, {
     brand: "Torah Tale",
-    parsha: parashaLabel,
+    parsha: parshaLabel,
     title: childName,
     tagline: FRONT_TAGLINE,
     rtl,
@@ -852,7 +852,7 @@ export async function renderPrintImages(
   bookFormat = "",
   lang: "en" | "he" | "yi" = "en",
 ): Promise<string[]> {
-  const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
+  const parshaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   const mode = layoutMode(bookFormat, pages);
   // Render at 2× our 1200-based canvas so the output matches the Printify print
   // slots natively (pages 2400², cover ~4800×2400) instead of letting Printify
@@ -862,8 +862,8 @@ export async function renderPrintImages(
   const cover = pages.find((p) => p.type === "cover");
   const previews = backCoverPreviews(pages, lang);
   if (cover) out.push(await (mode === "portrait"
-    ? renderPortraitCover(cover, childName, parashaLabel, PRINT_SCALE, lang)
-    : renderCoverSpread(cover, childName, parashaLabel, PRINT_SCALE, bookFormat, previews, lang)));
+    ? renderPortraitCover(cover, childName, parshaLabel, PRINT_SCALE, lang)
+    : renderCoverSpread(cover, childName, parshaLabel, PRINT_SCALE, bookFormat, previews, lang)));
 
   const questionsPage = pages.find((p) => p.type === "questions");
   // Each Printify blueprint has a fixed interior capacity (Cover + N PAGES).
@@ -901,9 +901,9 @@ export async function generateBookPdf(
   bookFormat = "",
   lang: "en" | "he" | "yi" = "en",
 ): Promise<Blob> {
-  // Cover text: Parasha name is the hero (big), kids are the co-stars (small),
+  // Cover text: Parsha name is the hero (big), kids are the co-stars (small),
   // mirroring the on-screen BookViewer.
-  const parashaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
+  const parshaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   // Board (6×6) → wide 2:1 spreads. Softcover/Hardcover (8×8) → square pages.
   // Coloring (8.5×11) → tall portrait line-art pages with a portrait front cover.
   const mode = layoutMode(bookFormat, pages);
@@ -931,8 +931,8 @@ export async function generateBookPdf(
     let dataUrl: string;
     if (page.type === "cover") {
       dataUrl = mode === "portrait"
-        ? await renderPortraitCover(page, childName, parashaLabel, 1, lang)
-        : await renderCoverSpread(page, childName, parashaLabel, 1, bookFormat, pdfPreviews, lang);
+        ? await renderPortraitCover(page, childName, parshaLabel, 1, lang)
+        : await renderCoverSpread(page, childName, parshaLabel, 1, bookFormat, pdfPreviews, lang);
     } else if (page.type === "questions") {
       // Coloring books have no back cover — the questions page becomes the back
       // matter (logo + up to 10 questions + subscribe + teaser thumbnails).

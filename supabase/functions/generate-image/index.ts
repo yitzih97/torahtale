@@ -348,10 +348,10 @@ serve(async (req) => {
     imagePrompt += ` \n\nNON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES (apply to EVERY illustration without exception):
 - Each named child character must appear EXACTLY ONCE in the image. NEVER duplicate, clone, mirror, twin, or repeat the same child anywhere in the scene — not in the foreground, not in the background, not as a reflection, not as a second copy. One child = one single figure on the page.
 - A child's clothing comes ONLY from their character reference sheet and the modesty rules above. DO NOT copy the clothing, outfit, colors, prints, logos, brand marks, or accessories from any attached real-life PHOTOGRAPH of the child — a photograph is a guide to the child's FACE and HAIR ONLY, never to their wardrobe.
-- WARDROBE LOCK: the hero children have travelled INTO the Torah story's biblical era, so dress each child in modest, PERIOD-AUTHENTIC clothing for that era — flowing tunics/robes, sashes, era-appropriate cloth head coverings, simple sandals — kept the SAME on EVERY page and in EVERY scene. Match the outfit on their character sheet where it is already era-appropriate; never restyle, recolor, or swap the outfit between pages.
-- NEVER dress the hero child in MODERN clothing — no button-down shirts, no trousers/pants, no modern dresses, no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics. Even if a reference shows modern clothing, render period-authentic biblical clothing instead.
+- WARDROBE LOCK: the star children have travelled INTO the Torah story's biblical era, so dress each child in modest, PERIOD-AUTHENTIC clothing for that era — flowing tunics/robes, sashes, era-appropriate cloth head coverings, simple sandals — kept the SAME on EVERY page and in EVERY scene. Match the outfit on their character sheet where it is already era-appropriate; never restyle, recolor, or swap the outfit between pages.
+- NEVER dress the star child in MODERN clothing — no button-down shirts, no trousers/pants, no modern dresses, no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics. Even if a reference shows modern clothing, render period-authentic biblical clothing instead.
 - HAIR & FEATURE LOCK: each child's hair COLOR, hair style, eye color, and skin tone must EXACTLY match their character sheet on every page. If the sheet shows brown hair, the hair is that exact same brown on every single page — never blonde, never a different shade, never a different style.
-- HERO CHILDREN ONLY — NO PARENTS: the hero child(ren) experience the story ON THEIR OWN. NEVER add their parents, Tatty, Mommy, bubby, zeidy, siblings not named in this book, teachers, or any other modern-day family adults to the scene — not holding them, not reading to them, not standing behind them. The ONLY adults allowed are figures from the Torah narrative itself (Moshe, Avraham, the meraglim, Paroh, soldiers, etc.) when the scene depicts them. If the page text mentions Tatty/Mommy, still show ONLY the hero child(ren) in the illustration.
+- STAR CHILDREN ONLY — NO PARENTS: the star child(ren) experience the story ON THEIR OWN. NEVER add their parents, Tatty, Mommy, bubby, zeidy, siblings not named in this book, teachers, or any other modern-day family adults to the scene — not holding them, not reading to them, not standing behind them. The ONLY adults allowed are figures from the Torah narrative itself (Moshe, Avraham, the meraglim, Paroh, soldiers, etc.) when the scene depicts them. If the page text mentions Tatty/Mommy, still show ONLY the star child(ren) in the illustration.
 - KAVOD HASEFORIM — NEVER place a sefer, book, chumash, or siddur on the floor or ground. Books are ALWAYS held respectfully in hands, or resting on a table, shtender, bookshelf, or bimah — never lying on a rug, floor, or the ground, never scattered, never stepped over.
 - ONE SEAMLESS IMAGE: the illustration must be one single continuous scene with one sky and one lighting scheme — never two skies, never a horizontal seam, and never a strip that looks pasted on at the top or bottom.`;
 
@@ -428,7 +428,7 @@ serve(async (req) => {
     // Recurring Torah-story characters (Moshe, Dovid, Golias, …): keep each one
     // identical across pages. Inject their fixed description ALWAYS (text lock),
     // and attach their reference sheet in whatever attachment slots remain after
-    // the hero children (character attachments are capped at 4 total).
+    // the star children (character attachments are capped at 4 total).
     const storyRefsList: any[] = Array.isArray(storyCharacterRefs) ? storyCharacterRefs : [];
     if (!isColoring && !prompt && storyRefsList.length > 0) {
       const descLines = storyRefsList
@@ -777,18 +777,18 @@ serve(async (req) => {
         // are still full-color, so a color-based hair check would ALWAYS "fail"
         // (there's no color at all to compare). Judge hair by STYLE/shape instead.
         const hairDefectLine = isColoringPage
-          ? "2) hairMismatch — a hero child's hair STYLE or length clearly differs from their character sheet (e.g. short hair on the page but long/braided on the sheet). Ignore color — this page has none."
-          : "2) hairMismatch — a hero child's hair COLOR clearly differs from their character sheet (e.g. blonde on the page but brown on the sheet).";
-        qaParts.push({ text: `You are a strict QA inspector for a children's book. Image 1 is a GENERATED book page${isColoringPage ? " (a black-and-white LINE-ART coloring page — judge shapes/silhouettes only, ignore that it has no color)" : ""}. The following ${usableSheets.length} image(s) are the OFFICIAL character sheet(s) for the hero child(ren): ${names}. Inspect the generated page for ONLY these defects:
-1) duplicate — the SAME hero child appears more than once in the page (a twin, clone, mirror or extra copy of the same child).
+          ? "2) hairMismatch — a star child's hair STYLE or length clearly differs from their character sheet (e.g. short hair on the page but long/braided on the sheet). Ignore color — this page has none."
+          : "2) hairMismatch — a star child's hair COLOR clearly differs from their character sheet (e.g. blonde on the page but brown on the sheet).";
+        qaParts.push({ text: `You are a strict QA inspector for a children's book. Image 1 is a GENERATED book page${isColoringPage ? " (a black-and-white LINE-ART coloring page — judge shapes/silhouettes only, ignore that it has no color)" : ""}. The following ${usableSheets.length} image(s) are the OFFICIAL character sheet(s) for the star child(ren): ${names}. Inspect the generated page for ONLY these defects:
+1) duplicate — the SAME star child appears more than once in the page (a twin, clone, mirror or extra copy of the same child).
 ${hairDefectLine}
-3) outfitMismatch — a hero child's clothing shape/style clearly differs from the outfit on their character sheet (e.g. modern t-shirt instead of the sheet outfit).
-4) ageMismatch — a hero child looks CLEARLY older or younger than their real age (${agesLine}) — e.g. drawn as a teenager or grown child when they should be a toddler.
+3) outfitMismatch — a star child's clothing shape/style clearly differs from the outfit on their character sheet (e.g. modern t-shirt instead of the sheet outfit).
+4) ageMismatch — a star child looks CLEARLY older or younger than their real age (${agesLine}) — e.g. drawn as a teenager or grown child when they should be a toddler.
 5) styleMismatch — the page is clearly NOT rendered as a ${styleName} (e.g. a flat 2D cartoon or a real photograph when it must be a 3D CGI render).
 6) flatBand — a flat, solid-color, EMPTY horizontal band or strip (top or bottom) that looks like a blank text box or pasted-on panel, OR a visible horizontal SEAM where the top region does not continue the same scene — e.g. TWO different skies, a straight line where two images appear joined, or mismatched lighting/palette between a top strip and the rest of the image.
-7) extraAdult — a modern-day parent or family adult (father/Tatty, mother/Mommy, grandparent, teacher) appears WITH the hero child(ren). Adults in biblical/Torah dress who belong to the Torah scene are FINE and must NOT be flagged.
+7) extraAdult — a modern-day parent or family adult (father/Tatty, mother/Mommy, grandparent, teacher) appears WITH the star child(ren). Adults in biblical/Torah dress who belong to the Torah scene are FINE and must NOT be flagged.
 8) bookOnFloor — a book, sefer, chumash, or siddur is lying on the floor, rug, or ground (books held in hands or on tables/shelves/shtenders are fine).
-Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore background/biblical figures. Be tolerant of art-style differences, lighting, and pose; flag only CLEAR problems. Reply with STRICT minified JSON only, no prose: {"duplicate":false,"hairMismatch":false,"outfitMismatch":false,"ageMismatch":false,"styleMismatch":false,"flatBand":false,"extraAdult":false,"bookOnFloor":false,"details":""}` });
+Judge ONLY the star child(ren) shown on the sheets for defects 1-4 — ignore background/biblical figures. Be tolerant of art-style differences, lighting, and pose; flag only CLEAR problems. Reply with STRICT minified JSON only, no prose: {"duplicate":false,"hairMismatch":false,"outfitMismatch":false,"ageMismatch":false,"styleMismatch":false,"flatBand":false,"extraAdult":false,"bookOnFloor":false,"details":""}` });
         const r = await fetchWithTimeout(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
           {
@@ -805,15 +805,15 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
         if (!m) return null;
         const v = JSON.parse(m[0]);
         const issues: string[] = [];
-        if (v.duplicate) issues.push("the same hero child appeared MORE THAN ONCE — render each named child EXACTLY ONCE, with no duplicate anywhere in the scene");
+        if (v.duplicate) issues.push("the same star child appeared MORE THAN ONCE — render each named child EXACTLY ONCE, with no duplicate anywhere in the scene");
         if (v.hairMismatch) issues.push(isColoringPage
-          ? "a hero child's HAIR STYLE/length did not match the character sheet — copy the exact hair style and length from the sheet"
-          : "a hero child's HAIR COLOR did not match the character sheet — copy the exact hair color and shade from the sheet");
-        if (v.outfitMismatch) issues.push("a hero child's OUTFIT did not match the character sheet — dress them in exactly the outfit shown on the sheet");
-        if (v.ageMismatch) issues.push(`a hero child was drawn at the WRONG AGE — render each child at their exact stated age (${agesLine}) with true proportions, never older or younger`);
+          ? "a star child's HAIR STYLE/length did not match the character sheet — copy the exact hair style and length from the sheet"
+          : "a star child's HAIR COLOR did not match the character sheet — copy the exact hair color and shade from the sheet");
+        if (v.outfitMismatch) issues.push("a star child's OUTFIT did not match the character sheet — dress them in exactly the outfit shown on the sheet");
+        if (v.ageMismatch) issues.push(`a star child was drawn at the WRONG AGE — render each child at their exact stated age (${agesLine}) with true proportions, never older or younger`);
         if (v.styleMismatch) issues.push(`the page was NOT rendered in the required art style — the final image must be a ${styleName}, matching every other page of the book`);
         if (v.flatBand) issues.push("the image contained a pasted-on band/strip or a second sky with a visible horizontal seam — repaint as ONE single continuous scene with ONE sky and ONE lighting scheme; clouds, light, and color must flow seamlessly from the very top edge down into the scene, with no line where two images appear joined");
-        if (v.extraAdult) issues.push("a modern parent/family adult appeared with the hero child(ren) — remove ALL parents and modern adults; show ONLY the hero child(ren), plus Torah-narrative figures if the scene depicts them");
+        if (v.extraAdult) issues.push("a modern parent/family adult appeared with the star child(ren) — remove ALL parents and modern adults; show ONLY the star child(ren), plus Torah-narrative figures if the scene depicts them");
         if (v.bookOnFloor) issues.push("a sefer/book was lying on the floor or ground — kavod haseforim: books must be held in hands or rest on a table, shtender, or shelf, NEVER on the floor");
         if (issues.length === 0) return null;
         const details = typeof v.details === "string" && v.details.trim() ? ` (inspector notes: ${v.details.slice(0, 200)})` : "";
@@ -835,7 +835,7 @@ Judge ONLY the hero child(ren) shown on the sheets for defects 1-4 — ignore ba
     // of the children, so a blocked page never hard-fails (500) the whole page.
     const SAFETY_ESCALATIONS = [
       ` \n\nIMPORTANT: Render this GENTLY and symbolically for a young child's storybook — absolutely NO fire, flames, smoke, weapons, blood, injury, death, rubble of bodies, or frightening/graphic imagery. Keep it calm, wholesome, tasteful, and hopeful; suggest sad or difficult moments softly (a lone tear, a quiet embrace, distant simple buildings) rather than depicting any violence or destruction.`,
-      ` \n\nDO NOT depict the difficult event at all. Instead draw ONLY the hero child(ren) standing quietly and thoughtfully in a calm, peaceful, entirely non-violent setting with soft light — a gentle, hopeful, wholesome scene suitable for a young child. Nothing frightening, nothing on fire, no destruction, no weapons, no people in distress.`,
+      ` \n\nDO NOT depict the difficult event at all. Instead draw ONLY the star child(ren) standing quietly and thoughtfully in a calm, peaceful, entirely non-violent setting with soft light — a gentle, hopeful, wholesome scene suitable for a young child. Nothing frightening, nothing on fire, no destruction, no weapons, no people in distress.`,
     ];
     let finalImageUrl: string;
     try {

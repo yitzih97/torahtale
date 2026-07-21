@@ -40,7 +40,7 @@ const Pricing = () => {
     <div className="min-h-screen bg-background" dir={dir}>
       <SEO
         title="Pricing & Plans — Torah Tale Personalized Books"
-        description="Simple pricing for Torah Tale books. Choose softcover, hardcover, or board book, or join the Parashah Club for a weekly story delivered to your door."
+        description="Simple pricing for Torah Tale books. Choose softcover, hardcover, or board book, or join the Parsha Club for a weekly story delivered to your door."
         path="/pricing"
       />
       <Navbar onStart={() => goCreate()} transparentHero={false} />

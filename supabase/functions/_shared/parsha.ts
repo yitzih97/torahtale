@@ -5,9 +5,9 @@
 // order's portion; the shopify-webhook uses it to stamp the portion onto each
 // recurring subscription book it mints, so the admin can generate it directly.
 //
-// Maps a Saturday date (YYYY-MM-DD) to the parashah value read that Shabbat.
+// Maps a Saturday date (YYYY-MM-DD) to the parsha value read that Shabbat.
 const PARSHA_CALENDAR: Record<string, string> = {
-  // Diaspora weekly parashah, generated from the Hebcal sedrot API (i=off).
+  // Diaspora weekly parsha, generated from the Hebcal sedrot API (i=off).
   // Double parshiyos use the combined slug (e.g. matot-masei). Fallback only —
   // getUpcomingParshaLive prefers the live Hebcal API. Keyed by Shabbos (Saturday).
   "2024-01-06": "shemot", "2024-01-13": "vaera", "2024-01-20": "bo", "2024-01-27": "beshalach",
@@ -112,7 +112,7 @@ const PARSHA_CALENDAR: Record<string, string> = {
 import { fetchUpcomingParshaSlug } from "./hebcal.ts";
 
 /**
- * Live upcoming parashah: tries the Hebcal API first (auto-updating, never runs
+ * Live upcoming parsha: tries the Hebcal API first (auto-updating, never runs
  * dry), then falls back to the hardcoded calendar below if Hebcal is unreachable.
  * This is what the mint/release path should call.
  */
@@ -128,7 +128,7 @@ export async function getUpcomingParshaLive(from: Date = new Date(), leadWeeks =
 }
 
 /**
- * Hardcoded-calendar fallback. Returns the parashah read `leadWeeks` weeks from
+ * Hardcoded-calendar fallback. Returns the parsha read `leadWeeks` weeks from
  * `from` (default 3 weeks, the production+shipping lead time). `null` if the
  * calendar has run out — the live path above should normally prevent this.
  */

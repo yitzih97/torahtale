@@ -1,5 +1,5 @@
 /**
- * Bake the front-cover text (Parasha name big, kids' names small) onto the
+ * Bake the front-cover text (Parsha name big, kids' names small) onto the
  * cover illustration, matching the on-screen BookViewer cover. Returns a JPEG
  * data URL. Used at approval time so the image sent to Printify's cover slot
  * carries the title — the stored cover image itself stays text-free (the viewer
@@ -34,7 +34,7 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number
 
 export async function renderPrintCoverFront(
   imageUrl: string,
-  parashaName: string,
+  parshaName: string,
   kids: string,
 ): Promise<string> {
   const img = await loadImage(imageUrl);
@@ -58,11 +58,11 @@ export async function renderPrintCoverFront(
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
 
-  // Parasha name — big, bold serif, dark.
+  // Parsha name — big, bold serif, dark.
   const titleSize = Math.round(W * 0.075);
   ctx.font = `bold ${titleSize}px 'Playfair Display', Georgia, serif`;
   ctx.fillStyle = "#2b2418";
-  const titleLines = wrapLines(ctx, parashaName || "Torah Tale", W * 0.86);
+  const titleLines = wrapLines(ctx, parshaName || "Torah Tale", W * 0.86);
   const top = H * 0.045;
   titleLines.forEach((line, i) => ctx.fillText(line, W / 2, top + i * titleSize * 1.12));
 

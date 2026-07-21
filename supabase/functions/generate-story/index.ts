@@ -101,7 +101,7 @@ IMPORTANT CULTURAL RULES:
 - Use Chareidi terminology naturally: Tatty (father), Mommy (mother), Rebbe (teacher for boys), Morah (teacher for girls), davening (praying), bentching (grace after meals), learning (Torah study), Shabbos (never Shabbat), Hashem (never "God"), sefer/seforim (holy books), beis medrash (study hall), cheder/yeshiva (boys' school), Bais Yaakov (girls' school)
 - Reference daily frum life: davening Shacharis, learning in cheder or Bais Yaakov, making brachos, the Shabbos tish, zemiros, havdalah
 - NO mention of TV, movies, video games, secular entertainment, or non-tznius activities
-- The stories should be vivid, imaginative, and make the kinderlach the heroes of the narrative
+- The stories should be vivid, imaginative, and make the kinderlach the stars of the narrative
 - Maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic Yiddishe children's book
 
 CRITICAL NAME TRANSLITERATION RULES — ALWAYS use the Yiddish/Hebrew transliterations, NEVER the English/Christian versions:
@@ -124,7 +124,7 @@ CRITICAL NAME TRANSLITERATION RULES — ALWAYS use the Yiddish/Hebrew transliter
 
 CRITICAL ACCURACY RULES:
 - The story MUST follow the ACTUAL events of the Torah portion with complete accuracy, according to the pesukim and accepted midrashim. NEVER change, soften, or reverse an outcome — if the Torah says a request was refused (for example, the Melech of Edom REFUSED to let Bnei Yisrael pass through his land), then in the story it is refused. Do not invent friendlier or different endings to real Torah events.
-- NEVER describe the hero children's clothing, outfit, or clothing colors anywhere in the story text (no "wearing a blue shirt", no "her favorite skirt"). The illustrations control what the children wear, and clothing mentioned in text will contradict the pictures. Describe actions, feelings, and the scene — never the heroes' wardrobe.
+- NEVER describe the star children's clothing, outfit, or clothing colors anywhere in the story text (no "wearing a blue shirt", no "her favorite skirt"). The illustrations control what the children wear, and clothing mentioned in text will contradict the pictures. Describe actions, feelings, and the scene — never the stars' wardrobe.
 
 CRITICAL RULE: The MAJORITY of story pages (at least 70%) MUST depict the ACTUAL events from the Torah portion in vivid, specific detail. For example, if the story is about the Exodus, you must show the individual plagues, the splitting of the sea, etc. — not just mention them in passing. The child characters must be PRESENT IN and PARTICIPATING IN those actual Torah scenes, witnessing the miracles and events firsthand. Do NOT summarize the Torah events in 1-2 pages and spend the rest on generic adventure. Each Torah event deserves its own page with rich, specific detail.`;
 
@@ -176,7 +176,7 @@ Details:
 - Language: ${language}
 
 Requirements:
-- Make the kinderlach the main characters and heroes of the story
+- Make the kinderlach the main characters and stars of the story
 - The kinderlach experience the adventure BY THEMSELVES — do NOT place their Tatty, Mommy, grandparents, or teachers into story scenes as on-scene characters (the illustrations must show only the kinderlach). Torah figures (Moshe Rabbeinu, Avraham Avinu, the meraglim, etc.) appear as the narrative requires. Parents may be warmly referenced in the dedication or closing moral, but never as characters inside a scene
 - Each story page should be 2-3 sentences, appropriate for a ${age}-year-old
 - CRITICAL: At least 70% of the pages MUST depict SPECIFIC, ACTUAL events from the Torah portion. For example, for Va'era show the plagues one by one; for Beshalach show the crossing of the sea; for Bereishit show the days of creation. The child must be IN those scenes, witnessing and participating in the actual events — not just hearing about them or being told the story.
@@ -184,7 +184,7 @@ Requirements:
 - DO NOT compress the Torah events into 1-2 pages. Spread the key events across most of the book, giving each major event its own page with vivid detail.
 - The story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim
 - The kinderlach should discover the hidden lesson behind the Torah story through their adventure
-- End with a warm, uplifting moral that shows how they can apply the lesson in their own frum lives — at the Shabbos tish, in cheder/Bais Yaakov, with their mishpacha
+- End with a warm, uplifting moral that shows how they can apply the lesson in their own frum lives — at the Shabbos tish, in cheder/Bais Yaakov, with their family
 - Boys aged 3+ MUST always wear a yarmulke, have peyos, and tzitzis; boys UNDER 3 do NOT wear a yarmulke, peyos, or tzitzis (pre-upsherin) unless their description explicitly asks for them or their photo clearly shows them. A photo does NOT override this unless those items are visible. Girls MUST wear long sleeves and long skirts — maintain strict tznius throughout
 - Use Chareidi terminology: Tatty, Mommy, Rebbe, Morah, davening, bentching, Shabbos, Hashem, sefer/seforim, beis medrash, cheder, Bais Yaakov
 - NO references to TV, movies, video games, or secular entertainment
@@ -195,7 +195,7 @@ ${templateGuidance}
 You MUST respond with ONLY a valid JSON object with this exact structure:
 {
   "cover": {
-    "title": "A short, poetic, PERSONALIZED book title that names the hero child AND evokes THIS parsha — e.g. 'Adina and the Great Teivah', 'Moshe and the Sea That Split', 'Dovid and the Hidden Light'. 2 to 6 words, warm and storybook-magical. Name the (first) child. Do NOT put the parsha label itself in the title (e.g. not 'Parshas Noach') — that is displayed separately in gold.",
+    "title": "A short, poetic, PERSONALIZED book title that names the star child AND evokes THIS parsha — e.g. 'Adina and the Great Teivah', 'Moshe and the Sea That Split', 'Dovid and the Hidden Light'. 2 to 6 words, warm and storybook-magical. Name the (first) child. Do NOT put the parsha label itself in the title (e.g. not 'Parshas Noach') — that is displayed separately in gold.",
     "subtitle": "A short evocative tagline, a few words"
   },
   "pages": [
@@ -217,10 +217,10 @@ You MUST respond with ONLY a valid JSON object with this exact structure:
 }
 
 CHARACTERS ARRAY (CRITICAL for illustration consistency):
-- List EVERY recurring named character from the Torah story who appears on more than one page — EXCEPT the hero kinderlach themselves (they have their own reference photos). For example: Moshe, Aharon, Dovid, Golias, Paroh, Yishai, the meraglim, a malach, etc.
+- List EVERY recurring named character from the Torah story who appears on more than one page — EXCEPT the star kinderlach themselves (they have their own reference photos). For example: Moshe, Aharon, Dovid, Golias, Paroh, Yishai, the meraglim, a malach, etc.
 - For each, write ONE fixed, richly detailed VISUAL description (approx and hair, facial hair, skin tone, exact clothing and colors, headwear, distinguishing features, build/height) that an illustrator will reproduce IDENTICALLY every time that character appears, so the character looks the same on every page.
 - Descriptions MUST obey the modesty and Bnei-Yisrael/non-Jew rules above (e.g. Jewish men age 3+ always have covered heads; non-Jews wear distinct foreign dress).
-- Include at most 6 characters — the most important recurring ones. If the story has no recurring non-hero characters, return an empty array.
+- Include at most 6 characters — the most important recurring ones. If the story has no recurring non-star characters, return an empty array.
 
 The questions should be part of the back cover (inside the backCover object):
 - Include exactly 20 questions
@@ -437,7 +437,7 @@ No markdown, no explanation, just the JSON object.`;
       questions: normalizedQuestions,
     };
 
-    // Recurring Torah-story characters (not the hero kids) with fixed visual
+    // Recurring Torah-story characters (not the star kids) with fixed visual
     // descriptions — used to keep them looking identical across every page.
     const characters = Array.isArray(parsed.characters)
       ? parsed.characters

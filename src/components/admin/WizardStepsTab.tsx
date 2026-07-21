@@ -15,7 +15,7 @@ const DEFAULT_STEPS = [
   { key: "gender", title: "Is your child a boy or a girl?", subtitle: "Helps us pick the right pronouns and clothing.", helper: "" },
   { key: "age", title: "How old is your child?", subtitle: "We'll adjust the reading level and visuals.", helper: "" },
   { key: "style", title: "Pick an illustration style", subtitle: "This is the look and feel of your book.", helper: "" },
-  { key: "photo", title: "Upload your child's photo", subtitle: "We'll turn them into the hero of the story.", helper: "Clear, front-facing photos work best." },
+  { key: "photo", title: "Upload your child's photo", subtitle: "We'll turn them into the star of the story.", helper: "Clear, front-facing photos work best." },
   { key: "parsha", title: "Choose a parsha", subtitle: "Pick this week's portion or any favorite.", helper: "" },
   { key: "details", title: "Add personal details", subtitle: "Small touches make a big difference.", helper: "" },
   { key: "review", title: "Ready to create", subtitle: "Review and let the magic begin.", helper: "" },

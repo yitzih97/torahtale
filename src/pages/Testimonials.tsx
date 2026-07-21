@@ -10,7 +10,7 @@ const Testimonials = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Testimonials — What Families Say About Torah Tale"
-        description="Real reviews from frum families enjoying their personalized Torah Tale storybooks. See why children light up when they become the hero of the parsha."
+        description="Real reviews from frum families enjoying their personalized Torah Tale storybooks. See why children light up when they become the star of the parsha."
         path="/testimonials"
       />
       <Navbar onStart={() => navigate("/pricing")} transparentHero={false} />

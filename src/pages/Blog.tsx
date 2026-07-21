@@ -38,7 +38,7 @@ const Blog = () => {
     : {
         kicker: "Torah Tale Blog",
         heading: "Guides to personalized Torah storybooks",
-        sub: "How to turn your child into the hero of the weekly parsha — step-by-step guides, parsha tips, and gift ideas for every simcha.",
+        sub: "How to turn your child into the star of the weekly parsha — step-by-step guides, parsha tips, and gift ideas for every simcha.",
         minRead: "min read",
         readGuide: "Read the guide",
       };

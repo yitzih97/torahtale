@@ -32,7 +32,7 @@ const BlogArticle = () => {
         backToBlog: "Back to the blog",
         allGuides: "All guides",
         minRead: "min read",
-        ctaTitle: "Make your child the hero of the parsha",
+        ctaTitle: "Make your child the star of the parsha",
         ctaSub: "Create a personalized Torah storybook in about five minutes.",
         ctaButton: "Create your book",
         keepReading: "Keep reading",

@@ -116,10 +116,10 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   const isRtl = language ? isBookRtl(language) : uiDir === "rtl";
   const dir = isRtl ? "rtl" : "ltr";
 
-  // Cover text: the Parasha name is the hero (big), the kids are the co-stars
+  // Cover text: the Parsha name is the hero (big), the kids are the co-stars
   // (small). Derived from the book's portion + child names, so this applies to
   // every book — new and existing — without depending on stored cover titles.
-  const parashaName = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
+  const parshaName = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   // Default text side: over the open sky on the reading-start side.
   const defaultTextSide: "left" | "right" = isRtl ? "right" : "left";
 
@@ -233,7 +233,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
     if (!page) return;
     // Pre-fill with what's actually shown (localized parsha name + kids) so the
     // admin edits from the visible text rather than a blank field.
-    setCoverTitleDraft(page.coverTitle?.trim() || parashaName);
+    setCoverTitleDraft(page.coverTitle?.trim() || parshaName);
     setCoverSubtitleDraft(page.coverSubtitle?.trim() || childName);
     setBackTextDraft(
       page.backCoverText && page.backCoverText.trim() ? page.backCoverText : getCoverTagline(lang).join("\n"),
@@ -408,9 +408,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
     );
   };
 
-  // Spine label — the localized Parasha name + kids' names, printed down the
+  // Spine label — the localized Parsha name + kids' names, printed down the
   // book's edge (mirrors the front cover, so it follows the book's language).
-  const spineLabel = `${parashaName}${childName ? `  ${childName}` : ""}`;
+  const spineLabel = `${parshaName}${childName ? `  ${childName}` : ""}`;
 
   // Majestic front-cover chrome — navy filigree frame, gold engraved parsha
   // title, magenta personalized title/child line, gold tagline. Shared with
@@ -453,7 +453,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             textShadow: "0 2px 3px rgba(0,0,0,0.45)",
           }}
         >
-          {parashaName.toUpperCase()}
+          {parshaName.toUpperCase()}
         </h1>
         <div className="mt-1.5 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
           <span className="h-px w-7 sm:w-8 bg-current opacity-70" /><span>❦</span><span className="h-px w-7 sm:w-8 bg-current opacity-70" />
@@ -509,7 +509,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
     // personalized title/child line follow the same coverTitleParts logic as
     // the print renderer (falls back to the child's name when there's no
     // creative title, or it just repeats the parsha).
-    const { title: frontTitle, childLine } = coverTitleParts(page?.coverTitle, childName, parashaName);
+    const { title: frontTitle, childLine } = coverTitleParts(page?.coverTitle, childName, parshaName);
     return (
     <div className="absolute inset-0 grid grid-cols-2">
       {/* Back cover — left: brand logo, the 4 "coming next" teaser mini-covers,

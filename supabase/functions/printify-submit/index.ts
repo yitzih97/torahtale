@@ -238,7 +238,7 @@ serve(async (req) => {
       // endpoint only accepts a real http(s) URL via `url`, so for data URLs we
       // must send the raw base64 via `contents` instead. Hosted https images
       // still go through `url`.
-      // Optional text-baked front cover (Parasha name + kids), rendered by the
+      // Optional text-baked front cover (Parsha name + kids), rendered by the
       // admin client so Printify prints the title on the cover.
       const coverImageOverride: string | undefined =
         typeof body.coverImage === "string" && body.coverImage ? body.coverImage : undefined;

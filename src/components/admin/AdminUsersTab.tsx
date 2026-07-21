@@ -397,7 +397,7 @@ export function AdminUsersTab({
                 {us.map((sub: any) => (
                   <div key={sub.id} className="bg-muted/30 rounded-xl p-3 flex items-center justify-between gap-3 flex-wrap">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-primary truncate">Parashah Club — {sub.child_name || "Child"}</p>
+                      <p className="text-xs font-semibold text-primary truncate">Parsha Club — {sub.child_name || "Child"}</p>
                       <p className="text-[10px] text-muted-foreground">${sub.price_per_week}/{sub.frequency} · {sub.art_style} · next {sub.next_delivery_date}</p>
                     </div>
                     <Select value={sub.status} onValueChange={(s) => updateSubscriptionStatus.mutate({ id: sub.id, status: s })}>

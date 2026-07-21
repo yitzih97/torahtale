@@ -408,9 +408,9 @@ export default function Dashboard() {
                     <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl opacity-70 bg-gradient-to-br from-violet-200/60 to-fuchsia-200/40" />
                     <div className="relative flex items-center gap-3 mb-2">
                       <CalendarHeart className="w-5 h-5 text-accent" />
-                      <h3 className="font-display text-lg font-semibold text-primary">{t.dash.parashahClub}</h3>
+                      <h3 className="font-display text-lg font-semibold text-primary">{t.dash.parshaClub}</h3>
                     </div>
-                    <p className="relative text-sm text-muted-foreground mb-6">{t.dash.parashahDesc}</p>
+                    <p className="relative text-sm text-muted-foreground mb-6">{t.dash.parshaDesc}</p>
                     <Button variant="gold" onClick={() => navigate("/?start=1")} className="relative">
                       {t.dash.createAndSubscribe}
                     </Button>
@@ -421,7 +421,7 @@ export default function Dashboard() {
                       <UpcomingBookCovers
                         childNames={kidNames}
                         heading={`The next 4 books ${kidNames || "your kids"} could receive`}
-                        subtext="A brand-new personalized Parsha book every week — starring your kids as the heroes."
+                        subtext="A brand-new personalized Parsha book every week — starring your kids as the stars."
                         ctaLabel={t.dash.createAndSubscribe}
                         onCta={() => navigate("/?start=1")}
                       />

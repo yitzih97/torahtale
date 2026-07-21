@@ -156,7 +156,7 @@ const PRINT_SPECS: Record<string, { cover: string; page: string }> = {
 const DEFAULT_PAGE_TEMPLATES: Record<string, { text: string; "image-prompt": string }> = {
   "cover": {
     text: `{childName}'s {torahPortion} Adventure\nA personalized Torah tale`,
-    "image-prompt": `A stunning children's book cover illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, as the hero. The scene depicts the opening moment of the {torahPortion} story. Warm, magical atmosphere with golden light. Include subtle Torah motifs (stars of David, olive branches, scrollwork border). Title area at top. Safe for children. High resolution for print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
+    "image-prompt": `A stunning children's book cover illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, as the star. The scene depicts the opening moment of the {torahPortion} story. Warm, magical atmosphere with golden light. Include subtle Torah motifs (stars of David, olive branches, scrollwork border). Title area at top. Safe for children. High resolution for print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
   },
   "page-1": {
     text: `In a cozy Yiddishe home, {childName} discovered something extraordinary — a glowing book that would transport them into the story of {torahPortion}...`,

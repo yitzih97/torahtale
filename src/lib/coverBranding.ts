@@ -14,14 +14,14 @@ export const FRONT_TAGLINE = "A Personalized Parsha Adventure";
 export function coverTitleParts(
   coverTitle: string | undefined,
   childName: string,
-  parashaLabel = "",
+  parshaLabel = "",
 ): { title: string; childLine?: string } {
   const t = (coverTitle || "").trim();
   const child = (childName || "").trim();
   // No creative title, or it just repeats the parsha (older/impersonal books):
   // use the child's name as the magenta line instead of duplicating the gold
   // parsha title above it.
-  if (!t || t.toLowerCase() === parashaLabel.trim().toLowerCase()) return { title: child || t };
+  if (!t || t.toLowerCase() === parshaLabel.trim().toLowerCase()) return { title: child || t };
   const named = child && t.toLowerCase().includes(child.split(/[&,]/)[0].trim().toLowerCase());
   return { title: t, childLine: named || !child ? undefined : child };
 }

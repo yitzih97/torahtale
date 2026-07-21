@@ -29,7 +29,7 @@ function nextMonday(from: Date): Date {
 
 /**
  * A row of mini book covers for the upcoming weekly parshiyos, each "starring"
- * the user's own kids — mirrors the real cover (Parasha name big, kids small).
+ * the user's own kids — mirrors the real cover (Parsha name big, kids small).
  * Used to drive subscriptions (a preview of the books they'd receive) and to
  * show weekly subscribers what's coming next.
  */

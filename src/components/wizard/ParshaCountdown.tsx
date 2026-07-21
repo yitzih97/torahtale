@@ -3,7 +3,7 @@ import { Clock } from "lucide-react";
 import { getNextParshaRollover } from "./TorahPortions";
 
 /**
- * Live countdown to the next weekly parashah rollover (Wednesday 12:00 PM ET).
+ * Live countdown to the next weekly parsha rollover (Wednesday 12:00 PM ET).
  * Recomputes the target each tick, so the moment noon-ET Wednesday passes it
  * automatically resets to the following week's countdown.
  */

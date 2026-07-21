@@ -67,7 +67,7 @@ export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCa
         <GlassIconTile Icon={CalendarHeart} size="md" />
         <div className="flex-1 min-w-0">
           <h3 className="font-display text-xl font-semibold text-foreground truncate">
-            {t.dash.parashahClub}
+            {t.dash.parshaClub}
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
             For {sub.child_name || "your kind"} ·{" "}
