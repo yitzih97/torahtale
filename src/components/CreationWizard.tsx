@@ -1713,7 +1713,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                               {upcomingTitle}
                             </p>
                             <div className="mt-1.5">
-                              <ParshaCountdown label={t.wizard.nextParshaIn} />
+                              <ParshaCountdown label={t.wizard.orderWithin} trailingText={t.wizard.forDeliveryBeforeShabbos} />
                             </div>
                           </div>
                           {data.torahPortion === upcomingValue && (

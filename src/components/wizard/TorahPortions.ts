@@ -464,13 +464,21 @@ const easternClock = (d: Date): { et: Date; offset: number } => {
   return { et, offset: d.getTime() - et.getTime() };
 };
 
-/** The instant of the next Wednesday 12:00 PM ET strictly after `from`. */
+/**
+ * The order-by deadline shown on the wizard's countdown: the next Wednesday
+ * 12:00 PM ET rollover, EXCEPT standard shipping needs ~10 days to arrive
+ * before Shabbos -- if the nearest rollover is closer than that, this pushes
+ * to the following week's so "order within X for delivery before Shabbos"
+ * always has enough runway.
+ */
 export const getNextParshaRollover = (from: Date = new Date()): Date => {
   const { et, offset } = easternClock(from);
   const target = new Date(et);
   target.setDate(et.getDate() + ((3 - et.getDay() + 7) % 7)); // next Wednesday (Wed = 3)
   target.setHours(12, 0, 0, 0);
   if (target.getTime() <= et.getTime()) target.setDate(target.getDate() + 7);
+  const MIN_WINDOW_MS = 10 * 24 * 60 * 60 * 1000;
+  while (target.getTime() - et.getTime() < MIN_WINDOW_MS) target.setDate(target.getDate() + 7);
   return new Date(target.getTime() + offset);
 };
 

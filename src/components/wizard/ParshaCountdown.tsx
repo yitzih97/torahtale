@@ -3,13 +3,14 @@ import { Clock } from "lucide-react";
 import { getNextParshaRollover } from "./TorahPortions";
 
 /**
- * Live countdown to the next weekly parsha rollover (Wednesday 12:00 PM ET).
- * Recomputes the target each tick, so the moment noon-ET Wednesday passes it
- * automatically resets to the following week's countdown.
+ * Live countdown to the order-by deadline for delivery before Shabbos (see
+ * getNextParshaRollover for the 10-day-minimum-window logic). Recomputes the
+ * target each tick, so the moment the deadline passes it automatically resets
+ * to the following week's countdown.
  */
 const pad = (n: number) => String(n).padStart(2, "0");
 
-export const ParshaCountdown = ({ label }: { label: string }) => {
+export const ParshaCountdown = ({ label, trailingText }: { label: string; trailingText?: string }) => {
   const [remaining, setRemaining] = useState(() => getNextParshaRollover().getTime() - Date.now());
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export const ParshaCountdown = ({ label }: { label: string }) => {
       {unit(hours, "h")}
       {unit(minutes, "m")}
       {unit(seconds, "s")}
+      {trailingText && <span className="ms-0.5">{trailingText}</span>}
     </span>
   );
 };
