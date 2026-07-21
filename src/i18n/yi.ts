@@ -431,6 +431,14 @@ export const yi: typeof en = {
     signedInStarting: "...!התחברתם! מתחילים ליצור את הספר",
     signedIn: "!התחברתם",
     accountCreated: "!החשבון נוצר",
+    emailAlreadyRegistered: "די אימעיל האָט שוין אַ קאָנטע — לאָגט זיך אַרײַן אַנשטאָט.",
+    confirmEmailSubtitle: "נאָך איין קליינער טריט — באַשטעטיקט אײַער אימעיל צו פֿאָרזעצן צו אײַער ספר",
+    confirmEmailTitle: "קוקט אין אײַער אימעיל",
+    confirmEmailBody: "מיר האָבן געשיקט אַ באַשטעטיקונג־לינק צו",
+    confirmEmailHint: "דריקט אויפֿן לינק צו באַשטעטיקן אַז דאָס זענט איר — עס וועט אײַך ברענגען צוריק אַהער צו פֿאָרזעצן שאַפֿן דעם ספר.",
+    confirmEmailResend: "שיקט נאָך אַ מאָל די אימעיל",
+    confirmEmailResent: "די באַשטעטיקונג־אימעיל איז געשיקט געוואָרן נאָך אַ מאָל — קוקט אין אײַער קעסטל.",
+    confirmEmailDone: "שוין באַשטעטיקט? לאָגט זיך אַרײַן",
 
     // Generation animation
     writingStory: "...כותבים את סיפור התורה שלכם",

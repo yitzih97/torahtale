@@ -426,6 +426,14 @@ export const en = {
     signedInStarting: "Signed in! Starting your book...",
     signedIn: "Signed in!",
     accountCreated: "Account created!",
+    emailAlreadyRegistered: "This email already has an account — sign in instead.",
+    confirmEmailSubtitle: "One quick step — confirm your email to continue to your book",
+    confirmEmailTitle: "Check your email",
+    confirmEmailBody: "We sent a confirmation link to",
+    confirmEmailHint: "Click the link to verify it's you — it will bring you right back here to continue creating your book.",
+    confirmEmailResend: "Resend email",
+    confirmEmailResent: "Confirmation email sent again — check your inbox.",
+    confirmEmailDone: "Already confirmed? Sign in",
 
     // Generation animation
     writingStory: "Writing your Torah story...",

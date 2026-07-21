@@ -431,6 +431,14 @@ export const he: typeof en = {
     signedInStarting: "התחברתם! מתחילים ליצור את הסיפור...",
     signedIn: "התחברתם!",
     accountCreated: "החשבון נוצר!",
+    emailAlreadyRegistered: "לאימייל הזה כבר יש חשבון — התחברו במקום.",
+    confirmEmailSubtitle: "עוד צעד קטן — אשרו את האימייל כדי להמשיך לספר שלכם",
+    confirmEmailTitle: "בדקו את תיבת האימייל",
+    confirmEmailBody: "שלחנו קישור אישור אל",
+    confirmEmailHint: "לחצו על הקישור כדי לאמת שזה אתם — הוא יחזיר אתכם ישר לכאן להמשיך ביצירת הספר.",
+    confirmEmailResend: "שלחו שוב את האימייל",
+    confirmEmailResent: "אימייל האישור נשלח שוב — בדקו את תיבת הדואר.",
+    confirmEmailDone: "כבר אישרתם? התחברו",
 
     // Generation animation
     writingStory: "כותבים את סיפור התורה שלכם...",

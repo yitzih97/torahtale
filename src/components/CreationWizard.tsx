@@ -316,6 +316,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [loginFullName, setLoginFullName] = useState("");
   const [loginMode, setLoginMode] = useState<"login" | "signup">("signup");
   const [loginLoading, setLoginLoading] = useState(false);
+  // Email-signup confirmation gate: set to the address we sent the Supabase
+  // confirmation link to. While set, the auth card shows "check your email"
+  // instead of the sign-in/sign-up form.
+  const [confirmEmailPendingFor, setConfirmEmailPendingFor] = useState<string | null>(null);
   const [showUpsellDialog, setShowUpsellDialog] = useState(false);
   const justSubscribedRef = useRef(false);
   
@@ -538,6 +542,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     if (!user) return;
 
     if (showLoginPrompt) setShowLoginPrompt(false);
+    setConfirmEmailPendingFor(null); // confirmed + signed in — drop the check-email panel
 
     // The login/sign-up gate now lives at step 10 (after the generation skeletons
     // begin). When the user signs in there — inline OR returning from an OAuth
@@ -564,13 +569,42 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     e.preventDefault();
     saveWizardState(); // keep their progress even if sign-up fails
     setLoginLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: loginEmail,
       password: loginPassword,
       options: { data: { full_name: loginFullName }, emailRedirectTo: `${window.location.origin}/create` },
     });
     setLoginLoading(false);
-    if (error) { toast.error(error.message); } else { toast.success("Account created!"); }
+    if (error) { toast.error(error.message); return; }
+    // Supabase obfuscates already-registered emails: it "succeeds" but returns a
+    // user with no identities. Steer them to sign in instead of a false success.
+    if (signUpData.user && signUpData.user.identities?.length === 0) {
+      setLoginMode("login");
+      toast.info(t.wizard.emailAlreadyRegistered);
+      return;
+    }
+    if (signUpData.session) {
+      // Email confirmation is disabled — they're signed in right away.
+      toast.success(t.wizard.accountCreated);
+    } else {
+      // Confirmation required: swap the auth card for the "check your email"
+      // panel. The link in the email brings them back to /create, where the
+      // wizard restores and continues to the book step.
+      setConfirmEmailPendingFor(loginEmail);
+      setLoginMode("login");
+    }
+  };
+
+  const handleResendConfirmEmail = async () => {
+    if (!confirmEmailPendingFor) return;
+    setLoginLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: confirmEmailPendingFor,
+      options: { emailRedirectTo: `${window.location.origin}/create` },
+    });
+    setLoginLoading(false);
+    if (error) toast.error(error.message); else toast.success(t.wizard.confirmEmailResent);
   };
 
   const handleWizardGoogleLogin = async () => {
@@ -585,6 +619,31 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     setLoginLoading(false);
     if (error) toast.error(error.message);
   };
+
+  // Shown in place of the sign-in/sign-up form (step-10 gate AND the login
+  // dialog) after an email signup that needs confirmation.
+  const checkEmailPanel = confirmEmailPendingFor ? (
+    <div className="rounded-2xl border-2 border-accent/20 bg-accent/5 backdrop-blur-sm p-6 text-center space-y-4">
+      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/25 to-accent/5 flex items-center justify-center mx-auto">
+        <Mail className="w-7 h-7 text-accent" />
+      </div>
+      <h3 className="font-display text-xl font-bold text-foreground">{t.wizard.confirmEmailTitle}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        {t.wizard.confirmEmailBody}{" "}
+        <span className="font-semibold text-foreground" dir="ltr">{confirmEmailPendingFor}</span>.
+        <br />
+        {t.wizard.confirmEmailHint}
+      </p>
+      <div className="space-y-2 pt-1">
+        <Button type="button" variant="outline" className="w-full rounded-xl h-10 border-border/40 bg-background/70 hover:bg-background" onClick={handleResendConfirmEmail} disabled={loginLoading}>
+          {loginLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : t.wizard.confirmEmailResend}
+        </Button>
+        <button type="button" onClick={() => setConfirmEmailPendingFor(null)} className="text-xs text-accent font-medium hover:underline">
+          {t.wizard.confirmEmailDone}
+        </button>
+      </div>
+    </div>
+  ) : null;
 
   const [cropState, setCropState] = useState<{ childId: string; src: string; fileName: string } | null>(null);
   const [familyDialogOpen, setFamilyDialogOpen] = useState(false);
@@ -2114,9 +2173,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         <CheckCircle2 className="w-7 h-7 text-accent" />
                       </div>
                       <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
-                      <p className="mt-2 text-sm text-muted-foreground">{t.wizard.signInToContinue}</p>
+                      <p className="mt-2 text-sm text-muted-foreground">{confirmEmailPendingFor ? t.wizard.confirmEmailSubtitle : t.wizard.signInToContinue}</p>
                     </div>
 
+                    {confirmEmailPendingFor ? checkEmailPanel : (
                     <div className="rounded-2xl border-2 border-accent/20 bg-accent/5 backdrop-blur-sm p-5 space-y-3">
                       {/* Google first — the default sign-in. */}
                       <Button type="button" variant="outline" className="w-full rounded-xl h-11 gap-2 border-border/40 font-semibold bg-background/70 hover:bg-background" onClick={handleWizardGoogleLogin} disabled={loginLoading}>
@@ -2163,6 +2223,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         </p>
                       </form>
                     </div>
+                    )}
                   </div>
                 ) : (
                   <BookOptionsStep options={bookOptions} onChange={setBookOptions} childAge={parseInt(child?.age || "0") || 0} />
@@ -2518,6 +2579,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         them right where they were to keep adding children. */}
     <Dialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
       <DialogContent className="max-w-sm rounded-3xl p-6">
+        {confirmEmailPendingFor ? checkEmailPanel : (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
@@ -2570,6 +2632,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
             </p>
           </form>
         </div>
+        )}
       </DialogContent>
     </Dialog>
     </>
