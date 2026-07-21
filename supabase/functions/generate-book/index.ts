@@ -125,6 +125,16 @@ const TORAH_ORDER = [
   "vaetchanan", "eikev", "reeh", "shoftim", "ki-teitzei", "ki-tavo", "nitzavim", "vayelech",
   "haazinu", "vezot-habracha",
 ];
+// Each back-cover teaser re-dresses the kids in a different (modest) outfit so
+// the "coming next" row looks varied and attractive instead of four identical
+// looks. Cycled by teaser index; generate-image enforces identity + tznius.
+const PREVIEW_OUTFITS = [
+  "festive Shabbos best — boys in a navy vest over a crisp white shirt, girls in an elegant navy-and-cream long-sleeved dress",
+  "warm autumn knits — boys in a rust-brown sweater, girls in a mustard-gold long-sleeved dress with a cozy cream cardigan",
+  "fresh spring colors — boys in a soft sage-green shirt, girls in a blush-pink long-sleeved floral dress",
+  "royal celebration — boys in a burgundy sweater-vest over a white shirt, girls in a deep burgundy velvet long-sleeved dress with delicate gold trim",
+];
+
 function upcomingPortions(current: string): string[] {
   if (MEGILLOT.includes(current)) return MEGILLOT.filter((m) => m !== current).slice(0, 4);
   const i = TORAH_ORDER.indexOf(current);
@@ -194,6 +204,7 @@ function buildPendingTasks(
         torahPortion: isPreview ? pg.portion : book.torah_portion,
         bookFormat,
         pageType: isPreview ? "cover" : pg.type,
+        outfitVariant: isPreview ? pg.outfit || undefined : undefined,
         pageNumber: pg.type === "story" ? storyPageNumber : undefined,
         characterSheet: primarySheet,
         referenceImage: primaryPhoto,
@@ -262,8 +273,9 @@ async function generate(bookId: string) {
     // so re-running generation adds (and then fills) them too.
     if (pages && !pages.some((p) => p.type === "preview")) {
       let maxId = pages.reduce((m, p) => Math.max(m, p.id || 0), 0);
-      for (const portion of upcomingPortions(book.torah_portion)) {
-        pages.push({ id: ++maxId, text: "", image: null, type: "preview", portion });
+      const backfillPortions = upcomingPortions(book.torah_portion);
+      for (let i = 0; i < backfillPortions.length; i++) {
+        pages.push({ id: ++maxId, text: "", image: null, type: "preview", portion: backfillPortions[i], outfit: PREVIEW_OUTFITS[i % PREVIEW_OUTFITS.length] });
       }
       await persist();
     }
@@ -367,8 +379,9 @@ async function generate(bookId: string) {
       }
       // Back-cover teasers for the next 4 stories — generated now (with the book)
       // so they appear in the preview. Best-effort: failures never block the book.
-      for (const portion of upcomingPortions(book.torah_portion)) {
-        pages.push({ id: pageId++, text: "", image: null, type: "preview", portion });
+      const teaserPortions = upcomingPortions(book.torah_portion);
+      for (let i = 0; i < teaserPortions.length; i++) {
+        pages.push({ id: pageId++, text: "", image: null, type: "preview", portion: teaserPortions[i], outfit: PREVIEW_OUTFITS[i % PREVIEW_OUTFITS.length] });
       }
       // Keep the generated story at the top level (existing downstream contract)
       // while retaining the resume fields (childDescriptions / _characterSheets).

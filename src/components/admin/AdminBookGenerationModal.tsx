@@ -16,7 +16,7 @@ import {
   BookOpen, Sparkles, FileDown, Package, PenLine, Image as ImageIcon,
   AlertTriangle, ChevronRight, Wand2, Baby, Palette, Languages, Layers,
 } from "lucide-react";
-import { getPortionDisplay, bookLanguageCode, isBookRtl, getBackCoverPreviewPortions } from "@/components/wizard/TorahPortions";
+import { getPortionDisplay, bookLanguageCode, isBookRtl, getBackCoverPreviewPortions, PREVIEW_OUTFITS } from "@/components/wizard/TorahPortions";
 
 type Phase = "idle" | "character" | "story" | "storyReview" | "images" | "done";
 
@@ -284,9 +284,9 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       // Back-cover teasers: the next 4 upcoming parshiyos, rendered as cover-style
       // thumbnails starring the same kids. Generated WITH the book (in the images
       // phase) so they show on the back cover instead of empty boxes.
-      for (const { value } of getBackCoverPreviewPortions(book.torah_portion, bookLanguageCode(book.language))) {
-        allPages.push({ id: pageId++, text: "", image: null, imageLoading: false, type: "preview", portion: value });
-      }
+      getBackCoverPreviewPortions(book.torah_portion, bookLanguageCode(book.language)).forEach(({ value }, i) => {
+        allPages.push({ id: pageId++, text: "", image: null, imageLoading: false, type: "preview", portion: value, outfit: PREVIEW_OUTFITS[i % PREVIEW_OUTFITS.length] });
+      });
       setPages(allPages);
       return allPages;
     } catch (err: any) {
@@ -336,6 +336,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       torahPortion: isPreview ? pg.portion : book.torah_portion,
       bookFormat,
       pageType: isPreview ? "cover" : pg.type,
+      outfitVariant: isPreview ? pg.outfit || undefined : undefined,
       pageNumber: isPreview ? undefined : pageNumber,
       characterSheet: characterSheetsRef.current[primaryChildName] || null,
       referenceImage: effectiveChildren[0]?.photoUrl || null,

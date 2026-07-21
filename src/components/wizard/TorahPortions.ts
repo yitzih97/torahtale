@@ -420,6 +420,18 @@ export const getUpcomingParsha = (from: Date = new Date(), leadWeeks = 3): strin
 };
 
 /**
+ * Modest outfit change-ups for the back-cover teaser thumbnails — each teaser
+ * re-dresses the kids differently so the "coming next" row looks varied and
+ * attractive. Mirrors PREVIEW_OUTFITS in supabase/functions/generate-book.
+ */
+export const PREVIEW_OUTFITS = [
+  "festive Shabbos best — boys in a navy vest over a crisp white shirt, girls in an elegant navy-and-cream long-sleeved dress",
+  "warm autumn knits — boys in a rust-brown sweater, girls in a mustard-gold long-sleeved dress with a cozy cream cardigan",
+  "fresh spring colors — boys in a soft sage-green shirt, girls in a blush-pink long-sleeved floral dress",
+  "royal celebration — boys in a burgundy sweater-vest over a white shirt, girls in a deep burgundy velvet long-sleeved dress with delicate gold trim",
+];
+
+/**
  * The stories to tease on a book's back cover (to drive subscriptions): for a
  * Megilla, the OTHER Megillos; otherwise the next few upcoming weekly parshiyos.
  * Returns up to `count` { value, label } entries, never including the current one.

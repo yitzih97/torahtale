@@ -25,6 +25,8 @@ export interface BookPage {
   type?: "cover" | "story" | "back-cover" | "questions" | "preview";
   /** For a "preview" page: the upcoming portion value this teaser illustrates. */
   portion?: string;
+  /** For a "preview" page: the intentional outfit change-up for this teaser. */
+  outfit?: string;
   coverTitle?: string;
   coverSubtitle?: string;
   /** Editable back-cover blurb (one line per row). Falls back to COVER_TAGLINE. */
