@@ -47,9 +47,9 @@ const Index = () => {
       />
       <Navbar onStart={goToCreate} transparentHero={false} />
       <HeroSection onStart={goToCreate} />
+      <HowItWorks />
       <ProductsSection onStart={goToCreate} />
       <CollectionsSection />
-      <HowItWorks />
       <WhyTorahTale />
       <GalleryReviewsSection />
       <CTASection onStart={goToCreate} />

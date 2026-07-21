@@ -46,14 +46,12 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
 
   const navLinks: { label: string; href: string; section?: string }[] = [
     { label: t.nav.home, href: "/" },
-    { label: t.nav.collections ?? "Collections", href: "/#collections", section: "collections" },
     { label: t.nav.howItWorks, href: "/#how-it-works", section: "how-it-works" },
+    { label: t.nav.collections ?? "Collections", href: "/#collections", section: "collections" },
     { label: t.nav.about, href: "/about" },
     { label: t.nav.pricing, href: "/pricing" },
     { label: t.nav.testimonials, href: "/testimonials" },
     { label: t.nav.blog, href: "/blog" },
-    { label: t.nav.faq, href: "/faq" },
-    { label: t.nav.contact, href: "/contact" },
   ];
 
   // Toggle only between English and Hebrew; the flag shown is the language you'll switch TO.
