@@ -37,17 +37,8 @@ jobs:
           jq -r '.result[] | "\(.timestamp)  \(.event_message)"' <<<"$resp" \
           | { if [ -n "$SEARCH" ]; then grep -i -- "$SEARCH" || echo "(no matching lines)"; else cat; fi }
 
-      - name: Edge request statuses (non-200 highlighted)
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          MINUTES: ${{ inputs.minutes }}
-        run: |
-          set -euo pipefail
-          sql="select timestamp, event_message from function_edge_logs order by timestamp desc limit 20"
-          resp=$(curl -sG "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
-            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-            --data-urlencode "sql=${sql}")
-          if ! jq -e '.result | length > 0' >/dev/null 2>&1 <<<"$resp"; then
-            echo "No rows — raw response:"; echo "${resp:0:800}"; exit 0
-          fi
-          jq -r '.result[] | "\(.timestamp)  \(.event_message)"' <<<"$resp" | head -100
+      # NOTE: per-request status codes (function_edge_logs) are NOT served by the
+      # Management API logs endpoint on this project — only console output
+      # (function_logs) and API-gateway traffic (edge_logs) are queryable. The
+      # console logs above are what matter for diagnosing generation failures:
+      # generate-image logs every provider error, QA re-roll, and fallback.
