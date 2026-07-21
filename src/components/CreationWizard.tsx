@@ -1876,6 +1876,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               >
                 <motion.div variants={staggerChild} className="text-center">
                   <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseLanguage}</h2>
+                  <p className="mt-1.5 text-sm text-muted-foreground">{t.wizard.chooseLanguageSubtitle}</p>
                 </motion.div>
 
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -1891,9 +1892,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                         variants={staggerChild}
                         onClick={() => {
                           setSelectedLanguages((prev) => {
-                            const next = prev.includes(l.key)
-                              ? prev.filter((k) => k !== l.key)
-                              : [...prev, l.key];
+                            let next: string[];
+                            if (prev.includes(l.key)) {
+                              next = prev.filter((k) => k !== l.key);
+                            } else if (prev.length >= 2) {
+                              // Cap at 2 selected at once — bump the oldest pick
+                              // to make room for the new one.
+                              next = [...prev.slice(1), l.key];
+                            } else {
+                              next = [...prev, l.key];
+                            }
                             // Sync the legacy single-language field for downstream code
                             if (next.length === 0) update({ language: l.key });
                             else if (next.length === 1) update({ language: next[0] });

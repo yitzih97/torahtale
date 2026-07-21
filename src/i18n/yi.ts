@@ -401,6 +401,7 @@ export const yi: typeof en = {
     sefer: "ספר",
     noStories: ".לא נמצאו סיפורים",
     chooseLanguage: "בחרו שפה",
+    chooseLanguageSubtitle: "קלייבט אויס ביז צוויי שפראכן",
     english: "ענגליש",
     hebrew: "העברעאיש",
     yiddish: "יידיש",

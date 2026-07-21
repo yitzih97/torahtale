@@ -396,6 +396,7 @@ export const en = {
     sefer: "Book",
     noStories: "No stories found.",
     chooseLanguage: "Choose a Language",
+    chooseLanguageSubtitle: "Select up to two languages",
     english: "English",
     hebrew: "Hebrew",
     yiddish: "Yiddish",

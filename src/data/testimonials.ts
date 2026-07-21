@@ -22,7 +22,7 @@ export const TESTIMONIALS: Testimonial[] = [
   { name: "Menachem Pollak", location: "Los Angeles, CA", text: "As a rebbi I was skeptical about AI, but the content is authentic and respectful. I now recommend it to all my talmidim's parents.", rating: 5 },
   { name: "Devorah Katz", location: "Silver Spring, MD", text: "The personalization goes beyond the name — my son's curly peyos and glasses are right there on every page.", rating: 5 },
   { name: "Shlomo Hirsch", location: "Cedarhurst, NY", text: "Bought it as a birthday gift for my nephew. My sister called me crying happy tears. Best gift I've ever given.", rating: 5 },
-  { name: "Rochel Taub", location: "Monsey, NY", text: "The Noach's teivah story with all the animals is my kids' favorite. They point to themselves on the ark every time.", rating: 5 },
+  { name: "Rochel Taub", location: "Monsey, NY", text: "The Noach's teivah story with all the animals is my kids' favorite. They point to themselves on the teivah every time.", rating: 5 },
   { name: "Ari Schwartz", location: "Teaneck, NJ", text: "Beautiful values woven into every page. My daughter learned about chesed without even realizing she was learning.", rating: 4 },
   { name: "Tzippy Roth", location: "Brooklyn, NY", text: "I love that the girls are dressed modestly and modern at the same time. Finally a book that reflects our home.", rating: 5 },
   { name: "Naftali Gross", location: "Lakewood, NJ", text: "The Avraham counting the stars page is breathtaking. We framed a print of it for the kids' room.", rating: 5 },

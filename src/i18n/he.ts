@@ -401,6 +401,7 @@ export const he: typeof en = {
     sefer: "ספר",
     noStories: "לא נמצאו סיפורים.",
     chooseLanguage: "בחרו שפה",
+    chooseLanguageSubtitle: "בחרו עד שתי שפות",
     english: "אנגלית",
     hebrew: "עברית",
     yiddish: "יידיש",
