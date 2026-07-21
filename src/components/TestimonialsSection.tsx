@@ -42,7 +42,7 @@ export const TestimonialsSection = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, ease }} className="text-center mb-16">
           <span className="text-sm font-semibold text-accent mb-3 block tracking-wider uppercase">What Parents Say</span>
           <h2 className="font-heading text-3xl lg:text-5xl font-bold text-foreground leading-tight">
-            Loved at Bedtime,<br />Treasured Generations
+            Loved at Bedtime,<br />Treasured for Generations
           </h2>
         </motion.div>
 
