@@ -98,6 +98,15 @@ serve(async (req) => {
   try {
     const { prompt, promptAdditions, childName, age, artStyle, torahPortion, referenceImage, bookFormat, pageType, pageNumber, characterSheet, childDescription, characterSheets, childRefs, pageText, bookId, storyCharacterRefs, outfitVariant } = await req.json();
 
+    // GLOBAL REQUEST BUDGET: Supabase's gateway kills any function that hasn't
+    // responded within ~150s and returns a CORS-less gateway error the browser
+    // can't even read. Every long operation below (model attempts, safety
+    // escalations, QA re-rolls) draws from this one budget so we ALWAYS answer
+    // — with an image or a real error — before the gateway cuts us off.
+    const requestStartedAt = Date.now();
+    const REQUEST_BUDGET_MS = 130_000;
+    const remainingMs = () => REQUEST_BUDGET_MS - (Date.now() - requestStartedAt);
+
     const childRefsList = Array.isArray(childRefs) ? childRefs : [];
     const descLower = String(childDescription || "").toLowerCase();
     const mentionsFrumGarb = /kippah|kipa|yarmulke|peyos|payos|peyot|tzitzis|tzitzit/.test(descLower);
@@ -652,6 +661,9 @@ serve(async (req) => {
     // page. A 429 gets ONE short backoff + same-model retry first, since preview
     // models rate-limit in bursts under the orchestrator's concurrency.
     for (const model of [...new Set(imageModels)]) {
+      // Out of budget for another full attempt — fall through to the 1K rescue
+      // (fast) instead of starting a 2K render we'd have to abort mid-flight.
+      if (lastErrorStatus !== null && remainingMs() < 45_000) break;
       let modelDone = false;
       for (let modelTry = 0; modelTry < 2 && !modelDone; modelTry++) {
         let attempt: Response;
@@ -679,7 +691,9 @@ serve(async (req) => {
                 generationConfig,
               }),
             },
-            IMAGE_GEN_TIMEOUT_MS,
+            // As much of the long leash as the request budget allows, always
+            // reserving time for the 1K rescue + upload + response.
+            Math.max(15_000, Math.min(IMAGE_GEN_TIMEOUT_MS, remainingMs() - 30_000)),
           );
         } catch (e) {
           const isTimeout = e instanceof DOMException && e.name === "AbortError";
@@ -726,7 +740,7 @@ serve(async (req) => {
     // with reference images can outlast even the long timeout), try once more at
     // the default 1K size, which renders much faster. A slightly softer page
     // beats a failed one, and the admin can regenerate it at full quality later.
-    if (!response && !saw429 && lastErrorStatus === 504) {
+    if (!response && !saw429 && lastErrorStatus === 504 && remainingMs() > 20_000) {
       const rescueModel = [...new Set(imageModels)][0];
       const rescueConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
       if (rescueModel.startsWith("gemini-3") && aspectRatio) rescueConfig.imageConfig = { aspectRatio };
@@ -738,7 +752,7 @@ serve(async (req) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: rescueConfig }),
           },
-          60_000,
+          Math.max(10_000, Math.min(60_000, remainingMs() - 8_000)),
         );
         if (rescue.ok) {
           response = rescue;
@@ -920,7 +934,7 @@ Judge ONLY the star child(ren) shown on the sheets for defects 1-4 — ignore ba
       finalImageUrl = recovered;
     }
 
-    if (sheetRefs.length > 0 && Date.now() - qaStartedAt < 75_000) {
+    if (sheetRefs.length > 0 && Date.now() - qaStartedAt < 75_000 && remainingMs() > 35_000) {
       const issues = await qaCheck(finalImageUrl);
       if (issues) {
         console.warn("QA gate rejected page — regenerating once:", issues);
