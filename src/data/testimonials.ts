@@ -10,7 +10,7 @@ export interface Testimonial {
 
 export const TESTIMONIALS: Testimonial[] = [
   { name: "Chaya Leah Friedman", location: "Brooklyn, NY", text: "My daughter's face when she saw herself as the heroine of the Purim story — mamash a kiddush Hashem. The kinderlach ask for it every Leil Shabbos.", rating: 5 },
-  { name: "Avi Rosenberg", location: "Lakewood, NJ", text: "We subscribed to the Parsha Club. Every Leil Shabbos our son reads his new personalized book at the tish. The whole family loves it.", rating: 5 },
+  { name: "Avi Rosenberg", location: "Lakewood, NJ", text: "We subscribed to the Parsha Club. Every Leil Shabbos our son reads his new personalized book at the Shabbos table. The whole family loves it.", rating: 5 },
   { name: "Rivky Weinberg", location: "Monsey, NY", text: "The illustrations are stunning and completely tznius — peyos, tzitzis, everything just right. The AI captured the parsha perfectly.", rating: 5 },
   { name: "Shaindy Klein", location: "Boro Park, NY", text: "My son didn't believe it was really him in the sefer until he saw his own face holding the luchos. He hasn't stopped showing his rebbi.", rating: 5 },
   { name: "Dovid Mandel", location: "Passaic, NJ", text: "Worth every penny. The print quality is gorgeous, the hardcover feels like a real keepsake we'll pass down.", rating: 5 },

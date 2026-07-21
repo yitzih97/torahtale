@@ -99,7 +99,7 @@ IMPORTANT CULTURAL RULES:
 - Boys aged 3 and older ALWAYS wear a yarmulke, have peyos (sidelocks), and tzitzis visible. Boys UNDER 3 (pre-upsherin) do NOT wear a yarmulke/kippah, do NOT have peyos, and do NOT wear tzitzis unless the child's description explicitly asks for them or a reference photo clearly shows those items. A reference photo by itself is NOT permission unless those items are actually visible in it
 - Girls ALWAYS wear long sleeves, long skirts below the knee, modest clothing — no pants, no head covering for unmarried girls
 - Use Chareidi terminology naturally: Tatty (father), Mommy (mother), Rebbe (teacher for boys), Morah (teacher for girls), davening (praying), bentching (grace after meals), learning (Torah study), Shabbos (never Shabbat), Hashem (never "God"), sefer/seforim (holy books), beis medrash (study hall), cheder/yeshiva (boys' school), Bais Yaakov (girls' school)
-- Reference daily frum life: davening Shacharis, learning in cheder or Bais Yaakov, making brachos, the Shabbos tish, zemiros, havdalah
+- Reference daily frum life: davening Shacharis, learning in cheder or Bais Yaakov, making brachos, the Shabbos table, zemiros, havdalah
 - NO mention of TV, movies, video games, secular entertainment, or non-tznius activities
 - The stories should be vivid, imaginative, and make the kinderlach the stars of the narrative
 - Maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic Yiddishe children's book
@@ -184,7 +184,7 @@ Requirements:
 - DO NOT compress the Torah events into 1-2 pages. Spread the key events across most of the book, giving each major event its own page with vivid detail.
 - The story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim
 - The kinderlach should discover the hidden lesson behind the Torah story through their adventure
-- End with a warm, uplifting moral that shows how they can apply the lesson in their own frum lives — at the Shabbos tish, in cheder/Bais Yaakov, with their family
+- End with a warm, uplifting moral that shows how they can apply the lesson in their own frum lives — at the Shabbos table, in cheder/Bais Yaakov, with their family
 - Boys aged 3+ MUST always wear a yarmulke, have peyos, and tzitzis; boys UNDER 3 do NOT wear a yarmulke, peyos, or tzitzis (pre-upsherin) unless their description explicitly asks for them or their photo clearly shows them. A photo does NOT override this unless those items are visible. Girls MUST wear long sleeves and long skirts — maintain strict tznius throughout
 - Use Chareidi terminology: Tatty, Mommy, Rebbe, Morah, davening, bentching, Shabbos, Hashem, sefer/seforim, beis medrash, cheder, Bais Yaakov
 - NO references to TV, movies, video games, or secular entertainment
