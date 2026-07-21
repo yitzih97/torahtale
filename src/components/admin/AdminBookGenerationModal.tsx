@@ -369,6 +369,15 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     const working = [...allPages];
     const queue = [...targets];
 
+    // Checkpoint to the DB every few finished images so a tab crash or refresh
+    // mid-run loses at most a couple of pages, not the whole batch.
+    let sinceCheckpoint = 0;
+    const checkpoint = () => {
+      if (++sinceCheckpoint < 4) return;
+      sinceCheckpoint = 0;
+      void persistPages(working, storyData);
+    };
+
     const worker = async () => {
       while (queue.length > 0) {
         if (abortRef.current) return;
@@ -404,10 +413,31 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         setPageStatuses([...statuses]);
         setDoneImages(statuses.filter((s) => s === "done").length);
         setPages([...working]);
+        checkpoint();
       }
     };
 
     await Promise.all(Array.from({ length: Math.min(IMAGE_CONCURRENCY, targets.length) }, worker));
+
+    // Pages that survived 3 inline attempts usually failed from batch pressure —
+    // provider rate limits or the edge worker's CPU/memory ceiling under
+    // concurrency. Automatically sweep them up to 2 more times, after a cool-off
+    // and at gentler concurrency, so the admin almost never has to click
+    // "Retry failed pages" by hand.
+    const AUTO_RETRY_PASSES = 2;
+    let failedIdx = statuses.map((s, i) => (s === "failed" ? i : -1)).filter((i) => i >= 0);
+    for (let pass = 1; pass <= AUTO_RETRY_PASSES && failedIdx.length > 0 && !abortRef.current; pass++) {
+      persistPages(working, storyData); // checkpoint what's done so a crash mid-retry loses nothing
+      setStatusText(`Auto-retrying ${failedIdx.length} failed page${failedIdx.length > 1 ? "s" : ""} (pass ${pass}/${AUTO_RETRY_PASSES})...`);
+      await new Promise((r) => setTimeout(r, 8000 * pass)); // let rate limits / edge CPU cool off
+      if (abortRef.current) break;
+      for (const i of failedIdx) statuses[i] = "pending";
+      setPageStatuses([...statuses]);
+      queue.push(...failedIdx);
+      const conc = Math.min(pass === 1 ? 2 : 1, failedIdx.length);
+      await Promise.all(Array.from({ length: conc }, worker));
+      failedIdx = statuses.map((s, i) => (s === "failed" ? i : -1)).filter((i) => i >= 0);
+    }
 
     const failed = statuses.filter((s) => s === "failed").length;
     setPhase("done");
@@ -790,7 +820,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               </div>
 
               <p className="text-center text-[11px] text-muted-foreground">
-                Illustrations run {IMAGE_CONCURRENCY} at a time · every page can be regenerated individually afterwards · progress auto-saves
+                Illustrations run {IMAGE_CONCURRENCY} at a time · failed pages auto-retry up to 2 extra passes · every page can be regenerated individually afterwards · progress auto-saves
               </p>
             </motion.div>
           )}
