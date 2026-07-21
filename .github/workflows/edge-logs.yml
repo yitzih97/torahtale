@@ -43,7 +43,7 @@ jobs:
           MINUTES: ${{ inputs.minutes }}
         run: |
           set -euo pipefail
-          sql="select timestamp, response.status_code as status, request.method as method, request.pathname as path from edge_logs cross join unnest(metadata) as m cross join unnest(m.request) as request cross join unnest(m.response) as response where timestamp > timestamp_sub(current_timestamp(), interval ${MINUTES} minute) and request.pathname like '%/functions/v1/%' order by timestamp desc limit 200"
+          sql="select timestamp, response.status_code as status, request.method as method, request.path as path from edge_logs cross join unnest(metadata) as m cross join unnest(m.request) as request cross join unnest(m.response) as response where timestamp > timestamp_sub(current_timestamp(), interval ${MINUTES} minute) and request.path like '%/functions/v1/%' order by timestamp desc limit 200"
           resp=$(curl -sG "https://api.supabase.com/v1/projects/${PROJECT_REF}/analytics/endpoints/logs.all" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
             --data-urlencode "sql=${sql}")
