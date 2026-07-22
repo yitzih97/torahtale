@@ -5,8 +5,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 // Single fixed hero image (the "as the world is created" scene) — no rotation,
 // no random per-load switch, so it caches and the title stays constant.
-import heroDesktop from "@/assets/hero-flip-2.jpg";
-import heroMobile from "@/assets/hero-m-2.jpg";
+import heroDesktop from "@/assets/hero-flip-3.jpg";
+import heroMobile from "@/assets/hero-m-3.jpg";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
 import reviewer3 from "@/assets/avatars/reviewer3.jpg";
@@ -133,9 +133,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {/* pb/-mb pair extends the paint box below the baseline so the
                     "g" descender isn't clipped by backgroundClip: text. */}
                 <span
-                  className="block font-normal pb-[0.18em] -mb-[0.18em] [filter:drop-shadow(0_1px_2px_hsl(36_70%_15%/0.55))]"
+                  className="block italic font-semibold pb-[0.18em] -mb-[0.18em] [filter:drop-shadow(0_1px_2px_hsl(36_70%_15%/0.55))]"
                   style={{
-                    fontFamily: '"Ludwigon", "Playfair Display", serif',
                     background: "linear-gradient(180deg, hsl(37 90% 42%), hsl(26 86% 29%))",
                     WebkitBackgroundClip: "text",
                     backgroundClip: "text",
