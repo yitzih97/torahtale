@@ -11,9 +11,12 @@ API="https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth"
 
 resp=$(jq -n \
   --arg confirmation "$(cat supabase/templates/confirmation.html)" \
+  --arg recovery "$(cat supabase/templates/recovery.html)" \
   '{
-    mailer_subjects_confirmation: "Confirm your email — TorahTale",
-    mailer_templates_confirmation_content: $confirmation
+    mailer_subjects_confirmation: "Confirm your email - Torah Tale",
+    mailer_templates_confirmation_content: $confirmation,
+    mailer_subjects_recovery: "Reset your password - Torah Tale",
+    mailer_templates_recovery_content: $recovery
   }' \
   | curl -s -X PATCH "$API" \
       -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
