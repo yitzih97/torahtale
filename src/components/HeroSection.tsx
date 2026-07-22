@@ -17,12 +17,8 @@ interface HeroSectionProps {
   onStart: () => void;
 }
 
-export const HeroSection = ({ onStart }: HeroSectionProps) => {
-  const { dir, lang } = useLanguage();
-  const isRtl = dir === "rtl";
-  const isHebrew = lang === "he" || lang === "yi";
-
-  const copy = isHebrew
+const getHeroCopy = (isHebrew: boolean) =>
+  isHebrew
     ? {
         title1: "סיפורי תורה,",
         title2: "בכיכוב הילדים שלכם",
@@ -71,6 +67,12 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           { icon: Lock, label: "Secure & Private" },
         ],
       };
+
+export const HeroSection = ({ onStart }: HeroSectionProps) => {
+  const { dir, lang } = useLanguage();
+  const isRtl = dir === "rtl";
+  const isHebrew = lang === "he" || lang === "yi";
+  const copy = getHeroCopy(isHebrew);
 
   return (
     <>
@@ -132,15 +134,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {/* Emphasis line — a deep amber gold so it stays legible over the warm background. */}
                 {/* pb/-mb pair extends the paint box below the baseline so the
                     "g" descender isn't clipped by backgroundClip: text. */}
-                <span
-                  className="block italic font-semibold pb-[0.18em] -mb-[0.18em] [filter:drop-shadow(0_1px_2px_hsl(36_70%_15%/0.55))]"
-                  style={{
-                    background: "linear-gradient(180deg, hsl(37 90% 42%), hsl(26 86% 29%))",
-                    WebkitBackgroundClip: "text",
-                    backgroundClip: "text",
-                    color: "transparent",
-                  }}
-                >
+                <span className="block italic font-semibold pb-[0.18em] -mb-[0.18em] gold-shine-text [filter:drop-shadow(0_1px_2px_hsl(36_70%_15%/0.55))]">
                   {copy.title2}
                 </span>
               </motion.h1>
@@ -164,7 +158,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                   variant="gold"
                   size="xl"
                   onClick={onStart}
-                  className="group rounded-full w-full max-w-sm sm:max-w-none sm:w-auto px-7 gap-1.5 shadow-lg shadow-[hsl(30_70%_20%/0.35)] ring-1 ring-white/50 text-[hsl(36_60%_10%)] bg-[linear-gradient(180deg,hsl(41_90%_52%),hsl(33_88%_44%))] hover:brightness-105"
+                  className="group rounded-full w-full max-w-sm sm:max-w-none sm:w-auto px-7 gap-1.5 shadow-lg shadow-[hsl(30_70%_20%/0.35)] ring-1 ring-white/50 text-[hsl(36_60%_10%)] gold-shine-bg hover:brightness-105"
                 >
                   {copy.primaryCta}
                   <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : ""}`} />
@@ -189,8 +183,19 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           </div>
         </div>
       </section>
+    </>
+  );
+};
 
-      {/* Testimonials section */}
+/** "Loved by families" testimonials strip — rendered on the homepage below the
+    Collections section (it used to sit directly under the hero). */
+export const HeroTestimonialsStrip = () => {
+  const { dir, lang } = useLanguage();
+  const isRtl = dir === "rtl";
+  const isHebrew = lang === "he" || lang === "yi";
+  const copy = getHeroCopy(isHebrew);
+
+  return (
       <section className="relative bg-gradient-to-b from-[hsl(42_55%_95%)] to-[hsl(38_45%_92%)]" dir={dir}>
         <div className="container py-16 lg:py-20">
           <motion.div
@@ -232,6 +237,5 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
           </motion.div>
         </div>
       </section>
-    </>
   );
 };
