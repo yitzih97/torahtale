@@ -139,8 +139,10 @@ export const ProductsSection = ({ onStart }: Props) => {
         {/* Active product card */}
         <div className="mt-8 rounded-3xl border border-foreground/10 bg-background/60 backdrop-blur-sm shadow-[0_24px_60px_-30px_rgba(0,0,0,0.3)] overflow-hidden">
           <div className="grid lg:grid-cols-2 items-stretch">
-            {/* Product photo — shown whole (object-contain) so no part of the
-                book is ever cropped, on the same cream as the mockup backdrop. */}
+            {/* Product photo — fills the panel edge to edge (no letterbox bands).
+                Safe to cover-crop: every mockup is rendered 4:3 (close to this
+                panel's ratio) with the book centred inside a wide cream margin,
+                so the few percent trimmed off never reaches the book. */}
             <div className="relative min-h-[300px] sm:min-h-[420px] overflow-hidden bg-[hsl(42_55%_96%)]">
               {/* Crossfade WITHOUT mode="wait" so the slot is never empty mid-swap:
                   the outgoing photo fades out underneath the incoming one. */}
@@ -153,7 +155,7 @@ export const ProductsSection = ({ onStart }: Props) => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.45, ease }}
-                  className="absolute inset-0 w-full h-full object-contain"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               </AnimatePresence>
             </div>
