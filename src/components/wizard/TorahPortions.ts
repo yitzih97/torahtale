@@ -477,11 +477,12 @@ const easternClock = (d: Date): { et: Date; offset: number } => {
 };
 
 /**
- * The order-by deadline shown on the wizard's countdown: the next Wednesday
- * 12:00 PM ET rollover, EXCEPT standard shipping needs ~10 days to arrive
- * before Shabbos -- if the nearest rollover is closer than that, this pushes
- * to the following week's so "order within X for delivery before Shabbos"
- * always has enough runway.
+ * The order-by deadline shown on the wizard's countdown: simply the NEXT
+ * Wednesday 12:00 PM ET rollover, so the countdown is always within a week
+ * (a rolling ≤7-day cadence). The ~10-day shipping runway lives in the target
+ * itself — getCurrentParsha delivers the Shabbos that is 10 days after each
+ * rollover — so ordering by this deadline leaves a full window to ship before
+ * Shabbos without inflating the visible countdown past a week.
  */
 export const getNextParshaRollover = (from: Date = new Date()): Date => {
   const { et, offset } = easternClock(from);
@@ -489,8 +490,6 @@ export const getNextParshaRollover = (from: Date = new Date()): Date => {
   target.setDate(et.getDate() + ((3 - et.getDay() + 7) % 7)); // next Wednesday (Wed = 3)
   target.setHours(12, 0, 0, 0);
   if (target.getTime() <= et.getTime()) target.setDate(target.getDate() + 7);
-  const MIN_WINDOW_MS = 10 * 24 * 60 * 60 * 1000;
-  while (target.getTime() - et.getTime() < MIN_WINDOW_MS) target.setDate(target.getDate() + 7);
   return new Date(target.getTime() + offset);
 };
 

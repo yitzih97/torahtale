@@ -380,7 +380,7 @@ export const en = {
     addAnotherChild: "Add Another Child",
     chooseParsha: "Choose a Story",
     chooseDifferentStory: "Choose a different story",
-    chooseDifferentStoryDesc: "Browse the full Tanach — Nevi'im, Kesuvim, Megillos and Yamim Tovim",
+    chooseDifferentStoryDesc: "Explore Tanach, Megillos, Shabbos, Yom Tov, Middos, and more children's stories.",
     chooseCategory: "Choose a category",
     backStory: "Back",
     chooseStorySource: "How would you like to choose your story?",

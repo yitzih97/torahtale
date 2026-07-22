@@ -3,8 +3,8 @@ import { Clock } from "lucide-react";
 import { getNextParshaRollover } from "./TorahPortions";
 
 /**
- * Live countdown to the order-by deadline for delivery before Shabbos (see
- * getNextParshaRollover for the 10-day-minimum-window logic). Recomputes the
+ * Live countdown to the order-by deadline for delivery before Shabbos (the next
+ * Wednesday-noon-ET rollover — see getNextParshaRollover). Recomputes the
  * target each tick, so the moment the deadline passes it automatically resets
  * to the following week's countdown.
  */

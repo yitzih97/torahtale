@@ -385,7 +385,7 @@ export const yi: typeof en = {
     addAnotherChild: "הוסיפו ילד נוסף",
     chooseParsha: "קלייבט א מעשה",
     chooseDifferentStory: "קלייבט אן אנדער מעשה",
-    chooseDifferentStoryDesc: "קוקט דורך גאנץ תנ״ך — נביאים, כתובים, מגילות און ימים טובים",
+    chooseDifferentStoryDesc: "אַנטדעקט תנ״ך, מגילות, שבת, יום טוב, מידות, און נאך קינדער־מעשיות.",
     chooseCategory: "קלייבט א קאטעגאריע",
     backStory: "צוריק",
     chooseStorySource: "?איך תרצו לבחור את הסיפור",

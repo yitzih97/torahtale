@@ -385,7 +385,7 @@ export const he: typeof en = {
     addAnotherChild: "הוספת ילד נוסף",
     chooseParsha: "בחרו סיפור",
     chooseDifferentStory: "בחרו סיפור אחר",
-    chooseDifferentStoryDesc: "עיינו בכל התנ״ך — נביאים, כתובים, מגילות וימים טובים",
+    chooseDifferentStoryDesc: "גלו תנ״ך, מגילות, שבת, יום טוב, מידות, ועוד סיפורי ילדים.",
     chooseCategory: "בחרו קטגוריה",
     backStory: "חזרה",
     chooseStorySource: "איך תרצו לבחור את הסיפור?",
