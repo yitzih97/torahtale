@@ -23,7 +23,7 @@ type Phase = "idle" | "character" | "story" | "storyReview" | "images" | "done";
 /** Per-page illustration status during the images phase. */
 type PageStatus = "pending" | "generating" | "done" | "failed" | "skipped";
 
-const IMAGE_CONCURRENCY = 3;
+const IMAGE_CONCURRENCY = 6;
 
 // Every book generates in the signature high-res style, regardless of what
 // older rows have stored — the product no longer offers other styles.

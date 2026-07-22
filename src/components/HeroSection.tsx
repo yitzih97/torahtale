@@ -5,7 +5,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 // Single fixed hero image (the "as the world is created" scene) — no rotation,
 // no random per-load switch, so it caches and the title stays constant.
-import heroDesktop from "@/assets/hero-flip-3.jpg";
 import heroMobile from "@/assets/hero-m-3.jpg";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
@@ -80,16 +79,17 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         {/* Hero visual wrapper — keeps the background images above the opaque trust bar
             so the book at the bottom of the image is never covered by it. */}
         <div className="relative overflow-hidden">
-        {/* Desktop: wide image (kids+book on one side, copy space the other), mirrored for LTR. */}
-        <div className="hidden lg:block absolute inset-0 overflow-hidden">
+        {/* Desktop: the SAME portrait render mobile/tablet use, mirrored for LTR so
+            the kids sit opposite the copy — keeps every breakpoint visually identical. */}
+        <div className={`hidden lg:block absolute inset-y-0 ${isRtl ? "left-0" : "right-0"} w-[58%] overflow-hidden`}>
           <div className="absolute inset-0" style={{ transform: isRtl ? undefined : "scaleX(-1)" }}>
             <img
-              src={heroDesktop}
+              src={heroMobile}
               alt="Two children with their personalized Torah storybook"
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ objectPosition: "center bottom" }}
-              width={4096}
-              height={2294}
+              style={{ objectPosition: "center 58%" }}
+              width={1200}
+              height={2122}
               loading="eager"
               fetchPriority="high"
               decoding="async"

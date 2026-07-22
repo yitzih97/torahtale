@@ -648,17 +648,17 @@ serve(async (req) => {
     // otherwise be an OpenAI model name that Google's endpoint can't serve.
     const customIsGemini = typeof customImageModel === "string" && !/^(gpt-image|dall-e)/i.test(customImageModel);
     const imageModels = (customImageModel && customIsGemini)
-      ? [customImageModel, "gemini-3.1-flash-lite-image", "gemini-3.1-flash-image-preview", "gemini-3.1-flash-image", "gemini-2.5-flash-image"]
+      ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image", "gemini-2.5-flash-image"]
       : [
-          "gemini-3.1-flash-lite-image",
           "gemini-3.1-flash-image-preview",
           "gemini-3.1-flash-image",
+          "gemini-3.1-flash-lite-image",
           "gemini-2.5-flash-image",
         ];
 
-    // Nano Banana 2 Lite (~4s/image, ~1/3 the price) carries interior pages, but
-    // it only outputs 1K — so the COVER (the print surface where 2K sharpness
-    // matters) skips lite and renders on the full models at 2K.
+    // Full Nano Banana 2 leads at 2K for every page (per user: lite's 1K output
+    // read as low quality in print). Lite stays in the chain as a fast fallback
+    // — but never for the COVER, whose sharpness matters most.
     const modelChain = [...new Set(imageModels)].filter(
       (m) => pageType !== "cover" || !m.includes("lite"),
     );
