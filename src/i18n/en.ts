@@ -479,9 +479,9 @@ export const en = {
     yourSelection: "Your Selection",
     recommendedForAge: (age: string) => `Recommended for age ${age}`,
     bestForYou: "Best for your child",
-    ageBoard: "ages 2–4",
+    ageBoard: "ages 0–4",
     ageSoftcover: "ages 4–8",
-    ageHardcover: "ages 5–12",
+    ageHardcover: "ages 5–15",
     features: {
       softcover: ["100lb semi-gloss paper", "Lightweight & flexible", "Perfect for everyday reading", "Saddle-stitch binding"],
       hardcover: ["Glossy or matte finish", "Premium case-wrap binding", "Sturdy & gift-worthy", "Lay-flat pages"],
@@ -617,7 +617,7 @@ export const en = {
     ],
     items: [
       { category: "general", question: "What is Torah Tale?", answer: "Torah Tale creates personalized, AI-illustrated Torah story books where your child becomes the star of the parsha. Each book is uniquely generated with your child's name, appearance, and story details." },
-      { category: "general", question: "What ages are the books for?", answer: "Our books are designed for children ages 2–12. Sturdy board books suit toddlers (ages 2–4), softcovers are perfect for ages 4–8, and hardcovers for ages 5–12." },
+      { category: "general", question: "What ages are the books for?", answer: "Our books are designed for children ages 0–15 — even the newest baby can star in their own story. Sturdy board books suit babies and toddlers (ages 0–4), softcovers are perfect for ages 4–8, and hardcovers for ages 5–15." },
       { category: "general", question: "Are the stories accurate to the Torah?", answer: "Yes! Every story is carefully crafted with rabbinical guidance to stay true to the parsha, with tznius-mindful illustrations and a clear middos lesson — engaging and age-appropriate for children." },
       { category: "orders", question: "How long does shipping take?", answer: "Standard shipping is free and takes 5–7 business days. Express shipping (2–3 business days) is available for an additional $9.99." },
       { category: "orders", question: "Do you ship internationally?", answer: "Yes — we ship worldwide, straight to your door." },

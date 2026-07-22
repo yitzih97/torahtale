@@ -168,7 +168,7 @@ function buildPendingTasks(
   const primarySheet = sheets[primaryName] || null;
   const primaryDesc = childDescriptions[0]?.description || "";
   const primaryPhoto = childDescriptions[0]?.photoUrl || null;
-  const primaryAge = childDescriptions[0]?.age || null;
+  const primaryAge = childDescriptions[0]?.age ?? null; // `??` not `||` — age 0 is valid
 
   let storyPageNumber = 0;
   const tasks: { idx: number; body: any }[] = [];

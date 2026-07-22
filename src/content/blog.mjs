@@ -82,7 +82,7 @@ export const ARTICLES = [
       ${SHOT("step-2-gender.jpg", "Wizard step 2 — choosing boy or girl")}
 
       <h2>Step 3 — How old are they?</h2>
-      <p>Set your child's age (1–15). The age shapes how the character is drawn and also helps us recommend the right book format later — sturdy board books for toddlers, bigger photo books for older kids.</p>
+      <p>Set your child's age (0–15). The age shapes how the character is drawn and also helps us recommend the right book format later — sturdy board books for toddlers, bigger photo books for older kids.</p>
       ${SHOT("step-3-age.jpg", "Wizard step 3 — setting the child's age")}
 
       <h2>Step 4 — Upload a photo</h2>
@@ -138,7 +138,7 @@ export const ARTICLES = [
       ${SHOT("step-2-gender-he.jpg", "שלב 2 — בחירת בן או בת", "", true)}
 
       <h2>שלב 3 — בני כמה הם?</h2>
-      <p>קבעו את גיל הילד (1–15). הגיל משפיע על אופן ציור הדמות, וגם עוזר לנו להמליץ בהמשך על הפורמט הנכון — ספרי קרטון עמידים לפעוטות, וספרי תמונות גדולים יותר לילדים גדולים.</p>
+      <p>קבעו את גיל הילד (0–15). הגיל משפיע על אופן ציור הדמות, וגם עוזר לנו להמליץ בהמשך על הפורמט הנכון — ספרי קרטון עמידים לפעוטות, וספרי תמונות גדולים יותר לילדים גדולים.</p>
       ${SHOT("step-3-age-he.jpg", "שלב 3 — קביעת גיל הילד", "", true)}
 
       <h2>שלב 4 — העלו תמונה</h2>

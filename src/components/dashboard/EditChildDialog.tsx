@@ -14,6 +14,7 @@ import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { generateId } from "@/lib/utils";
 
 const AGE_BRACKETS = [
+  { min: 0, label: "0-1", desc: "Baby", emoji: "🍼" },
   { min: 2, label: "2-3", desc: "Toddler", emoji: "👶" },
   { min: 4, label: "4-5", desc: "Preschool", emoji: "🧒" },
   { min: 6, label: "6-7", desc: "Early Reader", emoji: "📖" },
@@ -217,7 +218,7 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
                 <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Age</Label>
                 <Input
                   type="number"
-                  min={1}
+                  min={0}
                   max={18}
                   inputMode="numeric"
                   value={age}

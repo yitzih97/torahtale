@@ -43,6 +43,7 @@ const slideVariants = {
 };
 
 const AGE_BRACKETS = [
+  { min: 0, max: 1, label: "0-1", desc: "Baby", emoji: "🍼" },
   { min: 2, max: 3, label: "2-3", desc: "Toddler", emoji: "👶" },
   { min: 4, max: 5, label: "4-5", desc: "Preschool", emoji: "🧒" },
   { min: 6, max: 7, label: "6-7", desc: "Early Reader", emoji: "📖" },
@@ -381,7 +382,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                     </div>
                     <Input
                       type="number"
-                      min={1}
+                      min={0}
                       max={15}
                       placeholder="Age"
                       value={age}

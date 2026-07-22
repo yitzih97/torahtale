@@ -162,7 +162,8 @@ const getAgePreset = (gender: string, ageLabel: string): string => {
 };
 
 const ageToBracketLabel = (age: string): string => {
-  const n = parseInt(age) || 5;
+  const parsed = parseInt(age);
+  const n = Number.isNaN(parsed) ? 5 : parsed; // age 0 is valid — don't default it to 5
   if (n <= 3) return "2-3";
   if (n <= 5) return "4-5";
   if (n <= 7) return "6-7";
@@ -721,7 +722,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
           if (!c.name) { plan.set(c.id, null); continue; }
           const matches = existingList.filter((e) => norm(e.name) === norm(c.name));
           if (matches.length === 0) { plan.set(c.id, null); continue; }
-          const age = parseInt(c.age) || null;
+          const age = Number.isNaN(parseInt(c.age)) ? null : parseInt(c.age); // 0 is a valid age
           const exact = matches.find((e) => e.age === age && norm(e.gender) === norm(c.gender));
           if (exact) { plan.set(c.id, exact.id); continue; } // same name+age+gender → auto-merge
           const decided = mergeDecisionsRef.current.get(c.id);
@@ -765,7 +766,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               const match = existingList.find((e) => e.id === targetId);
               if (!photoUrl) photoUrl = match?.photo_url ?? null;
               const upd: Partial<Omit<ChildRecord, "id" | "user_id" | "created_at">> = {
-                age: parseInt(c.age) || null,
+                age: Number.isNaN(parseInt(c.age)) ? null : parseInt(c.age),
                 gender: c.gender || match?.gender || null,
                 description: c.description || match?.description || null,
                 art_style: data.artStyle,
@@ -783,7 +784,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
               try {
                 await addChildMutation.mutateAsync({
                   name: c.name,
-                  age: parseInt(c.age) || null,
+                  age: Number.isNaN(parseInt(c.age)) ? null : parseInt(c.age),
                   gender: c.gender,
                   photo_url: photoUrl,
                   art_style: data.artStyle,
@@ -1025,7 +1026,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     switch (step) {
       case 1: return data.children.some((c) => !!c.name.trim());
       case 2: return !!child.gender;
-      case 3: return !!child.age && parseInt(child.age) >= 1 && parseInt(child.age) <= 15;
+      case 3: return !!child.age && parseInt(child.age) >= 0 && parseInt(child.age) <= 15;
       // Photo step: every child needs an uploaded photo.
       case 4: return data.children.every((c) =>
         !!c.photoPreview || !!c.existingPhotoUrl);
@@ -1513,10 +1514,10 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   <button
                     type="button"
                     aria-label="Decrease age"
-                    disabled={(parseInt(child.age) || 0) <= 1}
+                    disabled={!child.age || (parseInt(child.age) || 0) <= 0}
                     onClick={() => {
                       const cur = parseInt(child.age) || 1;
-                      updateChild(child.id, { age: String(Math.max(1, cur - 1)) });
+                      updateChild(child.id, { age: String(Math.max(0, cur - 1)) });
                     }}
                     className="w-16 h-16 rounded-2xl border-2 border-border/40 bg-card/60 backdrop-blur-sm flex items-center justify-center text-accent hover:border-accent/50 active:scale-95 transition disabled:opacity-40 disabled:pointer-events-none"
                   >

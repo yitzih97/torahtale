@@ -286,11 +286,13 @@ serve(async (req) => {
     // Forceful age accuracy — image models tend to render children too young, and
     // the base prompt states no age at all, so state the EXACT age explicitly.
     if (!prompt) {
-      const agedRefs = childRefsList.filter((c: any) => c?.name && c?.age);
+      // age 0 (infant) is a real value — don't let truthiness checks drop it.
+      const agedRefs = childRefsList.filter((c: any) => c?.name && c?.age != null && c?.age !== "");
       const primaryAge = age ?? childRefsList[0]?.age ?? inferredAge;
+      const hasPrimaryAge = primaryAge != null && primaryAge !== "";
       const ageStatement = agedRefs.length > 0
         ? agedRefs.map((c: any) => `${c.name} is EXACTLY ${c.age} years old`).join("; ")
-        : (primaryAge ? `${childName || "The child"} is EXACTLY ${primaryAge} years old` : "");
+        : (hasPrimaryAge ? `${childName || "The child"} is EXACTLY ${primaryAge} years old` : "");
       if (ageStatement) {
         imagePrompt += ` CRITICAL AGE ACCURACY (do NOT ignore): ${ageStatement}. Render each child with the facial maturity, facial structure, head-to-body proportions, and height of their EXACT stated age — a 12–14 year old must look like a young teenager, a 7–9 year old like a child, a 3–5 year old like a small child. Do NOT default to a generic young child. The apparent age MUST match the stated age on every page.`;
       }
@@ -374,7 +376,7 @@ serve(async (req) => {
 - WARDROBE LOCK: the star children have travelled INTO the Torah story's biblical era, so dress each child in modest, PERIOD-AUTHENTIC clothing for that era — flowing tunics/robes, sashes, simple sandals — kept the SAME on EVERY page and in EVERY scene (a head covering on a star child ONLY if their own photo/character sheet shows one). Match the outfit on their character sheet where it is already era-appropriate; never restyle, recolor, or swap the outfit between pages.
 - NEVER dress the star child in MODERN clothing — no button-down shirts, no trousers/pants, no modern dresses, no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics. Even if a reference shows modern clothing, render period-authentic biblical clothing instead.
 - HAIR & FEATURE LOCK: each child's hair COLOR, hair style, eye color, and skin tone must EXACTLY match their character sheet on every page. If the sheet shows brown hair, the hair is that exact same brown on every single page — never blonde, never a different shade, never a different style. SKIN TONE IS IDENTITY: reproduce each child's complexion EXACTLY as their photo/sheet shows — never lighter, never darker, never averaged toward a generic tone; siblings with different complexions keep their DIFFERENT complexions.
-- BABIES SIT: any child aged 1 or younger must ALWAYS be depicted SITTING (on the ground, on a blanket, on a lap) or held in someone's arms — NEVER standing, walking, or running. A 1-year-old cannot stand unassisted in these illustrations.
+- INFANTS SIT: any child aged 0 (a baby under 1 year old) must ALWAYS be depicted SITTING (on the ground, on a blanket, on a lap) or held in someone's arms — NEVER standing, walking, or running. Children aged 1 and up may stand and walk normally.
 - STAR CHILDREN ONLY — NO PARENTS: the star child(ren) experience the story ON THEIR OWN. NEVER add their parents, Tatty, Mommy, bubby, zeidy, siblings not named in this book, teachers, or any other modern-day family adults to the scene — not holding them, not reading to them, not standing behind them. The ONLY adults allowed are figures from the Torah narrative itself (Moshe, Avraham, the meraglim, Paroh, soldiers, etc.) when the scene depicts them. If the page text mentions Tatty/Mommy, still show ONLY the star child(ren) in the illustration.
 - KAVOD HASEFORIM — NEVER place a sefer, book, chumash, or siddur on the floor or ground. Books are ALWAYS held respectfully in hands, or resting on a table, shtender, bookshelf, or bimah — never lying on a rug, floor, or the ground, never scattered, never stepped over.
 - ONE SEAMLESS IMAGE: the illustration must be one single continuous scene with one sky and one lighting scheme — never two skies, never a horizontal seam, and never a strip that looks pasted on at the top or bottom.`;

@@ -81,9 +81,11 @@ serve(async (req) => {
 
     const { childName, age, gender, artStyle, description, referenceImage, bookId, torahPortion } = await req.json();
 
-    const ageNum = parseInt(age) || 5;
+    const parsedAge = parseInt(age);
+    const ageNum = Number.isNaN(parsedAge) ? 5 : parsedAge; // NOT `|| 5` — age 0 (infant) is valid
     let ageDesc = "child";
-    if (ageNum <= 3) ageDesc = "toddler/baby";
+    if (ageNum < 1) ageDesc = "infant baby (not yet walking — always sitting, crawling, or held)";
+    else if (ageNum <= 3) ageDesc = "toddler/baby";
     else if (ageNum <= 5) ageDesc = "young child";
     else if (ageNum <= 8) ageDesc = "child";
     else if (ageNum <= 10) ageDesc = "older child";

@@ -94,7 +94,7 @@ interface Props {
 }
 
 const getRecommendedType = (age: number): BookOptions["productType"] | null => {
-  if (!age || age < 1) return null;
+  if (age == null || age < 0) return null;
   if (age <= 3) return "board";
   if (age <= 6) return "softcover";
   return "hardcover";
