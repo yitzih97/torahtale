@@ -646,12 +646,20 @@ serve(async (req) => {
     // otherwise be an OpenAI model name that Google's endpoint can't serve.
     const customIsGemini = typeof customImageModel === "string" && !/^(gpt-image|dall-e)/i.test(customImageModel);
     const imageModels = (customImageModel && customIsGemini)
-      ? [customImageModel, "gemini-3.1-flash-image-preview", "gemini-3.1-flash-image", "gemini-2.5-flash-image"]
+      ? [customImageModel, "gemini-3.1-flash-lite-image", "gemini-3.1-flash-image-preview", "gemini-3.1-flash-image", "gemini-2.5-flash-image"]
       : [
+          "gemini-3.1-flash-lite-image",
           "gemini-3.1-flash-image-preview",
           "gemini-3.1-flash-image",
           "gemini-2.5-flash-image",
         ];
+
+    // Nano Banana 2 Lite (~4s/image, ~1/3 the price) carries interior pages, but
+    // it only outputs 1K — so the COVER (the print surface where 2K sharpness
+    // matters) skips lite and renders on the full models at 2K.
+    const modelChain = [...new Set(imageModels)].filter(
+      (m) => pageType !== "cover" || !m.includes("lite"),
+    );
 
     let response: Response | null = null;
     let selectedModel: string | null = null;
@@ -664,7 +672,7 @@ serve(async (req) => {
     // model in the list (each has its own quota) instead of failing the whole
     // page. A 429 gets ONE short backoff + same-model retry first, since preview
     // models rate-limit in bursts under the orchestrator's concurrency.
-    for (const model of [...new Set(imageModels)]) {
+    for (const model of modelChain) {
       // Out of budget for another full attempt — fall through to the 1K rescue
       // (fast) instead of starting a 2K render we'd have to abort mid-flight.
       if (lastErrorStatus !== null && remainingMs() < 45_000) break;
@@ -672,22 +680,12 @@ serve(async (req) => {
       for (let modelTry = 0; modelTry < 2 && !modelDone; modelTry++) {
         let attempt: Response;
         try {
-          // Gemini 3 image models default to ~1K output (≈928×1152) unless asked
-          // for more — and our print canvases run up to 2550×3300, so that 1K
-          // source was getting stretched ~2.5-3x on every page, the real cause
-          // of soft/blurry pages no amount of resampling quality can fully hide.
-          // Request 2K explicitly on the gemini-3 family (gemini-2.5-flash-image
-          // doesn't support it — omit there rather than risk a rejected request).
-          // Coloring pages get 2K too now — their line-art conversion runs on the
-          // client (off the edge), so there's no longer an edge-side reason to
-          // keep them small, and crisp lines need the resolution.
           const generationConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
           if (model.startsWith("gemini-3")) {
-            // 2K renders take 40-80s+ and were the cause of slow books and
-            // timed-out pages, so only the COVER (the print surface where
-            // sharpness matters most) pays for 2K; interior pages render at the
-            // default 1K, which is fast and was the original reliable behavior.
-            const wants2K = pageType === "cover";
+            // 2K on every gemini-3 model EXCEPT lite (Nano Banana 2 Lite only
+            // outputs 1K — asking it for 2K would get the request rejected and
+            // skip the model entirely, defeating its speed/cost advantage).
+            const wants2K = !model.includes("lite");
             const imageConfig = { ...(wants2K ? { imageSize: "2K" } : {}), ...(aspectRatio ? { aspectRatio } : {}) };
             if (Object.keys(imageConfig).length > 0) generationConfig.imageConfig = imageConfig;
           }
@@ -751,7 +749,8 @@ serve(async (req) => {
     // the default 1K size, which renders much faster. A slightly softer page
     // beats a failed one, and the admin can regenerate it at full quality later.
     if (!response && !saw429 && lastErrorStatus === 504 && remainingMs() > 20_000) {
-      const rescueModel = [...new Set(imageModels)][0];
+      // Lite is the fastest 1K model there is — exactly what a rescue wants.
+      const rescueModel = "gemini-3.1-flash-lite-image";
       const rescueConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
       if (rescueModel.startsWith("gemini-3") && aspectRatio) rescueConfig.imageConfig = { aspectRatio };
       try {
