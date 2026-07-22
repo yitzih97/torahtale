@@ -142,15 +142,17 @@ export const ProductsSection = ({ onStart }: Props) => {
             {/* Product photo — shown whole (object-contain) so no part of the
                 book is ever cropped, on the same cream as the mockup backdrop. */}
             <div className="relative min-h-[300px] sm:min-h-[420px] overflow-hidden bg-[hsl(42_55%_96%)]">
-              <AnimatePresence mode="wait">
+              {/* Crossfade WITHOUT mode="wait" so the slot is never empty mid-swap:
+                  the outgoing photo fades out underneath the incoming one. */}
+              <AnimatePresence initial={false}>
                 <motion.img
                   key={p.key}
                   src={p.image}
                   alt={p.name}
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, ease }}
+                  transition={{ duration: 0.45, ease }}
                   className="absolute inset-0 w-full h-full object-contain"
                 />
               </AnimatePresence>
