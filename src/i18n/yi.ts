@@ -497,7 +497,6 @@ export const yi: typeof en = {
   // Homepage products showcase (tabbed section under the hero)
   productsShowcase: {
     badge: "אונזערע ביכער",
-    hoverHint: "האווערט אַריבער צו זען דעם ליידיקן פּראָדוקט",
     heading: "איין מעשה. פיר וועגן עס צו האלטן ליב.",
     subtitle: "יעדער תורה טעיל קומט אינעם פֿאָרמאַט וואָס פּאַסט פֿאַר אייער קינד — פֿון שטאַרקע קאַרטאָן ביכלעך פֿאַר די קלענסטע הענטלעך ביז אַ פּאַסיקע קאָלירבוך.",
     cta: "שאַפֿט אייער בוך",

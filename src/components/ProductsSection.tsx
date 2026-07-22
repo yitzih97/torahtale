@@ -8,10 +8,6 @@ import mockupSoftcover from "@/assets/books/mockup-softcover.jpg";
 import mockupHardcover from "@/assets/books/mockup-hardcover.jpg";
 import mockupBoard from "@/assets/books/mockup-board.jpg";
 import mockupColoring from "@/assets/books/mockup-coloring.jpg";
-import shopifySoftcover from "@/assets/books/shopify-softcover.jpg";
-import shopifyHardcover from "@/assets/books/shopify-hardcover.jpg";
-import shopifyBoard from "@/assets/books/shopify-board.jpg";
-import shopifyColoring from "@/assets/books/shopify-coloring.jpg";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 const AUTO_MS = 5000;
@@ -27,8 +23,6 @@ interface ProductDef {
   tagline: string;
   desc: string;
   image: string;
-  /** The original blank product photo from Shopify, revealed on hover. */
-  hoverImage: string;
   size: string;
   priceUsd: number;
   priceIls: number;
@@ -42,7 +36,6 @@ export const ProductsSection = ({ onStart }: Props) => {
   const { symbol, rate, code } = t.currency;
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   // Parallax on the decorative backdrop as the section scrolls through.
   const sectionRef = useRef<HTMLElement>(null);
@@ -54,10 +47,10 @@ export const ProductsSection = ({ onStart }: Props) => {
     code === "ILS" ? `${symbol}${ils.toFixed(0)}` : `${symbol}${Math.round(usd * rate)}`;
 
   const products: ProductDef[] = [
-    { key: "softcover", icon: BookOpen, name: t.bookOptions.softcover, tagline: t.bookOptions.softcoverTagline, desc: t.productsShowcase.desc.softcover, image: mockupSoftcover, hoverImage: shopifySoftcover, size: "8″×8″", priceUsd: 9, priceIls: 25 },
-    { key: "hardcover", icon: Shield, name: t.bookOptions.hardcover, tagline: t.bookOptions.hardcoverTagline, desc: t.productsShowcase.desc.hardcover, image: mockupHardcover, hoverImage: shopifyHardcover, size: "8″×8″", priceUsd: 17, priceIls: 50 },
-    { key: "board", icon: Baby, name: t.bookOptions.boardBook, tagline: t.bookOptions.boardTagline, desc: t.productsShowcase.desc.board, image: mockupBoard, hoverImage: shopifyBoard, size: "6″×6″", priceUsd: 24, priceIls: 70 },
-    { key: "coloring", icon: Palette, name: t.productsShowcase.coloring, tagline: t.productsShowcase.coloringTagline, desc: t.productsShowcase.desc.coloring, image: mockupColoring, hoverImage: shopifyColoring, size: "8.5″×11″", priceUsd: 12, priceIls: 35 },
+    { key: "softcover", icon: BookOpen, name: t.bookOptions.softcover, tagline: t.bookOptions.softcoverTagline, desc: t.productsShowcase.desc.softcover, image: mockupSoftcover, size: "8″×8″", priceUsd: 9, priceIls: 25 },
+    { key: "hardcover", icon: Shield, name: t.bookOptions.hardcover, tagline: t.bookOptions.hardcoverTagline, desc: t.productsShowcase.desc.hardcover, image: mockupHardcover, size: "8″×8″", priceUsd: 17, priceIls: 50 },
+    { key: "board", icon: Baby, name: t.bookOptions.boardBook, tagline: t.bookOptions.boardTagline, desc: t.productsShowcase.desc.board, image: mockupBoard, size: "6″×6″", priceUsd: 24, priceIls: 70 },
+    { key: "coloring", icon: Palette, name: t.productsShowcase.coloring, tagline: t.productsShowcase.coloringTagline, desc: t.productsShowcase.desc.coloring, image: mockupColoring, size: "8.5″×11″", priceUsd: 12, priceIls: 35 },
   ];
 
   // Auto-rotate through the products (pauses on hover/focus).
@@ -146,45 +139,21 @@ export const ProductsSection = ({ onStart }: Props) => {
         {/* Active product card */}
         <div className="mt-8 rounded-3xl border border-foreground/10 bg-background/60 backdrop-blur-sm shadow-[0_24px_60px_-30px_rgba(0,0,0,0.3)] overflow-hidden">
           <div className="grid lg:grid-cols-2 items-stretch">
-            {/* Image — hover reveals the original blank product photo from Shopify */}
-            <div
-              className="relative min-h-[300px] sm:min-h-[420px] overflow-hidden cursor-pointer"
-              onMouseEnter={() => setHovered(true)}
-              onMouseLeave={() => setHovered(false)}
-            >
+            {/* Product photo — shown whole (object-contain) so no part of the
+                book is ever cropped, on the same cream as the mockup backdrop. */}
+            <div className="relative min-h-[300px] sm:min-h-[420px] overflow-hidden bg-[hsl(42_55%_96%)]">
               <AnimatePresence mode="wait">
-                <motion.div
+                <motion.img
                   key={p.key}
+                  src={p.image}
+                  alt={p.name}
                   initial={{ opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, ease }}
-                  className="absolute inset-0"
-                >
-                  {/* Finished cover (default) — slow ken-burns drift keeps it alive */}
-                  <motion.img
-                    src={p.image}
-                    alt={p.name}
-                    initial={{ scale: 1 }}
-                    animate={{ scale: hovered ? 1 : 1.06 }}
-                    transition={{ duration: 6, ease: "linear" }}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  {/* Original blank product from Shopify (on hover) */}
-                  <img
-                    src={p.hoverImage}
-                    alt={`${p.name} — blank product`}
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${hovered ? "opacity-100" : "opacity-0"}`}
-                  />
-                </motion.div>
+                  className="absolute inset-0 w-full h-full object-contain"
+                />
               </AnimatePresence>
-
-              {/* Hint chip */}
-              <div
-                className={`absolute z-10 bottom-3 ${isRtl ? "right-3" : "left-3"} rounded-full bg-background/85 backdrop-blur px-3 py-1.5 text-[11px] font-medium text-foreground/70 shadow-sm transition-opacity duration-300 ${hovered ? "opacity-0" : "opacity-100"}`}
-              >
-                {t.productsShowcase.hoverHint}
-              </div>
             </div>
 
             {/* Copy */}
