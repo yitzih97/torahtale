@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 // Single fixed hero image (the "as the world is created" scene) — no rotation,
 // no random per-load switch, so it caches and the title stays constant.
+import heroDesktop from "@/assets/hero-desktop-3.jpg";
 import heroMobile from "@/assets/hero-m-3.jpg";
 import reviewer1 from "@/assets/avatars/reviewer1.jpg";
 import reviewer2 from "@/assets/avatars/reviewer2.jpg";
@@ -79,17 +80,18 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         {/* Hero visual wrapper — keeps the background images above the opaque trust bar
             so the book at the bottom of the image is never covered by it. */}
         <div className="relative overflow-hidden">
-        {/* Desktop: the SAME portrait render mobile/tablet use, mirrored for LTR so
-            the kids sit opposite the copy — keeps every breakpoint visually identical. */}
-        <div className={`hidden lg:block absolute inset-y-0 ${isRtl ? "left-0" : "right-0"} w-[58%] overflow-hidden`}>
+        {/* Desktop: a wide render of the same scene, FULL-BLEED across the whole
+            hero. Painted with the kids on one third and open meadow on the rest,
+            mirrored for LTR so the subjects land opposite the copy. */}
+        <div className="hidden lg:block absolute inset-0 overflow-hidden">
           <div className="absolute inset-0" style={{ transform: isRtl ? undefined : "scaleX(-1)" }}>
             <img
-              src={heroMobile}
+              src={heroDesktop}
               alt="Two children with their personalized Torah storybook"
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ objectPosition: "center 58%" }}
-              width={1200}
-              height={2122}
+              style={{ objectPosition: "center 72%" }}
+              width={2688}
+              height={1500}
               loading="eager"
               fetchPriority="high"
               decoding="async"
@@ -114,7 +116,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         {/* Readability scrim: strong cream fade behind the copy side, plus a soft
             top/bottom wash on mobile where the copy sits over the image. */}
         <div
-          className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[62%] from-[hsl(42_60%_96%)] via-[hsl(42_60%_96%)]/96 to-transparent z-[1]`}
+          className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[66%] from-[hsl(42_60%_96%)] from-[12%] via-[hsl(42_60%_96%)]/94 via-[52%] to-transparent z-[1]`}
         />
         {/* Mobile scrim — near-solid cream behind the whole copy+CTA block (top ~55%),
             fading out only below it so the text passes WCAG AA over the busy photo. */}
