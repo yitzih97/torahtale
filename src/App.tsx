@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { GoogleOneTap } from "@/components/GoogleOneTap";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useCartSync } from "@/hooks/useCartSync";
 import { useMetaTags } from "@/hooks/useMetaTags";
@@ -47,6 +48,7 @@ const AppInner = () => {
   useScrollReveal();
   return (
     <BrowserRouter>
+      <PageViewTracker />
       <GoogleOneTap />
       <ErrorBoundary>
         <Suspense fallback={<RouteFallback />}>

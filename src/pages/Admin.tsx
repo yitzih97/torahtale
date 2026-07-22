@@ -13,7 +13,9 @@ import {
   Package, Truck, Wand2, Users, BookOpen, CalendarHeart,
   Settings, Eye, Download, Search, ShieldCheck, Mail, MapPin,
   Clock, Loader2, AlertTriangle, CheckCircle2, Play, Maximize2, DollarSign,
+  LayoutDashboard,
 } from "lucide-react";
+import { AdminDashboardTab } from "@/components/admin/AdminDashboardTab";
 import { AdminOrderDetailDialog } from "@/components/admin/AdminOrderDetailDialog";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { useAuth } from "@/contexts/AuthContext";
@@ -72,7 +74,7 @@ export default function Admin() {
   const [downloadingZip, setDownloadingZip] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("orders");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth", { replace: true });
@@ -265,7 +267,10 @@ export default function Admin() {
             transition={{ duration: 0.6, delay: 0.1, ease }}
           >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full grid grid-cols-5 mb-6 bg-secondary rounded-2xl h-12">
+              <TabsList className="w-full grid grid-cols-3 sm:grid-cols-6 mb-6 bg-secondary rounded-2xl h-auto sm:h-12">
+                <TabsTrigger value="dashboard" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm text-xs sm:text-sm">
+                  <LayoutDashboard className="w-4 h-4" /> Dashboard
+                </TabsTrigger>
                 <TabsTrigger value="orders" className="gap-2 rounded-2xl data-[state=active]:bg-card data-[state=active]:shadow-soft-sm text-xs sm:text-sm">
                   <Package className="w-4 h-4" /> Orders
                 </TabsTrigger>
@@ -282,6 +287,11 @@ export default function Admin() {
                   <Settings className="w-4 h-4" /> Settings
                 </TabsTrigger>
               </TabsList>
+
+              {/* ═══ TAB: DASHBOARD (main screen) ═══ */}
+              <TabsContent value="dashboard">
+                <AdminDashboardTab books={books} profiles={profiles} children={children} subscriptions={subscriptions} />
+              </TabsContent>
 
               {/* ═══ TAB: ORDERS ═══ */}
               <TabsContent value="orders">

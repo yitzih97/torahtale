@@ -213,6 +213,53 @@ serve(async (req) => {
       return json({ orders, totalSpent: Math.round(totalSpent * 100) / 100, currency });
     }
 
+    // ── revenue-summary (admin only): totals for EVERY order on the store's
+    // books — feeds the admin dashboard's revenue/profit/expense analytics. ──
+    if (action === "revenue-summary") {
+      if (!isAdmin) return json({ error: "Forbidden" }, 403);
+      const { data: books } = await admin
+        .from("books")
+        .select("id, user_id, shopify_order_id, shopify_order_name, created_at, paid_at")
+        .not("shopify_order_id", "is", null);
+
+      const rows = books || [];
+      if (rows.length === 0) return json({ orders: [], totalRevenue: 0, currency: null });
+
+      // nodes() caps around 250 ids — chunk to stay well clear.
+      const byGid = new Map<string, any>();
+      for (let i = 0; i < rows.length; i += 100) {
+        const ids = rows.slice(i, i + 100).map((b: any) => orderGid(b.shopify_order_id));
+        const data = await shopifyGraphQL(
+          `query($ids: [ID!]!) { nodes(ids: $ids) { ... on Order { ${ORDER_FIELDS} } } }`,
+          { ids },
+        );
+        for (const n of (data.nodes || [])) if (n?.id) byGid.set(n.id, normalizeOrder(n));
+      }
+
+      let totalRevenue = 0;
+      let currency: string | null = null;
+      const orders = rows.map((b: any) => {
+        const o = byGid.get(orderGid(b.shopify_order_id));
+        const paid = o && /paid|partially_refunded/i.test(o.financialStatus || "");
+        const net = o?.total ? o.total.amount - (o.refunded?.amount || 0) : 0;
+        if (paid && o?.total) {
+          totalRevenue += net;
+          currency = currency || o.total.currency;
+        }
+        return {
+          bookId: b.id,
+          userId: b.user_id,
+          orderName: b.shopify_order_name || o?.name || null,
+          placedAt: b.paid_at || o?.processedAt || b.created_at,
+          totalUsd: o?.total?.amount ?? null,
+          netUsd: paid ? Math.round(net * 100) / 100 : 0,
+          paid: !!paid,
+          financialStatus: o?.financialStatus || null,
+        };
+      });
+      return json({ orders, totalRevenue: Math.round(totalRevenue * 100) / 100, currency });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("shopify-admin-data error:", e);
