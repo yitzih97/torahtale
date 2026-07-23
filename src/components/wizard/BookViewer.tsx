@@ -391,9 +391,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
           <div className="absolute" style={{ inset: "8%", border: `0.75px solid ${COVER_GOLD}` }} />
           <div className="absolute inset-x-0 top-[6%] px-1 text-center">
             <p
-              className="font-bold uppercase leading-tight text-[5px] sm:text-[6px]"
+              className="font-normal leading-tight text-[5px] sm:text-[6px]"
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: "'TorahTaleTitle', 'Cinzel', serif",
                 backgroundImage: "linear-gradient(180deg,#fff6d5,#e7be5c 55%,#a9791f)",
                 WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
                 textShadow: "0 1px 1px rgba(0,0,0,0.4)",
@@ -464,9 +464,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
 
       <div className="absolute inset-x-0 top-[15%] sm:top-[16%] text-center px-4">
         <h1
-          className="font-bold uppercase leading-tight text-lg sm:text-3xl"
+          className="font-normal leading-tight text-xl sm:text-4xl"
           style={{
-            fontFamily: "'Cinzel', serif",
+            fontFamily: "'TorahTaleTitle', 'Cinzel', serif",
             backgroundImage: "linear-gradient(180deg, #fff6d5 0%, #f6df97 28%, #e7be5c 50%, #c9992f 72%, #a9791f 100%)",
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
@@ -474,7 +474,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             textShadow: "0 2px 3px rgba(0,0,0,0.45)",
           }}
         >
-          {parshaName.toUpperCase()}
+          {parshaName}
         </h1>
         <div className="mt-1.5 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
           <span className="h-px w-7 sm:w-8 bg-current opacity-70" /><span>❦</span><span className="h-px w-7 sm:w-8 bg-current opacity-70" />

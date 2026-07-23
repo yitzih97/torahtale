@@ -347,19 +347,25 @@ export interface BackCoverPreview { label: string; url: string | null }
  * Shared by the 8×8/hardcover/board wraparound and the coloring portrait cover. */
 
 
-// Cinzel is used only on the print canvas (no DOM node uses it), so make sure the
-// weights are actually loaded before we draw or canvas silently falls back.
+// The cover fonts are only used on the print canvas (no DOM node uses them), so
+// make sure they are actually loaded before we draw or canvas silently falls back.
 async function ensureCoverFonts() {
   try {
     const f: any = (document as any).fonts;
     if (!f) return;
     await Promise.all([
+      f.load("120px TorahTaleTitle"), f.load("70px TorahTaleTitle"),
       f.load("700 120px Cinzel"), f.load("600 40px Cinzel"),
       f.load("600 60px 'Cormorant Garamond'"), f.load("italic 500 40px 'Cormorant Garamond'"),
     ]);
     await f.ready;
   } catch { /* fall back to whatever is available */ }
 }
+
+// Book-name title font for covers: the Torah Tale brand blackletter in Regular
+// weight, gold-gradient engraved. Blackletter is unreadable in all-caps, so the
+// parsha label keeps its natural title case (Hebrew glyphs fall back to Cinzel).
+const coverTitleFont = (px: number) => `${Math.round(px)}px 'TorahTaleTitle', 'Cinzel', serif`;
 
 function goldFill(ctx: CanvasRenderingContext2D, baselineY: number, capH: number): CanvasGradient {
   const g = ctx.createLinearGradient(0, baselineY - capH * 0.92, 0, baselineY + capH * 0.12);
@@ -446,21 +452,21 @@ function drawCoverFurniture(
     coverFlourish(ctx, W / 2, top + U * 0.084, U * 0.15, gold);
     ctx.restore();
   }
-  // Parsha — big engraved gold, fit + wrap to ≤2 lines.
+  // Parsha (book name) — big engraved gold blackletter, fit + wrap to ≤2 lines.
   const maxTW = W * 0.82;
   const fit = (t: string, base: number) => {
-    let f = base; ctx.font = `700 ${f}px 'Cinzel', serif`;
-    while (ctx.measureText(t).width > maxTW && f > U * 0.05) { f -= 4; ctx.font = `700 ${f}px 'Cinzel', serif`; }
+    let f = base; ctx.font = coverTitleFont(f);
+    while (ctx.measureText(t).width > maxTW && f > U * 0.05) { f -= 4; ctx.font = coverTitleFont(f); }
     return f;
   };
-  const words = (opts.parsha || "").toUpperCase().split(" ");
-  let l1 = (opts.parsha || "").toUpperCase(), l2 = "";
+  const words = (opts.parsha || "").split(" ");
+  let l1 = opts.parsha || "", l2 = "";
   let fs = fit(l1, U * 0.125);
   if (fs < U * 0.08 && words.length > 1) {
     l1 = words.slice(0, -1).join(" "); l2 = words.slice(-1).join(" ");
     fs = Math.min(fit(l1, U * 0.125), fit(l2, U * 0.125));
   }
-  const tFont = `700 ${fs}px 'Cinzel', serif`;
+  const tFont = coverTitleFont(fs);
   let ty = top + U * 0.062 + U * 0.11;
   engravedLine(ctx, l1, W / 2, ty, tFont, fs);
   if (l2) { ty += fs * 1.02; engravedLine(ctx, l2, W / 2, ty, tFont, fs); }
@@ -531,13 +537,13 @@ function drawMiniCover(
   ctx.strokeStyle = COVER_GOLD; ctx.lineWidth = Math.max(0.75, size * 0.006);
   const gi = m + size * 0.028;
   ctx.strokeRect(x + gi, y + gi, size - 2 * gi, size - 2 * gi);
-  // Parsha title — engraved gold caps, wrapped to ≤2 lines. Kept small so it
-  // fits neatly inside the little thumbnail instead of dominating it.
+  // Parsha title — engraved gold blackletter, wrapped to ≤2 lines. Kept small so
+  // it fits neatly inside the little thumbnail instead of dominating it.
   ctx.direction = rtl ? "rtl" : "ltr";
   const fs = Math.round(size * 0.072);
-  const titleFont = `700 ${fs}px 'Cinzel', serif`;
+  const titleFont = coverTitleFont(fs);
   ctx.font = titleFont;
-  const lines = wrapLines(ctx, (label || "").toUpperCase(), size - size * 0.22).slice(0, 2);
+  const lines = wrapLines(ctx, label || "", size - size * 0.22).slice(0, 2);
   let ty = y + size * 0.13 + fs;
   for (const ln of lines) { engravedLine(ctx, ln, x + size / 2, ty, titleFont, fs); ty += fs * 1.1; }
   // Child line — magenta italic.

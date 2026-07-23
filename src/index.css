@@ -1,11 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,600;1,700;1,800&family=Inter:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500;700&family=Caveat:wght@400;500;600;700&display=swap');
 
-/* Brand display font for the hero headline (Latin only — Hebrew/Yiddish fall
-   back to Playfair per-glyph automatically). */
+/* Brand display font — custom blackletter traced from the Torah Tale logo
+   (Latin + digits only; Hebrew/Yiddish and missing punctuation fall back to
+   the next font in the stack per-glyph automatically). The 100-900 weight
+   range maps every weight to the Regular file so bold-styled headings render
+   the true Regular instead of a synthetic faux-bold. */
 @font-face {
   font-family: "TorahTaleTitle";
-  src: url("/fonts/TorahTale-Regular.ttf") format("truetype");
-  font-weight: 400;
+  src: url("/fonts/TorahTale-Regular.woff2") format("woff2"),
+       url("/fonts/TorahTale-Regular.ttf") format("truetype");
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
@@ -210,6 +214,15 @@
     @apply font-display;
     text-wrap: balance;
     letter-spacing: 0;
+  }
+  /* Brand blackletter on all title headers (h1-h3) site-wide, in Regular weight
+     (the @font-face maps every weight to the Regular file, so `font-bold`
+     headings don't get faux-bolded). The .font-display variants out-rank the
+     utility class on headings that set it explicitly; headings using any other
+     font-* utility (e.g. font-mono in admin) keep their font. */
+  h1, h2, h3,
+  h1.font-display, h2.font-display, h3.font-display {
+    font-family: "TorahTaleTitle", "Cormorant Garamond", Georgia, serif;
   }
   p, li, label, input, button, textarea {
     @apply font-sans;
