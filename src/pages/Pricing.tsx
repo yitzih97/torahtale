@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Crown, Sparkles, BookOpen } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { CollectionsSection } from "@/components/CollectionsSection";
 import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -13,21 +14,24 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useLanguage } from "@/contexts/LanguageContext";
-import cover1 from "@/assets/gallery/s1-cover.jpg";
-import cover2 from "@/assets/gallery/s2-cover.jpg";
-import cover3 from "@/assets/gallery/s3-cover.jpg";
-import cover4 from "@/assets/gallery/s4-cover.jpg";
-import cover5 from "@/assets/gallery/s5-cover.jpg";
-import cover6 from "@/assets/gallery/s6-cover.jpg";
-import cover7 from "@/assets/gallery/s7-cover.jpg";
-import cover8 from "@/assets/gallery/s8-cover.jpg";
 
 const Pricing = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, dir } = useLanguage();
   const [selected, setSelected] = useState<"single" | "torah" | "tanach">("torah");
   const { symbol, rate } = t.currency;
   const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
+
+  // Scroll to #collections (etc.) when arriving via an anchor link.
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = location.hash.slice(1);
+    const timer = setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [location.hash]);
 
   const goCreate = () => {
     try {
@@ -150,34 +154,8 @@ const Pricing = () => {
           </div>
         </section>
 
-        {/* COLLECTION VISUAL */}
-        <section className="py-16 lg:py-24 overflow-hidden">
-          <div className="container max-w-5xl text-center mb-10">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-              {t.pricing.collectionTitle}
-            </h2>
-            <p className="text-muted-foreground mt-3">
-              {t.pricing.collectionDesc}
-            </p>
-          </div>
-          <div className="relative">
-            <div className="flex gap-5 overflow-x-auto px-6 pb-6 snap-x scrollbar-hide">
-              {[cover1, cover2, cover3, cover4, cover5, cover6, cover7, cover8].map((src, i) => (
-                <div
-                  key={i}
-                  className="shrink-0 snap-center w-44 h-60 rounded-lg overflow-hidden shadow-lg border border-border bg-card"
-                >
-                  <img
-                    src={src}
-                    alt={`${t.pricing.heroTitle} ${i + 1}`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* COLLECTIONS — curated bundles, moved here from the homepage */}
+        <CollectionsSection />
 
         {/* FAQ */}
         <section className="container max-w-3xl py-16 lg:py-24">

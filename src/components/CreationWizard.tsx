@@ -36,6 +36,7 @@ import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { ImageCropDialog } from "./ImageCropDialog";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FamilyPhotoDialog, type ReviewedPerson } from "./wizard/FamilyPhotoDialog";
+import { type Collection as CollectionBundle } from "@/data/collections";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
 import { generateId } from "@/lib/utils";
 
@@ -227,9 +228,12 @@ interface Props {
   /** Optional — when omitted, the wizard renders as a full page (no close affordance). */
   open?: boolean;
   onClose?: () => void;
+  /** Collection-request mode: skips story selection + payment; the request is
+      sent to the admin inbox and invoicing/generation are handled manually. */
+  collection?: CollectionBundle;
 }
 
-export const CreationWizard = ({ open = true, onClose }: Props) => {
+export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { t, lang } = useLanguage();
@@ -250,6 +254,8 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   const [shipping, setShipping] = useState<ShippingData>(DEFAULT_SHIPPING);
   const [bookOptions, setBookOptions] = useState<BookOptions>(DEFAULT_BOOK_OPTIONS);
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
+  const [collectionSubmitting, setCollectionSubmitting] = useState(false);
+  const [collectionSent, setCollectionSent] = useState(false);
 
   // Keep story pageCount in sync with the chosen book format
   // (board=10, softcover=20, hardcover=24, coloring=24)
@@ -535,6 +541,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
   useEffect(() => {
     if (step === 5) setPortionView("mode");
   }, [step]);
+
+  // Collection-request mode: the bundle already defines the stories, so the
+  // story-selection step is skipped in both directions.
+  useEffect(() => {
+    if (collection && step === 5) setStep(dir >= 0 ? 6 : 4);
+  }, [collection, step, dir]);
 
   /* ───── login prompt during step 8 auth gate ───── */
 
@@ -847,6 +859,60 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     });
   };
 
+  // Collection-request mode: no story generation and no checkout — upload the
+  // child photos so the admin can see them, then file the request as a contact
+  // ticket. Invoicing and book generation happen manually after review.
+  const submitCollectionRequest = async () => {
+    if (!collection || collectionSubmitting || collectionSent) return;
+    if (!user) {
+      toast.info("Please sign in to request a collection.");
+      return;
+    }
+    setCollectionSubmitting(true);
+    try {
+      const childLines = await Promise.all(
+        data.children.map(async (c) => {
+          let photoUrl: string | null = c.existingPhotoUrl ?? null;
+          if (c.photo) {
+            const filePath = `${user.id}/${c.id}-${Date.now()}.jpg`;
+            const { error: uploadErr } = await supabase.storage
+              .from("child-photos")
+              .upload(filePath, c.photo, { upsert: true });
+            if (!uploadErr) {
+              const { data: signed } = await supabase.storage
+                .from("child-photos")
+                .createSignedUrl(filePath, 60 * 60 * 24 * 365);
+              photoUrl = signed?.signedUrl || photoUrl;
+            }
+          }
+          return `- ${c.name || "?"} (${c.age || "?"} years old, ${c.gender || "?"})${photoUrl ? `\n  Photo: ${photoUrl}` : ""}`;
+        })
+      );
+      const requesterName =
+        (user.user_metadata?.full_name as string | undefined) || user.email || "Torah Tale user";
+      const message =
+        `Collection purchase request: ${collection.name} (${collection.books}, ~$${collection.priceUsd} / ₪${collection.priceIls}).\n` +
+        `Language: ${data.language}\n` +
+        `Children:\n${childLines.join("\n")}\n\n` +
+        `Submitted from the creation wizard (collection mode). Send the customer an invoice; books are generated manually after payment is received.`;
+      const { error } = await supabase.from("contact_tickets").insert({
+        name: requesterName,
+        email: user.email ?? "",
+        subject: "collection",
+        message,
+      });
+      if (error) throw error;
+      try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
+      setCollectionSent(true);
+      toast.success("Request sent! We'll be in touch shortly.");
+    } catch (err) {
+      console.error("Failed to send collection request:", err);
+      toast.error("Something went wrong — please try again or use the contact page.");
+    } finally {
+      setCollectionSubmitting(false);
+    }
+  };
+
   const startGeneration = async () => {
     setDir(1);
     setStep(9);
@@ -883,6 +949,11 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
     // Cancel any queued auto-advance so we don't double-step
     if (autoAdvanceTimerRef.current) { clearTimeout(autoAdvanceTimerRef.current); autoAdvanceTimerRef.current = null; }
     if (step === 8) {
+      // Collection-request mode ends here: submit the request, no generation.
+      if (collection) {
+        await submitCollectionRequest();
+        return;
+      }
       // Generation no longer requires sign-in. Anyone can generate; the
       // login/sign-up gate moved to step 10 (after the skeletons begin), before
       // book-type selection + checkout.
@@ -2032,7 +2103,7 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   >
                     <Sparkles className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.readyToCreate}</h2>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{collection ? "Ready to send your request" : t.wizard.readyToCreate}</h2>
                 </motion.div>
 
                 {/* Bullet-style summary */}
@@ -2045,7 +2116,12 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                     <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.age}:</span> <span className="font-semibold">{data.children.map(c => c.age).filter(Boolean).join(" & ") || "—"}</span></span>
                   </li>
-                  {planType !== "subscription" && (
+                  {collection ? (
+                    <li className="flex items-start gap-3 text-base">
+                      <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                      <span className="text-foreground"><span className="text-muted-foreground">Collection:</span> <span className="font-semibold">{collection.name} ({collection.books})</span></span>
+                    </li>
+                  ) : planType !== "subscription" && (
                     <li className="flex items-start gap-3 text-base">
                       <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                       <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.story}:</span> <span className="font-semibold">{getPortionLabel(data.torahPortion) || "—"}</span></span>
@@ -2057,9 +2133,16 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                   </li>
                   <li className="flex items-start gap-3 text-base">
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{collection ? "Collection request" : planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
                   </li>
                 </motion.ul>
+
+                {collection && (
+                  <motion.p variants={staggerChild} className="text-sm text-muted-foreground text-center leading-relaxed">
+                    No payment now. Our team reviews your request, emails you an invoice, and your
+                    books are generated personally once payment is received.
+                  </motion.p>
+                )}
 
 
                 {/* Single CTA only: the sticky black "Generate" button at the
@@ -2415,8 +2498,35 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
         </div>
       </div>
 
+      {/* ── Collection request sent — confirmation takes over the wizard ── */}
+      {collectionSent && collection && (
+        <div className="fixed inset-0 z-40 bg-background flex items-center justify-center p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={springTransition}
+            className="max-w-md text-center space-y-4"
+          >
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400">
+              <Check className="h-8 w-8" />
+            </div>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">Request received!</h2>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+              Thanks for your interest in <span className="font-medium text-foreground">{collection.name}</span>.
+              Our team will review your request and reach out to{" "}
+              <span className="font-medium text-foreground">{user?.email}</span> with an invoice.
+              Once payment is received, we'll personally generate the whole collection starring your child.
+            </p>
+            <div className="flex justify-center gap-3 pt-2">
+              <Button variant="outline" className="rounded-xl" onClick={() => navigate("/")}>Back home</Button>
+              <Button variant="gold" className="rounded-xl" onClick={() => navigate("/dashboard")}>Go to dashboard</Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* ── Sticky bottom action — full-width black pill (Fanvue style) ── */}
-      {step !== 9 && step !== 14 && (
+      {step !== 9 && step !== 14 && !collectionSent && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -2439,6 +2549,19 @@ export const CreationWizard = ({ open = true, onClose }: Props) => {
                 );
               }
               if (step === 8) {
+                // Collection-request mode: submit the request instead of generating.
+                if (collection) {
+                  return (
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { void submitCollectionRequest(); }}
+                      disabled={collectionSubmitting}
+                      className={baseBtn}
+                    >
+                      {collectionSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit request"}
+                    </motion.button>
+                  );
+                }
                 // Generation is open to everyone now — sign-in is asked at step 10.
                 return (
                   <motion.button
