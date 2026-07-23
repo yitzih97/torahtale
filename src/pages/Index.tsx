@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { HeroSection, HeroTestimonialsStrip } from "@/components/HeroSection";
+import { HeroSection } from "@/components/HeroSection";
 import { ProductsSection } from "@/components/ProductsSection";
 import { CollectionsSection } from "@/components/CollectionsSection";
 import { HowItWorks } from "@/components/HowItWorks";
@@ -50,7 +50,6 @@ const Index = () => {
       <HowItWorks />
       <ProductsSection onStart={goToCreate} />
       <CollectionsSection />
-      <HeroTestimonialsStrip />
       <WhyTorahTale />
       <GalleryReviewsSection />
       <CTASection onStart={goToCreate} />

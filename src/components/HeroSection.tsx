@@ -130,7 +130,8 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease }}
-                className="font-heading font-medium leading-[1.12] tracking-[-0.01em] text-foreground text-[2.25rem] sm:text-5xl lg:text-[4.25rem]"
+                style={{ fontFamily: '"TorahTaleTitle", "Playfair Display", serif' }}
+                className="font-medium leading-[1.12] tracking-[-0.01em] text-foreground text-[2.25rem] sm:text-5xl lg:text-[4.25rem]"
               >
                 <span className="block">{copy.title1}</span>
                 {/* Emphasis line — a deep amber gold so it stays legible over the warm background. */}
