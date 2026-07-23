@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,12 +41,9 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2.5 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-accent-foreground" />
-            </div>
-            <span className="font-display text-2xl font-bold text-foreground">Torah Tale</span>
-          </div>
+          <a href="/" className="inline-flex mx-auto mb-6">
+            <BrandMark className="gap-1.5" iconClassName="h-12 w-12" wordmarkClassName="h-14 w-auto" />
+          </a>
           <h1 className="font-display text-2xl font-bold text-primary">{t.auth.setNewPassword}</h1>
         </div>
         <div className="bg-card border border-border rounded-2xl p-6 shadow-soft-md">
