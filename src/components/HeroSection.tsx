@@ -137,7 +137,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 {/* Emphasis line — a deep amber gold so it stays legible over the warm background. */}
                 {/* pb/-mb pair extends the paint box below the baseline so the
                     "g" descender isn't clipped by backgroundClip: text. */}
-                <span className="block italic font-semibold pb-[0.18em] -mb-[0.18em] gold-shine-text [filter:drop-shadow(0_1px_2px_hsl(36_70%_15%/0.55))]">
+                <span className="block italic font-normal pb-[0.18em] -mb-[0.18em] gold-shine-text [filter:drop-shadow(0_1px_2px_hsl(36_70%_15%/0.55))]">
                   {copy.title2}
                 </span>
               </motion.h1>
