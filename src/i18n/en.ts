@@ -52,7 +52,7 @@ export const en = {
 
   // Gallery & Reviews
   gallery: {
-    label: "Testimonials",
+    label: "Gallery",
     title: "Stories Loved by",
     titleAccent: "Frum Families Everywhere",
     subtitle: "",

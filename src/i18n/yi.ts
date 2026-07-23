@@ -54,7 +54,7 @@ export const yi: typeof en = {
 
   // Gallery & Reviews
   gallery: {
-    label: "המלצות",
+    label: "גלריה",
     title: "סיפורים שנאהבים ע״י",
     titleAccent: "משפחות חרדיות בכל מקום",
     subtitle: "",
