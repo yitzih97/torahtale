@@ -48,6 +48,16 @@ serve(async (req) => {
       throw new Error("No AI provider configured (set ANTHROPIC_API_KEY and/or GOOGLE_AI_API_KEY)");
     }
 
+    // Parent nicknames follow the book's language selection so the cover, story
+    // pages, and dedication always use the SAME pair: English-only → Daddy/Mommy;
+    // Hebrew selected (incl. english+hebrew / legacy "bilingual") → Abba/Ima;
+    // Yiddish selected → Totty/Mommy (Yiddish wins when combined with Hebrew).
+    const langSelection = String(language || "english").toLowerCase();
+    const hasYiddish = langSelection.includes("yiddish");
+    const hasHebrew = langSelection.includes("hebrew") || langSelection === "bilingual";
+    const parentFather = hasYiddish ? "Totty" : hasHebrew ? "Abba" : "Daddy";
+    const parentMother = hasYiddish ? "Mommy" : hasHebrew ? "Ima" : "Mommy";
+
     // Page count is driven by book type (board=10, soft/hardcover=20). Validate to a sane range.
     const requestedPages = Number(pageCount);
     const pages = Number.isFinite(requestedPages) && requestedPages > 0
@@ -98,7 +108,7 @@ serve(async (req) => {
 IMPORTANT CULTURAL RULES:
 - Boys aged 3 and older ALWAYS wear a yarmulke, have peyos (sidelocks), and tzitzis visible. Boys UNDER 3 (pre-upsherin) do NOT wear a yarmulke/kippah, do NOT have peyos, and do NOT wear tzitzis unless the child's description explicitly asks for them or a reference photo clearly shows those items. A reference photo by itself is NOT permission unless those items are actually visible in it
 - Girls ALWAYS wear long sleeves, long skirts below the knee, modest clothing — no pants, no head covering for unmarried girls
-- Use Chareidi terminology naturally: Tatty (father), Mommy (mother), Rebbe (teacher for boys), Morah (teacher for girls), davening (praying), bentching (grace after meals), learning (Torah study), Shabbos (never Shabbat), Hashem (never "God"), sefer/seforim (holy books), beis medrash (study hall), cheder/yeshiva (boys' school), Bais Yaakov (girls' school)
+- Use Chareidi terminology naturally: ${parentFather} (father), ${parentMother} (mother), Rebbe (teacher for boys), Morah (teacher for girls), davening (praying), bentching (grace after meals), learning (Torah study), Shabbos (never Shabbat), Hashem (never "God"), sefer/seforim (holy books), beis medrash (study hall), cheder/yeshiva (boys' school), Bais Yaakov (girls' school)
 - Reference daily frum life: davening Shacharis, learning in cheder or Bais Yaakov, making brachos, the Shabbos table, zemiros, havdalah
 - NO mention of TV, movies, video games, secular entertainment, or non-tznius activities
 - The stories should be vivid, imaginative, and make the kinderlach the stars of the narrative
@@ -177,7 +187,7 @@ Details:
 
 Requirements:
 - Make the kinderlach the main characters and stars of the story
-- The kinderlach experience the adventure BY THEMSELVES — do NOT place their Tatty, Mommy, grandparents, or teachers into story scenes as on-scene characters (the illustrations must show only the kinderlach). Torah figures (Moshe Rabbeinu, Avraham Avinu, the meraglim, etc.) appear as the narrative requires. Parents may be warmly referenced in the dedication or closing moral, but never as characters inside a scene
+- The kinderlach experience the adventure BY THEMSELVES — do NOT place their ${parentFather}, ${parentMother}, grandparents, or teachers into story scenes as on-scene characters (the illustrations must show only the kinderlach). Torah figures (Moshe Rabbeinu, Avraham Avinu, the meraglim, etc.) appear as the narrative requires. Parents may be warmly referenced in the dedication or closing moral, but never as characters inside a scene
 - Each story page should be 2-3 sentences, appropriate for a ${age}-year-old
 - CRITICAL: At least 70% of the pages MUST depict SPECIFIC, ACTUAL events from the Torah portion. For example, for Va'era show the plagues one by one; for Beshalach show the crossing of the sea; for Bereishit show the days of creation. The child must be IN those scenes, witnessing and participating in the actual events — not just hearing about them or being told the story.
 - DOUBLE PARSHA: If the Torah Portion name above joins TWO parshiyos (e.g. "Chukas-Balak", "Matos-Masei", "Tazria-Metzora") this is ONE book covering BOTH. Give balanced coverage to the key events of each parsha — roughly half the story pages for the first, half for the second — so both are meaningfully represented in the single book.
@@ -186,7 +196,8 @@ Requirements:
 - The kinderlach should discover the hidden lesson behind the Torah story through their adventure
 - End with a warm, uplifting moral that shows how they can apply the lesson in their own frum lives — at the Shabbos table, in cheder/Bais Yaakov, with their family
 - Boys aged 3+ MUST always wear a yarmulke, have peyos, and tzitzis; boys UNDER 3 do NOT wear a yarmulke, peyos, or tzitzis (pre-upsherin) unless their description explicitly asks for them or their photo clearly shows them. A photo does NOT override this unless those items are visible. Girls MUST wear long sleeves and long skirts — maintain strict tznius throughout
-- Use Chareidi terminology: Tatty, Mommy, Rebbe, Morah, davening, bentching, Shabbos, Hashem, sefer/seforim, beis medrash, cheder, Bais Yaakov
+- Use Chareidi terminology: ${parentFather}, ${parentMother}, Rebbe, Morah, davening, bentching, Shabbos, Hashem, sefer/seforim, beis medrash, cheder, Bais Yaakov
+- PARENT NAMES — ABSOLUTE CONSISTENCY: whenever the children's parents are mentioned, their father is ALWAYS called "${parentFather}" and their mother is ALWAYS called "${parentMother}" — the exact same pair on the cover title and subtitle, on every story page, in the dedication, the synopsis, and the discussion questions. NEVER mix in any other parent nickname (${["Daddy", "Tatty", "Totty", "Abba", "Ima", "Mommy", "Papa"].filter((n) => n !== parentFather && n !== parentMother).join(", ")}, etc.) anywhere in this book, in any of its languages
 - NO references to TV, movies, video games, or secular entertainment
 - Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting like a Yiddishe bubbe telling a maaseh
 - ${language === "bilingual" ? "Write each page in both English and Hebrew" : language === "hebrew" ? "Write in Hebrew (modern Hebrew with full nikud where helpful)" : language === "yiddish" ? "Write in Yiddish (Eastern/Litvish Yiddish in Hebrew script — the traditional Chareidi mama-loshen used in chassidish/yeshivish homes)" : "Write in English"}
