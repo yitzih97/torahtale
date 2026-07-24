@@ -77,7 +77,6 @@ export const GalleryReviewsSection = () => {
           transition={{ duration: 0.7, ease }}
           className="text-center mb-16"
         >
-          <span className="text-sm font-semibold text-accent mb-3 block tracking-wider uppercase">{t.gallery.label}</span>
           <h2 className="text-3xl lg:text-5xl font-bold text-foreground leading-tight">
             {t.gallery.title}
             <br />
@@ -88,48 +87,6 @@ export const GalleryReviewsSection = () => {
               {t.gallery.subtitle}
             </p>
           )}
-
-          {/* Trust ribbon — overlapping kid avatars + stars */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.6, delay: 0.2, ease }}
-            className="mt-8 inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 rounded-full border border-border/60 bg-background/70 backdrop-blur px-5 py-3 shadow-sm"
-          >
-            <div className="flex -space-x-2.5 rtl:space-x-reverse">
-              {stories.slice(0, 6).map((s, i) => (
-                <motion.img
-                  key={s.child}
-                  src={s.childPhoto}
-                  alt={s.child}
-                  initial={{ opacity: 0, scale: 0.4, x: -8 }}
-                  whileInView={{ opacity: 1, scale: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.3 + i * 0.07 }}
-                  className="w-8 h-8 rounded-full object-cover border-2 border-background shadow-sm"
-                />
-              ))}
-            </div>
-            <div className="flex flex-col items-center sm:items-start">
-              <div className="flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, j) => (
-                  <motion.span
-                    key={j}
-                    initial={{ opacity: 0, scale: 0, rotate: -30 }}
-                    whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ type: "spring", stiffness: 340, damping: 16, delay: 0.6 + j * 0.08 }}
-                  >
-                    <Star className="w-3.5 h-3.5 fill-accent text-accent" />
-                  </motion.span>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {t.gallery.trustLine} · {t.gallery.trustStars}
-              </p>
-            </div>
-          </motion.div>
         </motion.div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 lg:gap-6">

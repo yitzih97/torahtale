@@ -13,6 +13,9 @@
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
+  /* Scales every glyph of the brand title font up ~8% wherever it's used,
+     making all TorahTaleTitle headings a touch bigger without touching layout. */
+  size-adjust: 108%;
 }
 
 @tailwind base;
