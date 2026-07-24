@@ -14,7 +14,6 @@ import { KidCard } from "@/components/dashboard/KidCard";
 import { BookCard } from "@/components/dashboard/BookCard";
 import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
 import { BookTimeline } from "@/components/dashboard/BookTimeline";
-import { UpcomingDeliveries } from "@/components/dashboard/UpcomingDeliveries";
 import { UpcomingBookCovers } from "@/components/UpcomingBookCovers";
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
 import { BookReviewDialog } from "@/components/dashboard/BookReviewDialog";
@@ -45,7 +44,7 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const { books, isLoading: booksLoading } = useBooks();
   const { children, isLoading: childrenLoading, addChild, updateChild, deleteChild } = useChildren();
-  const { subscriptions, isLoading: subsLoading, cancelSubscription, updateSubscription } = useSubscriptions();
+  const { subscriptions, isLoading: subsLoading, updateSubscription } = useSubscriptions();
   const [addChildOpen, setAddChildOpen] = useState(false);
   const [editingChild, setEditingChild] = useState<ChildRecord | null>(null);
   
@@ -429,16 +428,6 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <>
-                    {/* Weekly subscribers: the next 4 parshiyos coming up, as
-                        covers starring their kids. */}
-                    <div className="mb-6">
-                      <UpcomingBookCovers
-                        childNames={kidNames}
-                        heading="Your next books"
-                        subtext="Coming up in your weekly Parsha Club — starring your kids."
-                      />
-                    </div>
-                    <UpcomingDeliveries subscriptions={subscriptions} />
                     <div className="grid sm:grid-cols-2 gap-5">
                     {subscriptions.map((sub, i) => (
                       <SubscriptionCard
@@ -446,21 +435,7 @@ export default function Dashboard() {
                         sub={sub}
                         index={i}
                         onEdit={() => setEditingSub(sub)}
-                        onPayment={() => window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener,noreferrer")}
-                        onToggle={async () => {
-                          if (sub.status === "canceled") return;
-                          const next = sub.status === "active" ? "paused" : "active";
-                          await updateSubscription.mutateAsync({ id: sub.id, status: next });
-                          toast.success(next === "paused" ? "Subscription paused" : "Subscription resumed!");
-                        }}
-                        onCancel={async () => {
-                          await cancelSubscription.mutateAsync(sub.id);
-                          toast.success("Subscription canceled");
-                        }}
-                        onReactivate={async () => {
-                          await updateSubscription.mutateAsync({ id: sub.id, status: "active", canceled_at: null as any });
-                          toast.success("Subscription reactivated!");
-                        }}
+                        onManage={() => window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener,noreferrer")}
                       />
                     ))}
 

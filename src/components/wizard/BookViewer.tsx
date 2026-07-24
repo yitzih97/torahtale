@@ -55,18 +55,36 @@ export const BOOK_TEXT_STYLE = {
   borderRadius: 18,
 };
 
-export const COVER_TAGLINE = ["Visit our website &", "Subscribe to receive", "Weekly Parshah Stories"];
+export const COVER_TAGLINE = ["A new personalized parsha story,", "beautifully illustrated with your child as", "the star — delivered every single week."];
 export const COVER_URL = "torahtale.com";
 
 /** Back-cover subscribe invitation, localized to the BOOK's language. Falls back
  *  to English. The site URL stays as-is (it's a domain). */
 export const COVER_TAGLINE_BY_LANG: Record<"en" | "he" | "yi", string[]> = {
   en: COVER_TAGLINE,
-  he: ["בקרו באתר שלנו", "והירשמו לקבלת", "סיפורי פרשת השבוע"],
-  yi: ["באזוכט אונדזער וועבזייטל", "און אבאנירט צו באקומען", "וועכנטלעכע פרשה מעשיות"],
+  he: ["סיפור פרשה אישי חדש,", "מאויר להפליא עם ילדכם בתפקיד", "הכוכב — מדי שבוע בשבוע."],
+  yi: ["א נייע פערזענלעכע פרשה מעשה,", "שיין אילוסטרירט מיט אייער קינד", "ווי דער שטערן — יעדע וואך."],
 };
 export const getCoverTagline = (lang: "en" | "he" | "yi"): string[] =>
   COVER_TAGLINE_BY_LANG[lang] || COVER_TAGLINE;
+
+/** Back-cover headline above the invitation — the series name. */
+export const COVER_BACK_HEADLINE_BY_LANG: Record<"en" | "he" | "yi", string> = {
+  en: "The Torah Tale Weekly Series",
+  he: "הסדרה השבועית",
+  yi: "די וועכנטלעכע סעריע",
+};
+export const getCoverHeadline = (lang: "en" | "he" | "yi"): string =>
+  COVER_BACK_HEADLINE_BY_LANG[lang] || COVER_BACK_HEADLINE_BY_LANG.en;
+
+/** Small call-to-action above the site URL on the back cover. */
+export const COVER_CTA_BY_LANG: Record<"en" | "he" | "yi", string> = {
+  en: "Start your subscription at",
+  he: "התחילו את המנוי שלכם ב־",
+  yi: "הייבט אן אייער אבאנעמענט ביי",
+};
+export const getCoverCta = (lang: "en" | "he" | "yi"): string =>
+  COVER_CTA_BY_LANG[lang] || COVER_CTA_BY_LANG.en;
 
 /** Cover text styling — the book name + kids render in Inter, white, with a soft
  *  drop shadow (matching the story captions) over the illustration. */
@@ -537,8 +555,21 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
           a subscribe invitation, and the site URL. */}
       <div className="relative flex flex-col items-center justify-between gap-2 p-3 sm:p-5 text-center bg-[hsl(42_50%_94%)]">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
-        <div className="relative pt-1">
-          <BrandMark stacked iconClassName="h-9 w-9 sm:h-11 sm:w-11" wordmarkClassName="h-5 sm:h-6" />
+        {/* Navy frame + gold keyline so the back matches the front cover jacket. */}
+        <div className="pointer-events-none absolute inset-2 sm:inset-3 border-2 border-[#122140]" />
+        <div className="pointer-events-none absolute inset-[9px] sm:inset-[13px] border border-[#e3c169]/70" />
+
+        {/* Stacked logo (book on top of the wordmark) — icon enlarged, text size
+            unchanged — with the series headline beneath. */}
+        <div className="relative flex flex-col items-center pt-2">
+          <BrandMark stacked iconClassName="h-14 w-14 sm:h-16 sm:w-16" wordmarkClassName="h-5 sm:h-6" />
+          <p className="mt-1.5 font-display text-[11px] sm:text-sm text-gold leading-tight" dir={dir}>{getCoverHeadline(lang)}</p>
+        </div>
+
+        <div className="relative font-body italic text-primary/80 leading-snug space-y-0.5 text-xs sm:text-sm whitespace-pre-line" dir={dir}>
+          {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : getCoverTagline(lang))).map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
         </div>
 
         {/* "Coming next" teaser mini-covers (each looks like a front cover). */}
@@ -551,12 +582,10 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
           </div>
         )}
 
-        <div className="relative font-body italic text-primary/80 leading-snug space-y-0.5 text-xs sm:text-sm whitespace-pre-line" dir={dir}>
-          {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : getCoverTagline(lang))).map((line, i) => (
-            <p key={i}>{line}</p>
-          ))}
+        <div className="relative">
+          <p className="font-body italic text-[10px] sm:text-xs text-primary/70 leading-tight" dir={dir}>{getCoverCta(lang)}</p>
+          <p className="font-mono text-[10px] sm:text-xs tracking-[0.2em] text-gold uppercase">{COVER_URL}</p>
         </div>
-        <p className="relative font-mono text-[10px] sm:text-xs tracking-[0.2em] text-gold uppercase">{COVER_URL}</p>
       </div>
 
       {/* Front cover — right */}

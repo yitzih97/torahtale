@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { BOOK_TEXT_STYLE, COVER_URL, getCoverTagline, type BookPage } from "@/components/wizard/BookViewer";
+import { BOOK_TEXT_STYLE, COVER_URL, getCoverTagline, getCoverHeadline, getCoverCta, COMING_NEXT_LABEL, type BookPage } from "@/components/wizard/BookViewer";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
@@ -585,51 +585,87 @@ async function renderCoverSpread(
   const rtlDir: CanvasDirection = rtl ? "rtl" : "ltr";
   drawPaperHalf(ctx, "left");
 
-  // ── BACK COVER (left half): brand logo, a single row of 4 small "coming next"
-  // story thumbnails, the subscribe invitation, and the site URL. ──
+  // ── BACK COVER (left half): a decorative navy-framed panel that mirrors the
+  // front cover's frame, with the stacked brand logo (book icon ON TOP of the
+  // wordmark), the series headline, a professional subscribe invitation, a row of
+  // "coming next" teaser covers, and the site URL. ──
+  const BW = HALF_W;                              // back cover = BW × SPREAD_H square
+  const cx = BW / 2;
+  {
+    const U = BW;
+    const m = Math.round(U * 0.028), bw = Math.round(U * 0.02);
+    ctx.strokeStyle = COVER_NAVY; ctx.lineWidth = bw;
+    ctx.strokeRect(m + bw / 2, m + bw / 2, BW - 2 * m - bw, SPREAD_H - 2 * m - bw);
+    const gi = m + bw + Math.round(U * 0.007);
+    ctx.strokeStyle = COVER_GOLD; ctx.lineWidth = 2; ctx.strokeRect(gi, gi, BW - 2 * gi, SPREAD_H - 2 * gi);
+    ctx.strokeStyle = "rgba(227,193,105,0.5)"; ctx.lineWidth = 1;
+    ctx.strokeRect(gi + 5, gi + 5, BW - 2 * gi - 10, SPREAD_H - 2 * gi - 10);
+    const cs = U * 0.05, ci = gi + 10;
+    cornerFiligree(ctx, ci, ci, cs, 0, COVER_GOLD);
+    cornerFiligree(ctx, BW - ci, ci, cs, Math.PI / 2, COVER_GOLD);
+    cornerFiligree(ctx, BW - ci, SPREAD_H - ci, cs, Math.PI, COVER_GOLD);
+    cornerFiligree(ctx, ci, SPREAD_H - ci, cs, -Math.PI / 2, COVER_GOLD);
+  }
+
+  // Stacked brand logo — book icon ON TOP of the wordmark. The lockup is a touch
+  // larger than the old side-by-side one, but the wordmark keeps its original
+  // 150px height, so the "Torah Tale" type size is unchanged.
   const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon), safeLoad(torahTaleWordmark)]);
   if (icon && wordmark) {
-    const iconH = 240;
+    const iconH = 250;
     const iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
     const wmH = 150;
     const wmW = (wordmark.naturalWidth / wordmark.naturalHeight) * wmH;
-    const gap = 28;
-    const groupW = iconW + gap + wmW;
-    const startX = HALF_W / 2 - groupW / 2;
-    const centerY = SPREAD_H * 0.22;
-    ctx.drawImage(icon, startX, centerY - iconH / 2, iconW, iconH);
-    ctx.drawImage(wordmark, startX + iconW + gap, centerY - wmH / 2, wmW, wmH);
+    const gap = 8;
+    const startY = 78;
+    ctx.drawImage(icon, cx - iconW / 2, startY, iconW, iconH);
+    ctx.drawImage(wordmark, cx - wmW / 2, startY + iconH + gap, wmW, wmH);
   }
 
-  // Row of 4 small "coming next" story thumbnails (empty box until generated).
+  // Gold flourish + series headline (engraved gold blackletter).
+  coverFlourish(ctx, cx, 505, BW * 0.28, COVER_GOLD);
+  ctx.direction = rtlDir;
+  const hSize = 44;
+  engravedLine(ctx, getCoverHeadline(lang), cx, 558, coverTitleFont(hSize), hSize);
+
+  // Professional subscribe invitation (localized → RTL) — or the per-book override.
+  ctx.fillStyle = "#5a4a32";
+  ctx.direction = rtlDir;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const tSize = 38;
+  ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
+  const taglineLines = page.backCoverText && page.backCoverText.trim()
+    ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
+    : getCoverTagline(lang);
+  taglineLines.forEach((line, i) => {
+    ctx.fillText(line, cx, 620 + i * (tSize * 1.35));
+  });
+
+  // "Coming next" label + a row of 4 teaser covers (empty box until generated).
+  ctx.direction = rtlDir;
+  ctx.fillStyle = "#8a7452";
+  ctx.font = `600 24px 'Inter', sans-serif`;
+  ctx.fillText(letterSpace((COMING_NEXT_LABEL[lang] || COMING_NEXT_LABEL.en).toUpperCase(), 3), cx, 782);
   const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
-  const thumb = 190, tgap = 28;
+  const thumb = 150, tgap = 20;
   const rowW = 4 * thumb + 3 * tgap;
-  const rowX = HALF_W / 2 - rowW / 2;
-  const rowY = SPREAD_H * 0.38;
+  const rowX = cx - rowW / 2;
+  const rowY = 806;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
     drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, rowY, thumb, rtl);
   }
 
-  // Subscribe invitation (localized → RTL) + site URL (a domain → always LTR).
-  ctx.fillStyle = "#5a4a32";
+  // CTA + site URL (a domain → always LTR).
   ctx.direction = rtlDir;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const tSize = 54;
-  ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  const cy = SPREAD_H * 0.68;
-  const taglineLines = page.backCoverText && page.backCoverText.trim()
-    ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
-    : getCoverTagline(lang);
-  taglineLines.forEach((line, i) => {
-    ctx.fillText(line, HALF_W / 2, cy + (i - (taglineLines.length - 1) / 2) * (tSize * 1.35));
-  });
+  ctx.fillStyle = "#5a4a32";
+  ctx.font = `italic 30px ${BOOK_TEXT_STYLE.fontFamily}`;
+  ctx.fillText(getCoverCta(lang), cx, 1010);
   ctx.direction = "ltr";
   ctx.fillStyle = "#b88a2a";
-  ctx.font = `600 36px 'Inter', sans-serif`;
-  ctx.fillText(COVER_URL.toUpperCase(), HALF_W / 2, SPREAD_H * 0.9);
+  ctx.font = `700 40px 'Inter', sans-serif`;
+  ctx.fillText(COVER_URL.toUpperCase(), cx, 1058);
 
   // ── FRONT COVER (right half): illustration + Parsha name + child. ──
   const img = await safeLoad(page.image);
@@ -761,15 +797,22 @@ async function renderColoringBackMatter(
   const padX = W * 0.08;
   let y = H * 0.035;
 
-  // ── Logo (icon + wordmark), centered ──
+  // ── Stacked logo (book icon ON TOP of the wordmark) + series headline, centered.
+  //    Icon enlarged a touch; wordmark keeps its original 50px height. ──
   const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon), safeLoad(torahTaleWordmark)]);
   if (icon && wordmark) {
-    const iconH = 84, iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
+    const iconH = 100, iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
     const wmH = 50, wmW = (wordmark.naturalWidth / wordmark.naturalHeight) * wmH;
-    const gap = 16, groupW = iconW + gap + wmW, startX = W / 2 - groupW / 2;
-    ctx.drawImage(icon, startX, y, iconW, iconH);
-    ctx.drawImage(wordmark, startX + iconW + gap, y + (iconH - wmH) / 2, wmW, wmH);
-    y += iconH + 28;
+    const gap = 6;
+    ctx.drawImage(icon, W / 2 - iconW / 2, y, iconW, iconH);
+    ctx.drawImage(wordmark, W / 2 - wmW / 2, y + iconH + gap, wmW, wmH);
+    y += iconH + gap + wmH + 14;
+    ctx.direction = rtl ? "rtl" : "ltr";
+    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    const hf = 30;
+    engravedLine(ctx, getCoverHeadline(lang), W / 2, y + hf, coverTitleFont(hf), hf);
+    y += hf + 24;
+    ctx.textBaseline = "top";
   }
 
   // ── Up to 10 discussion questions ──
@@ -817,12 +860,17 @@ async function renderColoringBackMatter(
   }
   y += thumb + 26;
 
-  // ── Site URL ──
-  ctx.direction = "ltr";
+  // ── CTA + site URL ──
+  const urlY = Math.min(y + 30, H - 40);
+  ctx.direction = rtl ? "rtl" : "ltr";
   ctx.textAlign = "center";
+  ctx.fillStyle = "#5a4a32";
+  ctx.font = `italic 24px ${BOOK_TEXT_STYLE.fontFamily}`;
+  ctx.fillText(getCoverCta(lang), W / 2, urlY - 34);
+  ctx.direction = "ltr";
   ctx.fillStyle = "#b88a2a";
-  ctx.font = `600 26px 'Inter', sans-serif`;
-  ctx.fillText(COVER_URL.toUpperCase(), W / 2, Math.min(y, H - 46));
+  ctx.font = `700 28px 'Inter', sans-serif`;
+  ctx.fillText(COVER_URL.toUpperCase(), W / 2, urlY);
 
   return canvas.toDataURL("image/jpeg", 0.92);
 }

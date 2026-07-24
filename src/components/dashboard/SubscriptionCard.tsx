@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import {
-  CalendarHeart, Pencil, CreditCard, Pause, Play, X, Sparkles, Palette, Globe, RotateCcw,
+  CalendarHeart, Pencil, CreditCard, Sparkles, Palette, Globe, RotateCcw, BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getUpcomingParsha, getPortionDisplay } from "@/components/wizard/TorahPortions";
 import type { SubscriptionRecord } from "@/hooks/useSubscriptions";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -26,15 +27,14 @@ const statusPill = (s: string) => {
 interface Props {
   sub: SubscriptionRecord;
   index: number;
+  /** Edit local delivery preferences (child, frequency, shipping address). */
   onEdit: () => void;
-  onPayment: () => void;
-  onToggle: () => Promise<void> | void;
-  onCancel: () => Promise<void> | void;
-  onReactivate?: () => Promise<void> | void;
+  /** Open the Shopify hosted customer portal (payment, pause, cancel, reactivate). */
+  onManage: () => void;
 }
 
-export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCancel, onReactivate }: Props) {
-  const { t } = useLanguage();
+export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
+  const { t, lang } = useLanguage();
   const isActive = sub.status === "active";
   const isPaused = sub.status === "paused";
   const isCanceled = sub.status === "canceled";
@@ -44,6 +44,23 @@ export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCa
     const diff = new Date(sub.next_delivery_date).getTime() - Date.now();
     if (diff < 0) return 0;
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  })();
+
+  // The next few weekly parshiyos this subscription will deliver — shown as small
+  // cover thumbnails so it's clear at a glance what's coming for this child.
+  const upcoming = (() => {
+    const start = sub.next_delivery_date ? new Date(sub.next_delivery_date) : new Date();
+    const items: { portion: string; label: string }[] = [];
+    let d = new Date(start);
+    for (let guard = 0; items.length < 3 && guard < 80; guard++) {
+      const portion = getUpcomingParsha(d, 0);
+      if (!items.some((it) => it.portion === portion)) {
+        items.push({ portion, label: getPortionDisplay(portion, lang) });
+      }
+      d = new Date(d);
+      d.setDate(d.getDate() + 7);
+    }
+    return items;
   })();
 
   return (
@@ -70,7 +87,7 @@ export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCa
             {t.dash.parshaClub}
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-            For {sub.child_name || "your kind"} ·{" "}
+            For {sub.child_name || "your child"} ·{" "}
             <span className="font-medium text-foreground/80">
               {t.currency.symbol}
               {(sub.price_per_week * t.currency.rate).toFixed(2)}
@@ -119,23 +136,50 @@ export function SubscriptionCard({ sub, index, onEdit, onPayment, onToggle, onCa
         <MetaPill Icon={Globe} label="Lang" value={sub.language || "English"} />
       </div>
 
-      {/* Actions */}
-      {!isCanceled ? (
-        <div className="relative grid grid-cols-2 gap-2">
-          <ActionTile Icon={Pencil} label="Edit plan" onClick={onEdit} />
-          <ActionTile Icon={CreditCard} label="Payment" onClick={onPayment} />
-          <ActionTile
-            Icon={isPaused ? Play : Pause}
-            label={isPaused ? t.dash.resume : t.dash.pause}
-            onClick={onToggle}
-          />
-          <ActionTile Icon={X} label={t.dash.cancel} onClick={onCancel} danger />
-        </div>
-      ) : onReactivate ? (
+      {/* Coming next — small cover thumbnails of the upcoming weekly books */}
+      {!isCanceled && upcoming.length > 0 && (
         <div className="relative">
-          <ActionTile Icon={RotateCcw} label="Reactivate subscription" onClick={onReactivate} />
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
+            Coming next for {sub.child_name || "your child"}
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {upcoming.map((it, i) => (
+              <div
+                key={i}
+                className="relative aspect-[3/4] rounded-xl overflow-hidden border border-black/5 ring-1 ring-black/5
+                  bg-[hsl(42_50%_94%)] shadow-[0_8px_18px_-12px_rgba(15,23,42,0.35)] flex flex-col items-center justify-center p-2 text-center"
+              >
+                <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_25%,hsl(42_78%_70%/0.55),transparent_60%)]" />
+                <BookOpen className="w-3.5 h-3.5 text-gold/70 mb-1 relative" strokeWidth={1.75} />
+                <p className="relative font-display font-bold text-primary leading-[1.05] text-[11px] line-clamp-2">{it.label}</p>
+                <p className="relative mt-0.5 font-body italic text-gold text-[9px] line-clamp-1">{sub.child_name || "your child"}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      ) : null}
+      )}
+
+      {/* Actions — all billing is managed in the Shopify hosted customer portal,
+          the only place that actually updates payment or stops the charge. */}
+      <div className="relative flex flex-col gap-2 mt-auto">
+        <Button
+          type="button"
+          variant="gold"
+          onClick={onManage}
+          className="w-full rounded-2xl gap-2 h-11"
+        >
+          {isCanceled ? <RotateCcw className="w-4 h-4" strokeWidth={2} /> : <CreditCard className="w-4 h-4" strokeWidth={2} />}
+          {isCanceled ? "Reactivate in your account" : "Manage subscription & payment"}
+        </Button>
+        <p className="text-[11px] text-muted-foreground text-center leading-snug px-1">
+          {isCanceled
+            ? "Restart billing and delivery from your secure account."
+            : "Update payment, pause, or cancel anytime in your secure account."}
+        </p>
+        {!isCanceled && (
+          <ActionTile Icon={Pencil} label="Edit delivery details" onClick={onEdit} />
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -166,7 +210,7 @@ function ActionTile({
       type="button"
       variant="ghost"
       onClick={() => onClick()}
-      className={`h-auto py-3 px-3 rounded-2xl justify-start gap-2.5 font-medium text-xs
+      className={`h-auto py-3 px-3 rounded-2xl justify-center gap-2.5 font-medium text-xs
         border border-white/70 ring-1 ring-black/5
         shadow-[inset_0_1px_0_0_rgba(255,255,255,0.8),0_4px_12px_-6px_rgba(15,23,42,0.12)]
         backdrop-blur-md transition-all duration-200

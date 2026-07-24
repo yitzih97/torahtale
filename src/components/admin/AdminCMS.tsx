@@ -159,12 +159,12 @@ const DEFAULT_PAGE_TEMPLATES: Record<string, { text: string; "image-prompt": str
     "image-prompt": `A stunning children's book cover illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, as the star. The scene depicts the opening moment of the {torahPortion} story. Warm, magical atmosphere with golden light. Include subtle Torah motifs (stars of David, olive branches, scrollwork border). Title area at top. Safe for children. High resolution for print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
   },
   "page-1": {
-    text: `In a cozy Yiddishe home, {childName} discovered something extraordinary — a glowing book that would transport them into the story of {torahPortion}...`,
-    "image-prompt": `A warm, inviting children's book illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, sitting in a cozy room filled with books. A magical Torah scroll glows with golden light. The child reaches toward it with wonder. Warm home setting with Jewish decor (menorah, mezuzah visible). Print dimensions: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+    text: `{childName} was right there as the story of {torahPortion} began — standing in the middle of everything as the very first moments of the parsha unfolded all around them.`,
+    "image-prompt": `A vivid children's book illustration in {artStyle} style opening INSIDE the story of {torahPortion}. A frum Yiddishe {gender} named {childName}, age {age}, stands as part of the very first scene of the parsha, already present in the authentic Biblical setting. Historically appropriate details for the Torah story. Warm, inviting light. NO modern home, NO glowing book, NO magical portal or swirling light. Safe for children. Print dimensions: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "page-2": {
-    text: `Suddenly, the world around {childName} shimmered and changed. The story of {torahPortion} came alive before their very eyes...`,
-    "image-prompt": `A magical transformation scene in {artStyle} style. {childName}, a frum Yiddishe {gender} age {age}, being transported through swirling light into the Biblical scene of {torahPortion}. Sparkles and Torah letters float in the air. The ancient landscape begins to materialize. Vibrant colors, child-safe imagery. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+    text: `The story of {torahPortion} came alive all around {childName}, and they were right in the middle of it as the events unfolded.`,
+    "image-prompt": `A dynamic scene in {artStyle} style deep inside the {torahPortion} story. {childName}, a frum Yiddishe {gender} age {age}, is part of the unfolding events in the authentic Biblical setting. Rich, specific details from the Torah portion. Vibrant colors, child-safe imagery. NO home scene, NO swirling light or sparkles, NO magical transformation. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "page-3": {
     text: `{childName} looked around in amazement at the ancient land. The {torahPortion} story was unfolding, and they were right in the middle of it!`,
@@ -187,11 +187,11 @@ const DEFAULT_PAGE_TEMPLATES: Record<string, { text: string; "image-prompt": str
     "image-prompt": `A meaningful scene in {artStyle} style showing {childName}, a frum Yiddishe {gender} age {age}, applying the moral lesson from {torahPortion}. The child performs a related mitzvah or act of kindness. Warm community setting with other frum characters. Uplifting atmosphere. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "page-8": {
-    text: `As the magical journey ended, {childName} returned home, carrying the beautiful lessons of {torahPortion} forever in their heart. The End.`,
-    "image-prompt": `A warm closing scene in {artStyle} style. {childName}, a frum Yiddishe {gender} age {age}, back in their cozy home, hugging a Torah scroll or book. The magical glow fades gently. Family members nearby. Shabbos candles or Jewish home elements visible. Sense of completion and warmth. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+    text: `{childName} carried the beautiful lessons of {torahPortion} in their heart — and another wonderful Torah adventure was already waiting for them. See you next time in the next Torah Tale!`,
+    "image-prompt": `A warm, uplifting closing scene in {artStyle} style, still INSIDE the world of {torahPortion}. {childName}, a frum Yiddishe {gender} age {age}, smiles with a full heart in the authentic Biblical setting, looking ahead with excitement for the next story. Golden, hopeful light. NO return to a modern home, NO fading magic, NO glowing book. A sense of a joyful moral and eagerness for the next adventure. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "back-cover": {
-    text: `Synopsis: Join {childName} on an unforgettable adventure through the story of {torahPortion}, where Torah wisdom comes alive!\n\nDedication: With love and brachos`,
+    text: `Synopsis: Step straight into the story of {torahPortion} alongside {childName}, where the events of the parsha come alive and a beautiful lesson unfolds — with another Torah Tale adventure waiting next time!\n\nDedication: With love and brachos`,
     "image-prompt": `A beautiful back cover design in {artStyle} style for a children's Torah book. Soft, decorative background with subtle Torah motifs (olive branches, scrollwork, stars). Space for text overlay with synopsis and dedication. Warm, elegant color palette. No characters needed — decorative only. Print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
   },
 };

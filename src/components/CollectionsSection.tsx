@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -9,13 +10,25 @@ import { COLLECTIONS, type Collection } from "@/data/collections";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
+// Show three headline collections first, then reveal the rest on "Show all".
+// The featured "Complete" bundle is promoted into the top three so the best
+// value is visible up front.
+const orderedCollections: Collection[] = (() => {
+  const featured = COLLECTIONS.find((c) => c.featured);
+  const rest = COLLECTIONS.filter((c) => !c.featured);
+  return featured ? [rest[0], rest[1], featured, ...rest.slice(2)] : COLLECTIONS;
+})();
+
 export const CollectionsSection = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [showAll, setShowAll] = useState(false);
   const { symbol, rate, code } = t.currency;
   const fmt = (usd: number, ils: number) =>
     code === "ILS" ? `${symbol}${ils.toLocaleString()}` : `${symbol}${Math.round(usd * rate).toLocaleString()}`;
+
+  const visible = showAll ? orderedCollections : orderedCollections.slice(0, 3);
 
   // Requesting a collection opens the creation wizard in collection mode
   // (story selection + payment skipped — the request goes to the admin inbox).
@@ -53,7 +66,7 @@ export const CollectionsSection = () => {
         </motion.div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {COLLECTIONS.map((c, i) => {
+          {visible.map((c, i) => {
             const Icon = c.icon;
             return (
               <motion.div
@@ -102,6 +115,20 @@ export const CollectionsSection = () => {
             );
           })}
         </div>
+
+        {orderedCollections.length > 3 && (
+          <div className="mt-8 text-center">
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-xl gap-2"
+              onClick={() => setShowAll((v) => !v)}
+            >
+              {showAll ? "Show fewer collections" : `Show all ${orderedCollections.length} collections`}
+              <ChevronDown className={`h-4 w-4 transition-transform ${showAll ? "rotate-180" : ""}`} />
+            </Button>
+          </div>
+        )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
           Prices are estimates. Request a collection and our team will confirm the details, pricing, and delivery with you personally —
