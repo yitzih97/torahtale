@@ -499,7 +499,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         >
           {parshaName}
         </h1>
-        <div className="mt-1.5 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
+        <div className="mt-1 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
           <span className="h-px w-7 sm:w-8 bg-current opacity-70" /><span>❦</span><span className="h-px w-7 sm:w-8 bg-current opacity-70" />
         </div>
         {title && title.split(/\n{2,}/).map((l) => l.trim()).filter(Boolean).map((line, i) => {
@@ -508,7 +508,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             <p
               key={i}
               dir={heb ? "rtl" : "ltr"}
-              className={`mt-1 italic font-semibold ${heb ? "text-xs sm:text-base" : "text-sm sm:text-lg"}`}
+              className={`mt-0.5 italic font-semibold leading-tight ${heb ? "text-[10px] sm:text-sm" : "text-xs sm:text-base"}`}
               style={{
                 fontFamily: heb ? "'Frank Ruhl Libre', serif" : "'Cormorant Garamond', serif",
                 color: COVER_MAGENTA,

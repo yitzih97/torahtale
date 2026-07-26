@@ -522,22 +522,22 @@ function drawCoverFurniture(
     // Hebrew each render on ONE compact line, in the right font + direction —
     // keeps the title small and near the top instead of sprawling over faces.
     const titleLines = opts.title.split(/\n{2,}/).map((l) => l.trim()).filter(Boolean);
-    const baseM = Math.round(U * 0.044);
-    let my = ty + U * 0.045 + U * 0.055;
+    const baseM = Math.round(U * 0.037);
+    let my = ty + U * 0.045 + U * 0.038;
     for (const raw of titleLines) {
       const heb = HEBREW_RE.test(raw);
       const fam = heb ? BOOK_HEBREW_FONT : "'Cormorant Garamond', serif";
       let mf = baseM; ctx.font = `600 ${mf}px ${fam}`;
-      while (ctx.measureText(raw).width > W * 0.8 && mf > U * 0.026) { mf -= 2; ctx.font = `600 ${mf}px ${fam}`; }
+      while (ctx.measureText(raw).width > W * 0.8 && mf > U * 0.024) { mf -= 2; ctx.font = `600 ${mf}px ${fam}`; }
       ctx.direction = heb ? "rtl" : "ltr";
       ctx.shadowColor = "rgba(0,0,0,0.55)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
       ctx.fillStyle = "#f4c9dc"; ctx.fillText(raw, W / 2, my + 2);
       ctx.shadowColor = "transparent"; ctx.fillStyle = COVER_MAGENTA; ctx.fillText(raw, W / 2, my);
-      my += mf * 1.18;
+      my += mf * 1.14;
     }
     ctx.direction = "ltr";
     if (opts.childLine) {
-      const cfs = Math.round(U * 0.030);
+      const cfs = Math.round(U * 0.026);
       ctx.font = `italic 500 ${cfs}px 'Cormorant Garamond', serif`;
       ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
       ctx.fillStyle = "rgba(255,240,214,0.95)"; ctx.fillText(opts.childLine, W / 2, my + U * 0.004);
