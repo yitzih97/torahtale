@@ -579,7 +579,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         {/* Combined brand logo (single lockup: book on top of the wordmark) with
             the series headline beneath. */}
         <div className="relative flex flex-col items-center pt-2">
-          <img src={torahTaleLogoFull} alt="Torah Tale" className="h-20 sm:h-24 w-auto object-contain" />
+          <img src={torahTaleLogoFull} alt="Torah Tale" className="h-16 sm:h-[4.5rem] w-auto object-contain" />
           <p className="mt-1.5 font-display font-semibold text-sm sm:text-base text-gold leading-tight" dir={dir} style={{ textShadow: "none" }}>{getCoverHeadline(lang)}</p>
         </div>
 

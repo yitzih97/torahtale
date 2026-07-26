@@ -115,10 +115,14 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
  *  newer optional fields so older layouts render consistently. */
 export function migrateLayout<T extends TextLayout | undefined>(layout: T): T {
   if (!layout) return layout;
-  const fontFamily = LEGACY_DEFAULT_FONTS.includes(layout.fontFamily)
-    ? BOOK_TEXT_FONT
-    : layout.fontFamily;
-  return { ...layout, fontFamily };
+  const isLegacyDefault = LEGACY_DEFAULT_FONTS.includes(layout.fontFamily);
+  const fontFamily = isLegacyDefault ? BOOK_TEXT_FONT : layout.fontFamily;
+  // Older auto-placed captions were saved with a hardcoded heavy bold. For those
+  // uncustomized (legacy-default-font) pages, drop bold so the whole book reads
+  // in ONE consistent regular weight. Pages the user gave a custom font keep
+  // whatever weight they chose.
+  const bold = isLegacyDefault ? false : layout.bold;
+  return { ...layout, fontFamily, bold };
 }
 
 // A thin, crisp WHITE BORDER is stroked around caption text (paint-order

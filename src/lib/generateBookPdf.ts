@@ -668,9 +668,9 @@ async function renderCoverSpread(
   // one clean file so the book + text stay perfectly aligned.
   const logo = await safeLoad(torahTaleLogoFull);
   if (logo) {
-    const logoH = 430;
+    const logoH = 330;
     const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-    ctx.drawImage(logo, cx - logoW / 2, 70, logoW, logoH);
+    ctx.drawImage(logo, cx - logoW / 2, 84, logoW, logoH);
   }
 
   // Gold flourish + series headline — flat gold (no engrave/shadow) so it stays
