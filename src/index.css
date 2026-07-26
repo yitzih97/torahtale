@@ -18,6 +18,19 @@
   size-adjust: 108%;
 }
 
+/* Thin weight of the brand font — used for STORY PAGE TEXT (book captions) so the
+   English body reads in the Torah Tale hand, lighter than the display Regular.
+   The Thin file is Latin-only, so Hebrew (letters + nikud) falls straight through
+   to Frank Ruhl Libre in the caption font stack (BOOK_TEXT_FONT). */
+@font-face {
+  font-family: "TorahTaleText";
+  src: url("/fonts/TorahTale-Thin.woff2") format("woff2"),
+       url("/fonts/TorahTale-Thin.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

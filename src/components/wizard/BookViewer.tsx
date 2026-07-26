@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import { describeFunctionsError } from "@/lib/functionsError";
 import type { TextStyle } from "./DraggableText";
-import { EditableTextBox, DEFAULT_TEXT_LAYOUT, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "./EditableTextBox";
+import { EditableTextBox, DEFAULT_TEXT_LAYOUT, DEFAULT_FONT_FAMILY, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "./EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -49,7 +49,9 @@ export type { TextLayout } from "./EditableTextBox";
  * predates the per-page `textLayout` field.
  */
 export const BOOK_TEXT_STYLE = {
-  fontFamily: DEFAULT_TEXT_LAYOUT.fontFamily,
+  // Back-cover invitation / questions stay on the clean Inter face; only the
+  // story-page captions switch to the brand Torah Tale text font.
+  fontFamily: DEFAULT_FONT_FAMILY,
   fontSizePx: DEFAULT_TEXT_LAYOUT.fontSize,
   color: DEFAULT_TEXT_LAYOUT.color,
   bgColor: "rgba(252, 247, 236, 0.94)",

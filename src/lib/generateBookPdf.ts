@@ -119,11 +119,35 @@ function drawPaperFull(ctx: CanvasRenderingContext2D, W: number, H: number) {
 
 /** Composite a text overlay using the page's TextLayout. Coords are % of the
  *  canvas (W×H). */
+const HEBREW_RE = /[֐-׿]/;
+const LATIN_RE = /[A-Za-z]/;
+
+/** A caption may be bilingual (English + Hebrew, joined with a blank line). Each
+ *  language needs its OWN paragraph direction — otherwise Hebrew sentence-final
+ *  punctuation lands on the wrong side. Split such text into per-language blocks,
+ *  each with its own direction + alignment, so they render as two clean sections
+ *  (English LTR, Hebrew RTL). Monolingual text stays a single block. */
+function textSegments(text: string, rtl: boolean, align: CanvasTextAlign) {
+  const isBilingual = HEBREW_RE.test(text) && LATIN_RE.test(text);
+  if (!isBilingual) return [{ dir: (rtl ? "rtl" : "ltr") as CanvasDirection, align, text }];
+  return text
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => {
+      const heb = HEBREW_RE.test(p);
+      return {
+        dir: (heb ? "rtl" : "ltr") as CanvasDirection,
+        // Hebrew keeps a centered layout centered, otherwise sits at its natural
+        // right (reading-start) edge; English follows the box's own alignment.
+        align: (heb ? (align === "center" ? "center" : "right") : align) as CanvasTextAlign,
+        text: p,
+      };
+    });
+}
+
 function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: TextLayout, W: number, H: number, rtl = false) {
   if (!text) return;
-  // Hebrew/Yiddish need an explicit paragraph direction so sentence-final
-  // punctuation (. , ? !) and list numbers land at the correct visual end.
-  ctx.direction = rtl ? "rtl" : "ltr";
   // layout.fontSize and padding are absolute px defined against a 1024px-wide
   // reference container (see EditableTextBox / TextLayout). Scale them by the
   // canvas width so the PDF matches the on-screen preview 1:1.
@@ -141,9 +165,22 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   const padX = (hasPad ? 18 : 6) * scale;
   const padY = (hasPad ? 14 : 4) * scale;
   const maxTextW = boxW - padX * 2;
-  const lines = wrapLines(ctx, text, maxTextW);
   const lineHeight = fontSize * (layout.lineHeight ?? 1.5);
-  const textH = lines.length * lineHeight;
+  const segGap = lineHeight * 0.5; // blank-line gap between English + Hebrew blocks
+
+  // Wrap each language block with its own direction, keeping per-line direction +
+  // alignment so both sections render correctly.
+  const segments = textSegments(text, rtl, layout.align);
+  const rendered: { line: string; dir: CanvasDirection; align: CanvasTextAlign }[] = [];
+  for (let s = 0; s < segments.length; s++) {
+    const seg = segments[s];
+    ctx.direction = seg.dir;
+    const wrapped = wrapLines(ctx, seg.text, maxTextW);
+    if (s > 0) rendered.push({ line: "", dir: seg.dir, align: seg.align }); // spacer row
+    for (const ln of wrapped) rendered.push({ line: ln, dir: seg.dir, align: seg.align });
+  }
+
+  const textH = rendered.length * lineHeight;
   const boxH = textH + padY * 2;
 
   if (layout.background) {
@@ -168,11 +205,6 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   // stroke so the white border stays crisp.
   const shadow = !!layout.shadow;
 
-  ctx.textAlign = layout.align;
-  let textAnchorX = boxX + padX;
-  if (layout.align === "center") textAnchorX = boxX + boxW / 2;
-  else if (layout.align === "right") textAnchorX = boxX + boxW - padX;
-
   // Thin solid-white BORDER behind the letters keeps captions readable on any
   // scene without a background box (mirrors the outlineWidth stroke in
   // EditableTextBox). Skipped when a solid background box is already present
@@ -183,7 +215,14 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   const outlineLW = Math.max(1, outlineWidthRef * (fontSize / layout.fontSize));
   ctx.lineJoin = "round";
   ctx.miterLimit = 2;
-  for (let i = 0; i < lines.length; i++) {
+  const anchorFor = (align: CanvasTextAlign) =>
+    align === "center" ? boxX + boxW / 2 : align === "right" ? boxX + boxW - padX : boxX + padX;
+  for (let i = 0; i < rendered.length; i++) {
+    const { line, dir, align } = rendered[i];
+    if (!line) continue; // spacer
+    ctx.direction = dir;
+    ctx.textAlign = align;
+    const textAnchorX = anchorFor(align);
     const ly = boxY + padY + i * lineHeight;
     // Shadow pass: paint the OUTER glyph shape once with a soft shadow enabled,
     // then redraw the crisp outline + fill on top (mirrors CSS text-shadow).
@@ -195,21 +234,20 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
       if (outline) {
         ctx.strokeStyle = outlineColor;
         ctx.lineWidth = outlineLW;
-        ctx.strokeText(lines[i], textAnchorX, ly);
+        ctx.strokeText(line, textAnchorX, ly);
       } else {
         ctx.fillStyle = layout.color;
-        ctx.fillText(lines[i], textAnchorX, ly);
+        ctx.fillText(line, textAnchorX, ly);
       }
       ctx.restore();
     }
     if (outline) {
-      // Scale the ref-space width to canvas pixels the same way the font is scaled.
       ctx.strokeStyle = outlineColor;
       ctx.lineWidth = outlineLW;
-      ctx.strokeText(lines[i], textAnchorX, ly);
+      ctx.strokeText(line, textAnchorX, ly);
     }
     ctx.fillStyle = layout.color;
-    ctx.fillText(lines[i], textAnchorX, ly);
+    ctx.fillText(line, textAnchorX, ly);
   }
 }
 

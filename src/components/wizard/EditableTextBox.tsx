@@ -31,6 +31,19 @@ export interface TextLayout {
 
 export const DEFAULT_FONT_FAMILY = "'Inter', system-ui, sans-serif";
 
+/** Book STORY-PAGE text font: the thin weight of the brand Torah Tale hand for
+ *  the Latin (English) text. Hebrew falls straight through to Frank Ruhl Libre
+ *  (a full Hebrew face WITH nikud) — NOT the brand Regular, whose Hebrew is
+ *  unpointed and would drop the vowel marks. */
+export const BOOK_TEXT_FONT =
+  "'TorahTaleText', 'Frank Ruhl Libre', 'Cormorant Garamond', serif";
+
+/** A caption is "bilingual" when it mixes Hebrew and Latin letters (English +
+ *  Hebrew). Such text is rendered as separate per-language paragraphs so each
+ *  gets its own direction (Hebrew RTL, English LTR) and reads as two sections. */
+const HEBREW_RE = /[֐-׿]/;
+export const isBilingualText = (s: string) => HEBREW_RE.test(s) && /[A-Za-z]/.test(s);
+
 /** The 8 resize handles: 4 corners + 4 edge midpoints. */
 type HandleId = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 
@@ -57,6 +70,7 @@ const RESIZE_HANDLES: {
  *  auto-upgraded to the new default by {@link migrateLayout}. */
 const LEGACY_DEFAULT_FONTS = [
   "'Cormorant Garamond', 'Georgia', serif",
+  "'Inter', system-ui, sans-serif",
 ];
 
 export const DEFAULT_OUTLINE_COLOR = "#ffffff";
@@ -66,7 +80,7 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   x: 6,
   y: 9,
   width: 42,
-  fontFamily: DEFAULT_FONT_FAMILY,
+  fontFamily: BOOK_TEXT_FONT,
   fontSize: 18,
   color: "#ffffff",
   align: "left",
@@ -92,7 +106,7 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
 export function migrateLayout<T extends TextLayout | undefined>(layout: T): T {
   if (!layout) return layout;
   const fontFamily = LEGACY_DEFAULT_FONTS.includes(layout.fontFamily)
-    ? DEFAULT_FONT_FAMILY
+    ? BOOK_TEXT_FONT
     : layout.fontFamily;
   return { ...layout, fontFamily };
 }
@@ -103,6 +117,7 @@ export function migrateLayout<T extends TextLayout | undefined>(layout: T): T {
 // mirrored in the PDF renderer (generateBookPdf drawTextOverlay).
 
 export const FONT_OPTIONS = [
+  { label: "Torah Tale", value: BOOK_TEXT_FONT },
   { label: "Cormorant", value: "'Cormorant Garamond', 'Georgia', serif" },
   { label: "Playfair", value: "'Playfair Display', 'Georgia', serif" },
   { label: "Inter", value: "'Inter', system-ui, sans-serif" },
@@ -319,6 +334,21 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
               textAlign: layout.align,
             }}
           />
+        ) : isBilingualText(text) ? (
+          // Bilingual caption: render each language block as its own paragraph
+          // with dir="auto" so Hebrew flows RTL (correct punctuation) and English
+          // LTR, each aligned to its own start edge — two clean sections.
+          <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+            {text.split(/\n{2,}/).map((para, i) => {
+              const heb = HEBREW_RE.test(para);
+              const align = heb ? (layout.align === "center" ? "center" : "right") : layout.align;
+              return (
+                <p key={i} dir={heb ? "rtl" : "ltr"} style={{ margin: i === 0 ? 0 : "0.5em 0 0", textAlign: align }}>
+                  {para.trim()}
+                </p>
+              );
+            })}
+          </div>
         ) : (
           <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{text || "Double-click to edit"}</div>
         )}
