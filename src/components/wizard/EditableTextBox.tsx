@@ -67,13 +67,14 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   y: 9,
   width: 42,
   fontFamily: DEFAULT_FONT_FAMILY,
-  fontSize: 20,
+  fontSize: 18,
   color: "#ffffff",
   align: "left",
-  // Captions are BOLD WHITE with a soft drop shadow by default so they stay
-  // readable on any scene — no outline, no cream box. Outline/background/border
-  // remain toggleable from the toolbar for special cases.
-  bold: true,
+  // Captions are WHITE with a soft drop shadow by default so they stay readable
+  // on any scene — no outline, no cream box. A regular (not heavy-bold) weight
+  // reads more like a storybook. Outline/background/border/bold remain toggleable
+  // from the toolbar for special cases.
+  bold: false,
   italic: false,
   background: false,
   border: false,

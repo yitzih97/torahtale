@@ -58,6 +58,26 @@ serve(async (req) => {
     const parentFather = hasYiddish ? "Totty" : hasHebrew ? "Abba" : "Daddy";
     const parentMother = hasYiddish ? "Mommy" : hasHebrew ? "Ima" : "Mommy";
 
+    // Resolve the selected languages from the stored value, which may be a single
+    // language ("english") OR the wizard's "+"-joined multi-select ("english+hebrew")
+    // OR the legacy literal "bilingual" (== english+hebrew). This drives whether we
+    // ask for one language or a bilingual object per field.
+    const hasEnglish = langSelection.includes("english") || langSelection === "bilingual";
+    let selectedLangs: string[] = [];
+    if (hasEnglish) selectedLangs.push("english");
+    if (hasHebrew) selectedLangs.push("hebrew");
+    if (hasYiddish) selectedLangs.push("yiddish");
+    if (selectedLangs.length === 0) selectedLangs = ["english"];
+    const isMultiLang = selectedLangs.length > 1;
+    const langNames: Record<string, string> = {
+      english: "English",
+      hebrew: "Hebrew (modern Hebrew with full nikud where helpful)",
+      yiddish: "Yiddish (Eastern/Litvish Yiddish in Hebrew script — the traditional Chareidi mama-loshen)",
+    };
+    const languageInstruction = isMultiLang
+      ? `LANGUAGES — this is a BILINGUAL book. Write EVERYTHING in BOTH ${selectedLangs.map((l) => langNames[l]).join(" AND ")}: every page's text, the cover title and subtitle, the synopsis, the dedication, and every question. For each of those fields return a JSON OBJECT with one key per language instead of a plain string — e.g. "text": { ${selectedLangs.map((l) => `"${l}": "..."`).join(", ")} }. Each language must carry the SAME meaning and rhyme naturally in its own tongue.`
+      : `Write everything in ${langNames[selectedLangs[0]]}.`;
+
     // Page count is driven by book type (board=10, soft/hardcover=20). Validate to a sane range.
     const requestedPages = Number(pageCount);
     const pages = Number.isFinite(requestedPages) && requestedPages > 0
@@ -118,7 +138,7 @@ IMPORTANT CULTURAL RULES:
 - Reference daily frum life: davening Shacharis, learning in cheder or Bais Yaakov, making brachos, the Shabbos table, zemiros, havdalah
 - NO mention of TV, movies, video games, secular entertainment, or non-tznius activities
 - The stories should be vivid, imaginative, and make the kinderlach the stars of the narrative
-- Maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic Yiddishe children's book
+- Maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic Yiddishe children's book, told in smooth, flowing RHYME with short rhyming verses on every page
 
 CRITICAL NAME TRANSLITERATION RULES — ALWAYS use the Yiddish/Hebrew transliterations, NEVER the English/Christian versions:
 - Avraham (NOT Abraham), Yitzchak (NOT Isaac), Yaakov (NOT Jacob)
@@ -197,7 +217,8 @@ Requirements:
 - STAY IN THE STORY: every page is the actual parsha unfolding. Do NOT bring the child back home at the end, and do NOT use any dream/portal/magic-light device at any point
 - END WITH ANTICIPATION: the final page delivers the warm moral and then closes with a single inviting line that builds excitement for the NEXT Torah Tale — hinting another wonderful parsha adventure is waiting next time — so the child can't wait for the next book. Keep it general (do not name a specific next parsha unless given)
 - The kinderlach experience the story BY THEMSELVES — do NOT place their ${parentFather}, ${parentMother}, grandparents, or teachers into story scenes as on-scene characters (the illustrations must show only the kinderlach). Torah figures (Moshe Rabbeinu, Avraham Avinu, the meraglim, etc.) appear as the narrative requires. Parents may be warmly referenced in the dedication or closing moral, but never as characters inside a scene
-- Each story page should be 2-3 sentences, appropriate for a ${age}-year-old
+- RHYME: Write the whole story in gentle, flowing RHYME. Each story page is a short rhyming verse — ideally a rhyming couplet (2 lines) or up to 4 short lines with a clear, natural rhyme scheme (AABB or ABCB). Keep the rhymes smooth and unforced, never sing-songy or awkward
+- KEEP IT SHORT: each page should be brief — roughly 2 short lines (about 12-24 words total), appropriate for a ${age}-year-old. Favour fewer, well-chosen rhyming words over long sentences
 - CRITICAL: At least 70% of the pages MUST depict SPECIFIC, ACTUAL events from the Torah portion. For example, for Va'era show the plagues one by one; for Beshalach show the crossing of the sea; for Bereishit show the days of creation. The child must be IN those scenes, witnessing and participating in the actual events — not just hearing about them or being told the story.
 - DOUBLE PARSHA: If the Torah Portion name above joins TWO parshiyos (e.g. "Chukas-Balak", "Matos-Masei", "Tazria-Metzora") this is ONE book covering BOTH. Give balanced coverage to the key events of each parsha — roughly half the story pages for the first, half for the second — so both are meaningfully represented in the single book.
 - DO NOT compress the Torah events into 1-2 pages. Spread the key events across most of the book, giving each major event its own page with vivid detail.
@@ -209,7 +230,7 @@ Requirements:
 - PARENT NAMES — ABSOLUTE CONSISTENCY: whenever the children's parents are mentioned, their father is ALWAYS called "${parentFather}" and their mother is ALWAYS called "${parentMother}" — the exact same pair on the cover title and subtitle, on every story page, in the dedication, the synopsis, and the discussion questions. NEVER mix in any other parent nickname (${["Daddy", "Tatty", "Totty", "Abba", "Ima", "Mommy", "Papa"].filter((n) => n !== parentFather && n !== parentMother).join(", ")}, etc.) anywhere in this book, in any of its languages
 - NO references to TV, movies, video games, or secular entertainment
 - Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting like a Yiddishe bubbe telling a maaseh
-- ${language === "bilingual" ? "Write each page in both English and Hebrew" : language === "hebrew" ? "Write in Hebrew (modern Hebrew with full nikud where helpful)" : language === "yiddish" ? "Write in Yiddish (Eastern/Litvish Yiddish in Hebrew script — the traditional Chareidi mama-loshen used in chassidish/yeshivish homes)" : "Write in English"}
+- ${languageInstruction}
 ${templateGuidance}
 
 You MUST respond with ONLY a valid JSON object with this exact structure:
@@ -219,7 +240,7 @@ You MUST respond with ONLY a valid JSON object with this exact structure:
     "subtitle": "A short evocative tagline, a few words"
   },
   "pages": [
-    { "page": 1, "text": "Story text for page 1" },
+    { "page": 1, "text": "Story text for page 1", "characters": ["ExactNameFromCharactersArray"] },
     ...
   ],
   "backCover": {
@@ -241,6 +262,11 @@ CHARACTERS ARRAY (CRITICAL for illustration consistency):
 - For each, write ONE fixed, richly detailed VISUAL description (approx and hair, facial hair, skin tone, exact clothing and colors, headwear, distinguishing features, build/height) that an illustrator will reproduce IDENTICALLY every time that character appears, so the character looks the same on every page.
 - Descriptions MUST obey the modesty and Bnei-Yisrael/non-Jew rules above (e.g. Jewish men age 3+ always have covered heads; non-Jews wear distinct foreign dress).
 - Include at most 6 characters — the most important recurring ones. If the story has no recurring non-star characters, return an empty array.
+
+PER-PAGE "characters" ARRAY (CRITICAL for illustration consistency):
+- On EVERY page object, include a "characters" array listing the EXACT names (spelled identically to the characters array above) of every recurring named character who APPEARS in that page's scene — INCLUDING when the page's text refers to them only by a pronoun (he/she/they), a title (the queen, the wicked one), or does not name them at all but they are clearly present in the scene. This is what tells the illustrator whose fixed description to apply, so a character like Mordechai or Esther looks the SAME on every page they appear on.
+- Use an empty array [] for a page where no recurring named character (only the star kinderlach) appears.
+- Only list names that exist in the characters array above — never invent a name here.
 
 The questions should be part of the back cover (inside the backCover object):
 - Include exactly 20 questions
@@ -442,6 +468,11 @@ No markdown, no explanation, just the JSON object.`;
     const storyPages = rawPages.map((p: any) => ({
       ...p,
       text: flattenText(p.text),
+      // Names of recurring characters in this page's scene — drives per-page
+      // injection of their fixed visual description so they stay consistent.
+      characters: Array.isArray(p.characters)
+        ? p.characters.map((n: any) => flattenText(n).trim()).filter(Boolean)
+        : [],
     }));
     const cover = parsed.cover || { title: `${childName}'s Torah Adventure`, subtitle: torahPortionLabel };
     cover.title = flattenText(cover.title);

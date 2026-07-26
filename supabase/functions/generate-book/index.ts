@@ -177,13 +177,22 @@ function buildPendingTasks(
     if (pg.type === "questions") return; // questions page has no image
     if (pg.image) return; // already generated — skip
 
-    // Recurring Torah-story characters mentioned on THIS page — pass their fixed
+    // Recurring Torah-story characters in THIS page's scene — pass their fixed
     // descriptions (always) and reference sheets (when available) so they render
-    // consistently. Cover features whichever characters lead the story.
+    // consistently. Prefer the explicit per-page `characters` list from the story
+    // (which also captures characters referred to only by pronoun/title); fall
+    // back to a caption substring match for older books without that field.
+    // Covers feature whichever characters lead the story.
+    const pageCharNames: string[] = Array.isArray(pg.characters)
+      ? pg.characters.map((n: any) => String(n || "").trim().toLowerCase()).filter(Boolean)
+      : [];
     const text = String(pg.text || "").toLowerCase();
-    const relevant = storyChars.filter((ch) =>
-      ch?.name && (pg.type === "cover" || text.includes(ch.name.toLowerCase())),
-    );
+    const relevant = storyChars.filter((ch) => {
+      if (!ch?.name) return false;
+      if (pg.type === "cover") return true;
+      const nm = ch.name.toLowerCase();
+      return pageCharNames.length > 0 ? pageCharNames.includes(nm) : text.includes(nm);
+    });
     const storyCharacterRefs = relevant.map((ch) => ({
       name: ch.name,
       description: ch.description || "",
@@ -372,7 +381,7 @@ async function generate(bookId: string) {
       let pageId = 0;
       pages = [];
       pages.push({ id: pageId++, text: cover.title, image: null, type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle });
-      for (const p of (story.pages || []).slice(0, storyPageCount)) pages.push({ id: pageId++, text: p.text, image: null, type: "story" });
+      for (const p of (story.pages || []).slice(0, storyPageCount)) pages.push({ id: pageId++, text: p.text, image: null, type: "story", characters: Array.isArray(p.characters) ? p.characters : [] });
       if (questions.length > 0) {
         const qText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
         pages.push({ id: pageId++, text: qText, image: null, type: "questions", questions });

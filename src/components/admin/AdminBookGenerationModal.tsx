@@ -272,7 +272,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       // cover + storyPageCount story pages + questions page = the blueprint's
       // slot count, so the questions page always fits.
       for (const p of (storyResult.pages || []).slice(0, storyPageCount)) {
-        allPages.push({ id: pageId++, text: p.text, image: null, imageLoading: false, type: "story" });
+        allPages.push({ id: pageId++, text: p.text, image: null, imageLoading: false, type: "story", characters: Array.isArray(p.characters) ? p.characters : [] });
       }
       if (questions.length > 0) {
         const questionsText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
@@ -325,10 +325,21 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     // still starring these kids — so it uses that portion + a "cover" pageType and
     // drops this story's recurring characters.
     const isPreview = pg.type === "preview";
-    // Recurring Torah characters named on this page (all of them on the cover).
+    // Recurring Torah characters in this page's scene (all of them on the cover).
+    // Prefer the explicit per-page `characters` list from the story (captures
+    // characters referred to by pronoun/title too); fall back to a caption
+    // substring match for older pages without that field.
+    const pageCharNames: string[] = Array.isArray((pg as any).characters)
+      ? (pg as any).characters.map((n: any) => String(n || "").trim().toLowerCase()).filter(Boolean)
+      : [];
     const text = String(pg.text || "").toLowerCase();
     const storyCharacterRefs = isPreview ? [] : (storyCharactersRef.current || [])
-      .filter((ch) => ch?.name && (pg.type === "cover" || text.includes(ch.name.toLowerCase())))
+      .filter((ch) => {
+        if (!ch?.name) return false;
+        if (pg.type === "cover") return true;
+        const nm = ch.name.toLowerCase();
+        return pageCharNames.length > 0 ? pageCharNames.includes(nm) : text.includes(nm);
+      })
       .map((ch) => ({ name: ch.name, description: ch.description || "", sheet: storyCharacterSheetsRef.current[ch.name] || null }));
     return {
       childName: book.child_name,

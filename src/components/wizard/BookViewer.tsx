@@ -28,6 +28,9 @@ export interface BookPage {
   portion?: string;
   /** For a "preview" page: the intentional outfit change-up for this teaser. */
   outfit?: string;
+  /** Names of recurring story characters appearing in this page's scene — used to
+   *  inject their fixed visual descriptions so they render consistently. */
+  characters?: string[];
   coverTitle?: string;
   coverSubtitle?: string;
   /** Editable back-cover blurb (one line per row). Falls back to COVER_TAGLINE. */
