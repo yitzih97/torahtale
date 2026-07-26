@@ -12,7 +12,7 @@ import { EditableTextBox, DEFAULT_TEXT_LAYOUT, DEFAULT_FONT_FAMILY, makeDefaultL
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { BrandMark } from "@/components/BrandMark";
+import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPortionDisplay, bookLanguageCode, isBookRtl } from "./TorahPortions";
 import { COVER_NAVY, COVER_GOLD, COVER_MAGENTA, FRONT_TAGLINE, coverTitleParts } from "@/lib/coverBranding";
@@ -511,8 +511,11 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
               className={`mt-0.5 italic font-semibold leading-tight ${heb ? "text-[10px] sm:text-sm" : "text-xs sm:text-base"}`}
               style={{
                 fontFamily: heb ? "'Frank Ruhl Libre', serif" : "'Cormorant Garamond', serif",
-                color: COVER_MAGENTA,
-                textShadow: "0 2px 6px rgba(0,0,0,0.5)",
+                backgroundImage: "linear-gradient(180deg, #fff6d5 0%, #f6df97 28%, #e7be5c 50%, #c9992f 72%, #a9791f 100%)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.55))",
               }}
             >
               {line}
@@ -573,11 +576,11 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         <div className="pointer-events-none absolute inset-2 sm:inset-3 border-2 border-[#122140]" />
         <div className="pointer-events-none absolute inset-[9px] sm:inset-[13px] border border-[#e3c169]/70" />
 
-        {/* Stacked logo (book on top of the wordmark) — icon enlarged, text size
-            unchanged — with the series headline beneath. */}
+        {/* Combined brand logo (single lockup: book on top of the wordmark) with
+            the series headline beneath. */}
         <div className="relative flex flex-col items-center pt-2">
-          <BrandMark stacked iconClassName="h-14 w-14 sm:h-16 sm:w-16" wordmarkClassName="h-5 sm:h-6" />
-          <p className="mt-1.5 font-display text-[11px] sm:text-sm text-gold leading-tight" dir={dir}>{getCoverHeadline(lang)}</p>
+          <img src={torahTaleLogoFull} alt="Torah Tale" className="h-20 sm:h-24 w-auto object-contain" />
+          <p className="mt-1.5 font-display font-semibold text-sm sm:text-base text-gold leading-tight" dir={dir} style={{ textShadow: "none" }}>{getCoverHeadline(lang)}</p>
         </div>
 
         <div className="relative font-body italic text-primary/80 leading-snug space-y-0.5 text-xs sm:text-sm whitespace-pre-line" dir={dir}>

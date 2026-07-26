@@ -76,6 +76,11 @@ const RESIZE_HANDLES: {
 const LEGACY_DEFAULT_FONTS = [
   "'Cormorant Garamond', 'Georgia', serif",
   "'Inter', system-ui, sans-serif",
+  // Former brand-thin book-text defaults (pre-Fredoka). Migrate them too so a
+  // book whose pages were saved across those versions renders ONE consistent
+  // English font instead of a mix.
+  "'TorahTaleText', 'Frank Ruhl Libre', 'Cormorant Garamond', serif",
+  "'TorahTaleText', 'TorahTaleTitle', 'Frank Ruhl Libre', 'Cormorant Garamond', serif",
 ];
 
 export const DEFAULT_OUTLINE_COLOR = "#ffffff";

@@ -5,8 +5,7 @@ import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import { applyLineArt } from "@/lib/lineArt";
-import torahTaleIcon from "@/assets/brand/torah-tale-icon.png";
-import torahTaleWordmark from "@/assets/brand/torah-tale-text-gold.png";
+import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
 import { COVER_NAVY, COVER_GOLD, COVER_MAGENTA, FRONT_TAGLINE, coverTitleParts } from "@/lib/coverBranding";
 
 /* Spread = 2:1 landscape sheet. Image fills one half, text composited
@@ -20,6 +19,11 @@ const HALF_W = SPREAD_W / 2;
 // ~150dpi logical scale as the other formats.
 const COLOR_W = 1275;
 const COLOR_H = 1650;
+
+// Render at 2× the 1200-based canvas so BOTH the downloadable PDF and the
+// Printify print slots come out at ~300 DPI (pages 2400², cover ~4800×2400)
+// instead of a soft 150 DPI. Text stays crisp; the cover wrap prints sharp.
+const PRINT_SCALE = 2;
 
 /** Interior page layout for a book format:
  *   • "spread"   — board (6×6): one wide 2:1 illustration per open spread.
@@ -530,9 +534,12 @@ function drawCoverFurniture(
       let mf = baseM; ctx.font = `600 ${mf}px ${fam}`;
       while (ctx.measureText(raw).width > W * 0.8 && mf > U * 0.024) { mf -= 2; ctx.font = `600 ${mf}px ${fam}`; }
       ctx.direction = heb ? "rtl" : "ltr";
-      ctx.shadowColor = "rgba(0,0,0,0.55)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
-      ctx.fillStyle = "#f4c9dc"; ctx.fillText(raw, W / 2, my + 2);
-      ctx.shadowColor = "transparent"; ctx.fillStyle = COVER_MAGENTA; ctx.fillText(raw, W / 2, my);
+      // Golden letters (same gold as the parsha title), with a soft dark shadow
+      // for legibility over the illustration.
+      ctx.shadowColor = "rgba(0,0,0,0.55)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+      ctx.fillStyle = goldFill(ctx, my, mf);
+      ctx.fillText(raw, W / 2, my);
+      ctx.shadowColor = "transparent";
       my += mf * 1.14;
     }
     ctx.direction = "ltr";
@@ -657,26 +664,27 @@ async function renderCoverSpread(
     cornerFiligree(ctx, ci, SPREAD_H - ci, cs, -Math.PI / 2, COVER_GOLD);
   }
 
-  // Stacked brand logo — book icon ON TOP of the wordmark. The lockup is a touch
-  // larger than the old side-by-side one, but the wordmark keeps its original
-  // 150px height, so the "Torah Tale" type size is unchanged.
-  const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon), safeLoad(torahTaleWordmark)]);
-  if (icon && wordmark) {
-    const iconH = 250;
-    const iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
-    const wmH = 150;
-    const wmW = (wordmark.naturalWidth / wordmark.naturalHeight) * wmH;
-    const gap = 8;
-    const startY = 78;
-    ctx.drawImage(icon, cx - iconW / 2, startY, iconW, iconH);
-    ctx.drawImage(wordmark, cx - wmW / 2, startY + iconH + gap, wmW, wmH);
+  // Brand logo — the single combined lockup (book icon on top of the wordmark),
+  // one clean file so the book + text stay perfectly aligned.
+  const logo = await safeLoad(torahTaleLogoFull);
+  if (logo) {
+    const logoH = 430;
+    const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
+    ctx.drawImage(logo, cx - logoW / 2, 70, logoW, logoH);
   }
 
-  // Gold flourish + series headline (engraved gold blackletter).
-  coverFlourish(ctx, cx, 505, BW * 0.28, COVER_GOLD);
+  // Gold flourish + series headline — flat gold (no engrave/shadow) so it stays
+  // crisp and sharp, and a touch bigger.
+  coverFlourish(ctx, cx, 502, BW * 0.28, COVER_GOLD);
   ctx.direction = rtlDir;
-  const hSize = 44;
-  engravedLine(ctx, getCoverHeadline(lang), cx, 558, coverTitleFont(hSize), hSize);
+  const hSize = 52;
+  {
+    ctx.save();
+    ctx.font = coverTitleFont(hSize); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = goldFill(ctx, 562, hSize);
+    ctx.fillText(getCoverHeadline(lang), cx, 562);
+    ctx.restore();
+  }
 
   // Professional subscribe invitation (localized → RTL) — or the per-book override.
   ctx.fillStyle = "#5a4a32";
@@ -847,16 +855,13 @@ async function renderColoringBackMatter(
   const padX = W * 0.08;
   let y = H * 0.035;
 
-  // ── Stacked logo (book icon ON TOP of the wordmark) + series headline, centered.
-  //    Icon enlarged a touch; wordmark keeps its original 50px height. ──
-  const [icon, wordmark] = await Promise.all([safeLoad(torahTaleIcon), safeLoad(torahTaleWordmark)]);
-  if (icon && wordmark) {
-    const iconH = 100, iconW = (icon.naturalWidth / icon.naturalHeight) * iconH;
-    const wmH = 50, wmW = (wordmark.naturalWidth / wordmark.naturalHeight) * wmH;
-    const gap = 6;
-    ctx.drawImage(icon, W / 2 - iconW / 2, y, iconW, iconH);
-    ctx.drawImage(wordmark, W / 2 - wmW / 2, y + iconH + gap, wmW, wmH);
-    y += iconH + gap + wmH + 14;
+  // ── Combined brand logo (single lockup: book icon on top of the wordmark) +
+  //    series headline, centered. ──
+  const logo = await safeLoad(torahTaleLogoFull);
+  if (logo) {
+    const logoH = 165, logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
+    ctx.drawImage(logo, W / 2 - logoW / 2, y, logoW, logoH);
+    y += logoH + 14;
     ctx.direction = rtl ? "rtl" : "ltr";
     ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
     const hf = 30;
@@ -958,10 +963,6 @@ export async function renderPrintImages(
 ): Promise<string[]> {
   const parshaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   const mode = layoutMode(bookFormat, pages);
-  // Render at 2× our 1200-based canvas so the output matches the Printify print
-  // slots natively (pages 2400², cover ~4800×2400) instead of letting Printify
-  // upscale a 1200px image — text and the cover wrap come out crisp (~300 DPI).
-  const PRINT_SCALE = 2;
   const out: string[] = [];
   const cover = pages.find((p) => p.type === "cover");
   const previews = backCoverPreviews(pages, lang);
@@ -1035,16 +1036,16 @@ export async function generateBookPdf(
     let dataUrl: string;
     if (page.type === "cover") {
       dataUrl = mode === "portrait"
-        ? await renderPortraitCover(page, childName, parshaLabel, 1, lang)
-        : await renderCoverSpread(page, childName, parshaLabel, 1, bookFormat, pdfPreviews, lang);
+        ? await renderPortraitCover(page, childName, parshaLabel, PRINT_SCALE, lang)
+        : await renderCoverSpread(page, childName, parshaLabel, PRINT_SCALE, bookFormat, pdfPreviews, lang);
     } else if (page.type === "questions") {
       // Coloring books have no back cover — the questions page becomes the back
       // matter (logo + up to 10 questions + subscribe + teaser thumbnails).
       dataUrl = mode === "portrait"
-        ? await renderColoringBackMatter(page, childName, pdfPreviews, lang)
-        : await renderQuestionsSpread(page, rtl, mode);
+        ? await renderColoringBackMatter(page, childName, pdfPreviews, lang, PRINT_SCALE)
+        : await renderQuestionsSpread(page, rtl, mode, PRINT_SCALE);
     } else {
-      dataUrl = await renderStorySpread(page, storyIdx, rtl, mode);
+      dataUrl = await renderStorySpread(page, storyIdx, rtl, mode, PRINT_SCALE);
       storyIdx += 1;
     }
     try {
