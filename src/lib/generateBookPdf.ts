@@ -341,7 +341,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   // artifacts (ringing/haloing) are especially visible on hard edges like
   // these, so export losslessly. Painted illustrations stay JPEG (smaller,
   // and JPEG's loss is imperceptible on continuous-tone art).
-  return mode === "portrait" ? canvas.toDataURL("image/png") : canvas.toDataURL("image/jpeg", 0.92);
+  return mode === "portrait" ? canvas.toDataURL("image/png") : canvas.toDataURL("image/jpeg", 0.96);
 }
 
 async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutMode, scale = 1): Promise<string> {
@@ -364,7 +364,7 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
   const questions = page.questions || [];
   const formatted = page.text || questions.map((q) => `${q.number}. ${q.question}`).join("\n\n");
   drawTextOverlay(ctx, formatted, layout, W, H, rtl);
-  return canvas.toDataURL("image/jpeg", 0.92);
+  return canvas.toDataURL("image/jpeg", 0.96);
 }
 
 /** Cover-fit an image into an arbitrary rounded rect (clipped), for the back-
@@ -518,22 +518,29 @@ function drawCoverFurniture(
   coverFlourish(ctx, W / 2, ty + U * 0.045, U * 0.2, gold);
   if (opts.title) {
     ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-    const mfs = Math.round(U * 0.055);
-    ctx.font = `600 ${mfs}px 'Cormorant Garamond', serif`;
-    const lines = wrapLines(ctx, opts.title, W * 0.78);
-    let my = ty + U * 0.045 + U * 0.06;
-    lines.forEach((ln, i) => {
-      const yy = my + i * mfs * 1.02;
+    // Split a bilingual personalized title into its language lines so English and
+    // Hebrew each render on ONE compact line, in the right font + direction —
+    // keeps the title small and near the top instead of sprawling over faces.
+    const titleLines = opts.title.split(/\n{2,}/).map((l) => l.trim()).filter(Boolean);
+    const baseM = Math.round(U * 0.044);
+    let my = ty + U * 0.045 + U * 0.055;
+    for (const raw of titleLines) {
+      const heb = HEBREW_RE.test(raw);
+      const fam = heb ? BOOK_HEBREW_FONT : "'Cormorant Garamond', serif";
+      let mf = baseM; ctx.font = `600 ${mf}px ${fam}`;
+      while (ctx.measureText(raw).width > W * 0.8 && mf > U * 0.026) { mf -= 2; ctx.font = `600 ${mf}px ${fam}`; }
+      ctx.direction = heb ? "rtl" : "ltr";
       ctx.shadowColor = "rgba(0,0,0,0.55)"; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
-      ctx.fillStyle = "#f4c9dc"; ctx.fillText(ln, W / 2, yy + 2);
-      ctx.shadowColor = "transparent"; ctx.fillStyle = COVER_MAGENTA; ctx.fillText(ln, W / 2, yy);
-    });
-    my += lines.length * mfs * 1.02;
+      ctx.fillStyle = "#f4c9dc"; ctx.fillText(raw, W / 2, my + 2);
+      ctx.shadowColor = "transparent"; ctx.fillStyle = COVER_MAGENTA; ctx.fillText(raw, W / 2, my);
+      my += mf * 1.18;
+    }
+    ctx.direction = "ltr";
     if (opts.childLine) {
-      const cfs = Math.round(U * 0.032);
+      const cfs = Math.round(U * 0.030);
       ctx.font = `italic 500 ${cfs}px 'Cormorant Garamond', serif`;
       ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
-      ctx.fillStyle = "rgba(255,240,214,0.95)"; ctx.fillText(opts.childLine, W / 2, my + U * 0.01);
+      ctx.fillStyle = "rgba(255,240,214,0.95)"; ctx.fillText(opts.childLine, W / 2, my + U * 0.004);
     }
     ctx.restore();
   }
@@ -765,7 +772,7 @@ async function renderCoverSpread(
     ctx.restore();
   }
 
-  return canvas.toDataURL("image/jpeg", 0.92);
+  return canvas.toDataURL("image/jpeg", 0.96);
 }
 
 /** Coloring-book cover: a single 8.5×11 PORTRAIT front cover — the line-art
@@ -807,7 +814,7 @@ async function renderPortraitCover(
     tagline: FRONT_TAGLINE,
     rtl,
   });
-  return canvas.toDataURL("image/jpeg", 0.92);
+  return canvas.toDataURL("image/jpeg", 0.96);
 }
 
 /** Coloring books have no printed back cover, so the LAST page doubles as the
@@ -915,7 +922,7 @@ async function renderColoringBackMatter(
   ctx.font = `700 28px 'Inter', sans-serif`;
   ctx.fillText(COVER_URL.toUpperCase(), W / 2, urlY);
 
-  return canvas.toDataURL("image/jpeg", 0.92);
+  return canvas.toDataURL("image/jpeg", 0.96);
 }
 
 /**

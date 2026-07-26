@@ -6,7 +6,7 @@
 export const COVER_NAVY = "#122140";
 export const COVER_GOLD = "#e3c169";
 export const COVER_MAGENTA = "#8f2b52";
-export const FRONT_TAGLINE = "A Personalized Parsha Adventure";
+export const FRONT_TAGLINE = "A Personalized Torah Adventure";
 
 /** How the personalized story title reads on the cover (magenta line). Falls back
  *  to the child's name if no creative title was generated. Returns an optional

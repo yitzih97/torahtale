@@ -502,14 +502,23 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         <div className="mt-1.5 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
           <span className="h-px w-7 sm:w-8 bg-current opacity-70" /><span>❦</span><span className="h-px w-7 sm:w-8 bg-current opacity-70" />
         </div>
-        {title && (
-          <p
-            className="mt-1.5 italic font-semibold text-sm sm:text-xl"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: COVER_MAGENTA, textShadow: "0 2px 6px rgba(0,0,0,0.5)" }}
-          >
-            {title}
-          </p>
-        )}
+        {title && title.split(/\n{2,}/).map((l) => l.trim()).filter(Boolean).map((line, i) => {
+          const heb = /[֐-׿]/.test(line);
+          return (
+            <p
+              key={i}
+              dir={heb ? "rtl" : "ltr"}
+              className={`mt-1 italic font-semibold ${heb ? "text-xs sm:text-base" : "text-sm sm:text-lg"}`}
+              style={{
+                fontFamily: heb ? "'Frank Ruhl Libre', serif" : "'Cormorant Garamond', serif",
+                color: COVER_MAGENTA,
+                textShadow: "0 2px 6px rgba(0,0,0,0.5)",
+              }}
+            >
+              {line}
+            </p>
+          );
+        })}
         {childLine && (
           <p
             className="mt-0.5 italic text-[11px] sm:text-base"
