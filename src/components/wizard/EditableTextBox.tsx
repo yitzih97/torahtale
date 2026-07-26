@@ -31,12 +31,17 @@ export interface TextLayout {
 
 export const DEFAULT_FONT_FAMILY = "'Inter', system-ui, sans-serif";
 
-/** Book STORY-PAGE text font: the thin weight of the brand Torah Tale hand for
- *  the Latin (English) text. Hebrew falls straight through to Frank Ruhl Libre
- *  (a full Hebrew face WITH nikud) — NOT the brand Regular, whose Hebrew is
- *  unpointed and would drop the vowel marks. */
+/** Book STORY-PAGE text font for the Latin (English) text: Fredoka — a rounded,
+ *  simple, friendly storybook face. Hebrew is rendered separately in
+ *  {@link BOOK_HEBREW_FONT}, not this stack. */
 export const BOOK_TEXT_FONT =
-  "'TorahTaleText', 'Frank Ruhl Libre', 'Cormorant Garamond', serif";
+  "'Fredoka', 'Baloo 2', system-ui, sans-serif";
+
+/** Hebrew story text uses Frank Ruhl Libre — a traditional Hebrew serif WITH full
+ *  nikud (vowel points). Applied per-language so Hebrew always gets this face even
+ *  when the English font happens to ship its own (rounder) Hebrew glyphs. */
+export const BOOK_HEBREW_FONT =
+  "'Frank Ruhl Libre', 'David Libre', 'Cormorant Garamond', serif";
 
 /** A caption is "bilingual" when it mixes Hebrew and Latin letters (English +
  *  Hebrew). Such text is rendered as separate per-language paragraphs so each
@@ -81,7 +86,7 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   y: 9,
   width: 42,
   fontFamily: BOOK_TEXT_FONT,
-  fontSize: 18,
+  fontSize: 22,
   color: "#ffffff",
   align: "left",
   // Captions are WHITE with a soft drop shadow by default so they stay readable
@@ -117,7 +122,7 @@ export function migrateLayout<T extends TextLayout | undefined>(layout: T): T {
 // mirrored in the PDF renderer (generateBookPdf drawTextOverlay).
 
 export const FONT_OPTIONS = [
-  { label: "Torah Tale", value: BOOK_TEXT_FONT },
+  { label: "Fredoka", value: BOOK_TEXT_FONT },
   { label: "Cormorant", value: "'Cormorant Garamond', 'Georgia', serif" },
   { label: "Playfair", value: "'Playfair Display', 'Georgia', serif" },
   { label: "Inter", value: "'Inter', system-ui, sans-serif" },
@@ -334,16 +339,24 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
               textAlign: layout.align,
             }}
           />
-        ) : isBilingualText(text) ? (
-          // Bilingual caption: render each language block as its own paragraph
-          // with dir="auto" so Hebrew flows RTL (correct punctuation) and English
-          // LTR, each aligned to its own start edge — two clean sections.
+        ) : HEBREW_RE.test(text) ? (
+          // Any Hebrew present: render each language block as its own paragraph so
+          // Hebrew flows RTL (correct punctuation) in the Hebrew serif and English
+          // LTR in the body font — bilingual reads as two clean sections.
           <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
             {text.split(/\n{2,}/).map((para, i) => {
               const heb = HEBREW_RE.test(para);
               const align = heb ? (layout.align === "center" ? "center" : "right") : layout.align;
               return (
-                <p key={i} dir={heb ? "rtl" : "ltr"} style={{ margin: i === 0 ? 0 : "0.5em 0 0", textAlign: align }}>
+                <p
+                  key={i}
+                  dir={heb ? "rtl" : "ltr"}
+                  style={{
+                    margin: i === 0 ? 0 : "0.5em 0 0",
+                    textAlign: align,
+                    fontFamily: heb ? BOOK_HEBREW_FONT : undefined,
+                  }}
+                >
                   {para.trim()}
                 </p>
               );

@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { BOOK_TEXT_STYLE, COVER_URL, getCoverTagline, getCoverHeadline, getCoverCta, COMING_NEXT_LABEL, type BookPage } from "@/components/wizard/BookViewer";
+import { BOOK_HEBREW_FONT } from "@/components/wizard/EditableTextBox";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
@@ -120,16 +121,17 @@ function drawPaperFull(ctx: CanvasRenderingContext2D, W: number, H: number) {
 /** Composite a text overlay using the page's TextLayout. Coords are % of the
  *  canvas (W×H). */
 const HEBREW_RE = /[֐-׿]/;
-const LATIN_RE = /[A-Za-z]/;
 
-/** A caption may be bilingual (English + Hebrew, joined with a blank line). Each
- *  language needs its OWN paragraph direction — otherwise Hebrew sentence-final
- *  punctuation lands on the wrong side. Split such text into per-language blocks,
- *  each with its own direction + alignment, so they render as two clean sections
- *  (English LTR, Hebrew RTL). Monolingual text stays a single block. */
-function textSegments(text: string, rtl: boolean, align: CanvasTextAlign) {
-  const isBilingual = HEBREW_RE.test(text) && LATIN_RE.test(text);
-  if (!isBilingual) return [{ dir: (rtl ? "rtl" : "ltr") as CanvasDirection, align, text }];
+/** A caption may mix English + Hebrew (joined with a blank line). Each language
+ *  needs its OWN direction (else Hebrew sentence-final punctuation lands on the
+ *  wrong side) AND its own font (Hebrew → the Hebrew serif with nikud). Split any
+ *  Hebrew-containing text into per-language blocks so they render as clean
+ *  sections (English LTR body font, Hebrew RTL serif). Latin-only text stays one
+ *  block in the box's own font. `bodyFont` is the box font used for English. */
+function textSegments(text: string, rtl: boolean, align: CanvasTextAlign, bodyFont: string) {
+  if (!HEBREW_RE.test(text)) {
+    return [{ dir: (rtl ? "rtl" : "ltr") as CanvasDirection, align, text, font: bodyFont }];
+  }
   return text
     .split(/\n{2,}/)
     .map((p) => p.trim())
@@ -142,6 +144,7 @@ function textSegments(text: string, rtl: boolean, align: CanvasTextAlign) {
         // right (reading-start) edge; English follows the box's own alignment.
         align: (heb ? (align === "center" ? "center" : "right") : align) as CanvasTextAlign,
         text: p,
+        font: heb ? BOOK_HEBREW_FONT : bodyFont,
       };
     });
 }
@@ -155,7 +158,8 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   const fontSize = layout.fontSize * scale;
   const weight = layout.bold ? "700" : "400";
   const italic = layout.italic ? "italic " : "";
-  ctx.font = `${italic}${weight} ${fontSize}px ${layout.fontFamily}`;
+  const fontStr = (family: string) => `${italic}${weight} ${fontSize}px ${family}`;
+  ctx.font = fontStr(layout.fontFamily);
   ctx.textBaseline = "top";
 
   const boxX = (layout.x / 100) * W;
@@ -166,18 +170,18 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   const padY = (hasPad ? 14 : 4) * scale;
   const maxTextW = boxW - padX * 2;
   const lineHeight = fontSize * (layout.lineHeight ?? 1.5);
-  const segGap = lineHeight * 0.5; // blank-line gap between English + Hebrew blocks
 
-  // Wrap each language block with its own direction, keeping per-line direction +
-  // alignment so both sections render correctly.
-  const segments = textSegments(text, rtl, layout.align);
-  const rendered: { line: string; dir: CanvasDirection; align: CanvasTextAlign }[] = [];
+  // Wrap each language block with its own direction + font, keeping per-line
+  // direction/alignment/font so both sections render correctly.
+  const segments = textSegments(text, rtl, layout.align, layout.fontFamily);
+  const rendered: { line: string; dir: CanvasDirection; align: CanvasTextAlign; font: string }[] = [];
   for (let s = 0; s < segments.length; s++) {
     const seg = segments[s];
     ctx.direction = seg.dir;
+    ctx.font = fontStr(seg.font);
     const wrapped = wrapLines(ctx, seg.text, maxTextW);
-    if (s > 0) rendered.push({ line: "", dir: seg.dir, align: seg.align }); // spacer row
-    for (const ln of wrapped) rendered.push({ line: ln, dir: seg.dir, align: seg.align });
+    if (s > 0) rendered.push({ line: "", dir: seg.dir, align: seg.align, font: seg.font }); // spacer row
+    for (const ln of wrapped) rendered.push({ line: ln, dir: seg.dir, align: seg.align, font: seg.font });
   }
 
   const textH = rendered.length * lineHeight;
@@ -218,10 +222,11 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   const anchorFor = (align: CanvasTextAlign) =>
     align === "center" ? boxX + boxW / 2 : align === "right" ? boxX + boxW - padX : boxX + padX;
   for (let i = 0; i < rendered.length; i++) {
-    const { line, dir, align } = rendered[i];
+    const { line, dir, align, font } = rendered[i];
     if (!line) continue; // spacer
     ctx.direction = dir;
     ctx.textAlign = align;
+    ctx.font = fontStr(font);
     const textAnchorX = anchorFor(align);
     const ly = boxY + padY + i * lineHeight;
     // Shadow pass: paint the OUTER glyph shape once with a soft shadow enabled,
