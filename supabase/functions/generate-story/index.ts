@@ -74,9 +74,13 @@ serve(async (req) => {
       hebrew: "Hebrew (modern Hebrew with full nikud where helpful)",
       yiddish: "Yiddish (Eastern/Litvish Yiddish in Hebrew script — the traditional Chareidi mama-loshen)",
     };
+    const otherLangs = selectedLangs.filter((l) => l !== "english").map((l) => langNames[l]).join(" and ");
     const languageInstruction = isMultiLang
-      ? `LANGUAGES — this is a BILINGUAL book. Write EVERYTHING in BOTH ${selectedLangs.map((l) => langNames[l]).join(" AND ")}: every page's text, the cover title and subtitle, the synopsis, the dedication, and every question. For each of those fields return a JSON OBJECT with one key per language instead of a plain string — e.g. "text": { ${selectedLangs.map((l) => `"${l}": "..."`).join(", ")} }. Each language must carry the SAME meaning and rhyme naturally in its own tongue.`
-      : `Write everything in ${langNames[selectedLangs[0]]}.`;
+      ? `LANGUAGES — this is a BILINGUAL book. Write EVERYTHING in BOTH ${selectedLangs.map((l) => langNames[l]).join(" AND ")}: every page's text, the cover title and subtitle, the synopsis, the dedication, and every question. For each of those fields return a JSON OBJECT with one key per language — e.g. "text": { ${selectedLangs.map((l) => `"${l}": "..."`).join(", ")} }.
+  · Each language conveys the SAME story beat, but is COMPOSED INDEPENDENTLY in that language — NOT a word-for-word translation of the English.
+  · CRITICAL — the ${otherLangs} verse MUST GENUINELY RHYME ON ITS OWN: its lines must end in real matching rhyming sounds in that language, be grammatically correct and natural, and scan smoothly when read aloud like a real ${otherLangs} children's rhyme. A literal translation that does NOT rhyme is WRONG — rework the wording freely so it truly rhymes; keep the meaning and the rhyme, sacrifice literalness.
+  · HEBREW specifically: correct grammar and gender/number agreement, natural word order, full nikud, and line-endings that actually rhyme (matching final stressed syllables/sounds). Read it back in your head — if the Hebrew lines don't rhyme, rewrite them until they do.`
+      : `Write everything in ${langNames[selectedLangs[0]]}. Every page is a short verse that GENUINELY RHYMES in ${langNames[selectedLangs[0]]} — real matching end-sounds, grammatically correct and natural, never a forced or non-rhyming line.`;
 
     // Page count is driven by book type (board=10, soft/hardcover=20). Validate to a sane range.
     const requestedPages = Number(pageCount);
