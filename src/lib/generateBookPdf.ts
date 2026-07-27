@@ -418,6 +418,16 @@ async function ensureBookFonts() {
       f.load("400 40px 'Frank Ruhl Libre'"), f.load("700 40px 'Frank Ruhl Libre'"),
     ]);
     await f.ready;
+    // Warm up the canvas font cache: the FIRST fillText with a freshly-loaded
+    // font can still fall back (the cover never uses the Hebrew serif, so page 1's
+    // Hebrew would be its first use and miss). Draw each once off-screen to prime.
+    const warm = document.createElement("canvas").getContext("2d");
+    if (warm) {
+      for (const font of [
+        "700 40px 'Frank Ruhl Libre'", "400 40px 'Frank Ruhl Libre'",
+        "400 40px Fredoka", "700 40px Fredoka",
+      ]) { warm.font = font; warm.fillText("אבּגְ Aa", -9999, -9999); }
+    }
   } catch { /* fall back to whatever is available */ }
 }
 
