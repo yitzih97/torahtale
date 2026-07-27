@@ -10,13 +10,13 @@ import { describeFunctionsError } from "@/lib/functionsError";
 import type { TextStyle } from "./DraggableText";
 import { EditableTextBox, DEFAULT_TEXT_LAYOUT, DEFAULT_FONT_FAMILY, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "./EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
-import { fitQuestionsLayout } from "@/lib/fitQuestions";
+import { fitQuestionsLayout, buildQuestionsText } from "@/lib/fitQuestions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPortionDisplay, bookLanguageCode, isBookRtl } from "./TorahPortions";
-import { COVER_NAVY, COVER_GOLD, COVER_MAGENTA, FRONT_TAGLINE, coverTitleParts } from "@/lib/coverBranding";
+import { COVER_NAVY, COVER_GOLD, FRONT_TAGLINE } from "@/lib/coverBranding";
 import { toLineArtDataURL } from "@/lib/lineArt";
 
 export interface BookPage {
@@ -420,7 +420,6 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
                 fontFamily: "'TorahTaleTitle', 'Cinzel', serif",
                 backgroundImage: "linear-gradient(180deg,#fff6d5,#e7be5c 55%,#a9791f)",
                 WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
-                textShadow: "0 1px 1px rgba(0,0,0,0.4)",
               }}
             >
               {pvLabel}
@@ -428,9 +427,13 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             {childName && (
               <p
                 className="italic font-semibold leading-tight text-[4px] sm:text-[5px]"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: COVER_MAGENTA, textShadow: "0 1px 3px rgba(0,0,0,0.55)" }}
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  backgroundImage: "linear-gradient(180deg,#fff6d5,#e7be5c 55%,#a9791f)",
+                  WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
+                }}
               >
-                {childName}
+                with {childName}
               </p>
             )}
           </div>
@@ -562,11 +565,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   };
 
   const renderCoverSpread = () => {
-    // Front cover text: the gold parsha title always shows; the magenta
-    // personalized title/child line follow the same coverTitleParts logic as
-    // the print renderer (falls back to the child's name when there's no
-    // creative title, or it just repeats the parsha).
-    const { title: frontTitle, childLine } = coverTitleParts(page?.coverTitle, childName, parshaName);
+    // Front cover text: the gold parsha title, then a gold "With [kids]" subtitle.
+    const frontTitle = childName ? `With ${childName}` : undefined;
     return (
     <div className="absolute inset-0 grid grid-cols-2">
       {/* Back cover — left: brand logo, the 4 "coming next" teaser mini-covers,
@@ -617,7 +617,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             <BookOpen className="w-10 h-10 text-muted-foreground" />
           </div>
         )}
-        {renderCoverChrome(frontTitle, childLine)}
+        {renderCoverChrome(frontTitle)}
       </div>
 
       {/* Spine — story title + kids' names down the center fold */}
@@ -701,8 +701,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
     // Clean, empty parchment page (no illustration) so the discussion questions
     // are always easy to read. Auto-fit the font so ALL questions fit the page
     // (same logical dims + logic as the PDF, so edit and print agree).
-    const questionsText = (page?.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n");
-    const combinedText = page?.text || questionsText;
+    const combinedText = (page?.questions?.length) ? buildQuestionsText(page.questions) : (page?.text || "");
     const qW = isColoring ? 1275 : spreadBased ? 2400 : 1200;
     const qH = isColoring ? 1650 : 1200;
     const layout = fitQuestionsLayout(combinedText, migrateLayout(page?.textLayout) || makeQuestionsLayout(isRtl), qW, qH, isRtl);

@@ -1,5 +1,20 @@
 import type { TextLayout } from "@/components/wizard/EditableTextBox";
 
+/** Build the questions-page text so BOTH languages of each question carry the
+ *  SAME number. A bilingual question stores English + Hebrew joined by a blank
+ *  line; we split them and prefix each with "N." so the list numbers correctly
+ *  in English AND Hebrew. Blocks are separated by blank lines so the renderer
+ *  gives each its own direction (Hebrew RTL, English LTR). */
+export function buildQuestionsText(questions: { number: number; question: string }[]): string {
+  const out: string[] = [];
+  questions.forEach((q, i) => {
+    const n = q.number || i + 1;
+    const parts = String(q.question || "").split(/\n{2,}/).map((s) => s.trim()).filter(Boolean);
+    for (const part of parts) out.push(`${n}. ${part}`);
+  });
+  return out.join("\n\n");
+}
+
 /** Word-wrap `text` to `maxWidth` using the measuring ctx (mirrors the PDF
  *  renderer's wrapLines so edit + print agree). Preserves explicit newlines. */
 function wrapCount(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): number {
@@ -26,8 +41,8 @@ function wrapCount(ctx: CanvasRenderingContext2D, text: string, maxWidth: number
  *
  * `W`/`H` are the logical page dimensions (e.g. 1200×1200 for an 8×8 square).
  */
-export function fitQuestionsLayout(text: string, base: TextLayout, W: number, H: number, rtl: boolean): TextLayout {
-  const listAlign: TextLayout["align"] = rtl ? "right" : "left";
+export function fitQuestionsLayout(text: string, base: TextLayout, W: number, H: number, _rtl: boolean): TextLayout {
+  const listAlign: TextLayout["align"] = "center"; // questions are centered
   let ctx: CanvasRenderingContext2D | null = null;
   try { ctx = document.createElement("canvas").getContext("2d"); } catch { /* ignore */ }
   if (!ctx) return { ...base, align: listAlign };

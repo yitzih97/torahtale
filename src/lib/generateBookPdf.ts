@@ -4,10 +4,10 @@ import { BOOK_HEBREW_FONT } from "@/components/wizard/EditableTextBox";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
-import { fitQuestionsLayout } from "@/lib/fitQuestions";
+import { fitQuestionsLayout, buildQuestionsText } from "@/lib/fitQuestions";
 import { applyLineArt } from "@/lib/lineArt";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
-import { COVER_NAVY, COVER_GOLD, COVER_MAGENTA, FRONT_TAGLINE, coverTitleParts } from "@/lib/coverBranding";
+import { COVER_NAVY, COVER_GOLD, FRONT_TAGLINE } from "@/lib/coverBranding";
 
 /* Spread = 2:1 landscape sheet. Image fills one half, text composited
    per page from BookPage.textLayout. */
@@ -373,7 +373,7 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
   drawPaperFull(ctx, W, H);
   if (mode === "spread") drawGutter(ctx, W, H);
   const questions = page.questions || [];
-  const formatted = page.text || questions.map((q) => `${q.number}. ${q.question}`).join("\n\n");
+  const formatted = questions.length ? buildQuestionsText(questions) : (page.text || "");
   const fitted = fitQuestionsLayout(formatted, layout, W, H, rtl);
   drawTextOverlay(ctx, formatted, fitted, W, H, rtl);
   return canvas.toDataURL("image/jpeg", 0.96);
@@ -606,23 +606,21 @@ function drawMiniCover(
   ctx.strokeStyle = COVER_GOLD; ctx.lineWidth = Math.max(0.75, size * 0.006);
   const gi = m + size * 0.028;
   ctx.strokeRect(x + gi, y + gi, size - 2 * gi, size - 2 * gi);
-  // Parsha title — engraved gold blackletter, wrapped to ≤2 lines. Kept small so
-  // it fits neatly inside the little thumbnail instead of dominating it.
+  // Parsha title — FLAT gold blackletter (no engrave/drop shadow), ≤2 lines.
   ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
   const fs = Math.round(size * 0.072);
-  const titleFont = coverTitleFont(fs);
-  ctx.font = titleFont;
+  ctx.font = coverTitleFont(fs);
   const lines = wrapLines(ctx, label || "", size - size * 0.22).slice(0, 2);
   let ty = y + size * 0.13 + fs;
-  for (const ln of lines) { engravedLine(ctx, ln, x + size / 2, ty, titleFont, fs); ty += fs * 1.1; }
-  // Child line — magenta italic.
+  for (const ln of lines) { ctx.fillStyle = goldFill(ctx, ty, fs); ctx.fillText(ln, x + size / 2, ty); ty += fs * 1.1; }
+  // Child line — "with [name]" in gold italic.
   if (childName) {
     const cfs = Math.round(size * 0.055);
     ctx.font = `italic 600 ${cfs}px 'Cormorant Garamond', serif`;
     ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-    ctx.shadowColor = "rgba(0,0,0,0.55)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
-    ctx.fillStyle = COVER_MAGENTA; ctx.fillText(childName, x + size / 2, ty + cfs * 0.15);
-    ctx.shadowColor = "transparent";
+    ctx.fillStyle = goldFill(ctx, ty + cfs * 0.15, cfs);
+    ctx.fillText(`with ${childName}`, x + size / 2, ty + cfs * 0.15);
   }
   ctx.restore();
   ctx.strokeStyle = "rgba(0,0,0,0.30)"; ctx.lineWidth = 2;
@@ -745,19 +743,15 @@ async function renderCoverSpread(
     ctx.fillStyle = "#dcd2bd";
     ctx.fillRect(HALF_W, 0, HALF_W, SPREAD_H);
   }
-  // Front cover chrome: navy filigree frame, "Torah Tale" brand, big engraved
-  // gold PARSHA title, magenta personalized story title, and a bottom tagline —
-  // drawn over the illustration (right half). Uses coverTitle as the personalized
-  // magenta line (falls back to the child's name), the localized parsha as the
-  // gold title.
-  const { title: frontTitle, childLine } = coverTitleParts(page.coverTitle, childName, parshaLabel);
+  // Front cover chrome: navy filigree frame, "Torah Tale" brand, big gold PARSHA
+  // title, a gold "With [kids]" subtitle, and a bottom tagline — drawn over the
+  // illustration (right half).
   ctx.save();
   ctx.translate(HALF_W, 0);
   drawCoverFurniture(ctx, HALF_W, SPREAD_H, {
     brand: "Torah Tale",
     parsha: parshaLabel,
-    title: frontTitle,
-    childLine,
+    title: childName ? `With ${childName}` : undefined,
     tagline: FRONT_TAGLINE,
     rtl,
   });
@@ -830,7 +824,7 @@ async function renderPortraitCover(
   drawCoverFurniture(ctx, W, H, {
     brand: "Torah Tale",
     parsha: parshaLabel,
-    title: childName,
+    title: childName ? `With ${childName}` : undefined,
     tagline: FRONT_TAGLINE,
     rtl,
   });
