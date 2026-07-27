@@ -366,6 +366,8 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
                     margin: i === 0 ? 0 : "0.5em 0 0",
                     textAlign: align,
                     fontFamily: heb ? BOOK_HEBREW_FONT : undefined,
+                    // Hebrew always reads bold; English follows the box weight.
+                    fontWeight: heb ? 700 : undefined,
                   }}
                 >
                   {para.trim()}

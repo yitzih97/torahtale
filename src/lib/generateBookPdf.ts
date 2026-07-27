@@ -132,9 +132,9 @@ const HEBREW_RE = /[֐-׿]/;
  *  Hebrew-containing text into per-language blocks so they render as clean
  *  sections (English LTR body font, Hebrew RTL serif). Latin-only text stays one
  *  block in the box's own font. `bodyFont` is the box font used for English. */
-function textSegments(text: string, rtl: boolean, align: CanvasTextAlign, bodyFont: string) {
+function textSegments(text: string, rtl: boolean, align: CanvasTextAlign, bodyFont: string, baseBold: boolean) {
   if (!HEBREW_RE.test(text)) {
-    return [{ dir: (rtl ? "rtl" : "ltr") as CanvasDirection, align, text, font: bodyFont }];
+    return [{ dir: (rtl ? "rtl" : "ltr") as CanvasDirection, align, text, font: bodyFont, bold: baseBold }];
   }
   return text
     .split(/\n{2,}/)
@@ -149,6 +149,9 @@ function textSegments(text: string, rtl: boolean, align: CanvasTextAlign, bodyFo
         align: (heb ? (align === "center" ? "center" : "right") : align) as CanvasTextAlign,
         text: p,
         font: heb ? BOOK_HEBREW_FONT : bodyFont,
+        // Hebrew always renders bold (its serif reads better heavier); English
+        // follows the box weight.
+        bold: heb ? true : baseBold,
       };
     });
 }
@@ -160,10 +163,9 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   // canvas width so the PDF matches the on-screen preview 1:1.
   const scale = W / 1024;
   const fontSize = layout.fontSize * scale;
-  const weight = layout.bold ? "700" : "400";
   const italic = layout.italic ? "italic " : "";
-  const fontStr = (family: string) => `${italic}${weight} ${fontSize}px ${family}`;
-  ctx.font = fontStr(layout.fontFamily);
+  const fontStr = (family: string, bold: boolean) => `${italic}${bold ? "700" : "400"} ${fontSize}px ${family}`;
+  ctx.font = fontStr(layout.fontFamily, layout.bold);
   ctx.textBaseline = "top";
 
   const boxX = (layout.x / 100) * W;
@@ -177,15 +179,15 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
 
   // Wrap each language block with its own direction + font, keeping per-line
   // direction/alignment/font so both sections render correctly.
-  const segments = textSegments(text, rtl, layout.align, layout.fontFamily);
-  const rendered: { line: string; dir: CanvasDirection; align: CanvasTextAlign; font: string }[] = [];
+  const segments = textSegments(text, rtl, layout.align, layout.fontFamily, layout.bold);
+  const rendered: { line: string; dir: CanvasDirection; align: CanvasTextAlign; font: string; bold: boolean }[] = [];
   for (let s = 0; s < segments.length; s++) {
     const seg = segments[s];
     ctx.direction = seg.dir;
-    ctx.font = fontStr(seg.font);
+    ctx.font = fontStr(seg.font, seg.bold);
     const wrapped = wrapLines(ctx, seg.text, maxTextW);
-    if (s > 0) rendered.push({ line: "", dir: seg.dir, align: seg.align, font: seg.font }); // spacer row
-    for (const ln of wrapped) rendered.push({ line: ln, dir: seg.dir, align: seg.align, font: seg.font });
+    if (s > 0) rendered.push({ line: "", dir: seg.dir, align: seg.align, font: seg.font, bold: seg.bold }); // spacer row
+    for (const ln of wrapped) rendered.push({ line: ln, dir: seg.dir, align: seg.align, font: seg.font, bold: seg.bold });
   }
 
   const textH = rendered.length * lineHeight;
@@ -226,11 +228,11 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
   const anchorFor = (align: CanvasTextAlign) =>
     align === "center" ? boxX + boxW / 2 : align === "right" ? boxX + boxW - padX : boxX + padX;
   for (let i = 0; i < rendered.length; i++) {
-    const { line, dir, align, font } = rendered[i];
+    const { line, dir, align, font, bold } = rendered[i];
     if (!line) continue; // spacer
     ctx.direction = dir;
     ctx.textAlign = align;
-    ctx.font = fontStr(font);
+    ctx.font = fontStr(font, bold);
     const textAnchorX = anchorFor(align);
     const ly = boxY + padY + i * lineHeight;
     // Shadow pass: paint the OUTER glyph shape once with a soft shadow enabled,
@@ -411,7 +413,7 @@ async function ensureBookFonts() {
       // Story-caption fonts — MUST be loaded before drawing captions or the canvas
       // silently falls back (and inconsistently, page to page).
       f.load("400 40px Fredoka"), f.load("500 40px Fredoka"),
-      f.load("400 40px 'Frank Ruhl Libre'"), f.load("500 40px 'Frank Ruhl Libre'"),
+      f.load("400 40px 'Frank Ruhl Libre'"), f.load("700 40px 'Frank Ruhl Libre'"),
     ]);
     await f.ready;
   } catch { /* fall back to whatever is available */ }
