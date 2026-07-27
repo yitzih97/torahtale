@@ -296,6 +296,9 @@ function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: 
 }
 
 async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean, mode: LayoutMode, scale = 1): Promise<string> {
+  // Caption fonts (Fredoka / Frank Ruhl) must be loaded before drawing, or the
+  // canvas falls back inconsistently and pages end up in different fonts.
+  await ensureBookFonts();
   // Board: 2:1 spread. 8×8: square page. Coloring: 8.5×11 portrait page.
   const [W, H] = interiorDims(mode);
 
@@ -349,6 +352,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
 }
 
 async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutMode, scale = 1): Promise<string> {
+  await ensureBookFonts();
   // The questions page sits on a clean, empty parchment page (no illustration)
   // so the discussion text is always easy to read.
   const layout = migrateLayout(page.textLayout) || makeQuestionsLayout(rtl);
@@ -396,7 +400,7 @@ export interface BackCoverPreview { label: string; url: string | null }
 
 // The cover fonts are only used on the print canvas (no DOM node uses them), so
 // make sure they are actually loaded before we draw or canvas silently falls back.
-async function ensureCoverFonts() {
+async function ensureBookFonts() {
   try {
     const f: any = (document as any).fonts;
     if (!f) return;
@@ -404,6 +408,10 @@ async function ensureCoverFonts() {
       f.load("120px TorahTaleTitle"), f.load("70px TorahTaleTitle"),
       f.load("700 120px Cinzel"), f.load("600 40px Cinzel"),
       f.load("600 60px 'Cormorant Garamond'"), f.load("italic 500 40px 'Cormorant Garamond'"),
+      // Story-caption fonts — MUST be loaded before drawing captions or the canvas
+      // silently falls back (and inconsistently, page to page).
+      f.load("400 40px Fredoka"), f.load("500 40px Fredoka"),
+      f.load("400 40px 'Frank Ruhl Libre'"), f.load("500 40px 'Frank Ruhl Libre'"),
     ]);
     await f.ready;
   } catch { /* fall back to whatever is available */ }
@@ -626,7 +634,7 @@ async function renderCoverSpread(
   previews: BackCoverPreview[] = [],
   lang: "en" | "he" | "yi" = "en",
 ): Promise<string> {
-  await ensureCoverFonts();
+  await ensureBookFonts();
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W * scale; canvas.height = SPREAD_H * scale;
   const ctx = canvas.getContext("2d")!;
@@ -794,7 +802,7 @@ async function renderPortraitCover(
   scale = 1,
   lang: "en" | "he" | "yi" = "en",
 ): Promise<string> {
-  await ensureCoverFonts();
+  await ensureBookFonts();
   const W = COLOR_W, H = COLOR_H;
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
@@ -840,7 +848,7 @@ async function renderColoringBackMatter(
   const rtl = lang !== "en";
   // The branded teaser thumbnails use canvas-only fonts (Cinzel/Cormorant), so
   // make sure they're loaded before drawing or the canvas silently falls back.
-  await ensureCoverFonts();
+  await ensureBookFonts();
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
