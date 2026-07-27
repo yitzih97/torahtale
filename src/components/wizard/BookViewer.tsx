@@ -469,17 +469,6 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-[rgba(8,14,30,0.82)] via-[rgba(8,14,30,0.32)] to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-[18%] bg-gradient-to-t from-[rgba(8,14,30,0.72)] to-transparent" />
 
-      {/* Navy frame + gold double keyline */}
-      <div className="absolute" style={{ inset: "3%", border: `6px solid ${COVER_NAVY}` }} />
-      <div className="absolute" style={{ inset: "4.6%", border: `2px solid ${COVER_GOLD}` }} />
-      <div className="absolute" style={{ inset: "5.1%", border: "1px solid rgba(227,193,105,0.5)" }} />
-
-      {/* Corner flourishes */}
-      <span className="absolute top-[6%] left-[6%] text-sm sm:text-lg" style={{ color: COVER_GOLD }}>❦</span>
-      <span className="absolute top-[6%] right-[6%] text-sm sm:text-lg" style={{ color: COVER_GOLD }}>❦</span>
-      <span className="absolute bottom-[6%] right-[6%] text-sm sm:text-lg" style={{ color: COVER_GOLD }}>❦</span>
-      <span className="absolute bottom-[6%] left-[6%] text-sm sm:text-lg" style={{ color: COVER_GOLD }}>❦</span>
-
       <div className="absolute inset-x-0 top-[7%] text-center px-3">
         <p className="font-semibold uppercase tracking-[0.3em] text-[9px] sm:text-sm" style={{ fontFamily: "'Cinzel', serif", color: COVER_GOLD }}>
           Torah Tale
@@ -573,14 +562,11 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
           a subscribe invitation, and the site URL. */}
       <div className="relative flex flex-col items-center justify-between gap-2 p-3 sm:p-5 text-center bg-[hsl(42_50%_94%)]">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
-        {/* Navy frame + gold keyline so the back matches the front cover jacket. */}
-        <div className="pointer-events-none absolute inset-2 sm:inset-3 border-2 border-[#122140]" />
-        <div className="pointer-events-none absolute inset-[9px] sm:inset-[13px] border border-[#e3c169]/70" />
 
         {/* Combined brand logo (single lockup: book on top of the wordmark) with
             the series headline beneath. */}
         <div className="relative flex flex-col items-center pt-2">
-          <img src={torahTaleLogoFull} alt="Torah Tale" className="h-16 sm:h-[4.5rem] w-auto object-contain" />
+          <img src={torahTaleLogoFull} alt="Torah Tale" className="h-14 sm:h-[3.75rem] w-auto object-contain" />
           <p className="mt-1.5 font-display font-semibold text-sm sm:text-base text-gold leading-tight" dir={dir} style={{ textShadow: "none" }}>{getCoverHeadline(lang)}</p>
         </div>
 

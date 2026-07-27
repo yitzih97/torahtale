@@ -487,20 +487,8 @@ function drawCoverFurniture(
   g.addColorStop(0, "rgba(8,14,30,0)"); g.addColorStop(1, "rgba(8,14,30,0.72)");
   ctx.fillStyle = g; ctx.fillRect(0, H * 0.82, W, H * 0.18);
 
-  // Navy frame band + gold double keyline + corner filigree.
+  // (No decorative frame — the cover runs clean to the edge.)
   const m = Math.round(U * 0.028), bw = Math.round(U * 0.02);
-  ctx.strokeStyle = COVER_NAVY; ctx.lineWidth = bw;
-  ctx.strokeRect(m + bw / 2, m + bw / 2, W - 2 * m - bw, H - 2 * m - bw);
-  const gi = m + bw + Math.round(U * 0.007);
-  ctx.strokeStyle = gold; ctx.lineWidth = 2; ctx.strokeRect(gi, gi, W - 2 * gi, H - 2 * gi);
-  ctx.strokeStyle = "rgba(227,193,105,0.5)"; ctx.lineWidth = 1;
-  ctx.strokeRect(gi + 5, gi + 5, W - 2 * gi - 10, H - 2 * gi - 10);
-  const cs = U * 0.05, ci = gi + 10;
-  cornerFiligree(ctx, ci, ci, cs, 0, gold);
-  cornerFiligree(ctx, W - ci, ci, cs, Math.PI / 2, gold);
-  cornerFiligree(ctx, W - ci, H - ci, cs, Math.PI, gold);
-  cornerFiligree(ctx, ci, H - ci, cs, -Math.PI / 2, gold);
-
   ctx.direction = dir;
   const top = m + bw;
   // Brand.
@@ -652,35 +640,19 @@ async function renderCoverSpread(
   const rtlDir: CanvasDirection = rtl ? "rtl" : "ltr";
   drawPaperHalf(ctx, "left");
 
-  // ── BACK COVER (left half): a decorative navy-framed panel that mirrors the
-  // front cover's frame, with the stacked brand logo (book icon ON TOP of the
-  // wordmark), the series headline, a professional subscribe invitation, a row of
-  // "coming next" teaser covers, and the site URL. ──
+  // ── BACK COVER (left half): a clean cream panel (no decorative frame) with the
+  // combined brand logo, the series headline, a professional subscribe
+  // invitation, a row of "coming next" teaser covers, and the site URL. ──
   const BW = HALF_W;                              // back cover = BW × SPREAD_H square
   const cx = BW / 2;
-  {
-    const U = BW;
-    const m = Math.round(U * 0.028), bw = Math.round(U * 0.02);
-    ctx.strokeStyle = COVER_NAVY; ctx.lineWidth = bw;
-    ctx.strokeRect(m + bw / 2, m + bw / 2, BW - 2 * m - bw, SPREAD_H - 2 * m - bw);
-    const gi = m + bw + Math.round(U * 0.007);
-    ctx.strokeStyle = COVER_GOLD; ctx.lineWidth = 2; ctx.strokeRect(gi, gi, BW - 2 * gi, SPREAD_H - 2 * gi);
-    ctx.strokeStyle = "rgba(227,193,105,0.5)"; ctx.lineWidth = 1;
-    ctx.strokeRect(gi + 5, gi + 5, BW - 2 * gi - 10, SPREAD_H - 2 * gi - 10);
-    const cs = U * 0.05, ci = gi + 10;
-    cornerFiligree(ctx, ci, ci, cs, 0, COVER_GOLD);
-    cornerFiligree(ctx, BW - ci, ci, cs, Math.PI / 2, COVER_GOLD);
-    cornerFiligree(ctx, BW - ci, SPREAD_H - ci, cs, Math.PI, COVER_GOLD);
-    cornerFiligree(ctx, ci, SPREAD_H - ci, cs, -Math.PI / 2, COVER_GOLD);
-  }
 
   // Brand logo — the single combined lockup (book icon on top of the wordmark),
   // one clean file so the book + text stay perfectly aligned.
   const logo = await safeLoad(torahTaleLogoFull);
   if (logo) {
-    const logoH = 330;
+    const logoH = 270;
     const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-    ctx.drawImage(logo, cx - logoW / 2, 84, logoW, logoH);
+    ctx.drawImage(logo, cx - logoW / 2, 92, logoW, logoH);
   }
 
   // Gold flourish + series headline — flat gold (no engrave/shadow) so it stays
@@ -713,8 +685,8 @@ async function renderCoverSpread(
   // "Coming next" label + a row of 4 teaser covers (empty box until generated).
   ctx.direction = rtlDir;
   ctx.fillStyle = "#8a7452";
-  ctx.font = `600 24px 'Inter', sans-serif`;
-  ctx.fillText(letterSpace((COMING_NEXT_LABEL[lang] || COMING_NEXT_LABEL.en).toUpperCase(), 3), cx, 782);
+  ctx.font = `600 17px 'Inter', sans-serif`;
+  ctx.fillText(letterSpace((COMING_NEXT_LABEL[lang] || COMING_NEXT_LABEL.en).toUpperCase(), 2), cx, 786);
   const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
   const thumb = 150, tgap = 20;
   const rowW = 4 * thumb + 3 * tgap;
