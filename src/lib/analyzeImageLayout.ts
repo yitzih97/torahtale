@@ -161,7 +161,9 @@ export function computeAutoTextLayout(
     // size are derived from the image's clear space.
     return {
       ...DEFAULT_TEXT_LAYOUT,
-      x: c.x, y: c.y, width: c.width, align: c.align,
+      x: c.x, y: c.y, width: c.width,
+      // Captions are centered by default within their placement box.
+      align: "center",
       fontSize, background: false,
     } as TextLayout;
   } catch {

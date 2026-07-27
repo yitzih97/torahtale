@@ -4,6 +4,7 @@ import { BOOK_HEBREW_FONT } from "@/components/wizard/EditableTextBox";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
+import { fitQuestionsLayout } from "@/lib/fitQuestions";
 import { applyLineArt } from "@/lib/lineArt";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
 import { COVER_NAVY, COVER_GOLD, COVER_MAGENTA, FRONT_TAGLINE, coverTitleParts } from "@/lib/coverBranding";
@@ -373,7 +374,8 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
   if (mode === "spread") drawGutter(ctx, W, H);
   const questions = page.questions || [];
   const formatted = page.text || questions.map((q) => `${q.number}. ${q.question}`).join("\n\n");
-  drawTextOverlay(ctx, formatted, layout, W, H, rtl);
+  const fitted = fitQuestionsLayout(formatted, layout, W, H, rtl);
+  drawTextOverlay(ctx, formatted, fitted, W, H, rtl);
   return canvas.toDataURL("image/jpeg", 0.96);
 }
 

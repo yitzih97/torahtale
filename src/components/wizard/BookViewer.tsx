@@ -10,6 +10,7 @@ import { describeFunctionsError } from "@/lib/functionsError";
 import type { TextStyle } from "./DraggableText";
 import { EditableTextBox, DEFAULT_TEXT_LAYOUT, DEFAULT_FONT_FAMILY, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "./EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
+import { fitQuestionsLayout } from "@/lib/fitQuestions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
@@ -698,10 +699,13 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
 
   const renderQuestionsSpread = () => {
     // Clean, empty parchment page (no illustration) so the discussion questions
-    // are always easy to read, with a wide centered text block by default.
-    const layout = migrateLayout(page?.textLayout) || makeQuestionsLayout(isRtl);
+    // are always easy to read. Auto-fit the font so ALL questions fit the page
+    // (same logical dims + logic as the PDF, so edit and print agree).
     const questionsText = (page?.questions || []).map((q) => `${q.number}. ${q.question}`).join("\n\n");
     const combinedText = page?.text || questionsText;
+    const qW = isColoring ? 1275 : spreadBased ? 2400 : 1200;
+    const qH = isColoring ? 1650 : 1200;
+    const layout = fitQuestionsLayout(combinedText, migrateLayout(page?.textLayout) || makeQuestionsLayout(isRtl), qW, qH, isRtl);
     return (
       <div className="absolute inset-0" style={{ background: "radial-gradient(circle at center, rgba(232,197,117,0.30), rgba(232,197,117,0) 70%), #f6efdf" }}>
         {page && (

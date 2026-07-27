@@ -249,7 +249,7 @@ You MUST respond with ONLY a valid JSON object with this exact structure:
     "questions": [
       { "number": 1, "question": "Discussion question 1" },
       { "number": 2, "question": "Discussion question 2" },
-      ...up to 20 questions
+      ...up to 10 questions
     ]
   },
   "characters": [
@@ -269,7 +269,7 @@ PER-PAGE "characters" ARRAY (CRITICAL for illustration consistency):
 - Only list names that exist in the characters array above — never invent a name here.
 
 The questions should be part of the back cover (inside the backCover object):
-- Include exactly 20 questions
+- Include exactly 10 questions
 - Reflect the specific events, moral lessons, and values from the story
 - Be age-appropriate for a ${age}-year-old
 - Mix comprehension questions with moral/values questions

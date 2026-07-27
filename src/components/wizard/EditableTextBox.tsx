@@ -93,7 +93,7 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   fontFamily: BOOK_TEXT_FONT,
   fontSize: 22,
   color: "#ffffff",
-  align: "left",
+  align: "center",
   // Captions are WHITE with a soft drop shadow by default so they stay readable
   // on any scene — no outline, no cream box. A regular (not heavy-bold) weight
   // reads more like a storybook. Outline/background/border/bold remain toggleable
@@ -124,7 +124,9 @@ export function migrateLayout<T extends TextLayout | undefined>(layout: T): T {
   // font keep whatever weight they chose.
   const isDefaultFont = isLegacyDefault || fontFamily === BOOK_TEXT_FONT;
   const bold = isDefaultFont ? false : layout.bold;
-  return { ...layout, fontFamily, bold };
+  // Uncustomized (default-font) captions are centered by default.
+  const align = isDefaultFont ? "center" : layout.align;
+  return { ...layout, fontFamily, bold, align };
 }
 
 // A thin, crisp WHITE BORDER is stroked around caption text (paint-order
@@ -143,16 +145,15 @@ export const FONT_OPTIONS = [
 
 export const COLOR_SWATCHES = ["#2b2418", "#ffffff", "#fcf7ec", "#b88a2a", "#1a1a1a", "#7a1818"];
 
-export function makeDefaultLayout(side: "left" | "right", rtl = false): TextLayout {
-  // The illustration spans the full spread; text rests over the open sky on the
-  // chosen side (left for LTR, right for RTL), near the top like the hero.
-  const onLeft = side === "left";
+export function makeDefaultLayout(_side: "left" | "right", _rtl = false): TextLayout {
+  // Captions are centered by default, in a wide block across the top of the
+  // illustration (over the open sky, like the hero caption).
   return {
     ...DEFAULT_TEXT_LAYOUT,
-    x: onLeft ? 6 : 52,
+    x: 12,
     y: 9,
-    width: 42,
-    align: rtl ? "right" : "left",
+    width: 76,
+    align: "center",
   };
 }
 
@@ -162,16 +163,18 @@ export function makeDefaultLayout(side: "left" | "right", rtl = false): TextLayo
 export function makeQuestionsLayout(rtl = false): TextLayout {
   return {
     ...DEFAULT_TEXT_LAYOUT,
-    x: 10,
-    y: 8,
-    width: 80,
+    // Use nearly the whole page so many questions have room to fit.
+    x: 7,
+    y: 6,
+    width: 86,
     align: rtl ? "right" : "left",
     // The questions page is a clean cream parchment (no illustration), so the
     // white caption default would be invisible — keep it dark with no shadow.
     color: "#2b2418",
     shadow: false,
-    // Airier line spacing so the questions breathe and fill the whole page.
-    lineHeight: 2.3,
+    // Actual spacing is set by fitQuestionsLayout (which shrinks to fit); this is
+    // just a sane fallback.
+    lineHeight: 1.5,
   };
 }
 
