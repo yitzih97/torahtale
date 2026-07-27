@@ -117,11 +117,13 @@ export function migrateLayout<T extends TextLayout | undefined>(layout: T): T {
   if (!layout) return layout;
   const isLegacyDefault = LEGACY_DEFAULT_FONTS.includes(layout.fontFamily);
   const fontFamily = isLegacyDefault ? BOOK_TEXT_FONT : layout.fontFamily;
-  // Older auto-placed captions were saved with a hardcoded heavy bold. For those
-  // uncustomized (legacy-default-font) pages, drop bold so the whole book reads
-  // in ONE consistent regular weight. Pages the user gave a custom font keep
-  // whatever weight they chose.
-  const bold = isLegacyDefault ? false : layout.bold;
+  // Auto-placed captions were saved with a hardcoded heavy bold (weight 700).
+  // For any page still on a DEFAULT caption font — a legacy default OR the current
+  // Fredoka book font — drop bold so the whole book reads in ONE consistent
+  // regular weight. Only pages the user gave a genuinely custom (non-default)
+  // font keep whatever weight they chose.
+  const isDefaultFont = isLegacyDefault || fontFamily === BOOK_TEXT_FONT;
+  const bold = isDefaultFont ? false : layout.bold;
   return { ...layout, fontFamily, bold };
 }
 
