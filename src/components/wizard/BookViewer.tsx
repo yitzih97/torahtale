@@ -469,16 +469,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-[rgba(8,14,30,0.82)] via-[rgba(8,14,30,0.32)] to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-[18%] bg-gradient-to-t from-[rgba(8,14,30,0.72)] to-transparent" />
 
-      <div className="absolute inset-x-0 top-[7%] text-center px-3">
-        <p className="font-semibold uppercase tracking-[0.3em] text-[9px] sm:text-sm" style={{ fontFamily: "'Cinzel', serif", color: COVER_GOLD }}>
-          Torah Tale
-        </p>
-        <div className="mt-1 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
-          <span className="h-px w-5 sm:w-6 bg-current opacity-70" /><span>❦</span><span className="h-px w-5 sm:w-6 bg-current opacity-70" />
-        </div>
-      </div>
-
-      <div className="absolute inset-x-0 top-[15%] sm:top-[16%] text-center px-4">
+      <div className="absolute inset-x-0 top-[8%] sm:top-[9%] text-center px-4">
         <h1
           className="font-normal leading-tight text-xl sm:text-4xl"
           style={{

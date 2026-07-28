@@ -524,7 +524,9 @@ function drawCoverFurniture(
     fs = Math.min(fit(l1, U * 0.125), fit(l2, U * 0.125));
   }
   const tFont = coverTitleFont(fs);
-  let ty = top + U * 0.062 + U * 0.11;
+  // No brand headliner above — sit the parsha title higher so the whole block
+  // (title + "With <kids>") reads clearly above the children.
+  let ty = top + U * 0.085;
   engravedLine(ctx, l1, W / 2, ty, tFont, fs);
   if (l2) { ty += fs * 1.02; engravedLine(ctx, l2, W / 2, ty, tFont, fs); }
 
@@ -731,7 +733,6 @@ async function renderCoverSpread(
   ctx.save();
   ctx.translate(HALF_W, 0);
   drawCoverFurniture(ctx, HALF_W, SPREAD_H, {
-    brand: "Torah Tale",
     parsha: parshaLabel,
     title: childName ? `With ${childName}` : undefined,
     tagline: FRONT_TAGLINE,
@@ -804,7 +805,6 @@ async function renderPortraitCover(
   // parsha name (gold) + the kids' names (magenta) rather than the story's
   // generated bilingual title.
   drawCoverFurniture(ctx, W, H, {
-    brand: "Torah Tale",
     parsha: parshaLabel,
     title: childName ? `With ${childName}` : undefined,
     tagline: FRONT_TAGLINE,
