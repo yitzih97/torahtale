@@ -6,6 +6,7 @@ import { Crown, Zap, CalendarDays, Check, TrendingDown, Loader2, Sparkles, Credi
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { subPrice, type BookFormat } from "@/lib/pricing";
 import { toast } from "sonner";
 
 type PlanType = "weekly" | "monthly" | "yearly";
@@ -70,8 +71,14 @@ interface Props {
   onClose: () => void;
   onSubscribed?: () => void;
   context?: "limit-reached" | "wizard-step";
-  /** Per-book USD price (customer-facing) — used to compute plan prices */
+  /** Per-book price in the display currency — used for the "/book" line + as a
+   *  fallback for plan pricing when productType isn't supplied. */
   bookPriceUsd?: number;
+  /** Book format — when supplied, plan prices come straight from the canonical
+   *  Shopify table (exact per plan × format × currency). */
+  productType?: BookFormat;
+  /** Whether the display currency is ILS (so canonical ILS prices are used). */
+  isIls?: boolean;
   /** Optional book label (e.g. "Hardcover Book") shown for context */
   bookLabel?: string;
   /** The just-made book id; its child_id + story_data seed the subscription so
@@ -79,7 +86,17 @@ interface Props {
   sourceBookId?: string | null;
 }
 
-export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context = "limit-reached", bookPriceUsd, bookLabel, sourceBookId }: Props) => {
+/** Plans built from the canonical Shopify subscription table (exact prices). */
+function canonicalPlans(format: BookFormat, isIls: boolean): PlanData[] {
+  const p = (plan: "weekly" | "monthly" | "yearly") => subPrice(plan, format, isIls);
+  return [
+    { id: "weekly", priceUsd: p("weekly"), perWeekUsd: p("weekly"), savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
+    { id: "monthly", priceUsd: p("monthly"), perWeekUsd: round2(p("monthly") / 4), savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
+    { id: "yearly", priceUsd: p("yearly"), perWeekUsd: round2(p("yearly") / 52), savings: "20% off", savingsPct: 0.20, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+  ];
+}
+
+export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context = "limit-reached", bookPriceUsd, productType, isIls, bookLabel, sourceBookId }: Props) => {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
   const [step, setStep] = useState<DialogStep>("plan");
   const [isLoading, setIsLoading] = useState(false);
@@ -88,14 +105,19 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
   const { symbol, rate, code } = t.currency;
 
   const PLANS = useMemo(
-    () => (bookPriceUsd && bookPriceUsd > 0 ? buildPlansForBook(bookPriceUsd) : DEFAULT_PLANS),
-    [bookPriceUsd]
+    () => (productType
+      ? canonicalPlans(productType, !!isIls)
+      : bookPriceUsd && bookPriceUsd > 0 ? buildPlansForBook(bookPriceUsd) : DEFAULT_PLANS),
+    [productType, isIls, bookPriceUsd]
   );
+  // Plan/book amounts are already in the display currency (canonical table or a
+  // caller-supplied display price), so format them directly without rate.
+  const inDisplayCurrency = !!productType || !!bookPriceUsd;
 
   // When a bookPriceUsd is provided we treat it as already-in-display-currency
   // (caller decides USD vs ILS). Otherwise fall back to converted USD pricing.
   const fmt = (amount: number) =>
-    bookPriceUsd ? `${symbol}${amount.toFixed(2)}` : `${symbol}${(amount * rate).toFixed(2)}`;
+    inDisplayCurrency ? `${symbol}${amount.toFixed(2)}` : `${symbol}${(amount * rate).toFixed(2)}`;
   const periodLabel = (id: string) =>
     id === "yearly" ? (code === "ILS" ? "שנה" : "yr")
     : id === "monthly" ? (code === "ILS" ? "חודש" : "mo")
@@ -345,7 +367,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    {t.upsell.paySubscribe((bookPriceUsd ? activePlan.priceUsd : activePlan.priceUsd * rate).toFixed(2))}
+                    {t.upsell.paySubscribe((inDisplayCurrency ? activePlan.priceUsd : activePlan.priceUsd * rate).toFixed(2))}
                   </>
                 )}
               </Button>

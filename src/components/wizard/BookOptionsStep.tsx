@@ -44,28 +44,28 @@ export function getStoryPageCount(options: BookOptions): number {
 const PRODUCT_INFO = {
   softcover: {
     price: 14.99,
-    priceIls: 55,
+    priceIls: 47,
     dims: '8″ × 8″',
     icon: BookOpen,
     image: softcoverImg,
   },
   hardcover: {
     price: 24.99,
-    priceIls: 90,
+    priceIls: 78,
     dims: '8″ × 8″',
     icon: Shield,
     image: hardcoverImg,
   },
   board: {
     price: 29.99,
-    priceIls: 110,
+    priceIls: 94,
     dims: '6″ × 6″',
     icon: Baby,
     image: boardImg,
   },
   coloring: {
     price: 16.99,
-    priceIls: 60,
+    priceIls: 53,
     dims: '8.5″ × 11″',
     icon: Palette,
     image: coloringImg,

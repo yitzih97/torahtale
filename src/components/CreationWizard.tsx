@@ -28,6 +28,7 @@ import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionL
 import { ParshaCountdown } from "./wizard/ParshaCountdown";
 import { PortionIcon } from "./wizard/portionIcons";
 import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
+import { subPrice, singlePrice } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -2333,15 +2334,18 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   </h2>
                 </div>
                 {(() => {
+                  const isIls = t.currency.code === "ILS";
                   const unit = calculateBookPriceForCurrency(bookOptions, t.currency.code) * quantity;
-                  const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
                   const sym = t.currency.symbol;
                   const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
+                  // Subscription prices come straight from the canonical Shopify
+                  // table (per plan × book format) so what's shown equals what's
+                  // charged at checkout.
                   const opts: Array<{ id: "once" | "weekly" | "monthly" | "yearly"; label: string; price: string; suffix: string; popular?: boolean; note?: string }> = [
-                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit),                       suffix: "one-time" },
-                    { id: "weekly",  label: t.wizard.planWeekly,  price: fmt(friendly(unit)),             suffix: "/week" },
-                    { id: "monthly", label: t.wizard.planMonthly, price: fmt(friendly(unit * 4 * 0.8)),   suffix: "/month", popular: true },
-                    { id: "yearly",  label: t.wizard.planYearly,  price: fmt(friendly(unit * 52 * 0.7)),  suffix: "/year",  note: "2 months free" },
+                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit),                                          suffix: "one-time" },
+                    { id: "weekly",  label: t.wizard.planWeekly,  price: fmt(subPrice("weekly", bookOptions.productType, isIls)),  suffix: "/week" },
+                    { id: "monthly", label: t.wizard.planMonthly, price: fmt(subPrice("monthly", bookOptions.productType, isIls)), suffix: "/month", popular: true },
+                    { id: "yearly",  label: t.wizard.planYearly,  price: fmt(subPrice("yearly", bookOptions.productType, isIls)),  suffix: "/year",  note: "best value" },
                   ];
                   return (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2378,10 +2382,11 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   );
                 })()}
                 {planType === "subscription" && (() => {
-                  const unit = calculateBookPriceForCurrency(bookOptions, t.currency.code) * quantity;
-                  const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
-                  const monthlyTotal = friendly(unit * 4 * 0.8);
-                  const yearlyTotal = friendly(unit * 52 * 0.7);
+                  const isIls = t.currency.code === "ILS";
+                  const fmtType = bookOptions.productType;
+                  const monthlyTotal = subPrice("monthly", fmtType, isIls);
+                  const yearlyTotal = subPrice("yearly", fmtType, isIls);
+                  const weeklyAnnual = subPrice("weekly", fmtType, isIls) * 52; // pay-weekly-for-a-year cost
                   const sym = t.currency.symbol;
                   const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
                   if (selectedPlan === "monthly") {
@@ -2394,10 +2399,10 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                         <div className="text-start">
                           <p className="font-display font-bold text-primary flex flex-wrap items-baseline gap-x-2">
                             <span>Switch to yearly ·</span>
-                            <span className="text-muted-foreground line-through font-normal">{fmt(monthlyTotal * 12)}/year</span>
+                            <span className="text-muted-foreground line-through font-normal">{fmt(weeklyAnnual)}/year</span>
                             <span className="text-accent">{fmt(yearlyTotal)}/year</span>
                           </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Save 2 months free when you go yearly</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Pay once for the whole year and save vs weekly</p>
                         </div>
                         <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-input">
                           <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-0.5" />
@@ -2413,7 +2418,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                         className="w-full rounded-2xl border-2 border-accent bg-accent/10 p-4 flex items-center justify-between gap-4 transition-all active:scale-[0.99]"
                       >
                         <div className="text-start">
-                          <p className="font-display font-bold text-primary">Yearly plan · {fmt(yearlyTotal)}/year · 2 months free</p>
+                          <p className="font-display font-bold text-primary">Yearly plan · {fmt(yearlyTotal)}/year · best value</p>
                           <p className="text-xs text-muted-foreground mt-0.5">Tap to switch back to monthly ({fmt(monthlyTotal)}/month)</p>
                         </div>
                         <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-accent">
@@ -2606,15 +2611,9 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
       }}
       context="limit-reached"
       sourceBookId={savedBookId}
-      bookPriceUsd={(() => {
-        const pt = bookOptions.productType;
-        const isIls = t.currency.code === "ILS";
-        if (pt === "softcover") return isIls ? 55 : 14.99;
-        if (pt === "hardcover") return isIls ? 90 : 24.99;
-        if (pt === "board") return isIls ? 110 : 29.99;
-        if (pt === "coloring") return isIls ? 60 : 16.99;
-        return undefined;
-      })()}
+      productType={bookOptions.productType}
+      isIls={t.currency.code === "ILS"}
+      bookPriceUsd={singlePrice(bookOptions.productType, t.currency.code === "ILS")}
       bookLabel={
         `${bookOptions.productType === "softcover" ? t.bookOptions.softcover :
         bookOptions.productType === "hardcover" ? t.bookOptions.hardcover :

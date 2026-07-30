@@ -14,14 +14,18 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { singlePrice, subPrice } from "@/lib/pricing";
 
 const Pricing = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, dir } = useLanguage();
   const [selected, setSelected] = useState<"single" | "torah" | "tanach">("torah");
-  const { symbol, rate } = t.currency;
-  const fmt = (usd: number) => `${symbol}${(usd * rate).toFixed(2)}`;
+  const { symbol } = t.currency;
+  // Product prices come from the canonical Shopify table (exact USD + ILS), not a
+  // currency-rate estimate, so what's shown matches what Shopify charges.
+  const isIls = t.currency.code === "ILS";
+  const money = (n: number) => `${symbol}${n.toFixed(2)}`;
 
   // Scroll to #collections (etc.) when arriving via an anchor link.
   useEffect(() => {
@@ -78,7 +82,7 @@ const Pricing = () => {
               </div>
               <div className="mb-8">
                 <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "single" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
-                <div className={`text-5xl font-bold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(14.99)}</div>
+                <div className={`text-5xl font-bold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>{money(singlePrice("softcover", isIls))}</div>
                 <p className={`text-sm mt-1 ${selected === "single" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{t.pricing.singleSubtitle}</p>
               </div>
               <ul className="space-y-3 mb-10 flex-1"></ul>
@@ -108,7 +112,7 @@ const Pricing = () => {
               <div className="mb-8">
                 <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "torah" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(74.77)}</span>
+                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>{money(subPrice("monthly", "softcover", isIls))}</span>
                   <span className={selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}>{t.pricing.perMonth}</span>
                 </div>
                 <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
@@ -139,7 +143,7 @@ const Pricing = () => {
               <div className="mb-8">
                 <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "tanach" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>{fmt(932.98)}</span>
+                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>{money(subPrice("yearly", "softcover", isIls))}</span>
                   <span className={selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}>{t.pricing.perYear}</span>
                 </div>
                 <p className={`text-sm mt-1 ${selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
