@@ -524,9 +524,11 @@ function drawCoverFurniture(
     fs = Math.min(fit(l1, U * 0.125), fit(l2, U * 0.125));
   }
   const tFont = coverTitleFont(fs);
-  // No brand headliner above — sit the parsha title higher so the whole block
-  // (title + "With <kids>") reads clearly above the children.
-  let ty = top + U * 0.085;
+  // Anchor the title's TOP (not its baseline) at a print-safe margin from the
+  // cover edge. Short parsha names use a big font whose glyph tops would
+  // otherwise land in the hardcover wrap/trim zone and get cut off; positioning
+  // by the top keeps EVERY title size safely inside the printed cover.
+  let ty = U * 0.09 + fs;
   engravedLine(ctx, l1, W / 2, ty, tFont, fs);
   if (l2) { ty += fs * 1.02; engravedLine(ctx, l2, W / 2, ty, tFont, fs); }
 
