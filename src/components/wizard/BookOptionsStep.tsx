@@ -1,5 +1,7 @@
-import { BookOpen, Shield, Baby, Palette } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, Shield, Baby, Palette, ZoomIn } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import softcoverImg from "@/assets/books/mockup-softcover.jpg";
 import hardcoverImg from "@/assets/books/mockup-hardcover.jpg";
@@ -104,6 +106,8 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
   const { t } = useLanguage();
   const { symbol, rate, code } = t.currency;
   const recommendedType = getRecommendedType(childAge);
+  // Tapping a book photo opens a larger preview instead of selecting the type.
+  const [zoomed, setZoomed] = useState<{ src: string; label: string } | null>(null);
 
   const formatPrice = (usd: number, ils?: number) => {
     if (code === "ILS" && typeof ils === "number") return `${symbol}${ils.toFixed(2)}`;
@@ -174,8 +178,21 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
               )}
 
               <div className="flex items-start gap-4">
-                <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Enlarge ${productLabels[key]} photo`}
+                  onClick={(e) => { e.stopPropagation(); setZoomed({ src: info.image, label: productLabels[key] }); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setZoomed({ src: info.image, label: productLabels[key] }); } }}
+                  className="group/img relative w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50 cursor-zoom-in"
+                >
                   <img src={info.image} alt={productLabels[key]} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover/img:bg-black/25 transition-colors">
+                    <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover/img:opacity-100 transition-opacity drop-shadow" />
+                  </div>
+                  <div className="absolute bottom-0.5 right-0.5 rounded-full bg-black/45 p-0.5">
+                    <ZoomIn className="w-3 h-3 text-white" />
+                  </div>
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -199,6 +216,18 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
 
       {/* The coloring book is sold only as a standalone product (above), not as a
           +$3 add-on. */}
+
+      {/* Enlarged book-type photo */}
+      <Dialog open={!!zoomed} onOpenChange={(o) => !o && setZoomed(null)}>
+        <DialogContent className="max-w-2xl p-2 sm:p-3 bg-background">
+          {zoomed && (
+            <div className="flex flex-col items-center gap-2">
+              <img src={zoomed.src} alt={zoomed.label} className="w-full h-auto rounded-lg object-contain" />
+              <p className="font-display font-semibold text-sm text-primary pb-1">{zoomed.label}</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
