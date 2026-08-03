@@ -21,7 +21,7 @@ import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData, fetchBookFull } from "@/hooks/useAdminData";
 import { submitBookToPrintify } from "@/lib/submitToPrintify";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { bookLanguageCode, isBookRtl } from "@/components/wizard/TorahPortions";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -59,7 +59,6 @@ export default function Admin() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
-  const { lang } = useLanguage();
   const {
     isAdmin, isCheckingAdmin,
     books, booksLoading,
@@ -165,6 +164,10 @@ export default function Admin() {
       }
       const pt = (full as any)?.shipping_data?.bookOptions?.productType || (book as any)?.shipping_data?.bookOptions?.productType;
       const bookFormat = pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : pt === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
+      // The book's OWN language drives the print layout (RTL + localized text) —
+      // NOT the admin's UI language. A Hebrew/Yiddish book must print RTL even
+      // when an English-speaking admin approves it.
+      const bookLang = (full as any)?.language || (book as any)?.language;
       // Render the print-ready images (cover wrap + each page WITH its caption
       // text) and upload them to Printify, then place the order.
       const result = await submitBookToPrintify({
@@ -173,7 +176,8 @@ export default function Admin() {
         childName: book.child_name || (full?.child_name as string) || "",
         torahPortion: book.torah_portion || (full?.torah_portion as string) || "",
         bookFormat,
-        lang,
+        lang: bookLanguageCode(bookLang),
+        rtl: isBookRtl(bookLang),
         onProgress: (done, total) => toast.loading(`Uploading print images… ${done}/${total}`, { id: toastId }),
       });
       if (!result.success) {

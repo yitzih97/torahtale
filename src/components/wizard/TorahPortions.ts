@@ -276,13 +276,33 @@ const prettifySlug = (value: string): string =>
 /** Map a book's stored `language` ("english" | "hebrew" | "yiddish") to the
  *  short display code + text direction. Book text (incl. the cover) must follow
  *  the BOOK's own language, not the viewer's UI language. */
+/** The languages selected for a book, parsed from the (possibly "+"-joined)
+ *  language string — e.g. "hebrew+yiddish", "english+hebrew", "yiddish". */
+const bookLanguageParts = (language?: string | null): string[] =>
+  (language || "").toLowerCase().split(/[+,/|\s]+/).filter(Boolean);
+
+/** The book's PREMIER (default) language — the one all of its baked text (cover,
+ *  captions, questions) renders in. **English always wins when it is one of the
+ *  selected languages**; otherwise the first Hebrew/Yiddish selection is used.
+ *  Robust to the "+"-joined multi-language string and to selection order. */
 export const bookLanguageCode = (language?: string | null): "en" | "he" | "yi" => {
-  const l = (language || "").toLowerCase();
-  if (l.startsWith("he")) return "he";
-  if (l.startsWith("yi")) return "yi";
+  const parts = bookLanguageParts(language);
+  if (parts.some((p) => p.startsWith("en"))) return "en";
+  for (const p of parts) {
+    if (p.startsWith("he")) return "he";
+    if (p.startsWith("yi")) return "yi";
+  }
   return "en";
 };
-export const isBookRtl = (language?: string | null): boolean => bookLanguageCode(language) !== "en";
+
+/** A book reads right-to-left only when it is Hebrew and/or Yiddish with NO
+ *  English. A mixed book that includes English stays LTR (English leads the
+ *  layout), regardless of the order the languages were selected in. */
+export const isBookRtl = (language?: string | null): boolean => {
+  const parts = bookLanguageParts(language);
+  const has = (pfx: string) => parts.some((p) => p.startsWith(pfx));
+  return (has("he") || has("yi")) && !has("en");
+};
 
 export const getPortionDisplay = (value: string, lang: "en" | "he" | "yi"): string => {
   if (!value) return "";

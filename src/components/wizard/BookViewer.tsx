@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { BookLoadingSkeleton } from "./BookLoadingSkeleton";
 import { describeFunctionsError } from "@/lib/functionsError";
 import type { TextStyle } from "./DraggableText";
-import { EditableTextBox, DEFAULT_TEXT_LAYOUT, DEFAULT_FONT_FAMILY, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "./EditableTextBox";
+import { EditableTextBox, DEFAULT_TEXT_LAYOUT, DEFAULT_FONT_FAMILY, BOOK_HEBREW_FONT, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "./EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import { fitQuestionsLayout, buildQuestionsText } from "@/lib/fitQuestions";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,6 +103,18 @@ export const COMING_NEXT_LABEL: Record<"en" | "he" | "yi", string> = {
   he: "בקרוב",
   yi: "קומט נאכדעם",
 };
+
+/** The "With …" personalization word, localized to the book's language, so the
+ *  child line reads "With Ari" / "עם ארי" / "מיט ארי". */
+export const COVER_WITH_BY_LANG: Record<"en" | "he" | "yi", string> = {
+  en: "With",
+  he: "עם",
+  yi: "מיט",
+};
+/** The full "With [child]" cover line in the book's language (undefined if there
+ *  is no child name). */
+export const getCoverChildLine = (childName: string, lang: "en" | "he" | "yi"): string | undefined =>
+  childName ? `${COVER_WITH_BY_LANG[lang] || COVER_WITH_BY_LANG.en} ${childName}` : undefined;
 
 interface Props {
   childName: string;
@@ -433,7 +445,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
                   WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
                 }}
               >
-                with {childName}
+                {getCoverChildLine(childName, lang)}
               </p>
             )}
           </div>
@@ -539,14 +551,15 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         ) : (
           <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="w-10 h-10 text-muted-foreground" /></div>
         )}
-        {renderCoverChrome(childName)}
+        {renderCoverChrome(getCoverChildLine(childName, lang))}
       </div>
     );
   };
 
   const renderCoverSpread = () => {
-    // Front cover text: the gold parsha title, then a gold "With [kids]" subtitle.
-    const frontTitle = childName ? `With ${childName}` : undefined;
+    // Front cover text: the gold parsha title, then a gold "With [kids]" subtitle
+    // — localized to the book's language ("עם ארי" for Hebrew, "מיט" for Yiddish).
+    const frontTitle = getCoverChildLine(childName, lang);
     return (
     <div className="absolute inset-0 grid grid-cols-2">
       {/* Back cover — left: brand logo, the 4 "coming next" teaser mini-covers,
@@ -678,12 +691,56 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
     // Clean, empty parchment page (no illustration) so the discussion questions
     // are always easy to read. Auto-fit the font so ALL questions fit the page
     // (same logical dims + logic as the PDF, so edit and print agree).
-    const combinedText = (page?.questions?.length) ? buildQuestionsText(page.questions) : (page?.text || "");
     const qW = isColoring ? 1275 : spreadBased ? 2400 : 1200;
     const qH = isColoring ? 1650 : 1200;
-    const layout = fitQuestionsLayout(combinedText, migrateLayout(page?.textLayout) || makeQuestionsLayout(isRtl), qW, qH, isRtl);
+    const base = migrateLayout(page?.textLayout) || makeQuestionsLayout(isRtl);
+    const questions = page?.questions || [];
+    const parchment = "radial-gradient(circle at center, rgba(232,197,117,0.30), rgba(232,197,117,0) 70%), #f6efdf";
+
+    // Board books show as a wide 2:1 spread with a center fold. A single block
+    // of questions would be split down the middle, so put half on each page of
+    // the spread (5 + 5), clear of the fold. The first group sits on the page
+    // read first — the RIGHT half for a right-to-left (Hebrew/Yiddish) book.
+    if (spreadBased && questions.length > 1) {
+      const mid = Math.ceil(questions.length / 2);
+      const firstText = buildQuestionsText(questions.slice(0, mid));
+      const secondText = buildQuestionsText(questions.slice(mid));
+      const leftText = isRtl ? secondText : firstText;
+      const rightText = isRtl ? firstText : secondText;
+      const HALF_PCT = 40;
+      const leftFit = fitQuestionsLayout(leftText, { ...base, x: 6, width: HALF_PCT }, qW, qH, isRtl);
+      const rightFit = fitQuestionsLayout(rightText, { ...base, x: 54, width: HALF_PCT }, qW, qH, isRtl);
+      const fs = Math.min(leftFit.fontSize, rightFit.fontSize);
+      const column = (text: string, leftPct: number) => (
+        <div
+          style={{
+            position: "absolute", top: `${base.y}%`, left: `${leftPct}%`, width: `${HALF_PCT}%`,
+            fontFamily: base.fontFamily, fontSize: `${fs}px`, color: base.color, lineHeight: 1.45, textAlign: "center",
+          }}
+        >
+          {text.split(/\n{2,}/).map((para, i) => {
+            const heb = /[֐-׿]/.test(para);
+            return (
+              <p key={i} dir={heb ? "rtl" : "ltr"} style={{ margin: i === 0 ? 0 : "0.5em 0 0", textAlign: "center", fontFamily: heb ? BOOK_HEBREW_FONT : undefined, fontWeight: heb ? 700 : undefined }}>
+                {para.trim()}
+              </p>
+            );
+          })}
+        </div>
+      );
+      return (
+        <div className="absolute inset-0" style={{ background: parchment }}>
+          {column(leftText, 6)}
+          {column(rightText, 54)}
+        </div>
+      );
+    }
+
+    // Single page (8×8 square / coloring): one clean centered, editable block.
+    const combinedText = questions.length ? buildQuestionsText(questions) : (page?.text || "");
+    const layout = fitQuestionsLayout(combinedText, base, qW, qH, isRtl);
     return (
-      <div className="absolute inset-0" style={{ background: "radial-gradient(circle at center, rgba(232,197,117,0.30), rgba(232,197,117,0) 70%), #f6efdf" }}>
+      <div className="absolute inset-0" style={{ background: parchment }}>
         {page && (
           <EditableTextBox
             layout={layout}
@@ -761,13 +818,15 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
           </div>
         )}
 
-        {/* Page nav */}
+        {/* Page nav — a Hebrew/Yiddish book reads right-to-left, so it flips the
+            other way: the LEFT arrow advances (next) and the RIGHT arrow goes
+            back (previous), matching how the printed book turns. */}
         <div className="absolute top-1/2 -translate-y-1/2 left-2">
           <Button
             variant="secondary"
             size="icon"
-            onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-            disabled={safeIndex === 0}
+            onClick={() => setCurrentPage((p) => (isRtl ? Math.min(displayPages.length - 1, p + 1) : Math.max(0, p - 1)))}
+            disabled={isRtl ? safeIndex >= displayPages.length - 1 : safeIndex === 0}
             className="rounded-full shadow-soft-sm h-9 w-9"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -777,8 +836,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
           <Button
             variant="secondary"
             size="icon"
-            onClick={() => setCurrentPage((p) => Math.min(displayPages.length - 1, p + 1))}
-            disabled={safeIndex >= displayPages.length - 1}
+            onClick={() => setCurrentPage((p) => (isRtl ? Math.max(0, p - 1) : Math.min(displayPages.length - 1, p + 1)))}
+            disabled={isRtl ? safeIndex === 0 : safeIndex >= displayPages.length - 1}
             className="rounded-full shadow-soft-sm h-9 w-9"
           >
             <ChevronRight className="w-4 h-4" />
@@ -791,8 +850,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         </div>
       </div>
 
-      {/* Page dots */}
-      <div className="flex justify-center gap-1.5 flex-wrap">
+      {/* Page dots — RTL books read right-to-left, so the dots run that way too. */}
+      <div className="flex justify-center gap-1.5 flex-wrap" dir={dir}>
         {displayPages.map((p, i) => (
           <button
             key={p.id}

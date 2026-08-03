@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { BOOK_TEXT_STYLE, COVER_URL, getCoverTagline, getCoverHeadline, getCoverCta, COMING_NEXT_LABEL, type BookPage } from "@/components/wizard/BookViewer";
+import { BOOK_TEXT_STYLE, COVER_URL, getCoverTagline, getCoverHeadline, getCoverCta, getCoverChildLine, COMING_NEXT_LABEL, type BookPage } from "@/components/wizard/BookViewer";
 import { BOOK_HEBREW_FONT } from "@/components/wizard/EditableTextBox";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
@@ -68,6 +68,7 @@ async function safeLoad(src: string | null | undefined): Promise<HTMLImageElemen
   if (!src) return null;
   try { return await loadImage(src); } catch { return null; }
 }
+
 
 function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
@@ -373,6 +374,28 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
   drawPaperFull(ctx, W, H);
   if (mode === "spread") drawGutter(ctx, W, H);
   const questions = page.questions || [];
+
+  // Board books print as a wide 2:1 spread with a physical center fold. A single
+  // block of questions would be cut down the middle by the fold, so split them
+  // across the two pages of the spread (5 + 5), each column well clear of the
+  // gutter. The first group goes on the page read first — the RIGHT half for a
+  // right-to-left (Hebrew/Yiddish) book, the LEFT half otherwise.
+  if (mode === "spread" && questions.length > 1) {
+    const mid = Math.ceil(questions.length / 2);
+    const firstText = buildQuestionsText(questions.slice(0, mid));
+    const secondText = buildQuestionsText(questions.slice(mid));
+    const leftText = rtl ? secondText : firstText;
+    const rightText = rtl ? firstText : secondText;
+    const HALF_PCT = 40; // % of the full 2:1 width — stays inside the 50% half
+    const leftFit = fitQuestionsLayout(leftText, { ...layout, x: 6, width: HALF_PCT }, W, H, rtl);
+    const rightFit = fitQuestionsLayout(rightText, { ...layout, x: 54, width: HALF_PCT }, W, H, rtl);
+    // Match the two columns to a common font size so the spread reads as one set.
+    const fs = Math.min(leftFit.fontSize, rightFit.fontSize);
+    drawTextOverlay(ctx, leftText, { ...leftFit, fontSize: fs }, W, H, rtl);
+    drawTextOverlay(ctx, rightText, { ...rightFit, fontSize: fs }, W, H, rtl);
+    return canvas.toDataURL("image/jpeg", 0.96);
+  }
+
   const formatted = questions.length ? buildQuestionsText(questions) : (page.text || "");
   const fitted = fitQuestionsLayout(formatted, layout, W, H, rtl);
   drawTextOverlay(ctx, formatted, fitted, W, H, rtl);
@@ -589,6 +612,7 @@ function drawMiniCover(
   childName: string,
   x: number, y: number, size: number,
   rtl: boolean,
+  lang: "en" | "he" | "yi" = "en",
 ) {
   const r = Math.max(8, size * 0.06);
   ctx.fillStyle = "#efe7d3";
@@ -616,13 +640,14 @@ function drawMiniCover(
   const lines = wrapLines(ctx, label || "", size - size * 0.22).slice(0, 2);
   let ty = y + size * 0.13 + fs;
   for (const ln of lines) { ctx.fillStyle = goldFill(ctx, ty, fs); ctx.fillText(ln, x + size / 2, ty); ty += fs * 1.1; }
-  // Child line — "with [name]" in gold italic.
+  // Child line — "with [name]" in gold italic, localized to the book language.
   if (childName) {
     const cfs = Math.round(size * 0.055);
     ctx.font = `italic 600 ${cfs}px 'Cormorant Garamond', serif`;
     ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    ctx.direction = rtl ? "rtl" : "ltr";
     ctx.fillStyle = goldFill(ctx, ty + cfs * 0.15, cfs);
-    ctx.fillText(`with ${childName}`, x + size / 2, ty + cfs * 0.15);
+    ctx.fillText(getCoverChildLine(childName, lang) || "", x + size / 2, ty + cfs * 0.15);
   }
   ctx.restore();
   ctx.strokeStyle = "rgba(0,0,0,0.30)"; ctx.lineWidth = 2;
@@ -652,13 +677,19 @@ async function renderCoverSpread(
   // Hebrew/Yiddish cover text renders RTL; the site URL stays LTR (a domain).
   const rtl = lang !== "en";
   const rtlDir: CanvasDirection = rtl ? "rtl" : "ltr";
-  drawPaperHalf(ctx, "left");
+  // A right-to-left book opens from the other side, so the wrap is FLIPPED
+  // (mirrored, not rotated): the front illustration sits on the LEFT half and the
+  // back panel on the RIGHT half — English's back-cover side becomes the Hebrew
+  // front cover, and vice-versa. Everything stays upright.
+  const backX = rtl ? HALF_W : 0;
+  const frontX = rtl ? 0 : HALF_W;
+  drawPaperHalf(ctx, rtl ? "right" : "left");
 
-  // ── BACK COVER (left half): a clean cream panel (no decorative frame) with the
-  // combined brand logo, the series headline, a professional subscribe
-  // invitation, a row of "coming next" teaser covers, and the site URL. ──
+  // ── BACK COVER: a clean cream panel (no decorative frame) with the combined
+  // brand logo, the series headline, a professional subscribe invitation, a row
+  // of "coming next" teaser covers, and the site URL. ──
   const BW = HALF_W;                              // back cover = BW × SPREAD_H square
-  const cx = BW / 2;
+  const cx = backX + BW / 2;
 
   // Brand logo — the single combined lockup (book icon on top of the wordmark),
   // one clean file so the book + text stay perfectly aligned.
@@ -708,7 +739,7 @@ async function renderCoverSpread(
   const rowY = 806;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, rowY, thumb, rtl);
+    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, rowY, thumb, rtl, lang);
   }
 
   // CTA + site URL (a domain → always LTR).
@@ -721,22 +752,23 @@ async function renderCoverSpread(
   ctx.font = `700 40px 'Inter', sans-serif`;
   ctx.fillText(COVER_URL.toUpperCase(), cx, 1058);
 
-  // ── FRONT COVER (right half): illustration + Parsha name + child. ──
+  // ── FRONT COVER: illustration + Parsha name + child (right half LTR, left
+  // half for a mirrored RTL wrap). ──
   const img = await safeLoad(page.image);
   if (img) {
-    drawHalfImage(ctx, img, HALF_W);
+    drawHalfImage(ctx, img, frontX);
   } else {
     ctx.fillStyle = "#dcd2bd";
-    ctx.fillRect(HALF_W, 0, HALF_W, SPREAD_H);
+    ctx.fillRect(frontX, 0, HALF_W, SPREAD_H);
   }
   // Front cover chrome: navy filigree frame, "Torah Tale" brand, big gold PARSHA
   // title, a gold "With [kids]" subtitle, and a bottom tagline — drawn over the
-  // illustration (right half).
+  // illustration.
   ctx.save();
-  ctx.translate(HALF_W, 0);
+  ctx.translate(frontX, 0);
   drawCoverFurniture(ctx, HALF_W, SPREAD_H, {
     parsha: parshaLabel,
-    title: childName ? `With ${childName}` : undefined,
+    title: getCoverChildLine(childName, lang),
     tagline: FRONT_TAGLINE,
     rtl,
   });
@@ -808,7 +840,7 @@ async function renderPortraitCover(
   // generated bilingual title.
   drawCoverFurniture(ctx, W, H, {
     parsha: parshaLabel,
-    title: childName ? `With ${childName}` : undefined,
+    title: getCoverChildLine(childName, lang),
     tagline: FRONT_TAGLINE,
     rtl,
   });
@@ -871,7 +903,8 @@ async function renderColoringBackMatter(
   const anchorX = rtl ? W - padX : padX;
   ctx.fillStyle = "#b88a2a";
   ctx.font = `bold 38px 'Playfair Display', serif`;
-  ctx.fillText(rtl ? "פֿראגן צום רעדן" : "Questions to Talk About", anchorX, y);
+  const questionsHeader = lang === "he" ? "שאלות לדיון" : lang === "yi" ? "פֿראגן צום רעדן" : "Questions to Talk About";
+  ctx.fillText(questionsHeader, anchorX, y);
   y += 54;
   ctx.fillStyle = "#2b2418";
   const qf = 27;
@@ -901,7 +934,7 @@ async function renderColoringBackMatter(
   const rowX = W / 2 - rowW / 2;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, y, thumb, rtl);
+    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, y, thumb, rtl, lang);
   }
   y += thumb + 26;
 
@@ -953,13 +986,15 @@ export async function renderPrintImages(
 ): Promise<string[]> {
   const parshaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   const mode = layoutMode(bookFormat, pages);
-  const out: string[] = [];
   const cover = pages.find((p) => p.type === "cover");
   const previews = backCoverPreviews(pages, lang);
-  if (cover) out.push(await (mode === "portrait"
+  let coverImg: string | null = null;
+  if (cover) coverImg = await (mode === "portrait"
     ? renderPortraitCover(cover, childName, parshaLabel, PRINT_SCALE, lang)
-    : renderCoverSpread(cover, childName, parshaLabel, PRINT_SCALE, bookFormat, previews, lang)));
+    : renderCoverSpread(cover, childName, parshaLabel, PRINT_SCALE, bookFormat, previews, lang));
 
+  // Interior pages, in natural reading order (story 1…N, then discussion).
+  const interior: string[] = [];
   const questionsPage = pages.find((p) => p.type === "questions");
   // Each Printify blueprint has a fixed interior capacity (Cover + N PAGES).
   // The discussion-questions page must take the LAST interior slot, so cap the
@@ -973,7 +1008,7 @@ export async function renderPrintImages(
   const maxStories = Math.max(1, interiorCapacity - (questionsPage ? 1 : 0));
   const stories = pages.filter((p) => p.type === "story" || !p.type).slice(0, maxStories);
   for (let i = 0; i < stories.length; i++) {
-    out.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE));
+    interior.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE));
   }
   // The discussion questions get their OWN page — matching the on-screen PDF.
   // Bound 8×8/board books have a trailing interior page slot for it (Printify was
@@ -981,11 +1016,21 @@ export async function renderPrintImages(
   // story illustration, overlapping the art). Coloring books get a dedicated
   // back-matter page instead (they have no back cover for the teasers).
   if (questionsPage) {
-    out.push(mode === "portrait"
+    interior.push(mode === "portrait"
       ? await renderColoringBackMatter(questionsPage, childName, previews, lang, PRINT_SCALE)
       : await renderQuestionsSpread(questionsPage, rtl, mode, PRINT_SCALE));
   }
-  return out;
+
+  // Right-to-left (Hebrew/Yiddish) books open from the other side, so the book is
+  // FLIPPED (not rotated — every page stays upright): the interior page order is
+  // reversed, and the cover wrap is laid out mirrored (front on the left half,
+  // back on the right) by renderCoverSpread. English's back-cover side becomes
+  // the Hebrew front, and vice-versa.
+  const ordered = rtl ? [...interior].reverse() : interior;
+  const final: string[] = [];
+  if (coverImg) final.push(coverImg);
+  final.push(...ordered);
+  return final;
 }
 
 export async function generateBookPdf(
@@ -1018,17 +1063,26 @@ export async function generateBookPdf(
     format: coverFmt,
   });
 
+  // Render the cover and the interior pages (natural reading order) separately,
+  // so an RTL book can reverse the interiors (see renderPrintImages) — the cover
+  // stays first (mirrored), then the reversed pages. Nothing is rotated.
+  const coverPage = renderable.find((p) => p.type === "cover");
+  const interiorPages = renderable.filter((p) => p.type !== "cover");
+
+  const coverEntry = coverPage
+    ? {
+        dataUrl: mode === "portrait"
+          ? await renderPortraitCover(coverPage, childName, parshaLabel, PRINT_SCALE, lang)
+          : await renderCoverSpread(coverPage, childName, parshaLabel, PRINT_SCALE, bookFormat, pdfPreviews, lang),
+        fmt: coverFmt,
+      }
+    : null;
+
   let storyIdx = 0;
-  for (let i = 0; i < renderable.length; i++) {
-    const page = renderable[i];
-    const fmt: [number, number] = page.type === "cover" ? coverFmt : interior;
-    if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
+  const interiorEntries: { dataUrl: string; fmt: [number, number] }[] = [];
+  for (const page of interiorPages) {
     let dataUrl: string;
-    if (page.type === "cover") {
-      dataUrl = mode === "portrait"
-        ? await renderPortraitCover(page, childName, parshaLabel, PRINT_SCALE, lang)
-        : await renderCoverSpread(page, childName, parshaLabel, PRINT_SCALE, bookFormat, pdfPreviews, lang);
-    } else if (page.type === "questions") {
+    if (page.type === "questions") {
       // Coloring books have no back cover — the questions page becomes the back
       // matter (logo + up to 10 questions + subscribe + teaser thumbnails).
       dataUrl = mode === "portrait"
@@ -1038,6 +1092,17 @@ export async function generateBookPdf(
       dataUrl = await renderStorySpread(page, storyIdx, rtl, mode, PRINT_SCALE);
       storyIdx += 1;
     }
+    interiorEntries.push({ dataUrl, fmt: interior });
+  }
+
+  // RTL: flip the book — reverse the interior order (the cover is already laid
+  // out mirrored). Pages stay upright; nothing is rotated.
+  const orderedInterior = rtl ? [...interiorEntries].reverse() : interiorEntries;
+  const entries = [...(coverEntry ? [coverEntry] : []), ...orderedInterior];
+
+  for (let i = 0; i < entries.length; i++) {
+    const { fmt, dataUrl } = entries[i];
+    if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
     try {
       // Coloring interior pages are exported as PNG (see renderStorySpread) —
       // jsPDF needs the format arg to match the actual encoding, not just the
