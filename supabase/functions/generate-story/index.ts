@@ -408,7 +408,27 @@ No markdown, no explanation, just the JSON object.`;
             .map((b: { text: string }) => b.text)
             .join("");
           if (!text) throw new Error("Anthropic returned no text content");
-          console.log(`Story generated with Anthropic model: ${aData.model || storyModel}`);
+          // Guard against a truncated / confused generation silently producing a
+          // STUB book (e.g. it returned only 1-2 of the ${pages} pages). The admin
+          // modal slices to the requested count, so a short response just shows a
+          // near-empty book. Require a healthy fraction of the pages, else discard
+          // and let the Gemini fallback try — better a slower full book than a
+          // 2-page one. stop_reason==="max_tokens" means it was cut off mid-JSON.
+          if (aData.stop_reason === "max_tokens") {
+            throw new Error("Anthropic hit max_tokens (story truncated)");
+          }
+          const pageThreshold = Math.max(4, Math.ceil(pages * 0.6));
+          let returnedPages = 0;
+          try {
+            const quick = JSON.parse(text);
+            returnedPages = Array.isArray(quick?.pages) ? quick.pages.length : 0;
+          } catch {
+            throw new Error("Anthropic output did not parse as JSON");
+          }
+          if (returnedPages < pageThreshold) {
+            throw new Error(`Anthropic returned only ${returnedPages}/${pages} pages (min ${pageThreshold})`);
+          }
+          console.log(`Story generated with Anthropic model: ${aData.model || storyModel} — ${returnedPages} pages`);
           content = text;
         } catch (e) {
           console.error("Anthropic story generation failed — falling back to Gemini:", e);
