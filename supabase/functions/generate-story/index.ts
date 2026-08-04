@@ -223,6 +223,7 @@ Requirements:
 - The kinderlach experience the story BY THEMSELVES — do NOT place their ${parentFather}, ${parentMother}, grandparents, or teachers into story scenes as on-scene characters (the illustrations must show only the kinderlach). Torah figures (Moshe Rabbeinu, Avraham Avinu, the meraglim, etc.) appear as the narrative requires. Parents may be warmly referenced in the dedication or closing moral, but never as characters inside a scene
 - RHYME: Write the whole story in gentle, flowing RHYME. Each story page is a short rhyming verse — ideally a rhyming couplet (2 lines) or up to 4 short lines with a clear, natural rhyme scheme (AABB or ABCB). Keep the rhymes smooth and unforced, never sing-songy or awkward
 - KEEP IT SHORT: each page should be brief — roughly 2 short lines (about 12-24 words total), appropriate for a ${age}-year-old. Favour fewer, well-chosen rhyming words over long sentences
+- UNIFORM LENGTH: EVERY page must be about the same brief length — this INCLUDES PAGE 1. The opening page is NOT a longer scene-setter; it is the same 2 short lines (12-24 words) as all the rest. Do not front-load extra description on page 1
 - CRITICAL: At least 70% of the pages MUST depict SPECIFIC, ACTUAL events from the Torah portion. For example, for Va'era show the plagues one by one; for Beshalach show the crossing of the sea; for Bereishit show the days of creation. The child must be IN those scenes, witnessing and participating in the actual events — not just hearing about them or being told the story.
 - DOUBLE PARSHA: If the Torah Portion name above joins TWO parshiyos (e.g. "Chukas-Balak", "Matos-Masei", "Tazria-Metzora") this is ONE book covering BOTH. Give balanced coverage to the key events of each parsha — roughly half the story pages for the first, half for the second — so both are meaningfully represented in the single book.
 - DO NOT compress the Torah events into 1-2 pages. Spread the key events across most of the book, giving each major event its own page with vivid detail.
@@ -304,8 +305,17 @@ No markdown, no explanation, just the JSON object.`;
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["page", "text"],
-            properties: { page: { type: "integer" }, text: { type: "string" } },
+            // `characters` MUST be in the schema: the prompt asks for a per-page
+            // characters array, and without a slot for it the model crams the
+            // "characters": [...] fragment INTO the text string (leaking garbage
+            // like `"characters": …wait, no. (placeholder)` onto the page) AND
+            // the per-page character consistency below never receives any names.
+            required: ["page", "text", "characters"],
+            properties: {
+              page: { type: "integer" },
+              text: { type: "string" },
+              characters: { type: "array", items: { type: "string" } },
+            },
           },
         },
         backCover: {
@@ -467,11 +477,29 @@ No markdown, no explanation, just the JSON object.`;
       return String(val ?? "");
     };
 
+    // Defensive scrub of a page's story text: if the model ever leaks a JSON key
+    // fragment INTO the caption (seen on the Gemini fallback, which does not
+    // enforce the schema — e.g. `…would be!"characters": …wait, no.
+    // (placeholder)`), cut it off at the leaked key and drop any "(placeholder)"
+    // marker so the garbage never prints. Conservative: only triggers on the
+    // literal leaked-key / placeholder patterns, never on normal prose.
+    const cleanPageText = (s: string): string => {
+      let out = s;
+      // Cut everything from a leaked "characters"/"page"/"text" JSON key onward
+      // (these keys never legitimately appear followed by a colon in a caption).
+      out = out.replace(/\s*["“”]?\b(?:characters|page|text)\b["“”]?\s*:\s*[\s\S]*$/i, "");
+      // Drop any "(placeholder)" self-correction marker.
+      out = out.replace(/\s*\(?\s*placeholder\s*\)?/gi, "");
+      // Drop a trailing "…wait, no" self-correction left dangling.
+      out = out.replace(/\s*(?:\.\.\.|…)?\s*wait,?\s*no\.?\s*$/i, "");
+      return out.trim();
+    };
+
     // Normalize: ensure we have all parts
     const rawPages = Array.isArray(parsed.pages) ? parsed.pages : parsed.pages || [];
     const storyPages = rawPages.map((p: any) => ({
       ...p,
-      text: flattenText(p.text),
+      text: cleanPageText(flattenText(p.text)),
       // Names of recurring characters in this page's scene — drives per-page
       // injection of their fixed visual description so they stay consistent.
       characters: Array.isArray(p.characters)
