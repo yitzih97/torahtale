@@ -63,6 +63,18 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: bash scripts/push-auth-smtp.sh
 
+      - name: Sync function secrets (RESEND_API_KEY for the delivery email)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          if [ -n "$RESEND_API_KEY" ]; then
+            supabase secrets set RESEND_API_KEY="$RESEND_API_KEY" --project-ref "$PROJECT_REF"
+            echo "RESEND_API_KEY synced to Supabase."
+          else
+            echo "::warning::RESEND_API_KEY repo secret not set — printify-webhook can't send the 'Your Book Has Arrived!' email."
+          fi
+
       - name: Sync function secrets (CRON_SECRET for the release job)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

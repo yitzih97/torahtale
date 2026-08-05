@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { renderDeliveredEmail, sendResendEmail } from "../_shared/emails.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,6 +35,23 @@ async function verifySignature(secret: string, rawBody: string, signature: strin
   } catch (_e) {
     return false;
   }
+}
+
+// The delivery notice goes to the address captured at checkout; if that is
+// missing (e.g. an admin-pushed book), fall back to the account's login email.
+async function resolveCustomerEmail(
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
+  book: { shipping_data?: unknown; user_id?: string | null },
+): Promise<string | null> {
+  const shipping = (book.shipping_data as Record<string, unknown>) || {};
+  const shippingEmail = typeof shipping.email === "string" ? shipping.email.trim() : "";
+  if (shippingEmail) return shippingEmail;
+  if (book.user_id) {
+    const { data, error } = await supabase.auth.admin.getUserById(book.user_id);
+    if (!error && data?.user?.email) return data.user.email;
+  }
+  return null;
 }
 
 serve(async (req) => {
@@ -98,11 +116,12 @@ serve(async (req) => {
 
     const { data: books } = await supabase
       .from("books")
-      .select("id")
+      .select("id, status, child_name, torah_portion, shipping_data, user_id, delivered_email_sent_at")
       .eq("order_number", resource.id)
       .limit(1);
 
     if (books && books.length > 0) {
+      const book = books[0];
       const update: Record<string, unknown> = {
         status: newStatus,
         updated_at: new Date().toISOString(),
@@ -114,7 +133,31 @@ serve(async (req) => {
         update.printify_order_id = null;
         update.printify_product_id = null;
       }
-      await supabase.from("books").update(update).eq("id", books[0].id);
+
+      // On the first delivery event, email the customer "Your Book Has Arrived!".
+      // delivered_email_sent_at makes this idempotent — Printify can re-fire the
+      // delivered event, and a duplicate "your book arrived" email reads as spam.
+      if (newStatus === "delivered" && !book.delivered_email_sent_at) {
+        const to = await resolveCustomerEmail(supabase, book);
+        if (to) {
+          const shipping = (book.shipping_data as Record<string, unknown>) || {};
+          const html = renderDeliveredEmail({
+            childName: book.child_name,
+            parsha: book.torah_portion,
+            firstName: (shipping.firstName as string) || (shipping.first_name as string) || null,
+          });
+          const sent = await sendResendEmail({
+            to,
+            subject: "Your Book Has Arrived! - Torah Tale",
+            html,
+          });
+          if (sent) update.delivered_email_sent_at = new Date().toISOString();
+        } else {
+          console.warn(`printify-webhook: no email on file for delivered book ${book.id}`);
+        }
+      }
+
+      await supabase.from("books").update(update).eq("id", book.id);
     }
 
     return new Response(JSON.stringify({ received: true, status: newStatus }), {
