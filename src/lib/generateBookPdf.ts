@@ -7,7 +7,7 @@ import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
 import { fitQuestionsLayout, buildQuestionsText } from "@/lib/fitQuestions";
 import { applyLineArt } from "@/lib/lineArt";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
-import { COVER_NAVY, COVER_GOLD, FRONT_TAGLINE } from "@/lib/coverBranding";
+import { COVER_GOLD } from "@/lib/coverBranding";
 
 /* Spread = 2:1 landscape sheet. Image fills one half, text composited
    per page from BookPage.textLayout. */
@@ -563,7 +563,7 @@ function drawCoverFurniture(
     // Hebrew each render on ONE compact line, in the right font + direction —
     // keeps the title small and near the top instead of sprawling over faces.
     const titleLines = opts.title.split(/\n{2,}/).map((l) => l.trim()).filter(Boolean);
-    const baseM = Math.round(U * 0.037);
+    const baseM = Math.round(U * 0.052);
     let my = ty + U * 0.045 + U * 0.038;
     for (const raw of titleLines) {
       const heb = HEBREW_RE.test(raw);
@@ -623,26 +623,21 @@ function drawMiniCover(
   roundedRect(ctx, x, y, size, size, r); ctx.clip();
   // Top scrim for title legibility over the illustration.
   const g = ctx.createLinearGradient(x, y, x, y + size * 0.6);
-  g.addColorStop(0, "rgba(8,14,30,0.72)"); g.addColorStop(0.6, "rgba(8,14,30,0.16)"); g.addColorStop(1, "rgba(8,14,30,0)");
+  g.addColorStop(0, "rgba(8,14,30,0.78)"); g.addColorStop(0.6, "rgba(8,14,30,0.18)"); g.addColorStop(1, "rgba(8,14,30,0)");
   ctx.fillStyle = g; ctx.fillRect(x, y, size, size * 0.6);
-  // Navy frame + gold keyline (mirrors drawCoverFurniture, scaled down).
-  const m = size * 0.05;
-  ctx.strokeStyle = COVER_NAVY; ctx.lineWidth = Math.max(1.5, size * 0.012);
-  ctx.strokeRect(x + m, y + m, size - 2 * m, size - 2 * m);
-  ctx.strokeStyle = COVER_GOLD; ctx.lineWidth = Math.max(0.75, size * 0.006);
-  const gi = m + size * 0.028;
-  ctx.strokeRect(x + gi, y + gi, size - 2 * gi, size - 2 * gi);
-  // Parsha title — FLAT gold blackletter (no engrave/drop shadow), ≤2 lines.
+  // No decorative frame — the mini cover runs clean to the edge, matching the
+  // current front cover (drawCoverFurniture). Parsha title in flat gold
+  // blackletter (no engrave/drop shadow), ≤2 lines.
   ctx.direction = rtl ? "rtl" : "ltr";
   ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-  const fs = Math.round(size * 0.072);
+  const fs = Math.round(size * 0.1);
   ctx.font = coverTitleFont(fs);
-  const lines = wrapLines(ctx, label || "", size - size * 0.22).slice(0, 2);
-  let ty = y + size * 0.13 + fs;
+  const lines = wrapLines(ctx, label || "", size - size * 0.12).slice(0, 2);
+  let ty = y + size * 0.12 + fs;
   for (const ln of lines) { ctx.fillStyle = goldFill(ctx, ty, fs); ctx.fillText(ln, x + size / 2, ty); ty += fs * 1.1; }
   // Child line — "with [name]" in gold italic, localized to the book language.
   if (childName) {
-    const cfs = Math.round(size * 0.055);
+    const cfs = Math.round(size * 0.07);
     ctx.font = `italic 600 ${cfs}px 'Cormorant Garamond', serif`;
     ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
     ctx.direction = rtl ? "rtl" : "ltr";
@@ -733,10 +728,10 @@ async function renderCoverSpread(
   ctx.font = `600 17px 'Inter', sans-serif`;
   ctx.fillText(letterSpace((COMING_NEXT_LABEL[lang] || COMING_NEXT_LABEL.en).toUpperCase(), 2), cx, 786);
   const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
-  const thumb = 150, tgap = 20;
+  const thumb = 182, tgap = 20;
   const rowW = 4 * thumb + 3 * tgap;
   const rowX = cx - rowW / 2;
-  const rowY = 806;
+  const rowY = 800;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
     drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, rowY, thumb, rtl, lang);
@@ -769,7 +764,6 @@ async function renderCoverSpread(
   drawCoverFurniture(ctx, HALF_W, SPREAD_H, {
     parsha: parshaLabel,
     title: getCoverChildLine(childName, lang),
-    tagline: FRONT_TAGLINE,
     rtl,
   });
   ctx.restore();
@@ -841,7 +835,6 @@ async function renderPortraitCover(
   drawCoverFurniture(ctx, W, H, {
     parsha: parshaLabel,
     title: getCoverChildLine(childName, lang),
-    tagline: FRONT_TAGLINE,
     rtl,
   });
   return canvas.toDataURL("image/jpeg", 0.96);

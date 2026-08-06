@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPortionDisplay, bookLanguageCode, isBookRtl } from "./TorahPortions";
-import { COVER_NAVY, COVER_GOLD, FRONT_TAGLINE } from "@/lib/coverBranding";
+import { COVER_GOLD } from "@/lib/coverBranding";
 import { toLineArtDataURL } from "@/lib/lineArt";
 
 export interface BookPage {
@@ -419,15 +419,13 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         ) : (
           <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="h-4 w-4 text-muted-foreground" /></div>
         )}
-        {/* Mini front-cover, styled like the real branded cover: navy keyline
-            frame, gold engraved parsha title, magenta child line. */}
+        {/* Mini front-cover, styled like the real branded cover: clean to the
+            edge (no frame), gold parsha title, gold child line. */}
         <div className="pointer-events-none absolute inset-0" dir={dir}>
-          <div className="absolute inset-x-0 top-0 h-2/3 bg-gradient-to-b from-[rgba(8,14,30,0.72)] via-[rgba(8,14,30,0.22)] to-transparent" />
-          <div className="absolute" style={{ inset: "5%", border: `1.5px solid ${COVER_NAVY}` }} />
-          <div className="absolute" style={{ inset: "8%", border: `0.75px solid ${COVER_GOLD}` }} />
-          <div className="absolute inset-x-0 top-[6%] px-1 text-center">
+          <div className="absolute inset-x-0 top-0 h-2/3 bg-gradient-to-b from-[rgba(8,14,30,0.78)] via-[rgba(8,14,30,0.24)] to-transparent" />
+          <div className="absolute inset-x-0 top-[8%] px-1 text-center">
             <p
-              className="font-normal leading-tight text-[5px] sm:text-[6px]"
+              className="font-normal leading-tight text-[7px] sm:text-[9px]"
               style={{
                 fontFamily: "'TorahTaleTitle', 'Cinzel', serif",
                 backgroundImage: "linear-gradient(180deg,#fff6d5,#e7be5c 55%,#a9791f)",
@@ -438,7 +436,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             </p>
             {childName && (
               <p
-                className="italic font-semibold leading-tight text-[4px] sm:text-[5px]"
+                className="italic font-semibold leading-tight text-[6px] sm:text-[7px]"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
                   backgroundImage: "linear-gradient(180deg,#fff6d5,#e7be5c 55%,#a9791f)",
@@ -504,7 +502,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             <p
               key={i}
               dir={heb ? "rtl" : "ltr"}
-              className={`mt-0.5 italic font-semibold leading-tight ${heb ? "text-[10px] sm:text-sm" : "text-xs sm:text-base"}`}
+              className={`mt-0.5 italic font-semibold leading-tight ${heb ? "text-sm sm:text-lg" : "text-sm sm:text-xl"}`}
               style={{
                 fontFamily: heb ? "'Frank Ruhl Libre', serif" : "'Cormorant Garamond', serif",
                 backgroundImage: "linear-gradient(180deg, #fff6d5 0%, #f6df97 28%, #e7be5c 50%, #c9992f 72%, #a9791f 100%)",
@@ -526,15 +524,6 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
             {childLine}
           </p>
         )}
-      </div>
-
-      <div className="absolute inset-x-0 bottom-[6%] text-center px-3">
-        <div className="mb-1 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
-          <span className="h-px w-5 sm:w-6 bg-current opacity-70" /><span>❦</span><span className="h-px w-5 sm:w-6 bg-current opacity-70" />
-        </div>
-        <p className="italic text-[9px] sm:text-sm" style={{ fontFamily: "'Cormorant Garamond', serif", color: COVER_GOLD, textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
-          {FRONT_TAGLINE}
-        </p>
       </div>
     </div>
   );
