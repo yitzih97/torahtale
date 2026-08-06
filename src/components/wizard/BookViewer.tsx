@@ -17,6 +17,7 @@ import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPortionDisplay, bookLanguageCode, isBookRtl } from "./TorahPortions";
 import { COVER_GOLD } from "@/lib/coverBranding";
+import { localizedCoverName } from "@/lib/hebrewName";
 import { toLineArtDataURL } from "@/lib/lineArt";
 
 export interface BookPage {
@@ -112,12 +113,22 @@ export const COVER_WITH_BY_LANG: Record<"en" | "he" | "yi", string> = {
   yi: "מיט",
 };
 /** The full "With [child]" cover line in the book's language (undefined if there
- *  is no child name). */
-export const getCoverChildLine = (childName: string, lang: "en" | "he" | "yi"): string | undefined =>
-  childName ? `${COVER_WITH_BY_LANG[lang] || COVER_WITH_BY_LANG.en} ${childName}` : undefined;
+ *  is no child name). For Hebrew/Yiddish the child name is rendered in Hebrew
+ *  letters — using the LLM's localized spelling when supplied, otherwise a
+ *  transliteration of the typed name (see localizedCoverName). */
+export const getCoverChildLine = (
+  childName: string,
+  lang: "en" | "he" | "yi",
+  localizedName?: string | null,
+): string | undefined =>
+  childName ? `${COVER_WITH_BY_LANG[lang] || COVER_WITH_BY_LANG.en} ${localizedCoverName(childName, lang, localizedName)}` : undefined;
 
 interface Props {
   childName: string;
+  /** The child name in the book's own script for the COVER, spelled by the story
+   *  LLM (e.g. "ארי" for a Hebrew book). Optional — when absent, Hebrew/Yiddish
+   *  covers transliterate `childName` instead. Ignored for English books. */
+  coverChildName?: string;
   torahPortion: string;
   artStyle: string;
   /** The BOOK's language ("english" | "hebrew" | "yiddish"). Cover + captions
@@ -146,7 +157,7 @@ interface Props {
   };
 }
 
-export const BookViewer = ({ childName, torahPortion, artStyle, language, pages, onPagesChange, editable = false, generationContext }: Props) => {
+export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, language, pages, onPagesChange, editable = false, generationContext }: Props) => {
   const { dir: uiDir, lang: uiLang } = useLanguage();
   // Cover text and captions follow the BOOK's own language (Hebrew/Yiddish
   // books read RTL and show Hebrew parsha names) — not the viewer's UI language.
@@ -443,7 +454,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
                   WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
                 }}
               >
-                {getCoverChildLine(childName, lang)}
+                {getCoverChildLine(childName, lang, coverChildName)}
               </p>
             )}
           </div>
@@ -468,7 +479,8 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
 
   // Spine label — the localized Parsha name + kids' names, printed down the
   // book's edge (mirrors the front cover, so it follows the book's language).
-  const spineLabel = `${parshaName}${childName ? `  ${childName}` : ""}`;
+  const spineChild = localizedCoverName(childName, lang, coverChildName);
+  const spineLabel = `${parshaName}${spineChild ? `  ${spineChild}` : ""}`;
 
   // Majestic front-cover chrome — navy filigree frame, gold engraved parsha
   // title, magenta personalized title/child line, gold tagline. Shared with
@@ -540,7 +552,7 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         ) : (
           <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="w-10 h-10 text-muted-foreground" /></div>
         )}
-        {renderCoverChrome(getCoverChildLine(childName, lang))}
+        {renderCoverChrome(getCoverChildLine(childName, lang, coverChildName))}
       </div>
     );
   };
@@ -548,11 +560,13 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
   const renderCoverSpread = () => {
     // Front cover text: the gold parsha title, then a gold "With [kids]" subtitle
     // — localized to the book's language ("עם ארי" for Hebrew, "מיט" for Yiddish).
-    const frontTitle = getCoverChildLine(childName, lang);
-    return (
-    <div className="absolute inset-0 grid grid-cols-2">
-      {/* Back cover — left: brand logo, the 4 "coming next" teaser mini-covers,
-          a subscribe invitation, and the site URL. */}
+    const frontTitle = getCoverChildLine(childName, lang, coverChildName);
+    // A right-to-left (Hebrew/Yiddish) book opens from the other side, so the
+    // wrap is mirrored: the FRONT cover sits on the LEFT half and the BACK on the
+    // RIGHT — matching the printed file (see renderCoverSpread in generateBookPdf).
+    const backCover = (
+      /* Back cover: brand logo, the 4 "coming next" teaser mini-covers,
+          a subscribe invitation, and the site URL. */
       <div className="relative flex flex-col items-center justify-between gap-2 p-3 sm:p-5 text-center bg-[hsl(42_50%_94%)]">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
 
@@ -584,8 +598,9 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
           <p className="font-mono text-[10px] sm:text-xs tracking-[0.2em] text-gold uppercase">{COVER_URL}</p>
         </div>
       </div>
+    );
 
-      {/* Front cover — right */}
+    const frontCover = (
       <div className="relative bg-muted">
         {page?.image ? (
           <img src={page.image} alt={page.coverTitle || ""} className="absolute inset-0 w-full h-full object-cover" />
@@ -598,6 +613,11 @@ export const BookViewer = ({ childName, torahPortion, artStyle, language, pages,
         )}
         {renderCoverChrome(frontTitle)}
       </div>
+    );
+
+    return (
+    <div className="absolute inset-0 grid grid-cols-2">
+      {isRtl ? <>{frontCover}{backCover}</> : <>{backCover}{frontCover}</>}
 
       {/* Spine — story title + kids' names down the center fold */}
       <div

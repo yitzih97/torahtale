@@ -562,6 +562,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         bookId: book.id,
         pages: pages as any,
         childName: book.child_name || "",
+        coverChildName: (storyData || book.story_data)?.coverChildName,
         torahPortion: book.torah_portion || "",
         bookFormat,
         lang: bookLanguageCode(book.language),
@@ -941,6 +942,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <BookViewer
                 childName={book?.child_name || ""}
+                coverChildName={(storyData || book?.story_data)?.coverChildName}
                 torahPortion={book?.torah_portion || ""}
                 artStyle={ART_STYLE}
                 language={book?.language || "english"}

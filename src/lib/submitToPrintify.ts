@@ -40,19 +40,21 @@ export async function submitBookToPrintify(opts: {
   bookId: string;
   pages: BookPage[];
   childName: string;
+  /** Child name in the book's script for the cover (Hebrew/Yiddish). Optional. */
+  coverChildName?: string;
   torahPortion: string;
   bookFormat: string;
   lang?: "en" | "he" | "yi";
   rtl?: boolean;
   onProgress?: (done: number, total: number) => void;
 }): Promise<PrintifySubmitResult> {
-  const { bookId, pages, childName, torahPortion, bookFormat, lang = "en", rtl = false, onProgress } = opts;
+  const { bookId, pages, childName, coverChildName, torahPortion, bookFormat, lang = "en", rtl = false, onProgress } = opts;
 
   // The back-cover "coming next" teasers are generated WITH the book (they live
   // on the pages as "preview" entries), so renderPrintImages reads them directly.
   let images: string[];
   try {
-    images = await renderPrintImages(pages, childName, torahPortion, rtl, bookFormat, lang);
+    images = await renderPrintImages(pages, childName, torahPortion, rtl, bookFormat, lang, coverChildName);
   } catch (e: any) {
     return { success: false, error: `Could not render print images: ${e?.message || e}` };
   }

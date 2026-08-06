@@ -555,6 +555,7 @@ export default function Dashboard() {
           open={!!viewingBook}
           onClose={() => setViewingBook(null)}
           childName={viewingBook.child_name || ""}
+          coverChildName={viewingBook.story_data?.coverChildName}
           torahPortion={viewingBook.torah_portion || ""}
           artStyle={viewingBook.art_style || "3d-pixar"}
           language={viewingBook.language || "english"}

@@ -174,6 +174,7 @@ export default function Admin() {
         bookId: book.id,
         pages: pages as any,
         childName: book.child_name || (full?.child_name as string) || "",
+        coverChildName: ((full as any)?.story_data || (book as any)?.story_data)?.coverChildName,
         torahPortion: book.torah_portion || (full?.torah_portion as string) || "",
         bookFormat,
         lang: bookLanguageCode(bookLang),

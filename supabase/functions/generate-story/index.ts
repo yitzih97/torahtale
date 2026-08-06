@@ -244,6 +244,7 @@ You MUST respond with ONLY a valid JSON object with this exact structure:
     "title": "A short, poetic, PERSONALIZED book title that names the star child AND evokes THIS parsha — e.g. 'Adina and the Great Teivah', 'Moshe and the Sea That Split', 'Dovid and the Hidden Light'. 2 to 6 words, warm and storybook-magical. Name the (first) child. Do NOT put the parsha label itself in the title (e.g. not 'Parshas Noach') — that is displayed separately in gold.",
     "subtitle": "A short evocative tagline, a few words"
   },
+  "coverChildName": "The star child's name (or names) EXACTLY as they should be printed on the cover, written in THIS BOOK'S language and script — Hebrew letters for a Hebrew book, Yiddish (Hebrew-alphabet) for a Yiddish book, plain Latin for an English book. Just the child name(s) — NO 'with'/'עם'/'מיט' prefix, no parents, no title. For an English book return the name exactly as given. For multiple children join them naturally in that language (Hebrew example: 'אדינה וארי'). Example: an English name 'Ari' becomes 'ארי' on a Hebrew book.",
   "pages": [
     { "page": 1, "text": "Story text for page 1", "characters": ["ExactNameFromCharactersArray"] },
     ...
@@ -292,7 +293,7 @@ No markdown, no explanation, just the JSON object.`;
     const bookSchema = {
       type: "object",
       additionalProperties: false,
-      required: ["cover", "pages", "backCover"],
+      required: ["cover", "coverChildName", "pages", "backCover"],
       properties: {
         cover: {
           type: "object",
@@ -300,6 +301,7 @@ No markdown, no explanation, just the JSON object.`;
           required: ["title", "subtitle"],
           properties: { title: { type: "string" }, subtitle: { type: "string" } },
         },
+        coverChildName: { type: "string" },
         pages: {
           type: "array",
           items: {

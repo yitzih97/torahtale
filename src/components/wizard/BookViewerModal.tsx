@@ -12,6 +12,8 @@ interface Props {
   open: boolean;
   onClose: () => void;
   childName: string;
+  /** Child name in the book's script for the cover (Hebrew/Yiddish). Optional. */
+  coverChildName?: string;
   torahPortion: string;
   artStyle: string;
   /** The BOOK's language — cover + captions render in it, not the UI language. */
@@ -23,7 +25,7 @@ interface Props {
   onReorder?: () => void;
 }
 
-export const BookViewerModal = ({ open, onClose, childName, torahPortion, artStyle, language, pages, bookFormat, onEdit, onReorder }: Props) => {
+export const BookViewerModal = ({ open, onClose, childName, coverChildName, torahPortion, artStyle, language, pages, bookFormat, onEdit, onReorder }: Props) => {
   const [downloading, setDownloading] = useState(false);
   const { dir, lang: uiLang } = useLanguage();
   // The book's own language wins over the viewer's UI language.
@@ -33,7 +35,7 @@ export const BookViewerModal = ({ open, onClose, childName, torahPortion, artSty
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
-      const blob = await generateBookPdf(pages, childName, torahPortion, rtl, bookFormat, lang);
+      const blob = await generateBookPdf(pages, childName, torahPortion, rtl, bookFormat, lang, coverChildName);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -55,7 +57,7 @@ export const BookViewerModal = ({ open, onClose, childName, torahPortion, artSty
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 shadow-soft-lg">
         <div className="p-6 sm:p-8">
-          <BookViewer childName={childName} torahPortion={torahPortion} artStyle={artStyle} language={language} pages={pages} onPagesChange={() => {}} generationContext={{ bookFormat }} />
+          <BookViewer childName={childName} coverChildName={coverChildName} torahPortion={torahPortion} artStyle={artStyle} language={language} pages={pages} onPagesChange={() => {}} generationContext={{ bookFormat }} />
           <div className="flex gap-3 mt-6 pt-6 border-t border-border">
             <Button
               variant="outline"

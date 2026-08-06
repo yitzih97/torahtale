@@ -8,6 +8,7 @@ import { fitQuestionsLayout, buildQuestionsText } from "@/lib/fitQuestions";
 import { applyLineArt } from "@/lib/lineArt";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
 import { COVER_GOLD } from "@/lib/coverBranding";
+import { localizedCoverName } from "@/lib/hebrewName";
 
 /* Spread = 2:1 landscape sheet. Image fills one half, text composited
    per page from BookPage.textLayout. */
@@ -657,8 +658,12 @@ async function renderCoverSpread(
   bookFormat = "",
   previews: BackCoverPreview[] = [],
   lang: "en" | "he" | "yi" = "en",
+  localizedChildName?: string,
 ): Promise<string> {
   await ensureBookFonts();
+  // The name to print on the cover in the book's own script (Hebrew/Yiddish
+  // books show the child's name in Hebrew letters; English keeps it as typed).
+  const coverChild = localizedCoverName(childName, lang, localizedChildName);
   const canvas = document.createElement("canvas");
   canvas.width = SPREAD_W * scale; canvas.height = SPREAD_H * scale;
   const ctx = canvas.getContext("2d")!;
@@ -734,7 +739,7 @@ async function renderCoverSpread(
   const rowY = 800;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, rowY, thumb, rtl, lang);
+    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", coverChild, tx, rowY, thumb, rtl, lang);
   }
 
   // CTA + site URL (a domain → always LTR).
@@ -763,7 +768,7 @@ async function renderCoverSpread(
   ctx.translate(frontX, 0);
   drawCoverFurniture(ctx, HALF_W, SPREAD_H, {
     parsha: parshaLabel,
-    title: getCoverChildLine(childName, lang),
+    title: getCoverChildLine(childName, lang, localizedChildName),
     rtl,
   });
   ctx.restore();
@@ -784,7 +789,7 @@ async function renderCoverSpread(
   ctx.fillRect(spineX, 0, spineW, SPREAD_H);
   // Only letter the spine when it's physically wide enough to read.
   if (spineW >= 60) {
-    const spineText = [parshaLabel, childName].filter(Boolean).join("  ·  ");
+    const spineText = [parshaLabel, coverChild].filter(Boolean).join("  ·  ");
     ctx.save();
     ctx.translate(HALF_W, SPREAD_H / 2);
     ctx.rotate(Math.PI / 2);
@@ -810,6 +815,7 @@ async function renderPortraitCover(
   parshaLabel: string,
   scale = 1,
   lang: "en" | "he" | "yi" = "en",
+  localizedChildName?: string,
 ): Promise<string> {
   await ensureBookFonts();
   const W = COLOR_W, H = COLOR_H;
@@ -834,7 +840,7 @@ async function renderPortraitCover(
   // generated bilingual title.
   drawCoverFurniture(ctx, W, H, {
     parsha: parshaLabel,
-    title: getCoverChildLine(childName, lang),
+    title: getCoverChildLine(childName, lang, localizedChildName),
     rtl,
   });
   return canvas.toDataURL("image/jpeg", 0.96);
@@ -850,9 +856,11 @@ async function renderColoringBackMatter(
   previews: BackCoverPreview[],
   lang: "en" | "he" | "yi",
   scale = 1,
+  localizedChildName?: string,
 ): Promise<string> {
   const W = COLOR_W, H = COLOR_H;
   const rtl = lang !== "en";
+  const coverChild = localizedCoverName(childName, lang, localizedChildName);
   // The branded teaser thumbnails use canvas-only fonts (Cinzel/Cormorant), so
   // make sure they're loaded before drawing or the canvas silently falls back.
   await ensureBookFonts();
@@ -927,7 +935,7 @@ async function renderColoringBackMatter(
   const rowX = W / 2 - rowW / 2;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", childName, tx, y, thumb, rtl, lang);
+    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", coverChild, tx, y, thumb, rtl, lang);
   }
   y += thumb + 26;
 
@@ -976,6 +984,7 @@ export async function renderPrintImages(
   rtl = false,
   bookFormat = "",
   lang: "en" | "he" | "yi" = "en",
+  localizedChildName?: string,
 ): Promise<string[]> {
   const parshaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   const mode = layoutMode(bookFormat, pages);
@@ -983,8 +992,8 @@ export async function renderPrintImages(
   const previews = backCoverPreviews(pages, lang);
   let coverImg: string | null = null;
   if (cover) coverImg = await (mode === "portrait"
-    ? renderPortraitCover(cover, childName, parshaLabel, PRINT_SCALE, lang)
-    : renderCoverSpread(cover, childName, parshaLabel, PRINT_SCALE, bookFormat, previews, lang));
+    ? renderPortraitCover(cover, childName, parshaLabel, PRINT_SCALE, lang, localizedChildName)
+    : renderCoverSpread(cover, childName, parshaLabel, PRINT_SCALE, bookFormat, previews, lang, localizedChildName));
 
   // Interior pages, in natural reading order (story 1…N, then discussion).
   const interior: string[] = [];
@@ -1010,7 +1019,7 @@ export async function renderPrintImages(
   // back-matter page instead (they have no back cover for the teasers).
   if (questionsPage) {
     interior.push(mode === "portrait"
-      ? await renderColoringBackMatter(questionsPage, childName, previews, lang, PRINT_SCALE)
+      ? await renderColoringBackMatter(questionsPage, childName, previews, lang, PRINT_SCALE, localizedChildName)
       : await renderQuestionsSpread(questionsPage, rtl, mode, PRINT_SCALE));
   }
 
@@ -1033,6 +1042,7 @@ export async function generateBookPdf(
   rtl = false,
   bookFormat = "",
   lang: "en" | "he" | "yi" = "en",
+  localizedChildName?: string,
 ): Promise<Blob> {
   // Cover text: Parsha name is the hero (big), kids are the co-stars (small),
   // mirroring the on-screen BookViewer.
@@ -1065,8 +1075,8 @@ export async function generateBookPdf(
   const coverEntry = coverPage
     ? {
         dataUrl: mode === "portrait"
-          ? await renderPortraitCover(coverPage, childName, parshaLabel, PRINT_SCALE, lang)
-          : await renderCoverSpread(coverPage, childName, parshaLabel, PRINT_SCALE, bookFormat, pdfPreviews, lang),
+          ? await renderPortraitCover(coverPage, childName, parshaLabel, PRINT_SCALE, lang, localizedChildName)
+          : await renderCoverSpread(coverPage, childName, parshaLabel, PRINT_SCALE, bookFormat, pdfPreviews, lang, localizedChildName),
         fmt: coverFmt,
       }
     : null;
@@ -1079,7 +1089,7 @@ export async function generateBookPdf(
       // Coloring books have no back cover — the questions page becomes the back
       // matter (logo + up to 10 questions + subscribe + teaser thumbnails).
       dataUrl = mode === "portrait"
-        ? await renderColoringBackMatter(page, childName, pdfPreviews, lang, PRINT_SCALE)
+        ? await renderColoringBackMatter(page, childName, pdfPreviews, lang, PRINT_SCALE, localizedChildName)
         : await renderQuestionsSpread(page, rtl, mode, PRINT_SCALE);
     } else {
       dataUrl = await renderStorySpread(page, storyIdx, rtl, mode, PRINT_SCALE);
