@@ -1,4 +1,5 @@
 import { DEFAULT_TEXT_LAYOUT, type TextLayout } from "@/components/wizard/EditableTextBox";
+import { wrapText } from "@/lib/wrapText";
 
 // Auto-place AND auto-size the story caption over an illustration so the admin
 // almost never has to drag or resize a text box.
@@ -56,18 +57,13 @@ function fitFontSize(
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx || innerW <= 0 || innerH <= 0) return DEFAULT_TEXT_LAYOUT.fontSize;
-  const words = (text || "").trim().split(/\s+/).filter(Boolean);
-  if (!words.length) return DEFAULT_TEXT_LAYOUT.fontSize;
+  if (!(text || "").trim()) return DEFAULT_TEXT_LAYOUT.fontSize;
 
   const heightAt = (fs: number): number => {
     ctx.font = `${fs}px ${fontFamily}`;
-    let lines = 1, cur = "";
-    for (const word of words) {
-      const test = cur ? `${cur} ${word}` : word;
-      if (ctx.measureText(test).width > innerW && cur) { lines++; cur = word; }
-      else cur = test;
-    }
-    // A single word longer than the box still occupies its own line.
+    // Count lines exactly as the caption will be wrapped when drawn (phrase-aware,
+    // honoring "\n"), so the chosen font size leaves room for every real line.
+    const lines = wrapText((s) => ctx.measureText(s).width, text || "", innerW).length || 1;
     return lines * fs * LINE_HEIGHT;
   };
 

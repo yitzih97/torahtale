@@ -4,6 +4,7 @@ import { BOOK_HEBREW_FONT } from "@/components/wizard/EditableTextBox";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
+import { wrapText } from "@/lib/wrapText";
 import { fitQuestionsLayout, buildQuestionsText } from "@/lib/fitQuestions";
 import { applyLineArt } from "@/lib/lineArt";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
@@ -71,23 +72,10 @@ async function safeLoad(src: string | null | undefined): Promise<HTMLImageElemen
 }
 
 
+// Phrase-aware line wrapping (breaks at natural pauses, honors "\n") lives in a
+// shared module so the renderer and the auto font-fitter stay in sync.
 function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
-  const lines: string[] = [];
-  for (const para of (text || "").split("\n")) {
-    if (!para.trim()) { lines.push(""); continue; }
-    const words = para.split(/\s+/);
-    let line = "";
-    for (const word of words) {
-      const test = line ? `${line} ${word}` : word;
-      if (ctx.measureText(test).width > maxWidth && line) {
-        lines.push(line); line = word;
-      } else {
-        line = test;
-      }
-    }
-    if (line) lines.push(line);
-  }
-  return lines;
+  return wrapText((s) => ctx.measureText(s).width, text, maxWidth);
 }
 
 function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -556,8 +544,8 @@ function drawCoverFurniture(
   engravedLine(ctx, l1, W / 2, ty, tFont, fs);
   if (l2) { ty += fs * 1.02; engravedLine(ctx, l2, W / 2, ty, tFont, fs); }
 
-  // Divider + magenta personalized title.
-  coverFlourish(ctx, W / 2, ty + U * 0.045, U * 0.2, gold);
+  // Personalized title (no divider rule — it crowded/overlapped the "With <name>"
+  // subtitle, so the flourish under the parsha title was removed).
   if (opts.title) {
     ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
     // Split a bilingual personalized title into its language lines so English and
