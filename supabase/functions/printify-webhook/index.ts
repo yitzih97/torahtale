@@ -1,6 +1,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { renderDeliveredEmail, sendResendEmail } from "../_shared/emails.ts";
+import { renderDeliveredEmail, renderShippedEmail, sendResendEmail } from "../_shared/emails.ts";
+
+// Printify's order:shipment:created payload carries the carrier tracking link,
+// but its exact location varies by carrier/version. Check the documented spots,
+// then fall back to the first tracking-looking URL anywhere in the payload.
+function extractTrackingUrl(event: unknown): string | null {
+  // deno-lint-ignore no-explicit-any
+  const e = event as any;
+  const d = e?.resource?.data ?? e?.data ?? {};
+  const candidates = [
+    d?.shipments?.[0]?.url,
+    d?.shipments?.[0]?.tracking_url,
+    d?.carrier?.tracking_url,
+    d?.carrier?.url,
+    d?.tracking_url,
+    d?.url,
+  ];
+  for (const c of candidates) {
+    if (typeof c === "string" && /^https?:\/\//i.test(c)) return c;
+  }
+  try {
+    const m = JSON.stringify(e).match(/https?:\/\/[^"\\ ]*(track|shipment|parcel)[^"\\ ]*/i);
+    if (m) return m[0];
+  } catch (_e) { /* ignore */ }
+  return null;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -116,7 +141,7 @@ serve(async (req) => {
 
     const { data: books } = await supabase
       .from("books")
-      .select("id, status, child_name, torah_portion, shipping_data, user_id, delivered_email_sent_at")
+      .select("id, status, child_name, torah_portion, shipping_data, user_id, delivered_email_sent_at, shipped_email_sent_at")
       .eq("order_number", resource.id)
       .limit(1);
 
@@ -132,6 +157,29 @@ serve(async (req) => {
         // "already in Printify" dead end.
         update.printify_order_id = null;
         update.printify_product_id = null;
+      }
+
+      // On the first shipment event, email "Your Book Has Shipped!" with the
+      // Printify tracking link. shipped_email_sent_at keeps it idempotent.
+      if (newStatus === "shipped" && !book.shipped_email_sent_at) {
+        const to = await resolveCustomerEmail(supabase, book);
+        if (to) {
+          const shipping = (book.shipping_data as Record<string, unknown>) || {};
+          const html = renderShippedEmail({
+            childName: book.child_name,
+            parsha: book.torah_portion,
+            firstName: (shipping.firstName as string) || (shipping.first_name as string) || null,
+            trackingUrl: extractTrackingUrl(event),
+          });
+          const sent = await sendResendEmail({
+            to,
+            subject: "Your Book Has Shipped! - Torah Tale",
+            html,
+          });
+          if (sent) update.shipped_email_sent_at = new Date().toISOString();
+        } else {
+          console.warn(`printify-webhook: no email on file for shipped book ${book.id}`);
+        }
       }
 
       // On the first delivery event, email the customer "Your Book Has Arrived!".
