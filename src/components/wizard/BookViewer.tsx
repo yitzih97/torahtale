@@ -505,9 +505,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
         >
           {parshaName}
         </h1>
-        <div className="mt-1 flex items-center justify-center gap-2 text-[10px] sm:text-xs" style={{ color: COVER_GOLD }}>
-          <span className="h-px w-7 sm:w-8 bg-current opacity-70" /><span>❦</span><span className="h-px w-7 sm:w-8 bg-current opacity-70" />
-        </div>
+        {/* Divider flourish removed — it crowded/overlapped the "With <name>" subtitle. */}
         {title && title.split(/\n{2,}/).map((l) => l.trim()).filter(Boolean).map((line, i) => {
           const heb = /[֐-׿]/.test(line);
           return (
