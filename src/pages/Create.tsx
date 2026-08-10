@@ -28,10 +28,13 @@ const Create = () => {
   // story selection or payment and sends the request to the admin inbox.
   const collection = getCollection(searchParams.get("collection"));
 
-  // Collection requests are for signed-in users only — bounce to auth and back.
+  // Starting the book wizard requires a signed-in account. Every CTA lands here,
+  // so this single gate covers them all: bounce guests to auth and bring them
+  // straight back to the wizard beginning once they've signed in.
   useEffect(() => {
-    if (!collection || authLoading || user) return;
-    navigate(`/auth?next=${encodeURIComponent(`/create?collection=${collection.key}`)}`, { replace: true });
+    if (authLoading || user) return;
+    const target = collection ? `/create?collection=${collection.key}` : "/create";
+    navigate(`/auth?next=${encodeURIComponent(target)}`, { replace: true });
   }, [collection, authLoading, user, navigate]);
 
   const handleClose = () => setOpen(true);
@@ -51,7 +54,7 @@ const Create = () => {
     navigate("/");
   };
 
-  if (collection && (authLoading || !user)) return null; // waiting for auth check / redirect
+  if (authLoading || !user) return null; // waiting for auth check / redirect to sign-in
 
   return (
     <>

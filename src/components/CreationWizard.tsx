@@ -75,6 +75,10 @@ export interface ChildProfile {
   gender: string;
   photo: File | null;
   photoPreview: string | null;
+  /** The un-cropped uploaded image, kept so the user can re-crop/zoom later. */
+  photoOriginalSrc?: string | null;
+  /** True when the last crop was confirmed without zooming in on the face. */
+  photoNeedsCrop?: boolean;
   description: string;
   characterPreview: string | null;
   savedChildId?: string | null;
@@ -89,6 +93,8 @@ const createChild = (): ChildProfile => ({
   gender: "",
   photo: null,
   photoPreview: null,
+  photoOriginalSrc: null,
+  photoNeedsCrop: false,
   description: "",
   characterPreview: null,
   savedChildId: null,
@@ -395,7 +401,9 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
       savedBookId,
       data: {
         ...data,
-        children: data.children.map(c => ({ ...c, photo: null })), // can't serialize File
+        // Can't serialize File; also drop the large un-cropped original to keep
+        // the payload under the localStorage quota (photoPreview is enough).
+        children: data.children.map(c => ({ ...c, photo: null, photoOriginalSrc: null })),
       },
       shipping,
       bookOptions,
@@ -546,7 +554,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
   // Collection-request mode: the bundle already defines the stories, so the
   // story-selection step is skipped in both directions.
   useEffect(() => {
-    if (collection && step === 5) setStep(dir >= 0 ? 6 : 4);
+    if (collection && step === 5) setStep(dir >= 0 ? 6 : 7);
   }, [collection, step, dir]);
 
   /* ───── login prompt during step 8 auth gate ───── */
@@ -965,6 +973,10 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
 
     setDir(1);
     let nextStep = step + 1;
+    // After the per-child details (photo is the last), pause on the dedicated
+    // "add another child?" step (7) before moving to the shared story step (5).
+    if (step === 4) nextStep = 7;
+    if (step === 7) nextStep = 5;
     // The art-style step was removed — language flows straight to review.
     if (step === 6) nextStep = 8;
     if (step === 1 && allChildrenHaveGenderAge()) {
@@ -989,6 +1001,9 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
     let prevStep = step - 1;
     // Saved-child skips (gender/age/photo) are handled by the auto-skip effect,
     // which cascades backward when dir < 0, so plain step-1 is correct here.
+    // The "add another child?" step (7) sits between photo (4) and story (5).
+    if (step === 5) prevStep = 7;
+    if (step === 7) prevStep = 4;
     if (step === 8) prevStep = 6; // art-style step removed
     if (step === 12) prevStep = 11;
     if (step === 13) prevStep = 11;
@@ -1104,6 +1119,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
         !!c.photoPreview || !!c.existingPhotoUrl);
       case 5: return !!data.torahPortion;
       case 6: return selectedLanguages.length >= 1;
+      case 7: return true; // "add another child?" — Continue always allowed
       case 8: return true;
       case 10: return true;
       case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
@@ -1123,7 +1139,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
 
   /* ───── progress calculation ───── */
   const progressPercent = (() => {
-    const mainSteps = [0, 1, 2, 3, 4, 5, 6, 8];
+    const mainSteps = [0, 1, 2, 3, 4, 7, 5, 6, 8];
     const idx = mainSteps.indexOf(step);
     if (idx >= 0) return ((idx + 1) / mainSteps.length) * 100;
     if (step === 9) return 100;
@@ -1183,7 +1199,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
           7: t.wizard.createYourBook,
           8: t.wizard.createYourBook,
         };
-        const mainSteps = [0, 1, 2, 3, 4, 5, 6, 8];
+        const mainSteps = [0, 1, 2, 3, 4, 7, 5, 6, 8];
         const currentIdx = mainSteps.indexOf(step);
         const showHeader = step <= 8;
         if (!showHeader) return null;
@@ -1255,7 +1271,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
 
         <div>
           {/* Multi-child pills (steps 2-8) */}
-          {step >= 2 && step <= 8 && data.children.length > 1 && (
+          {step >= 2 && step <= 8 && step !== 7 && data.children.length > 1 && (
             <motion.div variants={staggerChild} initial="enter" animate="center" className="mb-4 flex gap-2 overflow-x-auto pb-1">
               {data.children.map((c, idx) => (
                 <button
@@ -1411,33 +1427,17 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
 
                 <motion.div variants={staggerChild}>
                   {(() => {
+                    // The name field always edits the child currently being added.
+                    // Adding a second child happens later on its own dedicated
+                    // step — never mixed into this first "add a child" screen.
                     const activeIsSaved = !!child.savedChildId;
-                    const inputValue = activeIsSaved ? "" : child.name;
-                    const placeholder = activeIsSaved
-                      ? (lang === "he" ? "להוספת ילד נוסף" : lang === "yi" ? "לייג צו אן אנדער קינד" : "Add another child")
-                      : t.wizard.enterChildName;
-                    const handleChange = (val: string) => {
-                      if (activeIsSaved) {
-                        setData((prev) => {
-                          const newEntry: ChildProfile = { ...createChild(), name: val };
-                          const nextChildren = [...prev.children, newEntry];
-                          return {
-                            ...prev,
-                            children: nextChildren,
-                            activeChildIdx: nextChildren.length - 1,
-                          };
-                        });
-                      } else {
-                        updateChild(child.id, { name: val, savedChildId: null, existingPhotoUrl: null });
-                      }
-                    };
                     return (
                       <Input
-                        placeholder={placeholder}
-                        value={inputValue}
-                        onChange={(e) => handleChange(e.target.value)}
+                        placeholder={t.wizard.enterChildName}
+                        value={child.name}
+                        onChange={(e) => updateChild(child.id, { name: e.target.value, savedChildId: null, existingPhotoUrl: null })}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" && inputValue.trim().length >= 1) {
+                          if (e.key === "Enter" && child.name.trim().length >= 1) {
                             e.preventDefault();
                             autoAdvance();
                           }
@@ -1451,23 +1451,6 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     );
                   })()}
                 </motion.div>
-
-                {/* Returning users: let them sign in first so their saved kids
-                    (and this new one) land on their existing account. */}
-                {!user && (
-                  <motion.div variants={staggerChild} className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                      {t.wizard.haveAccount}{" "}
-                      <button
-                        type="button"
-                        onClick={() => { setLoginMode("login"); setShowLoginPrompt(true); }}
-                        className="text-accent font-semibold hover:underline"
-                      >
-                        {t.wizard.signInLink}
-                      </button>
-                    </p>
-                  </motion.div>
-                )}
 
               </motion.div>
               </section>
@@ -1691,15 +1674,41 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                       <p className="font-display font-semibold text-sm text-foreground">{t.wizard.uploadPhoto}</p>
                     </div>
                     {child.photoPreview ? (
-                      <div className="relative mx-auto max-w-xs aspect-square rounded-2xl overflow-hidden border-2 border-accent/40">
-                        <img src={child.photoPreview} alt={child.name} className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => updateChild(child.id, { photo: null, photoPreview: null })}
-                          className="absolute top-2 end-2 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs font-semibold text-foreground hover:bg-background transition"
-                        >
-                          {t.wizard.remove}
-                        </button>
+                      <div className="space-y-3">
+                        <div className="relative mx-auto max-w-xs aspect-square rounded-2xl overflow-hidden border-2 border-accent/40">
+                          <img src={child.photoPreview} alt={child.name} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => updateChild(child.id, { photo: null, photoPreview: null, photoOriginalSrc: null, photoNeedsCrop: false })}
+                            className="absolute top-2 end-2 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs font-semibold text-foreground hover:bg-background transition"
+                          >
+                            {t.wizard.remove}
+                          </button>
+                        </div>
+
+                        {/* Nudge to re-crop when they didn't zoom in on the face. */}
+                        {child.photoNeedsCrop && (
+                          <div className="flex items-start gap-2 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-3 py-2.5">
+                            <Search className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                            <p className="text-xs text-foreground/80 leading-snug">{t.wizard.photoZoomTip}</p>
+                          </div>
+                        )}
+
+                        {(child.photoOriginalSrc || child.photoPreview) && (
+                          <Button
+                            type="button"
+                            variant={child.photoNeedsCrop ? "gold" : "outline"}
+                            size="sm"
+                            onClick={() => setCropState({
+                              childId: child.id,
+                              src: child.photoOriginalSrc || child.photoPreview!,
+                              fileName: "photo.jpg",
+                            })}
+                            className="w-full rounded-xl h-10"
+                          >
+                            <Search className="w-4 h-4" /> {t.wizard.photoAdjust}
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <label className="group flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-accent/30 bg-gradient-to-b from-accent/5 to-transparent p-8 cursor-pointer hover:border-accent/60 hover:from-accent/10 transition-all duration-300">
@@ -1710,29 +1719,68 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     )}
                   </motion.div>
                 </div>
-
-                {data.children.length < 4 && (
-                  <motion.div variants={staggerChild}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newChild = createChild();
-                        setData((prev) => ({
-                          ...prev,
-                          children: [...prev.children, newChild],
-                          activeChildIdx: prev.children.length,
-                        }));
-                        setStep(1);
-                      }}
-                      className="w-full border-dashed border-2 border-border/50 rounded-2xl h-11 text-muted-foreground hover:text-foreground hover:border-accent/30"
-                    >
-                      <Plus className="w-4 h-4" /> {t.wizard.addAnotherChild}
-                    </Button>
-                  </motion.div>
-                )}
               </motion.div>
               </section>
+            )}
+
+            {/* ── STEP 7: Add another child? (its own dedicated screen, shown
+                 only once the first child's details are fully entered) ── */}
+            {step === 7 && (
+              <motion.div
+                key="s7"
+                custom={dir}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={springTransition}
+                className="space-y-6 max-w-md mx-auto"
+              >
+                <div className="text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-7 h-7 text-accent" />
+                  </div>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                    {t.wizard.addAnotherTitle}
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">{t.wizard.addAnotherDesc}</p>
+                </div>
+
+                {/* Children added so far */}
+                <div className="flex flex-wrap justify-center gap-2">
+                  {data.children.filter((c) => c.name.trim()).map((c) => (
+                    <div key={c.id} className="flex items-center gap-2 px-3 py-2 rounded-full border-2 border-accent/30 bg-accent/5">
+                      {c.photoPreview ? (
+                        <img src={c.photoPreview} alt={c.name} className="w-7 h-7 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-accent/15 flex items-center justify-center text-xs font-bold text-accent">
+                          {c.name.slice(0, 1).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-foreground">{c.name}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {data.children.length < 4 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const newChild = createChild();
+                      setData((prev) => ({
+                        ...prev,
+                        children: [...prev.children, newChild],
+                        activeChildIdx: prev.children.length,
+                      }));
+                      setDir(1);
+                      setStep(1);
+                    }}
+                    className="w-full border-dashed border-2 border-border/50 rounded-2xl h-12 text-foreground hover:border-accent/40 hover:bg-accent/5"
+                  >
+                    <Plus className="w-4 h-4" /> {t.wizard.addAnotherChild}
+                  </Button>
+                )}
+              </motion.div>
             )}
 
             {/* ── STEP 5: Torah Portion (simplified, single screen) ── */}
@@ -2258,70 +2306,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
             {/* ── STEP 10: Book Options ── */}
             {step === 10 && (
               <motion.div key="s10" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition}>
-                {!user && !authLoading ? (
-                  /* Sign-in / sign-up gate — shown after the skeletons begin,
-                     before book-type selection + checkout. */
-                  <div className="space-y-6 max-w-md mx-auto">
-                    <div className="text-center">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle2 className="w-7 h-7 text-accent" />
-                      </div>
-                      <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
-                      <p className="mt-2 text-sm text-muted-foreground">{confirmEmailPendingFor ? t.wizard.confirmEmailSubtitle : t.wizard.signInToContinue}</p>
-                    </div>
-
-                    {confirmEmailPendingFor ? checkEmailPanel : (
-                    <div className="rounded-2xl border-2 border-accent/20 bg-accent/5 backdrop-blur-sm p-5 space-y-3">
-                      {/* Google first — the default sign-in. */}
-                      <Button type="button" variant="outline" className="w-full rounded-xl h-11 gap-2 border-border/40 font-semibold bg-background/70 hover:bg-background" onClick={handleWizardGoogleLogin} disabled={loginLoading}>
-                        <svg className="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                        {t.wizard.continueWithGoogle}
-                      </Button>
-
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-px bg-border/50" />
-                        <span className="text-[10px] text-muted-foreground/60">{t.wizard.or}</span>
-                        <div className="flex-1 h-px bg-border/50" />
-                      </div>
-
-                      <form onSubmit={loginMode === "login" ? handleWizardLogin : handleWizardSignup} className="space-y-3">
-                        {loginMode === "signup" && (
-                          <div>
-                            <Label className="text-xs text-muted-foreground">{t.wizard.fullName}</Label>
-                            <Input value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} className="rounded-xl h-10 mt-1 border-border/40 bg-card/60" />
-                          </div>
-                        )}
-                        <div>
-                          <Label className="text-xs text-muted-foreground">{t.wizard.email}</Label>
-                          <div className="relative mt-1">
-                            <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="you@email.com" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required />
-                            <Mail className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
-                          </div>
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground">{t.wizard.password}</Label>
-                          <div className="relative mt-1">
-                            <Input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="••••••••" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required minLength={6} />
-                            <Lock className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
-                          </div>
-                        </div>
-                        <Button type="submit" variant="gold" className="w-full rounded-xl h-10" disabled={loginLoading}>
-                          {loginLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : loginMode === "login" ? t.wizard.signIn : t.wizard.createAccount}
-                        </Button>
-                        <p className="text-center text-[11px] text-muted-foreground">
-                          {loginMode === "login" ? (
-                            <>{t.wizard.noAccount}{" "}<button type="button" onClick={() => setLoginMode("signup")} className="text-accent font-medium hover:underline">{t.wizard.signUp}</button></>
-                          ) : (
-                            <>{t.wizard.haveAccount}{" "}<button type="button" onClick={() => setLoginMode("login")} className="text-accent font-medium hover:underline">{t.wizard.signInLink}</button></>
-                          )}
-                        </p>
-                      </form>
-                    </div>
-                    )}
-                  </div>
-                ) : (
-                  <BookOptionsStep options={bookOptions} onChange={setBookOptions} childAge={parseInt(child?.age || "0") || 0} />
-                )}
+                <BookOptionsStep options={bookOptions} onChange={setBookOptions} childAge={parseInt(child?.age || "0") || 0} />
               </motion.div>
             )}
 
@@ -2627,8 +2612,14 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
       fileName={cropState?.fileName ?? "photo.jpg"}
       aspect={1}
       onCancel={() => setCropState(null)}
-      onCropped={(file, dataUrl) => {
-        if (cropState) updateChild(cropState.childId, { photo: file, photoPreview: dataUrl });
+      onCropped={(file, dataUrl, zoomed) => {
+        if (cropState) updateChild(cropState.childId, {
+          photo: file,
+          photoPreview: dataUrl,
+          photoOriginalSrc: cropState.src,
+          // If they didn't zoom in on the face, flag it so we can offer a re-crop.
+          photoNeedsCrop: !zoomed,
+        });
         setCropState(null);
       }}
     />
@@ -2706,67 +2697,6 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
       </DialogContent>
     </Dialog>
 
-    {/* Sign-in dialog for returning users who start the wizard as a guest.
-        Closes automatically once signed in (see the post-auth effect), leaving
-        them right where they were to keep adding children. */}
-    <Dialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
-      <DialogContent className="max-w-sm rounded-3xl p-6">
-        {confirmEmailPendingFor ? checkEmailPanel : (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
-              <LogIn className="w-5 h-5 text-accent" />
-            </div>
-            <p className="font-display font-semibold text-sm text-foreground">{t.wizard.signInToContinue}</p>
-          </div>
-
-          <Button type="button" variant="outline" className="w-full rounded-xl h-11 gap-2 border-border/40 font-semibold bg-background/70 hover:bg-background" onClick={handleWizardGoogleLogin} disabled={loginLoading}>
-            <svg className="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            {t.wizard.continueWithGoogle}
-          </Button>
-
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-border/50" />
-            <span className="text-[10px] text-muted-foreground/60">{t.wizard.or}</span>
-            <div className="flex-1 h-px bg-border/50" />
-          </div>
-
-          <form onSubmit={loginMode === "login" ? handleWizardLogin : handleWizardSignup} className="space-y-3">
-            {loginMode === "signup" && (
-              <div>
-                <Label className="text-xs text-muted-foreground">{t.wizard.fullName}</Label>
-                <Input value={loginFullName} onChange={(e) => setLoginFullName(e.target.value)} className="rounded-xl h-10 mt-1 border-border/40 bg-card/60" />
-              </div>
-            )}
-            <div>
-              <Label className="text-xs text-muted-foreground">{t.wizard.email}</Label>
-              <div className="relative mt-1">
-                <Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="you@email.com" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required />
-                <Mail className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
-              </div>
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">{t.wizard.password}</Label>
-              <div className="relative mt-1">
-                <Input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="••••••••" className="rounded-xl h-10 pl-9 border-border/40 bg-card/60" required minLength={6} />
-                <Lock className="w-4 h-4 text-muted-foreground/50 absolute left-3 top-1/2 -translate-y-1/2" />
-              </div>
-            </div>
-            <Button type="submit" variant="gold" className="w-full rounded-xl h-10" disabled={loginLoading}>
-              {loginLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : loginMode === "login" ? t.wizard.signIn : t.wizard.createAccount}
-            </Button>
-            <p className="text-center text-[11px] text-muted-foreground">
-              {loginMode === "login" ? (
-                <>{t.wizard.noAccount}{" "}<button type="button" onClick={() => setLoginMode("signup")} className="text-accent font-medium hover:underline">{t.wizard.signUp}</button></>
-              ) : (
-                <>{t.wizard.haveAccount}{" "}<button type="button" onClick={() => setLoginMode("login")} className="text-accent font-medium hover:underline">{t.wizard.signInLink}</button></>
-              )}
-            </p>
-          </form>
-        </div>
-        )}
-      </DialogContent>
-    </Dialog>
     </>
   );
 };

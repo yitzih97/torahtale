@@ -13,7 +13,9 @@ interface Props {
   /** Aspect ratio (width/height). Default 1 (square). */
   aspect?: number;
   onCancel: () => void;
-  onCropped: (file: File, dataUrl: string) => void;
+  /** `zoomed` is true when the user actually zoomed in (didn't just accept the
+   *  photo at 1×), so the caller can nudge them to focus on the face otherwise. */
+  onCropped: (file: File, dataUrl: string, zoomed: boolean) => void;
 }
 
 async function getCroppedBlob(imageSrc: string, area: Area, fileName: string): Promise<{ file: File; dataUrl: string }> {
@@ -53,7 +55,7 @@ export const ImageCropDialog = ({ open, imageSrc, fileName = "photo.jpg", aspect
     setSaving(true);
     try {
       const { file, dataUrl } = await getCroppedBlob(imageSrc, area, fileName);
-      onCropped(file, dataUrl);
+      onCropped(file, dataUrl, zoom > 1.02);
     } finally {
       setSaving(false);
     }

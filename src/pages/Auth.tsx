@@ -92,7 +92,8 @@ export default function Auth() {
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: window.location.origin,
+        // Return to wherever they were headed (e.g. the wizard) after confirming.
+        emailRedirectTo: `${window.location.origin}${next}`,
       },
     });
     setLoading(false);
