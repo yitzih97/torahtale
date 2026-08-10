@@ -63,7 +63,7 @@ const NAMES: Record<string, string> = {
   avrumi: "אברומי", itzik: "איציק", yitzi: "יצי", yitzy: "יצי", yanky: "יענקי",
   koby: "קובי", moishy: "מוישי", moshy: "מושי", dovi: "דובי", dovy: "דובי",
   shlomi: "שלומי", shloimy: "שלוימי", yossi: "יוסי", yossy: "יוסי", yossel: "יאסל",
-  benny: "בעני", leibish: "לייביש", leibel: "לייבל", berel: "בערל",
+  benny: "בעני", beni: "בעני", beny: "בעני", leibish: "לייביש", leibel: "לייבל", berel: "בערל",
   mendy: "מענדי", shmuli: "שמולי", lazer: "לייזר", motti: "מוטי", motty: "מוטי",
   mottel: "מוטל", sruli: "שרולי", srulik: "שרוליק", yoni: "יוני",
   chatzkel: "חצקל",
