@@ -28,7 +28,3 @@ verify_jwt = false
 # bucket. Invoked with x-cron-secret or an admin JWT; it authorizes itself.
 [functions.backfill-images]
 verify_jwt = false
-# Temporary email-design preview: sends one of each template to a hardcoded
-# address. Invoked manually with the anon key, so it must not require a user JWT.
-[functions.send-email-preview]
-verify_jwt = false

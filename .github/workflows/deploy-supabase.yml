@@ -42,6 +42,14 @@ jobs:
         with:
           version: latest
 
+      # One-time cleanup: remove the temporary email-design preview function.
+      # `functions deploy` never prunes functions dropped from the repo, so this
+      # deletes it explicitly. Safe to remove this step after it has run once.
+      - name: Delete temporary send-email-preview function
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions delete send-email-preview --project-ref "$PROJECT_REF" || true
+
       - name: Deploy all edge functions
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
