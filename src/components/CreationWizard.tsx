@@ -24,7 +24,7 @@ import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, getColoringBookAddonPrice, getStoryPageCount, type BookOptions } from "./wizard/BookOptionsStep";
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
-import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getCurrentParsha, stripSeferPrefix, type TorahOption } from "./wizard/TorahPortions";
+import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getCurrentParsha, stripSeferPrefix, bookLanguageCode, type TorahOption } from "./wizard/TorahPortions";
 import { ParshaCountdown } from "./wizard/ParshaCountdown";
 import { PortionIcon } from "./wizard/portionIcons";
 import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
@@ -71,6 +71,10 @@ import comicbookPreview from "@/assets/books/style-comic-preview.jpg";
 export interface ChildProfile {
   id: string;
   name: string;
+  /** Optional Hebrew / Yiddish spellings, carried from a saved child so the book
+   *  can star the name in the book's own language (falls back to `name`). */
+  name_he?: string | null;
+  name_yi?: string | null;
   age: string;
   gender: string;
   photo: File | null;
@@ -89,6 +93,8 @@ export interface ChildProfile {
 const createChild = (): ChildProfile => ({
   id: generateId(),
   name: "",
+  name_he: null,
+  name_yi: null,
   age: "",
   gender: "",
   photo: null,
@@ -383,7 +389,16 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
     }));
   }, []);
 
-  const childNames = data.children.map((c) => c.name).filter(Boolean).join(" & ") || "your child";
+  // The child's name in the BOOK's own language — so a Hebrew book stars "ארי",
+  // a Yiddish book its Yiddish spelling, etc. (falls back to the base name).
+  const nameForBook = (c: ChildProfile): string => {
+    const code = bookLanguageCode(data.language);
+    if (code === "he") return c.name_he?.trim() || c.name;
+    if (code === "yi") return c.name_yi?.trim() || c.name;
+    return c.name;
+  };
+
+  const childNames = data.children.map((c) => nameForBook(c)).filter(Boolean).join(" & ") || "your child";
 
   // Tracks whether we just restored from localStorage so the step-change
   // auto-scroll effect doesn't override the restored scroll position on mount.
@@ -720,7 +735,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
     persistingBookRef.current = true;
     try {
         const portionLabel = getPortionLabel(data.torahPortion);
-        const childrenInfo = data.children.map((c) => `${c.name} (${c.age} years old, ${c.gender})`).join(", ");
+        const childrenInfo = data.children.map((c) => `${nameForBook(c)} (${c.age} years old, ${c.gender})`).join(", ");
 
         // ── Reconcile against the user's existing saved children ──
         // A returning user often re-enters a child they already have (e.g. they
@@ -817,7 +832,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
             }
 
             return {
-              name: c.name,
+              name: nameForBook(c),
               age: c.age,
               gender: c.gender,
               description: c.description,
@@ -1372,6 +1387,8 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                                 const newEntry: ChildProfile = {
                                   ...createChild(),
                                   name: k.name,
+                                  name_he: k.name_he ?? null,
+                                  name_yi: k.name_yi ?? null,
                                   age: k.age ? String(k.age) : "",
                                   gender: k.gender || "",
                                   photoPreview: k.photo_url || null,
