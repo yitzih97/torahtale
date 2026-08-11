@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { generateId } from "@/lib/utils";
 
@@ -116,6 +117,14 @@ interface Props {
 
 export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData, mode = "add", initialStep = 1 }: Props) {
   const { user } = useAuth();
+  const { t, dir: uiDir } = useLanguage();
+  // Translated, index-aligned labels for the stepper and the age-bracket cards
+  // (the underlying AGE_BRACKETS / STEP_LABELS are module constants).
+  const stepLabels = [t.dash.childName, t.dash.childGender, t.dash.childAge, t.dash.stepPhoto];
+  const ageDesc: Record<string, string> = {
+    "0-1": t.dash.ageBaby, "2-3": t.dash.ageToddler, "4-5": t.dash.agePreschool,
+    "6-7": t.dash.ageEarlyReader, "8-9": t.dash.ageExplorer, "10-12": t.dash.agePreteen,
+  };
   const [step, setStep] = useState(initialStep);
   const [dir, setDir] = useState(1);
   const [name, setName] = useState("");
@@ -248,7 +257,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
           <div className="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-gradient-to-br from-sky-200/40 to-indigo-200/0 blur-3xl" />
           <div className="absolute -bottom-24 -right-16 w-80 h-80 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/0 blur-3xl" />
         </div>
-        <div className="relative">
+        <div className="relative" dir={uiDir}>
         {/* ── Stepper ── */}
         <div className="px-6 sm:px-8 pt-6 pb-2">
 
@@ -269,7 +278,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                     </div>
                     <span className={`text-[10px] font-medium transition-colors duration-300 ${
                       isActive ? "text-accent" : isCompleted ? "text-foreground" : "text-muted-foreground"
-                    }`}>{s.label}</span>
+                    }`}>{stepLabels[i]}</span>
                   </div>
                   {i < STEP_LABELS.length - 1 && (
                     <div className={`flex-1 h-px mx-2 transition-colors duration-500 ${isCompleted ? "bg-accent" : "bg-border"}`} />
@@ -306,8 +315,8 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                   {(name || age || gender) && (
                     <p className="text-xs text-muted-foreground text-center">
                       {name && <span className="font-semibold text-foreground">{name}</span>}
-                      {age && <span> · {age}yo</span>}
-                      {gender && <span> · {gender}</span>}
+                      {age && <span> · {age} {t.dash.yearsOld}</span>}
+                      {gender && <span> · {gender === "boy" ? t.dash.boy : t.dash.girl}</span>}
                     </p>
                   )}
                 </div>
@@ -321,12 +330,12 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                   <motion.div key="s1" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
                     <div>
                       <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Type className="w-6 h-6 text-accent" /> {isEdit ? "Update your child's name" : "What's your child's name?"}
+                        <Type className="w-6 h-6 text-accent" /> {isEdit ? t.dash.nameTitleEdit : t.dash.nameTitle}
                       </h2>
-                      <p className="text-muted-foreground text-sm mt-1">This will be used for their profile and all future books.</p>
+                      <p className="text-muted-foreground text-sm mt-1">{t.dash.nameSubtitle}</p>
                     </div>
                     <Input
-                      placeholder="e.g., Avi"
+                      placeholder={t.dash.childNamePlaceholder}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="rounded-xl h-14 text-lg px-5"
@@ -340,14 +349,14 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                   <motion.div key="s2" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
                     <div>
                       <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Heart className="w-6 h-6 text-accent" /> Is {name || "your child"} a boy or a girl?
+                        <Heart className="w-6 h-6 text-accent" /> {t.dash.genderTitle(name || t.dash.yourChild)}
                       </h2>
-                      <p className="text-muted-foreground text-sm mt-1">This shapes the character's appearance in illustrations.</p>
+                      <p className="text-muted-foreground text-sm mt-1">{t.dash.genderSubtitle}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       {[
-                        { key: "boy", label: "Boy", detail: "Will wear a kippah", img: presetBoyCartoon },
-                        { key: "girl", label: "Girl", detail: "Modest dress", img: presetGirlCartoon },
+                        { key: "boy", label: t.dash.boy, detail: t.dash.boyDetail, img: presetBoyCartoon },
+                        { key: "girl", label: t.dash.girl, detail: t.dash.girlDetail, img: presetGirlCartoon },
                       ].map((g) => (
                         <button
                           key={g.key}
@@ -376,15 +385,15 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                   <motion.div key="s3" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
                     <div>
                       <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Calendar className="w-6 h-6 text-accent" /> How old is {name || "your child"}?
+                        <Calendar className="w-6 h-6 text-accent" /> {t.dash.ageTitle(name || t.dash.yourChild)}
                       </h2>
-                      <p className="text-muted-foreground text-sm mt-1">Type their age, or tap an age group below.</p>
+                      <p className="text-muted-foreground text-sm mt-1">{t.dash.ageSubtitle}</p>
                     </div>
                     <Input
                       type="number"
                       min={0}
                       max={15}
-                      placeholder="Age"
+                      placeholder={t.dash.ageInputPlaceholder}
                       value={age}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -411,13 +420,13 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                           >
                             {previewImg && (
                               <div className="aspect-square overflow-hidden">
-                                <img src={previewImg} alt={bracket.desc} className="w-full h-full object-cover" />
+                                <img src={previewImg} alt={ageDesc[bracket.label] ?? bracket.desc} className="w-full h-full object-cover" />
                               </div>
                             )}
                             <div className="p-2">
                               <p className="text-lg">{bracket.emoji}</p>
                               <p className="font-display font-semibold text-xs text-primary">{bracket.label}</p>
-                              <p className="text-[10px] text-muted-foreground">{bracket.desc}</p>
+                              <p className="text-[10px] text-muted-foreground">{ageDesc[bracket.label] ?? bracket.desc}</p>
                             </div>
                           </button>
                         );
@@ -431,9 +440,9 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                   <motion.div key="s4" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease }} className="space-y-6">
                     <div>
                       <h2 className="font-display text-2xl font-bold text-primary flex items-center gap-2">
-                        <Image className="w-6 h-6 text-accent" /> Help us draw {name || "your child"}
+                        <Image className="w-6 h-6 text-accent" /> {t.dash.photoTitle(name || t.dash.yourChild)}
                       </h2>
-                      <p className="text-muted-foreground text-sm mt-1">Upload a photo or describe your child's appearance. Both are optional!</p>
+                      <p className="text-muted-foreground text-sm mt-1">{t.dash.photoSubtitle}</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -444,8 +453,8 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                             <Camera className="w-6 h-6 text-accent" />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-primary">Upload a Photo</p>
-                            <p className="text-xs text-muted-foreground mt-1">Best results with clear face photos</p>
+                            <p className="text-sm font-semibold text-primary">{t.dash.uploadPhotoTitle}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{t.dash.uploadPhotoDesc}</p>
                           </div>
                           {photoPreview ? (
                             <div className="flex flex-col items-center gap-3 w-full">
@@ -458,10 +467,10 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                                   onClick={handleRecropExisting}
                                   className="text-xs h-8"
                                 >
-                                  Recrop
+                                  {t.dash.recropPhoto}
                                 </Button>
                                 <label className="inline-flex items-center justify-center text-xs h-8 px-4 rounded-lg border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer font-medium">
-                                  Replace
+                                  {t.dash.replacePhoto}
                                   <input
                                     type="file"
                                     accept="image/*"
@@ -474,7 +483,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                                   onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
                                   className="text-xs text-destructive hover:underline font-medium px-2"
                                 >
-                                  Remove
+                                  {t.dash.removePhoto}
                                 </button>
                               </div>
                             </div>
@@ -490,12 +499,12 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
 
                         <div className="mt-4 rounded-xl bg-accent/5 border border-accent/15 p-3 text-left">
                           <p className="text-xs font-semibold text-accent mb-1.5 flex items-center gap-1.5">
-                            <Camera className="w-3.5 h-3.5" /> Tips for best results
+                            <Camera className="w-3.5 h-3.5" /> {t.dash.tipsTitle}
                           </p>
                           <ul className="text-[11px] text-muted-foreground space-y-1">
-                            <li className="flex items-start gap-1.5"><User className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Face clearly visible</li>
-                            <li className="flex items-start gap-1.5"><Sun className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Good lighting</li>
-                            <li className="flex items-start gap-1.5"><Camera className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> Close-up portrait</li>
+                            <li className="flex items-start gap-1.5"><User className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> {t.dash.tipFace}</li>
+                            <li className="flex items-start gap-1.5"><Sun className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> {t.dash.tipLighting}</li>
+                            <li className="flex items-start gap-1.5"><Camera className="w-3 h-3 mt-0.5 flex-shrink-0 text-accent/60" /> {t.dash.tipCloseup}</li>
                           </ul>
                         </div>
                       </div>
@@ -507,12 +516,12 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                             <PenLine className="w-6 h-6 text-primary" />
                           </div>
                           <div className="text-center">
-                            <p className="text-sm font-semibold text-primary">Describe Instead</p>
-                            <p className="text-xs text-muted-foreground mt-1">Tell us what your child looks like</p>
+                            <p className="text-sm font-semibold text-primary">{t.dash.describeTitle}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{t.dash.describeDesc}</p>
                           </div>
                         </div>
                         <Textarea
-                          placeholder="e.g., Brown curly hair, olive skin, big brown eyes, loves wearing blue..."
+                          placeholder={t.dash.describePlaceholder}
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
                           className="rounded-xl min-h-[120px] text-sm"
@@ -533,7 +542,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
               className="gap-2 text-muted-foreground"
             >
               <ArrowLeft className="w-4 h-4" />
-              {step === 1 ? "Cancel" : "Back"}
+              {step === 1 ? t.common.cancel : t.common.back}
             </Button>
 
             {step < TOTAL_STEPS ? (
@@ -543,7 +552,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                 disabled={!canNext}
                 className="gap-2"
               >
-                Continue <ArrowRight className="w-4 h-4" />
+                {t.common.continue} <ArrowRight className="w-4 h-4" />
               </Button>
             ) : (
               <Button
@@ -552,7 +561,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                 disabled={!canNext || isPending || uploading}
                 className="gap-2"
               >
-                {uploading ? "Uploading..." : isPending ? (isEdit ? "Saving..." : "Adding...") : (isEdit ? "Save Changes" : "Add Child")} <Check className="w-4 h-4" />
+                {uploading ? t.dash.uploading : isPending ? (isEdit ? t.dash.saving : t.dash.adding) : (isEdit ? t.dash.saveChanges : t.dash.addChild)} <Check className="w-4 h-4" />
               </Button>
             )}
           </div>
