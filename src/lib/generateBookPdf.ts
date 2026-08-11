@@ -226,21 +226,35 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
     ctx.font = fontStr(font, bold);
     const textAnchorX = anchorFor(align);
     const ly = boxY + padY + i * lineHeight;
-    // Shadow pass: paint the OUTER glyph shape once with a soft shadow enabled,
-    // then redraw the crisp outline + fill on top (mirrors CSS text-shadow).
+    // Shadow pass: paint the OUTER glyph shape with a shadow enabled, then redraw
+    // the crisp outline + fill on top (mirrors CSS text-shadow). Two passes — a
+    // tight, dense dark halo (thickens the edge like a soft outline) and a softer
+    // offset drop — keep white captions readable on any scene.
     if (shadow) {
+      const drawGlyph = () => {
+        if (outline) {
+          ctx.strokeStyle = outlineColor;
+          ctx.lineWidth = outlineLW;
+          ctx.strokeText(line, textAnchorX, ly);
+        } else {
+          ctx.fillStyle = layout.color;
+          ctx.fillText(line, textAnchorX, ly);
+        }
+      };
+      // Tight dark halo — drawn twice to build up a thicker, denser edge.
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.55)";
-      ctx.shadowBlur = Math.max(2, 6 * scale);
+      ctx.shadowColor = "rgba(0,0,0,0.9)";
+      ctx.shadowBlur = Math.max(2, 4 * scale);
+      ctx.shadowOffsetY = 0;
+      drawGlyph();
+      drawGlyph();
+      ctx.restore();
+      // Softer offset drop for depth.
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.6)";
+      ctx.shadowBlur = Math.max(3, 9 * scale);
       ctx.shadowOffsetY = 2 * scale;
-      if (outline) {
-        ctx.strokeStyle = outlineColor;
-        ctx.lineWidth = outlineLW;
-        ctx.strokeText(line, textAnchorX, ly);
-      } else {
-        ctx.fillStyle = layout.color;
-        ctx.fillText(line, textAnchorX, ly);
-      }
+      drawGlyph();
       ctx.restore();
     }
     if (outline) {

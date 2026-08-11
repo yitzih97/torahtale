@@ -321,8 +321,12 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
           touchAction: "none",
           zIndex: selected ? 30 : 20,
           boxShadow: layout.background ? "0 4px 14px rgba(0,0,0,0.12)" : undefined,
-          // Optional soft drop shadow behind the letters for extra pop.
-          textShadow: layout.shadow ? "0 2px 6px rgba(0,0,0,0.55)" : undefined,
+          // Drop shadow behind the letters for readability on any scene. A tight
+          // dark halo (repeated) thickens the edge like a soft outline, plus a
+          // softer offset shadow for depth — keeps white captions crisp.
+          textShadow: layout.shadow
+            ? "0 0 3px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.65)"
+            : undefined,
           // Thin outline keeps the caption readable on any scene (skipped when a
           // solid background box already guarantees contrast, or while editing).
           WebkitTextStroke: editing || layout.background || !(layout.outlineWidth ?? 2)

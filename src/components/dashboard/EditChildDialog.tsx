@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { generateId } from "@/lib/utils";
 
@@ -48,6 +49,7 @@ interface Props {
 
 export function EditChildDialog({ open, onClose, onSubmit, isPending, initialData }: Props) {
   const { user } = useAuth();
+  const { t, dir } = useLanguage();
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
@@ -139,10 +141,10 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
           <div className="absolute -bottom-24 -right-16 w-80 h-80 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/0 blur-3xl" />
         </div>
 
-        <div className="relative p-6 sm:p-8">
+        <div className="relative p-6 sm:p-8" dir={dir}>
           <header className="mb-6">
-            <h2 className="font-display text-2xl font-bold text-primary">Edit child profile</h2>
-            <p className="text-xs text-muted-foreground mt-1">Update name, photo, and preferences — all in one place.</p>
+            <h2 className="font-display text-2xl font-bold text-primary">{t.dash.editChildTitle}</h2>
+            <p className="text-xs text-muted-foreground mt-1">{t.dash.editChildSubtitle}</p>
           </header>
 
           <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-6">
@@ -160,13 +162,13 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
               <div className="flex flex-wrap items-center justify-center gap-1.5 w-full">
                 <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs h-8 px-3 rounded-lg border border-border bg-white/70 hover:bg-white font-medium transition-colors">
                   <Camera className="w-3.5 h-3.5" />
-                  {photoPreview ? "Replace" : "Upload"}
+                  {photoPreview ? t.dash.replacePhoto : t.dash.uploadPhoto}
                   <input type="file" accept="image/*" onChange={handlePhotoSelect} className="hidden" />
                 </label>
                 {photoPreview && (
                   <>
                     <Button type="button" size="sm" variant="ghost" onClick={handleRecrop} className="h-8 text-xs px-2">
-                      Recrop
+                      {t.dash.recropPhoto}
                     </Button>
                     <Button
                       type="button"
@@ -185,19 +187,19 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
             {/* Fields column */}
             <div className="space-y-5">
               <div className="space-y-2">
-                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Name</Label>
+                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{t.dash.childName}</Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., Avi"
+                  placeholder={t.dash.childNamePlaceholder}
                   className="rounded-xl h-11"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Gender</Label>
+                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{t.dash.childGender}</Label>
                 <div className="grid grid-cols-2 gap-2">
-                  {[{ key: "boy", label: "Boy" }, { key: "girl", label: "Girl" }].map((g) => (
+                  {[{ key: "boy", label: t.dash.boy }, { key: "girl", label: t.dash.girl }].map((g) => (
                     <button
                       key={g.key}
                       type="button"
@@ -215,7 +217,7 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Age</Label>
+                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{t.dash.childAge}</Label>
                 <Input
                   type="number"
                   min={0}
@@ -226,17 +228,17 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
                     const v = e.target.value.replace(/[^0-9]/g, "");
                     setAge(v);
                   }}
-                  placeholder="e.g., 6"
+                  placeholder={t.dash.childAgePlaceholder}
                   className="rounded-xl h-11 w-28"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Description (optional)</Label>
+                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{t.dash.childDescription}</Label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Brown curly hair, big brown eyes, loves blue..."
+                  placeholder={t.dash.childDescriptionPlaceholder}
                   className="rounded-xl min-h-[80px] text-sm"
                 />
               </div>
@@ -244,7 +246,7 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
           </div>
 
           <footer className="flex items-center justify-between mt-8 pt-4 border-t border-border/50">
-            <Button variant="ghost" onClick={onClose} className="text-muted-foreground">Cancel</Button>
+            <Button variant="ghost" onClick={onClose} className="text-muted-foreground">{t.dash.cancel}</Button>
             <Button
               variant="gold"
               onClick={handleSave}
@@ -252,9 +254,9 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
               className="gap-2"
             >
               {uploading || isPending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
+                <><Loader2 className="w-4 h-4 animate-spin" /> {t.dash.saving}</>
               ) : (
-                <>Save Changes <Check className="w-4 h-4" /></>
+                <>{t.dash.saveChanges} <Check className="w-4 h-4" /></>
               )}
             </Button>
           </footer>

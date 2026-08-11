@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogOut, User, Menu } from "lucide-react";
+import { LogOut, User, Menu, Globe, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -54,9 +60,12 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
     { label: t.nav.contact ?? "Contact Us", href: "/contact" },
   ];
 
-  // Toggle only between English and Hebrew; the flag shown is the language you'll switch TO.
-  const cycleLang = () => setLang(lang === "en" ? "he" : "en");
-  const langFlag = lang === "en" ? "🇮🇱" : "🇺🇸";
+  // Language picker: a globe symbol opens a small dropdown listing each language
+  // by flag + native name (English / עברית). Only en + he are offered here.
+  const LANGUAGES: { code: "en" | "he"; flag: string; label: string }[] = [
+    { code: "en", flag: "🇺🇸", label: "English" },
+    { code: "he", flag: "🇮🇱", label: "עברית" },
+  ];
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${solid ? "bg-background/92 backdrop-blur-xl border-b border-[hsl(var(--gold)/0.18)] shadow-sm" : "bg-gradient-to-b from-background/95 via-background/72 to-transparent"}`} data-scrolled={scrolled}>
@@ -84,18 +93,34 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Language toggle */}
-          <button
-            onClick={cycleLang}
-            className={`w-9 h-9 rounded-full text-lg leading-none flex items-center justify-center border transition-colors duration-300 bg-background/60 backdrop-blur-sm ${
-              solid
-                ? "border-border hover:border-accent"
-                : "border-foreground/25 hover:border-accent"
-            }`}
-            aria-label={lang === "en" ? "Switch to Hebrew" : "Switch to English"}
-          >
-            {langFlag}
-          </button>
+          {/* Language picker — globe icon opens a flag + name dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={`w-9 h-9 rounded-full flex items-center justify-center border transition-colors duration-300 bg-background/60 backdrop-blur-sm ${
+                  solid
+                    ? "border-border hover:border-accent text-foreground/80"
+                    : "border-foreground/25 hover:border-accent text-foreground/80"
+                }`}
+                aria-label="Change language"
+              >
+                <Globe className="w-4 h-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[9rem]">
+              {LANGUAGES.map((l) => (
+                <DropdownMenuItem
+                  key={l.code}
+                  onClick={() => setLang(l.code)}
+                  className="gap-2 cursor-pointer"
+                >
+                  <span className="text-base leading-none">{l.flag}</span>
+                  <span className="flex-1" dir={l.code === "he" ? "rtl" : "ltr"}>{l.label}</span>
+                  {lang === l.code && <Check className="w-3.5 h-3.5 text-accent" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {user ? (
             <>
@@ -139,14 +164,22 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
               </a>
             ))}
 
-            {/* Mobile language toggle */}
-            <button
-              onClick={() => { cycleLang(); setMobileOpen(false); }}
-              className="text-2xl leading-none transition-transform hover:scale-110 py-2 border-b border-border text-start"
-              aria-label={lang === "en" ? "Switch to Hebrew" : "Switch to English"}
-            >
-              {langFlag}
-            </button>
+            {/* Mobile language picker */}
+            <div className="flex items-center gap-2 py-2 border-b border-border">
+              <Globe className="w-4 h-4 text-muted-foreground" />
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => { setLang(l.code); setMobileOpen(false); }}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+                    lang === l.code ? "border-accent bg-accent/10 text-accent" : "border-border text-foreground hover:border-accent/40"
+                  }`}
+                >
+                  <span className="text-base leading-none">{l.flag}</span>
+                  <span dir={l.code === "he" ? "rtl" : "ltr"}>{l.label}</span>
+                </button>
+              ))}
+            </div>
 
             {user ? (
               <>
