@@ -226,6 +226,7 @@ export const he: typeof en = {
     nameTitle: "איך קוראים לילד שלכם?",
     nameTitleEdit: "עדכון שם הילד",
     nameSubtitle: "השם ישמש לפרופיל ולכל הספרים העתידיים.",
+    nameOtherLangs: "אפשר להוסיף את השם גם בשפה נוספת (אופציונלי):",
     genderTitle: (name: string) => `${name} — בן או בת?`,
     genderSubtitle: "זה מעצב את מראה הדמות באיורים.",
     boyDetail: "יחבוש כיפה",

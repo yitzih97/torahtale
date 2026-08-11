@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Type, Heart, Calendar, Check, User,
-  Camera, Sun, PenLine, Image,
+  Camera, Sun, PenLine, Image, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,12 +91,20 @@ const ageToBracketLabel = (age: string): string => {
 
 export interface AddChildResult {
   name: string;
+  name_he: string | null;
+  name_yi: string | null;
   age: number | null;
   gender: string | null;
   art_style: string | null;
   photo_url: string | null;
   description: string | null;
 }
+
+/** Extra name languages offered as chips on the Name step (base name = English). */
+const EXTRA_NAME_LANGS: { key: "he" | "yi"; label: string }[] = [
+  { key: "he", label: "עברית" },
+  { key: "yi", label: "ייִדיש" },
+];
 
 interface Props {
   open: boolean;
@@ -105,6 +113,8 @@ interface Props {
   isPending?: boolean;
   initialData?: {
     name: string;
+    name_he?: string | null;
+    name_yi?: string | null;
     age: number | null;
     gender: string | null;
     art_style: string | null;
@@ -128,6 +138,11 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
   const [step, setStep] = useState(initialStep);
   const [dir, setDir] = useState(1);
   const [name, setName] = useState("");
+  // Optional per-language spellings of the name. A chip toggles the language on;
+  // its input then shows inline under the name field on this same step.
+  const [nameHe, setNameHe] = useState("");
+  const [nameYi, setNameYi] = useState("");
+  const [extraLangs, setExtraLangs] = useState<Set<"he" | "yi">>(new Set());
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [description, setDescription] = useState("");
@@ -141,6 +156,12 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
       setDir(1);
       if (initialData) {
         setName(initialData.name || "");
+        setNameHe(initialData.name_he || "");
+        setNameYi(initialData.name_yi || "");
+        setExtraLangs(new Set([
+          ...(initialData.name_he ? (["he"] as const) : []),
+          ...(initialData.name_yi ? (["yi"] as const) : []),
+        ]));
         setGender(initialData.gender || "");
         setAge(initialData.age ? String(initialData.age) : "");
         setDescription(initialData.description || "");
@@ -154,12 +175,23 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
     setStep(1);
     setDir(1);
     setName("");
+    setNameHe("");
+    setNameYi("");
+    setExtraLangs(new Set());
     setGender("");
     setAge("");
     setDescription("");
     setPhotoFile(null);
     setPhotoPreview(null);
   }, []);
+
+  const toggleExtraLang = (key: "he" | "yi") => {
+    setExtraLangs((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
 
   const handleClose = () => { reset(); onClose(); };
 
@@ -185,6 +217,9 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
     const photoUrl = await uploadPhoto();
     onSubmit({
       name,
+      // Only persist a language's name when its chip is on and it's non-empty.
+      name_he: extraLangs.has("he") && nameHe.trim() ? nameHe.trim() : null,
+      name_yi: extraLangs.has("yi") && nameYi.trim() ? nameYi.trim() : null,
       age: age ? parseInt(age) : null,
       gender: gender || null,
       // Book art style is chosen per-book in the creation wizard, not stored on
@@ -341,6 +376,49 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                       className="rounded-xl h-14 text-lg px-5"
                       autoFocus
                     />
+
+                    {/* Optional per-language spellings — pick a language, then
+                        spell the name in it right here. */}
+                    <div className="space-y-3">
+                      <p className="text-xs text-muted-foreground">{t.dash.nameOtherLangs}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {EXTRA_NAME_LANGS.map((l) => {
+                          const on = extraLangs.has(l.key);
+                          return (
+                            <button
+                              key={l.key}
+                              type="button"
+                              onClick={() => toggleExtraLang(l.key)}
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+                                on ? "border-accent bg-accent/10 text-accent" : "border-border text-muted-foreground hover:border-accent/40"
+                              }`}
+                              dir="rtl"
+                            >
+                              {on ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                              {l.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {extraLangs.has("he") && (
+                        <Input
+                          placeholder={`${t.dash.childNamePlaceholder} · עברית`}
+                          value={nameHe}
+                          onChange={(e) => setNameHe(e.target.value)}
+                          className="rounded-xl h-12 text-base px-4"
+                          dir="rtl"
+                        />
+                      )}
+                      {extraLangs.has("yi") && (
+                        <Input
+                          placeholder={`${t.dash.childNamePlaceholder} · ייִדיש`}
+                          value={nameYi}
+                          onChange={(e) => setNameYi(e.target.value)}
+                          className="rounded-xl h-12 text-base px-4"
+                          dir="rtl"
+                        />
+                      )}
+                    </div>
                   </motion.div>
                 )}
 

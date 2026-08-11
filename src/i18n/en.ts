@@ -224,6 +224,7 @@ export const en = {
     nameTitle: "What's your child's name?",
     nameTitleEdit: "Update your child's name",
     nameSubtitle: "This will be used for their profile and all future books.",
+    nameOtherLangs: "Also add the name in another language (optional):",
     genderTitle: (name: string) => `Is ${name} a boy or a girl?`,
     genderSubtitle: "This shapes the character's appearance in illustrations.",
     boyDetail: "Will wear a kippah",
