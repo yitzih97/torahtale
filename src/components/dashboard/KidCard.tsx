@@ -3,8 +3,9 @@ import { format } from "date-fns";
 import {
   Pencil, BookOpen, Pause, Play, Sparkles, Settings, Plus,
 } from "lucide-react";
-import type { ChildRecord } from "@/hooks/useChildren";
+import { type ChildRecord, childDisplayName } from "@/hooks/useChildren";
 import type { SubscriptionRecord } from "@/hooks/useSubscriptions";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -31,13 +32,6 @@ const subPillDot = (s?: string) => {
   return "bg-muted-foreground/40";
 };
 
-const subPillLabel = (s?: string) => {
-  if (s === "active") return "Active";
-  if (s === "paused") return "Paused";
-  if (s === "canceled") return "Canceled";
-  return "No plan";
-};
-
 export function KidCard({
   kid,
   index,
@@ -48,10 +42,19 @@ export function KidCard({
   onManageSubscription,
   onToggleSubscription,
 }: KidCardProps) {
-  const initials = kid.name.slice(0, 2).toUpperCase();
+  const { t, lang } = useLanguage();
+  const displayName = childDisplayName(kid, lang);
+  const initials = displayName.slice(0, 2).toUpperCase();
   const status = subscription?.status;
   const isPaused = status === "paused";
   const hasSub = !!subscription && status !== "canceled";
+
+  const subPillLabel = (s?: string) => {
+    if (s === "active") return t.dash.subActive;
+    if (s === "paused") return t.dash.subPaused;
+    if (s === "canceled") return t.dash.subCanceled;
+    return t.dash.subNoPlan;
+  };
 
   // Days until next delivery
   const daysUntil = (() => {
@@ -64,9 +67,9 @@ export function KidCard({
 
   const nextDeliveryCopy = (() => {
     if (!hasSub || daysUntil === null) return null;
-    if (daysUntil === 0) return "Shipping today";
-    if (daysUntil === 1) return "Ships tomorrow";
-    return `In ${daysUntil} days`;
+    if (daysUntil === 0) return t.dash.shippingToday;
+    if (daysUntil === 1) return t.dash.shipsTomorrow;
+    return t.dash.inDays(daysUntil);
   })();
 
   return (
@@ -105,7 +108,7 @@ export function KidCard({
         <button
           type="button"
           onClick={onEdit}
-          aria-label="Edit child"
+          aria-label={t.dash.editProfile}
           className="group/photo relative mb-6 transition-transform duration-300 active:scale-95"
         >
           <div
@@ -117,7 +120,7 @@ export function KidCard({
           <div className="relative w-28 h-28 rounded-full border-2 border-white overflow-hidden
             shadow-inner bg-gradient-to-br from-slate-100 to-slate-200">
             {kid.photo_url ? (
-              <img src={kid.photo_url} alt={kid.name} className="w-full h-full object-cover" />
+              <img src={kid.photo_url} alt={displayName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center font-display font-bold text-2xl text-primary/70">
                 {initials}
@@ -126,7 +129,7 @@ export function KidCard({
             <span className="absolute inset-0 bg-black/30 opacity-0 group-hover/photo:opacity-100
               transition-opacity flex items-center justify-center text-white text-[10px] font-semibold
               uppercase tracking-wider rounded-full">
-              Edit
+              {t.dash.editPhoto}
             </span>
           </div>
         </button>
@@ -134,16 +137,14 @@ export function KidCard({
         {/* Identity */}
         <div className="text-center space-y-1 mb-6">
           <h3 className="font-display text-3xl font-bold text-primary leading-tight">
-            {kid.name}
+            {displayName}
           </h3>
           <p className="text-[11px] text-muted-foreground uppercase tracking-[0.18em] font-medium">
-            {kid.age ? `${kid.age} yrs` : "Age —"} · {kid.gender || "—"}
+            {kid.age ? `${kid.age} ${t.dash.yearsOld}` : "—"} · {kid.gender === "boy" ? t.dash.boy : kid.gender === "girl" ? t.dash.girl : "—"}
           </p>
           <p className="pt-1 text-base italic font-medium text-primary/60"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-            {bookCount === 0
-              ? "Ready for the first book"
-              : `${bookCount} ${bookCount === 1 ? "book" : "books"} created together`}
+            {bookCount === 0 ? t.dash.readyFirstBook : t.dash.booksTogether(bookCount)}
           </p>
         </div>
 
@@ -151,7 +152,7 @@ export function KidCard({
         {hasSub && nextDeliveryCopy && (
           <div className="w-full p-4 mb-6 bg-white/40 rounded-2xl border border-white/60 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.18em] font-medium leading-none mb-1.5">
-              Next Delivery
+              {t.dash.nextDelivery}
             </p>
             <p className="text-primary font-medium text-lg leading-tight"
               style={{ fontFamily: "'Cormorant Garamond', serif" }}>
@@ -178,22 +179,22 @@ export function KidCard({
             flex items-center justify-center gap-2"
         >
           <Plus className="w-4 h-4 transition-transform duration-300 group-hover/btn:rotate-90" strokeWidth={2.5} />
-          Create new book
+          {t.dash.createNewBook}
         </button>
 
         {/* Secondary actions */}
         <div className={`grid ${hasSub ? "grid-cols-4" : "grid-cols-3"} gap-2.5 w-full`}>
-          <IconAction Icon={BookOpen} label="View books" onClick={onViewBooks} />
-          <IconAction Icon={Pencil} label="Edit profile" onClick={onEdit} />
+          <IconAction Icon={BookOpen} label={t.dash.viewBooks} onClick={onViewBooks} />
+          <IconAction Icon={Pencil} label={t.dash.editProfile} onClick={onEdit} />
           <IconAction
             Icon={hasSub ? Settings : Sparkles}
-            label={hasSub ? "Manage plan" : "Start plan"}
+            label={hasSub ? t.dash.managePlan : t.dash.startPlan}
             onClick={onManageSubscription}
           />
           {hasSub && (
             <IconAction
               Icon={isPaused ? Play : Pause}
-              label={isPaused ? "Resume" : "Pause"}
+              label={isPaused ? t.dash.resume : t.dash.pause}
               onClick={onToggleSubscription}
               disabled={status === "canceled"}
             />

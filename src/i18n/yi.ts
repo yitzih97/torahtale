@@ -213,6 +213,7 @@ export const yi: typeof en = {
     recropPhoto: "ווידער אויסשנײַדן",
     saving: "היט אײַן...",
     saveChanges: "היט אײַן ענדערונגען",
+    nameLangHint: "שטעלט דעם נאָמען פֿאַר יעדער שפּראַך. די טאַבלאָ און די ביכער ווײַזן דעם פּאַסיקן נאָמען לויט דעם לייענער'ס שפּראַך, מיט אַ צוריקפֿאַל אויף ענגליש.",
     // Add-child wizard
     yourChild: "אײַער קינד",
     stepPhoto: "בילד",
@@ -246,6 +247,21 @@ export const yi: typeof en = {
     describePlaceholder: "צום בײַשפּיל, ברוינע געקרײַזלטע האָר, אָליוון הויט, גרויסע ברוינע אויגן, האָט ליב צו טראָגן בלוי...",
     uploading: "לאָדט אַרויף...",
     adding: "צולייגן...",
+    // Kid card
+    subActive: "אַקטיוו",
+    subPaused: "פּויזירט",
+    subCanceled: "אָפּגעזאָגט",
+    subNoPlan: "קיין פּלאַן",
+    readyFirstBook: "גרייט פֿאַרן ערשטן בוך",
+    booksTogether: (n: number) => `${n} ${n === 1 ? "בוך" : "ביכער"} געשאַפֿן צוזאַמען`,
+    shippingToday: "שיקט זיך היינט",
+    shipsTomorrow: "שיקט זיך מאָרגן",
+    inDays: (n: number) => `אין ${n} טעג`,
+    viewBooks: "זען ביכער",
+    editProfile: "רעדאַקטירן פּראָפֿיל",
+    managePlan: "פֿאַרוואַלטן פּלאַן",
+    startPlan: "אָנהייבן פּלאַן",
+    editPhoto: "רעדאַקטירן",
   },
 
   // Contact

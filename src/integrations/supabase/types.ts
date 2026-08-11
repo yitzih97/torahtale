@@ -166,6 +166,8 @@ export type Database = {
           gender: string | null
           id: string
           name: string
+          name_he: string | null
+          name_yi: string | null
           photo_url: string | null
           user_id: string
         }
@@ -177,6 +179,8 @@ export type Database = {
           gender?: string | null
           id?: string
           name: string
+          name_he?: string | null
+          name_yi?: string | null
           photo_url?: string | null
           user_id: string
         }
@@ -188,6 +192,8 @@ export type Database = {
           gender?: string | null
           id?: string
           name?: string
+          name_he?: string | null
+          name_yi?: string | null
           photo_url?: string | null
           user_id?: string
         }

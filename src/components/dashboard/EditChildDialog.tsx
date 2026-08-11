@@ -25,6 +25,8 @@ const AGE_BRACKETS = [
 
 export interface EditChildResult {
   name: string;
+  name_he: string | null;
+  name_yi: string | null;
   age: number | null;
   gender: string | null;
   art_style: string | null;
@@ -39,6 +41,8 @@ interface Props {
   isPending?: boolean;
   initialData: {
     name: string;
+    name_he: string | null;
+    name_yi: string | null;
     age: number | null;
     gender: string | null;
     art_style: string | null;
@@ -47,10 +51,22 @@ interface Props {
   } | null;
 }
 
+/** The three name languages a parent can fill in, shown as a toggle. */
+const NAME_LANGS: { key: "en" | "he" | "yi"; label: string; rtl?: boolean }[] = [
+  { key: "en", label: "English" },
+  { key: "he", label: "עברית", rtl: true },
+  { key: "yi", label: "ייִדיש", rtl: true },
+];
+
 export function EditChildDialog({ open, onClose, onSubmit, isPending, initialData }: Props) {
   const { user } = useAuth();
-  const { t, dir } = useLanguage();
+  const { t, dir, lang } = useLanguage();
   const [name, setName] = useState("");
+  const [nameHe, setNameHe] = useState("");
+  const [nameYi, setNameYi] = useState("");
+  // Which language's name the single input is currently editing. Defaults to the
+  // active UI language so a Hebrew user lands straight on the Hebrew name.
+  const [nameLang, setNameLang] = useState<"en" | "he" | "yi">("en");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [description, setDescription] = useState("");
@@ -62,13 +78,24 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
   useEffect(() => {
     if (open && initialData) {
       setName(initialData.name || "");
+      setNameHe(initialData.name_he || "");
+      setNameYi(initialData.name_yi || "");
+      setNameLang(lang);
       setGender(initialData.gender || "");
       setAge(initialData.age ? String(initialData.age) : "");
       setDescription(initialData.description || "");
       setPhotoPreview(initialData.photo_url || null);
       setPhotoFile(null);
     }
-  }, [open, initialData]);
+  }, [open, initialData, lang]);
+
+  // Read/write the name for whichever language tab is active.
+  const nameValue = nameLang === "he" ? nameHe : nameLang === "yi" ? nameYi : name;
+  const setNameValue = (v: string) => {
+    if (nameLang === "he") setNameHe(v);
+    else if (nameLang === "yi") setNameYi(v);
+    else setName(v);
+  };
 
   const uploadPhoto = async (): Promise<string | null> => {
     if (!photoFile || !user) return photoPreview;
@@ -92,8 +119,13 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
 
   const handleSave = async () => {
     const photoUrl = await uploadPhoto();
+    // The base `name` is required (NOT NULL) and is the fallback for languages
+    // with no override — backfill it from whichever name the parent did fill.
+    const baseName = name.trim() || nameHe.trim() || nameYi.trim();
     await onSubmit({
-      name: name.trim(),
+      name: baseName,
+      name_he: nameHe.trim() || null,
+      name_yi: nameYi.trim() || null,
       age: age ? parseInt(age) : null,
       gender: gender || null,
       // Book art style is chosen per-book in the creation wizard, not on the
@@ -130,7 +162,8 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
     }
   };
 
-  const canSave = !!name.trim() && !!gender && !!age;
+  // At least one language's name must be filled (plus gender + age).
+  const canSave = (!!name.trim() || !!nameHe.trim() || !!nameYi.trim()) && !!gender && !!age;
   const previewSrc = photoPreview;
 
   return (
@@ -188,12 +221,36 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
             <div className="space-y-5">
               <div className="space-y-2">
                 <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{t.dash.childName}</Label>
+                {/* Language tabs — edit the name separately per language. */}
+                <div className="flex gap-1.5">
+                  {NAME_LANGS.map((l) => {
+                    const filled = (l.key === "he" ? nameHe : l.key === "yi" ? nameYi : name).trim();
+                    return (
+                      <button
+                        key={l.key}
+                        type="button"
+                        onClick={() => setNameLang(l.key)}
+                        className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium transition-all ${
+                          nameLang === l.key
+                            ? "border-accent bg-accent/10 text-accent"
+                            : "border-border text-muted-foreground hover:border-accent/40"
+                        }`}
+                        dir={l.rtl ? "rtl" : "ltr"}
+                      >
+                        {l.label}{filled ? " ✓" : ""}
+                      </button>
+                    );
+                  })}
+                </div>
                 <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  key={nameLang}
+                  value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
                   placeholder={t.dash.childNamePlaceholder}
                   className="rounded-xl h-11"
+                  dir={nameLang === "en" ? "ltr" : "rtl"}
                 />
+                <p className="text-[11px] text-muted-foreground">{t.dash.nameLangHint}</p>
               </div>
 
               <div className="space-y-2">

@@ -211,6 +211,7 @@ export const en = {
     recropPhoto: "Recrop",
     saving: "Saving...",
     saveChanges: "Save Changes",
+    nameLangHint: "Set the name for each language. The dashboard and books show the one matching the reader's language, falling back to English.",
     // Add-child wizard
     yourChild: "your child",
     stepPhoto: "Photo",
@@ -244,6 +245,21 @@ export const en = {
     describePlaceholder: "e.g., Brown curly hair, olive skin, big brown eyes, loves wearing blue...",
     uploading: "Uploading...",
     adding: "Adding...",
+    // Kid card
+    subActive: "Active",
+    subPaused: "Paused",
+    subCanceled: "Canceled",
+    subNoPlan: "No plan",
+    readyFirstBook: "Ready for the first book",
+    booksTogether: (n: number) => `${n} ${n === 1 ? "book" : "books"} created together`,
+    shippingToday: "Shipping today",
+    shipsTomorrow: "Ships tomorrow",
+    inDays: (n: number) => `In ${n} days`,
+    viewBooks: "View books",
+    editProfile: "Edit profile",
+    managePlan: "Manage plan",
+    startPlan: "Start plan",
+    editPhoto: "Edit",
   },
 
   // Contact

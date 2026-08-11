@@ -6,12 +6,26 @@ export interface ChildRecord {
   id: string;
   user_id: string;
   name: string;
+  /** Optional Hebrew / Yiddish spellings of the name; fall back to `name`. */
+  name_he?: string | null;
+  name_yi?: string | null;
   age: number | null;
   gender: string | null;
   photo_url: string | null;
   art_style: string | null;
   description: string | null;
   created_at: string;
+}
+
+/** The child's name in the given UI/book language, falling back to the base
+ *  `name` when that language has no override set. */
+export function childDisplayName(
+  child: Pick<ChildRecord, "name" | "name_he" | "name_yi">,
+  lang: "en" | "he" | "yi",
+): string {
+  if (lang === "he") return child.name_he?.trim() || child.name;
+  if (lang === "yi") return child.name_yi?.trim() || child.name;
+  return child.name;
 }
 
 export function useChildren() {

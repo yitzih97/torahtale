@@ -213,6 +213,7 @@ export const he: typeof en = {
     recropPhoto: "חיתוך מחדש",
     saving: "שומר...",
     saveChanges: "שמירת שינויים",
+    nameLangHint: "הגדירו את השם לכל שפה. לוח הבקרה והספרים יציגו את השם שמתאים לשפת הקורא, עם נפילה חזרה לאנגלית.",
     // Add-child wizard
     yourChild: "הילד שלכם",
     stepPhoto: "תמונה",
@@ -246,6 +247,21 @@ export const he: typeof en = {
     describePlaceholder: "לדוגמה, שיער חום מתולתל, עור שזוף, עיניים חומות גדולות, אוהב ללבוש כחול...",
     uploading: "מעלה...",
     adding: "מוסיף...",
+    // Kid card
+    subActive: "פעיל",
+    subPaused: "מושהה",
+    subCanceled: "בוטל",
+    subNoPlan: "אין מנוי",
+    readyFirstBook: "מוכן לספר הראשון",
+    booksTogether: (n: number) => `${n} ${n === 1 ? "ספר" : "ספרים"} נוצרו יחד`,
+    shippingToday: "נשלח היום",
+    shipsTomorrow: "נשלח מחר",
+    inDays: (n: number) => `בעוד ${n} ימים`,
+    viewBooks: "צפייה בספרים",
+    editProfile: "עריכת פרופיל",
+    managePlan: "ניהול מנוי",
+    startPlan: "התחלת מנוי",
+    editPhoto: "עריכה",
   },
 
   // Contact

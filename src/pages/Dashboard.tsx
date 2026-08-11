@@ -30,7 +30,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBooks, type BookRecord } from "@/hooks/useBooks";
-import { useChildren, type ChildRecord } from "@/hooks/useChildren";
+import { useChildren, childDisplayName, type ChildRecord } from "@/hooks/useChildren";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { SHOPIFY_ACCOUNT_URL } from "@/lib/shopify";
 import { toast } from "sonner";
@@ -41,7 +41,7 @@ const ease = [0.22, 1, 0.36, 1];
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { books, isLoading: booksLoading } = useBooks();
   const { children, isLoading: childrenLoading, addChild, updateChild, deleteChild } = useChildren();
   const { subscriptions, isLoading: subsLoading, updateSubscription } = useSubscriptions();
@@ -157,7 +157,7 @@ export default function Dashboard() {
   const orderedBooks = books.filter((b) => b.status !== "draft");
   const activeSubs = subscriptions.filter((s) => s.status === "active");
   // Kids' names for the "starring your kids" upcoming-book previews.
-  const kidNames = children.map((c) => c.name).filter(Boolean).join(" & ");
+  const kidNames = children.map((c) => childDisplayName(c, lang)).filter(Boolean).join(" & ");
 
   const handleAddChild = async (child: AddChildResult) => {
     await addChild.mutateAsync(child);
@@ -506,7 +506,7 @@ export default function Dashboard() {
                       <Check className="w-3 h-3" strokeWidth={3} />
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-sm font-semibold text-foreground truncate">{kid.name}</span>
+                      <span className="block text-sm font-semibold text-foreground truncate">{childDisplayName(kid, lang)}</span>
                       <span className="block text-xs text-muted-foreground truncate">
                         {[kid.age != null ? `${kid.age} yrs` : null, kid.gender].filter(Boolean).join(" · ") || "—"}
                         {isKeep && " · keep this one"}
@@ -540,6 +540,8 @@ export default function Dashboard() {
         isPending={updateChild.isPending}
         initialData={editingChild ? {
           name: editingChild.name,
+          name_he: editingChild.name_he ?? null,
+          name_yi: editingChild.name_yi ?? null,
           age: editingChild.age,
           gender: editingChild.gender,
           art_style: editingChild.art_style,
