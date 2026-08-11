@@ -194,7 +194,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-12 sm:h-14 rounded-2xl border-border/40 bg-background/70 hover:bg-background text-sm sm:text-base font-semibold transition-all duration-300"
+                  className="w-full h-12 sm:h-14 rounded-2xl border-border/40 bg-background/70 hover:bg-background text-foreground hover:text-foreground text-sm sm:text-base font-semibold transition-all duration-300"
                   disabled={loading}
                   onClick={() => setShowEmailForm(true)}
                 >
