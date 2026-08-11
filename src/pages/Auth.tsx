@@ -31,6 +31,9 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  // The clean auth screen shows just two buttons (Google / email) first; the
+  // name+email+password form only unfolds once the user picks "Continue with Email".
+  const [showEmailForm, setShowEmailForm] = useState(false);
   // Set when a sign-in fails because the email was never confirmed — shows the
   // resend-confirmation notice above the form.
   const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
@@ -134,21 +137,13 @@ export default function Auth() {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="text-center mb-5 sm:mb-8">
-          <a href="/" className="inline-flex mx-auto mb-3 sm:mb-5">
-            <BrandMark className="gap-1.5" iconClassName="h-12 w-12 sm:h-14 sm:w-14" wordmarkClassName="h-14 sm:h-16 w-auto" />
+        <div className="text-center mb-6 sm:mb-9">
+          <a href="/" className="inline-flex mx-auto mb-4 sm:mb-6">
+            <BrandMark stacked className="gap-2.5" iconClassName="h-20 w-20 sm:h-24 sm:w-24" wordmarkClassName="h-11 sm:h-14 w-auto" />
           </a>
-          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">
-            {mode === "login" ? t.auth.welcomeBack : mode === "signup" ? t.auth.createAccount : t.auth.resetPassword}
-            <span className="text-accent">.</span>
+          <h1 className="font-heading text-4xl sm:text-5xl text-foreground tracking-tight">
+            {mode === "login" ? t.auth.login : mode === "signup" ? t.auth.register : t.auth.resetPassword}
           </h1>
-          <p className="text-muted-foreground text-sm mt-2 font-light">
-            {mode === "login"
-              ? t.auth.signInSubtitle
-              : mode === "signup"
-              ? t.auth.signUpSubtitle
-              : t.auth.forgotSubtitle}
-          </p>
         </div>
 
         <div className="p-5 sm:p-8 md:p-10 rounded-[2rem] bg-card/60 backdrop-blur-2xl border border-border/30 shadow-[0_8px_60px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.1)_inset]">
@@ -166,9 +161,9 @@ export default function Auth() {
               </Button>
             </div>
           )}
-          {/* Google first — the default, primary sign-in. */}
-          {mode !== "forgot" && (
-            <>
+          {/* Method picker — Google or email. The email form stays hidden until chosen. */}
+          {mode !== "forgot" && !showEmailForm && (
+            <div className="space-y-3 sm:space-y-4">
               <motion.div whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
                 <Button
                   type="button"
@@ -194,18 +189,32 @@ export default function Auth() {
                   {t.auth.continueWithGoogle}
                 </Button>
               </motion.div>
-              <div className="relative my-4 sm:my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border/30" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-transparent backdrop-blur-sm px-3 text-muted-foreground/60">{t.auth.orContinueWith}</span>
-                </div>
-              </div>
-            </>
+              <motion.div whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-12 sm:h-14 rounded-2xl border-border/40 bg-background/70 hover:bg-background text-sm sm:text-base font-semibold transition-all duration-300"
+                  disabled={loading}
+                  onClick={() => setShowEmailForm(true)}
+                >
+                  <Mail className="w-5 h-5 mr-2 text-muted-foreground" />
+                  {t.auth.continueWithEmail}
+                </Button>
+              </motion.div>
+            </div>
           )}
 
+          {(showEmailForm || mode === "forgot") && (
           <form onSubmit={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgotPassword} className="space-y-3.5 sm:space-y-5">
+            {mode !== "forgot" && (
+              <button
+                type="button"
+                onClick={() => setShowEmailForm(false)}
+                className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
+              >
+                <ArrowLeft className="w-3 h-3" /> {t.auth.backToOptions}
+              </button>
+            )}
             {mode === "signup" && (
               <motion.div
                 variants={fieldVariants}
@@ -300,6 +309,7 @@ export default function Auth() {
               </Button>
             </motion.div>
           </form>
+          )}
 
           <div className="mt-4 sm:mt-6 text-center text-sm">
             {mode === "login" && (

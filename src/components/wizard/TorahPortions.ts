@@ -156,6 +156,7 @@ export const TORAH_PORTIONS: TorahOption[] = [
   { value: "eicha", label: "Megillas Eicha", sub: "מגילת איכה", category: "megillot", emoji: "😢", icon: "CloudRain" },
 
   // ──── YAMIM TOVIM ────
+  { value: "shabbos", label: "Shabbos", sub: "שבת", category: "holiday", emoji: "🕯️", icon: "Flame" },
   { value: "pesach", label: "Pesach", sub: "פסח", category: "holiday", emoji: "🫓", icon: "Utensils" },
   { value: "purim", label: "Purim", sub: "פורים", category: "holiday", emoji: "🎭", icon: "PartyPopper" },
   { value: "chanukah", label: "Chanukah", sub: "חנוכה", category: "holiday", emoji: "🕎", icon: "Flame" },
