@@ -30,6 +30,8 @@ const TITLES = {
   reset: { file: "title-reset.png", alt: "Reset your password", w: 305, h: 45 },
 } as const;
 
+import { portionPhrase } from "./portions.ts";
+
 export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -78,12 +80,15 @@ interface OrderInput {
 
 export function renderDeliveredEmail(input: OrderInput): string {
   const child = escapeHtml((input.childName || "Your child").trim());
-  const parsha = escapeHtml((input.parsha || "this week").trim());
+  // portionPhrase is a trusted lookup ("Parsha Noach" / "the Book of Purim");
+  // it's null for middos stories or unknown values, in which case we omit it.
+  const phrase = portionPhrase(input.parsha);
+  const forPortion = phrase ? ` for ${phrase}` : "";
   const first = (input.firstName || "").trim();
   const hi = first ? `Great news, ${escapeHtml(first)}!` : "Great news!";
   const body =
     greeting(hi) +
-    para(`${child}&#x27;s very own Torah Tale for Parashas ${parsha} has just been delivered to your door.`) +
+    para(`${child}&#x27;s very own Torah Tale${forPortion} has just been delivered to your door.`) +
     para(`Curl up together, turn to page one, and watch ${child}&#x27;s eyes light up at seeing themselves inside a timeless Torah story. This is the moment we made it for.`) +
     button("Write a review", "https://g.page/r/CdbQVA-n5_hAEAI/review");
   const closing = small(
@@ -100,13 +105,14 @@ export function renderDeliveredEmail(input: OrderInput): string {
 
 export function renderShippedEmail(input: OrderInput & { trackingUrl?: string | null }): string {
   const child = escapeHtml((input.childName || "Your child").trim());
-  const parsha = escapeHtml((input.parsha || "this week").trim());
+  const phrase = portionPhrase(input.parsha);
+  const forPortion = phrase ? ` for ${phrase}` : "";
   const first = (input.firstName || "").trim();
   const hi = first ? `It&#x27;s on its way, ${escapeHtml(first)}!` : "It&#x27;s on its way!";
   const track = (input.trackingUrl || "").trim();
   const body =
     greeting(hi) +
-    para(`${child}&#x27;s very own Torah Tale for Parashas ${parsha} has left our workshop and is heading to your door.`) +
+    para(`${child}&#x27;s very own Torah Tale${forPortion} has left our workshop and is heading to your door.`) +
     para(
       track
         ? `Follow its journey with the tracking link below — we can&#x27;t wait for ${child} to hold it.`

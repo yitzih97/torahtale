@@ -8,6 +8,11 @@ import { renderDeliveredEmail, renderShippedEmail, sendResendEmail } from "../_s
 function extractTrackingUrl(event: unknown): string | null {
   // deno-lint-ignore no-explicit-any
   const e = event as any;
+  let raw = "";
+  try { raw = JSON.stringify(e); } catch (_e) { /* ignore */ }
+  // Printify sends a branded AfterShip tracking page — prefer that link.
+  const after = raw.match(/https?:\/\/[^"'\\ ]*aftership\.com[^"'\\ ]*/i);
+  if (after) return after[0].replace(/\\\//g, "/");
   const d = e?.resource?.data ?? e?.data ?? {};
   const candidates = [
     d?.shipments?.[0]?.url,
@@ -20,11 +25,8 @@ function extractTrackingUrl(event: unknown): string | null {
   for (const c of candidates) {
     if (typeof c === "string" && /^https?:\/\//i.test(c)) return c;
   }
-  try {
-    const m = JSON.stringify(e).match(/https?:\/\/[^"\\ ]*(track|shipment|parcel)[^"\\ ]*/i);
-    if (m) return m[0];
-  } catch (_e) { /* ignore */ }
-  return null;
+  const m = raw.match(/https?:\/\/[^"'\\ ]*(track|shipment|parcel)[^"'\\ ]*/i);
+  return m ? m[0].replace(/\\\//g, "/") : null;
 }
 
 const corsHeaders = {

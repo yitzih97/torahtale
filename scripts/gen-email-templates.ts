@@ -18,13 +18,13 @@ const files: Record<string, string> = {
   "supabase/templates/book-delivered.html": renderDeliveredEmail({
     childName: "{{childName}}",
     firstName: "{{firstName}}",
-    parsha: "{{parsha}}",
+    parsha: "noach",
   }),
   "supabase/templates/book-shipped.html": renderShippedEmail({
     childName: "{{childName}}",
     firstName: "{{firstName}}",
-    parsha: "{{parsha}}",
-    trackingUrl: "https://tracking.example.com/{{trackingNumber}}",
+    parsha: "purim",
+    trackingUrl: "https://easyordertracking.aftership.com/{{trackingNumber}}",
   }),
 };
 

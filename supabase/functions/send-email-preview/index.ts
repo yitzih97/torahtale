@@ -12,14 +12,16 @@ import {
 } from "../_shared/emails.ts";
 
 const TO = "yitzih97@gmail.com";
-const sample = { childName: "Miriam", firstName: "Sara", parsha: "Noach" };
-const trackingUrl =
-  "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400111899223197428490";
+// parsha value for the "arrived" sample, a special (non-parsha) book for the
+// "shipped" sample, so both phrasings show: "Parsha Noach" / "the Book of Purim".
+const arrived = { childName: "Miriam", firstName: "Sara", parsha: "noach" };
+const shipped = { childName: "Miriam", firstName: "Sara", parsha: "purim" };
+const trackingUrl = "https://easyordertracking.aftership.com/9400111899223197428490";
 
 serve(async () => {
   const jobs: Array<{ subject: string; html: string }> = [
-    { subject: "Your Book Has Arrived! - Torah Tale", html: renderDeliveredEmail(sample) },
-    { subject: "Your Book Has Shipped! - Torah Tale", html: renderShippedEmail({ ...sample, trackingUrl }) },
+    { subject: "Your Book Has Arrived! - Torah Tale", html: renderDeliveredEmail(arrived) },
+    { subject: "Your Book Has Shipped! - Torah Tale", html: renderShippedEmail({ ...shipped, trackingUrl }) },
     { subject: "Confirm your email - Torah Tale", html: renderConfirmationEmail("https://torahtale.com/auth/confirm?token=sample") },
     { subject: "Reset your password - Torah Tale", html: renderRecoveryEmail("https://torahtale.com/reset-password?token=sample") },
   ];
