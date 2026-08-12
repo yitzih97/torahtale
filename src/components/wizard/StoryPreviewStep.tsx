@@ -99,7 +99,7 @@ export const StoryPreviewStep = ({ bookId, childNames, onPrint, onEdit }: Props)
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary">{title}</h2>
+        <h2 className="font-heading text-2xl sm:text-3xl font-bold text-primary">{title}</h2>
         <p className="text-sm text-muted-foreground">
           <span className="text-accent font-semibold">{forLabel}</span> {childNames}
         </p>

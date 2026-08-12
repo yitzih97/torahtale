@@ -103,8 +103,10 @@ const getRecommendedType = (age: number): BookOptions["productType"] | null => {
 };
 
 export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = false }: Props) => {
-  const { t } = useLanguage();
+  const { t, dir } = useLanguage();
   const { symbol, rate, code } = t.currency;
+  // Hebrew/Yiddish books open right-to-left, so the mockup is mirrored to match.
+  const mirror = dir === "rtl" ? { transform: "scaleX(-1)" } : undefined;
   const recommendedType = getRecommendedType(childAge);
   // Tapping a book photo opens a larger preview instead of selecting the type.
   const [zoomed, setZoomed] = useState<{ src: string; label: string } | null>(null);
@@ -145,7 +147,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
     <div className="space-y-6">
       {!hideHeader && (
         <div className="text-center">
-          <h2 className="font-display text-xl font-bold text-foreground">{t.bookOptions.chooseSefer}</h2>
+          <h2 className="font-heading text-xl font-bold text-foreground">{t.bookOptions.chooseSefer}</h2>
         </div>
       )}
 
@@ -186,7 +188,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setZoomed({ src: info.image, label: productLabels[key] }); } }}
                   className="group/img relative w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50 cursor-zoom-in"
                 >
-                  <img src={info.image} alt={productLabels[key]} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
+                  <img src={info.image} alt={productLabels[key]} style={mirror} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover/img:bg-black/25 transition-colors">
                     <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover/img:opacity-100 transition-opacity drop-shadow" />
                   </div>
@@ -222,7 +224,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
         <DialogContent className="max-w-2xl p-2 sm:p-3 bg-background">
           {zoomed && (
             <div className="flex flex-col items-center gap-2">
-              <img src={zoomed.src} alt={zoomed.label} className="w-full h-auto rounded-lg object-contain" />
+              <img src={zoomed.src} alt={zoomed.label} style={mirror} className="w-full h-auto rounded-lg object-contain" />
               <p className="font-display font-semibold text-sm text-primary pb-1">{zoomed.label}</p>
             </div>
           )}

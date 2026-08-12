@@ -37,7 +37,7 @@ export const QuantityStep = ({ quantity, onChange, unitPrice, currencySymbol }: 
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary">{title}</h2>
+        <h2 className="font-heading text-2xl sm:text-3xl font-bold text-primary">{title}</h2>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">{sub}</p>
       </div>
 

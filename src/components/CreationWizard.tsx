@@ -938,23 +938,15 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
   };
 
   const startGeneration = async () => {
+    // No confirm screen and no long generation animation: the book's artwork is
+    // produced server-side after payment, so we go straight to book selection.
     setDir(1);
-    setStep(9);
     setAnimating(true);
-    setAnimPhaseIdx(0);
-    setAnimDone(false);
-
     // Persist immediately if already signed in; otherwise the post-auth effect
     // creates the book once the user signs in at the step-10 gate.
     if (user) await persistGeneratedBook();
-
-    for (let i = 0; i < GENERATION_PHASES.length; i++) {
-      setAnimPhaseIdx(i);
-      await new Promise((r) => setTimeout(r, GENERATION_PHASES[i].duration));
-    }
-
     setAnimating(false);
-    setAnimDone(true);
+    setStep(10);
   };
 
   /* ───── step skipping helpers ───── */
@@ -972,15 +964,21 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
   const next = async () => {
     // Cancel any queued auto-advance so we don't double-step
     if (autoAdvanceTimerRef.current) { clearTimeout(autoAdvanceTimerRef.current); autoAdvanceTimerRef.current = null; }
+    // Language (step 6) is the last question. Collection requests still get a
+    // review-and-send screen (step 8); the regular flow skips the confirm screen
+    // AND the generation-skeleton animation and goes straight to book selection.
+    if (step === 6) {
+      if (collection) { setDir(1); setStep(8); return; }
+      if (animating) return;
+      await startGeneration();
+      return;
+    }
     if (step === 8) {
-      // Collection-request mode ends here: submit the request, no generation.
+      // Only collection-request mode reaches step 8 now: submit the request.
       if (collection) {
         await submitCollectionRequest();
         return;
       }
-      // Generation no longer requires sign-in. Anyone can generate; the
-      // login/sign-up gate moved to step 10 (after the skeletons begin), before
-      // book-type selection + checkout.
       if (animating) return;
       await startGeneration();
       return;
@@ -992,8 +990,6 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
     // "add another child?" step (7) before moving to the shared story step (5).
     if (step === 4) nextStep = 7;
     if (step === 7) nextStep = 5;
-    // The art-style step was removed — language flows straight to review.
-    if (step === 6) nextStep = 8;
     if (step === 1 && allChildrenHaveGenderAge()) {
       // Saved children already have gender/age — skip those steps; skip the photo
       // step too when every child already has a stored photo.
@@ -1020,6 +1016,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
     if (step === 5) prevStep = 7;
     if (step === 7) prevStep = 4;
     if (step === 8) prevStep = 6; // art-style step removed
+    if (step === 10) prevStep = 6; // confirm + generation-skeleton steps removed
     if (step === 12) prevStep = 11;
     if (step === 13) prevStep = 11;
     setStep(Math.max(prevStep, 1));
@@ -1344,7 +1341,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   >
                     <Type className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
                     {t.wizard.whatsHeroName}
                   </h2>
                 </motion.div>
@@ -1501,7 +1498,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   >
                     <Heart className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
                     {t.wizard.isBoyOrGirl(child.name)}
                   </h2>
                 </motion.div>
@@ -1576,7 +1573,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   >
                     <Calendar className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
                     {t.wizard.howOld(child.name, child.gender)}
                   </h2>
                 </motion.div>
@@ -1640,7 +1637,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                 className="space-y-6"
               >
                 <motion.div variants={staggerChild} className="text-center">
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
                     {t.wizard.helpDraw(child.name)}
                   </h2>
                   <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">{t.wizard.photoUploadHint}</p>
@@ -1757,7 +1754,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4">
                     <Users className="w-7 h-7 text-accent" />
                   </div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
                     {t.wizard.addAnotherTitle}
                   </h2>
                   <p className="mt-2 text-sm text-muted-foreground">{t.wizard.addAnotherDesc}</p>
@@ -1883,7 +1880,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   >
                     <BookOpen className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
                     {portionView === "mode"
                       ? t.wizard.chooseParsha
                       : portionView === "category"
@@ -2081,7 +2078,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                 className="space-y-6 max-w-sm mx-auto"
               >
                 <motion.div variants={staggerChild} className="text-center">
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseLanguage}</h2>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.chooseLanguage}</h2>
                   <p className="mt-1.5 text-sm text-muted-foreground">{t.wizard.chooseLanguageSubtitle}</p>
                 </motion.div>
 
@@ -2169,7 +2166,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   >
                     <Sparkles className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{collection ? "Ready to send your request" : t.wizard.readyToCreate}</h2>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{collection ? "Ready to send your request" : t.wizard.readyToCreate}</h2>
                 </motion.div>
 
                 {/* Bullet-style summary */}
@@ -2309,7 +2306,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                         >
                           <CheckCircle2 className="w-10 h-10 text-accent" />
                         </motion.div>
-                        <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
+                        <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{t.wizard.seferBeingCreated}</h2>
                         <div className="max-w-xs mx-auto h-1 bg-muted/30 rounded-full overflow-hidden">
                           <div className="h-full bg-accent" style={{ width: `${progress * 100}%` }} />
                         </div>
@@ -2331,7 +2328,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
             {step === 11 && (
               <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-6">
                 <div className="text-center pb-2">
-                  <h2 className="font-display text-4xl sm:text-5xl font-bold text-primary">
+                  <h2 className="font-heading text-4xl sm:text-5xl font-bold text-primary">
                     {t.checkout.orderSummary}
                   </h2>
                 </div>
@@ -2364,19 +2361,21 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                             className={`relative text-start p-4 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
                           >
                             {o.popular && (
-                              <span className="absolute -top-2.5 end-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">POPULAR</span>
+                              <span className="absolute -top-2.5 start-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">POPULAR</span>
                             )}
-                            <div className="font-display font-bold text-base text-foreground">{o.label}</div>
+                            {/* Selected check sits in the END corner so it never
+                                overlaps the (start-aligned) title in RTL or LTR. */}
+                            {active && (
+                              <span className="absolute top-3 end-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center shadow-sm">
+                                <Check className="w-3 h-3 text-accent-foreground" />
+                              </span>
+                            )}
+                            <div className="font-display font-bold text-base text-foreground pe-7">{o.label}</div>
                             <div className="mt-1 flex items-baseline gap-1">
                               <span className="text-xl font-bold text-accent">{o.price}</span>
                               <span className="text-xs text-muted-foreground">{o.suffix}</span>
                             </div>
                             {o.note && <div className="text-xs text-accent/80 mt-1">{o.note}</div>}
-                            {active && (
-                              <span className="absolute top-3 start-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
-                                <Check className="w-3 h-3 text-accent-foreground" />
-                              </span>
-                            )}
                           </button>
                         );
                       })}
@@ -2453,7 +2452,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
             {step === 12 && (
               <motion.div key="s12" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-6">
                 <div className="text-center pb-2">
-                  <h2 className="font-display text-4xl sm:text-5xl font-bold text-primary">
+                  <h2 className="font-heading text-4xl sm:text-5xl font-bold text-primary">
                     {t.shipping.whereShip}
                   </h2>
                 </div>
@@ -2517,7 +2516,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400">
               <Check className="h-8 w-8" />
             </div>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">Request received!</h2>
+            <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">Request received!</h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
               Thanks for your interest in <span className="font-medium text-foreground">{collection.name}</span>.
               Our team will review your request and reach out to{" "}

@@ -136,7 +136,7 @@ export const CheckoutStep = ({
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary">
+          <h2 className="font-heading text-2xl sm:text-3xl font-bold text-primary">
             {t.checkout.choosePlan}
           </h2>
           <p className="text-muted-foreground text-sm mt-1.5 max-w-md mx-auto">
@@ -248,10 +248,14 @@ export const CheckoutStep = ({
               {bookOptions.coloringBook ? ` + ${t.bookOptions.coloringBookAddon}` : ""}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
-            <span className="font-medium text-primary">{shippingCost === 0 ? t.checkout.freeShipping : fmt(shippingCost)}</span>
-          </div>
+          {/* Shipping row only shows when it actually costs something — the
+              redundant "free shipping" line is omitted for a cleaner summary. */}
+          {shippingCost > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
+              <span className="font-medium text-primary">{fmt(shippingCost)}</span>
+            </div>
+          )}
           {isSubscription && activePlan && (
             <div className="flex justify-between text-accent">
               <span>{planLabels[activePlan.id]} {t.checkout.plan}</span>

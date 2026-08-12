@@ -65,7 +65,7 @@ export const SuccessStep = ({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
-        className="font-display text-2xl sm:text-3xl font-bold text-primary"
+        className="font-heading text-2xl sm:text-3xl font-bold text-primary"
       >
         {title}
       </motion.h2>
