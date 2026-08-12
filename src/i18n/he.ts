@@ -55,6 +55,7 @@ export const he: typeof en = {
   // Gallery & Reviews
   gallery: {
     label: "גלריה",
+    featuring: "בכיכוב",
     title: "סיפורים שמשפחות פשוט אוהבות",
     titleAccent: "בכל בית יהודי",
     subtitle: "",

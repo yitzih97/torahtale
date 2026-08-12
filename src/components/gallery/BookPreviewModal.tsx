@@ -1,9 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, Quote } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BookData {
   title: string;
+  titleHe?: string;
   portion: string;
   child: string;
   childPhoto?: string;
@@ -12,6 +14,7 @@ interface BookData {
   backCoverImage: string;
   questions: string[];
   review: string;
+  reviewHe?: string;
   reviewer: string;
   location: string;
   rating?: number;
@@ -24,7 +27,16 @@ interface BookPreviewModalProps {
 }
 
 export const BookPreviewModal = ({ book, open, onClose }: BookPreviewModalProps) => {
+  const { t, lang } = useLanguage();
   if (!book) return null;
+
+  // The modal follows the SITE language: Hebrew/Yiddish show the localized
+  // title + review and read right-to-left (the quote/reviewer stay LTR only for
+  // Latin proper nouns via the browser's bidi handling).
+  const isHe = lang === "he" || lang === "yi";
+  const dir = isHe ? "rtl" : "ltr";
+  const title = isHe ? (book.titleHe || book.title) : book.title;
+  const review = isHe ? (book.reviewHe || book.review) : book.review;
 
   const handleOpenChange = (o: boolean) => {
     if (!o) onClose();
@@ -49,14 +61,14 @@ export const BookPreviewModal = ({ book, open, onClose }: BookPreviewModalProps)
           </button>
 
           {/* Main content card */}
-          <div className="w-full bg-card rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-border/50">
+          <div dir={dir} className="w-full bg-card rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-border/50">
             <div className="flex flex-col md:flex-row">
               {/* Book cover — left side */}
               <div className="md:w-[45%] relative">
                 <div className="aspect-[3/4] md:aspect-auto md:h-full relative overflow-hidden">
                   <img
                     src={book.coverImage}
-                    alt={`${book.title} — Cover`}
+                    alt={`${title} — Cover`}
                     className="w-full h-full object-cover"
                   />
                   {/* Subtle overlay for depth */}
@@ -64,7 +76,7 @@ export const BookPreviewModal = ({ book, open, onClose }: BookPreviewModalProps)
                   {/* Title overlay on cover */}
                   <div className="absolute bottom-0 inset-x-0 p-5">
                     <p className="text-[10px] uppercase tracking-[0.25em] text-white/70 mb-1 font-body">{book.portion}</p>
-                    <h2 className="font-display text-xl lg:text-2xl font-bold text-white leading-tight drop-shadow-lg">{book.title}</h2>
+                    <h2 className="font-display text-xl lg:text-2xl font-bold text-white leading-tight drop-shadow-lg">{title}</h2>
                   </div>
                 </div>
               </div>
@@ -86,7 +98,7 @@ export const BookPreviewModal = ({ book, open, onClose }: BookPreviewModalProps)
                   )}
                   <div>
                     <p className="font-display text-base font-semibold text-foreground">
-                      Featuring <span className="text-accent">{book.child}</span>
+                      {t.gallery.featuring} <span className="text-accent">{book.child}</span>
                     </p>
                     <p className="text-xs text-muted-foreground font-body">{book.portion}</p>
                   </div>
@@ -101,9 +113,9 @@ export const BookPreviewModal = ({ book, open, onClose }: BookPreviewModalProps)
 
                 {/* Review quote */}
                 <div className="relative mb-6">
-                  <Quote className="w-8 h-8 text-accent/15 absolute -top-2 -left-1" />
-                  <p className="text-foreground text-base lg:text-lg leading-relaxed font-body italic pl-6">
-                    {book.review}
+                  <Quote className={`w-8 h-8 text-accent/15 absolute -top-2 ${isHe ? "-right-1" : "-left-1"}`} />
+                  <p className={`text-foreground text-base lg:text-lg leading-relaxed font-body italic ${isHe ? "pr-6" : "pl-6"}`}>
+                    {review}
                   </p>
                 </div>
 
