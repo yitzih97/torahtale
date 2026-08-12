@@ -14,6 +14,7 @@ import { fitQuestionsLayout, buildQuestionsText } from "@/lib/fitQuestions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
+import { SERIES_SHOWCASE, SERIES_ROW_LABEL } from "@/data/seriesShowcase";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPortionDisplay, bookLanguageCode, isBookRtl } from "./TorahPortions";
 import { COVER_GOLD } from "@/lib/coverBranding";
@@ -565,20 +566,15 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     const backCover = (
       /* Back cover: brand logo, the 4 "coming next" teaser mini-covers,
           a subscribe invitation, and the site URL. */
-      <div className="relative flex flex-col items-center justify-between gap-2 p-3 sm:p-5 text-center bg-[hsl(42_50%_94%)]">
+      <div className="relative flex flex-col items-center justify-between gap-3 p-3 sm:p-5 text-center bg-[hsl(42_50%_94%)]">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
 
         {/* Combined brand logo (single lockup: book on top of the wordmark) with
-            the series headline beneath. */}
-        <div className="relative flex flex-col items-center pt-2">
-          <img src={torahTaleLogoFull} alt="Torah Tale" className="h-14 sm:h-[3.75rem] w-auto object-contain" />
+            the series headline beneath — pulled toward the center, tight to the
+            headline (no paragraph blurb; the teaser imagery below sells it). */}
+        <div className="relative flex flex-col items-center pt-4 sm:pt-6">
+          <img src={torahTaleLogoFull} alt="Torah Tale" className="h-12 sm:h-14 w-auto object-contain" />
           <p className="mt-1.5 font-display font-semibold text-sm sm:text-base text-gold leading-tight" dir={dir} style={{ textShadow: "none" }}>{getCoverHeadline(lang)}</p>
-        </div>
-
-        <div className="relative font-body italic text-primary/80 leading-snug space-y-0.5 text-xs sm:text-sm whitespace-pre-line" dir={dir}>
-          {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : getCoverTagline(lang))).map((line, i) => (
-            <p key={i}>{line}</p>
-          ))}
         </div>
 
         {/* "Coming next" teaser mini-covers (each looks like a front cover). */}
@@ -590,6 +586,21 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
             </div>
           </div>
         )}
+
+        {/* A taste of our other weekly series (Yamim Tovim, Middos, …). */}
+        <div className="relative w-full">
+          <p className="mb-1 text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/60">{SERIES_ROW_LABEL[lang]}</p>
+          <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
+            {SERIES_SHOWCASE.map((s, i) => (
+              <div key={i} className="relative aspect-square overflow-hidden rounded-md ring-1 ring-black/10">
+                <img src={s.image} alt={s.label[lang]} className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent pt-3 pb-1 px-1">
+                  <p className="font-display text-[8px] sm:text-[10px] font-bold text-gold leading-tight" dir={dir}>{s.label[lang]}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="relative">
           <p className="font-body italic text-[10px] sm:text-xs text-primary/70 leading-tight" dir={dir}>{getCoverCta(lang)}</p>

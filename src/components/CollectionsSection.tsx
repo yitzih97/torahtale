@@ -37,7 +37,7 @@ export const CollectionsSection = () => {
     const target = `/create?collection=${c.key}`;
     try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
     if (!user) {
-      toast.info("Please sign in to request a collection.");
+      toast.info("Please sign in to request a series.");
       navigate(`/auth?next=${encodeURIComponent(target)}`);
       return;
     }
@@ -55,13 +55,13 @@ export const CollectionsSection = () => {
           transition={{ duration: 0.7, ease }}
           className="text-center max-w-2xl mx-auto mb-12"
         >
-          <p className="text-accent font-semibold tracking-[0.15em] uppercase text-xs mb-4">Collections</p>
+          <p className="text-accent font-semibold tracking-[0.15em] uppercase text-xs mb-4">Series</p>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4">
             Build a whole library, not just one book
           </h2>
           <p className="text-muted-foreground text-base md:text-lg">
             Get a curated bundle of personalized storybooks — the whole Chumash, all of Nevi'im, or the complete Tanach —
-            starring your child. Request a collection and we'll set it all up for you.
+            starring your child. Request a series and we'll set it all up for you.
           </p>
         </motion.div>
 
@@ -124,14 +124,14 @@ export const CollectionsSection = () => {
               className="rounded-xl gap-2"
               onClick={() => setShowAll((v) => !v)}
             >
-              {showAll ? "Show fewer collections" : `Show all ${orderedCollections.length} collections`}
+              {showAll ? "Show fewer series" : `Show all ${orderedCollections.length} series`}
               <ChevronDown className={`h-4 w-4 transition-transform ${showAll ? "rotate-180" : ""}`} />
             </Button>
           </div>
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Prices are estimates. Request a collection and our team will confirm the details, pricing, and delivery with you personally —
+          Prices are estimates. Request a series and our team will confirm the details, pricing, and delivery with you personally —
           we'll send an invoice, and your books are generated once payment is received.
         </p>
       </div>
