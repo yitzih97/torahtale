@@ -5,19 +5,24 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import step1Img from "@/assets/steps/step1-tell-us.png";
+import step1ImgHe from "@/assets/steps/step1-tell-us-he.png";
 import step2Img from "@/assets/steps/step2-ai-creates.png";
 import step3Img from "@/assets/steps/step3-delivered.png";
 
 const icons = [UserRound, Wand2, Truck];
-const images = [step1Img, step2Img, step3Img];
 const numbers = ["01", "02", "03"];
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export const HowItWorks = () => {
   const { getSetting } = useSiteSettings("website");
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
+
+  // Step 1 (the "Add your children" mockup) has baked-in UI text, so Hebrew/
+  // Yiddish books show a localized RTL version; steps 2–3 are text-free.
+  const isHe = lang === "he" || lang === "yi";
+  const images = [isHe ? step1ImgHe : step1Img, step2Img, step3Img];
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
   const blobY1 = useTransform(scrollYProgress, [0, 1], [70, -70]);
