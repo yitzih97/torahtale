@@ -8,6 +8,7 @@ import { wrapText } from "@/lib/wrapText";
 import { fitQuestionsLayout, buildQuestionsText } from "@/lib/fitQuestions";
 import { applyLineArt } from "@/lib/lineArt";
 import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
+import { SERIES_SHOWCASE, SERIES_ROW_LABEL } from "@/data/seriesShowcase";
 import { COVER_GOLD } from "@/lib/coverBranding";
 import { localizedCoverName } from "@/lib/hebrewName";
 
@@ -652,6 +653,39 @@ function drawMiniCover(
   roundedRect(ctx, x, y, size, size, r); ctx.stroke();
 }
 
+/** Draw one "series" showcase tile — a rounded square collection image with the
+ *  series name on a gold scrim along the bottom. Unlike drawMiniCover these are
+ *  marketing thumbnails for OTHER series, so there's no personalized child line. */
+function drawSeriesTile(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | null,
+  label: string,
+  x: number, y: number, size: number,
+  rtl: boolean,
+) {
+  const r = Math.max(8, size * 0.06);
+  ctx.fillStyle = "#efe7d3";
+  roundedRect(ctx, x, y, size, size, r); ctx.fill();
+  if (img) drawImageInRect(ctx, img, x, y, size, size, r);
+
+  ctx.save();
+  roundedRect(ctx, x, y, size, size, r); ctx.clip();
+  // Bottom scrim so the series name stays legible over the illustration.
+  const g = ctx.createLinearGradient(x, y + size * 0.42, x, y + size);
+  g.addColorStop(0, "rgba(8,14,30,0)"); g.addColorStop(1, "rgba(8,14,30,0.85)");
+  ctx.fillStyle = g; ctx.fillRect(x, y + size * 0.42, size, size * 0.58);
+  ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  const fs = Math.round(size * 0.11);
+  ctx.font = coverTitleFont(fs);
+  const lines = wrapLines(ctx, label || "", size - size * 0.12).slice(0, 2);
+  let ty = y + size - size * 0.1 - (lines.length - 1) * fs * 1.05;
+  for (const ln of lines) { ctx.fillStyle = goldFill(ctx, ty, fs); ctx.fillText(ln, x + size / 2, ty); ty += fs * 1.05; }
+  ctx.restore();
+  ctx.strokeStyle = "rgba(0,0,0,0.30)"; ctx.lineWidth = 2;
+  roundedRect(ctx, x, y, size, size, r); ctx.stroke();
+}
+
 async function renderCoverSpread(
   page: BookPage,
   childName: string,
@@ -687,72 +721,81 @@ async function renderCoverSpread(
   const frontX = rtl ? 0 : HALF_W;
   drawPaperHalf(ctx, rtl ? "right" : "left");
 
-  // ── BACK COVER: a clean cream panel (no decorative frame) with the combined
-  // brand logo, the series headline, a professional subscribe invitation, a row
-  // of "coming next" teaser covers, and the site URL. ──
+  // ── BACK COVER: a clean cream panel with the brand lockup pulled toward the
+  // center, then TWO rows of big teasers filling the width — "coming next"
+  // personalized covers on top and a taste of our other weekly series below —
+  // and the subscribe CTA + URL. The teaser imagery sells the subscription, so
+  // there's no paragraph blurb. ──
   const BW = HALF_W;                              // back cover = BW × SPREAD_H square
   const cx = backX + BW / 2;
+  const padX = 64;
 
-  // Brand logo — the single combined lockup (book icon on top of the wordmark),
-  // one clean file so the book + text stay perfectly aligned.
+  // Brand logo — nudged DOWN from the very top so it sits closer to the gold
+  // flourish + series headline (a tighter, more central lockup).
   const logo = await safeLoad(torahTaleLogoFull);
   if (logo) {
-    const logoH = 270;
+    const logoH = 200;
     const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-    ctx.drawImage(logo, cx - logoW / 2, 92, logoW, logoH);
+    ctx.drawImage(logo, cx - logoW / 2, 74, logoW, logoH);
   }
 
   // Gold flourish + series headline — flat gold (no engrave/shadow) so it stays
-  // crisp and sharp, and a touch bigger.
-  coverFlourish(ctx, cx, 502, BW * 0.28, COVER_GOLD);
+  // crisp and sharp.
+  coverFlourish(ctx, cx, 314, BW * 0.26, COVER_GOLD);
   ctx.direction = rtlDir;
-  const hSize = 52;
   {
     ctx.save();
+    const hSize = 48;
     ctx.font = coverTitleFont(hSize); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = goldFill(ctx, 562, hSize);
-    ctx.fillText(getCoverHeadline(lang), cx, 562);
+    ctx.fillStyle = goldFill(ctx, 374, hSize);
+    ctx.fillText(getCoverHeadline(lang), cx, 374);
     ctx.restore();
   }
 
-  // Professional subscribe invitation (localized → RTL) — or the per-book override.
-  ctx.fillStyle = "#5a4a32";
-  ctx.direction = rtlDir;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const tSize = 38;
-  ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  const taglineLines = page.backCoverText && page.backCoverText.trim()
-    ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
-    : getCoverTagline(lang);
-  taglineLines.forEach((line, i) => {
-    ctx.fillText(line, cx, 620 + i * (tSize * 1.35));
-  });
-
-  // "Coming next" label + a row of 4 teaser covers (empty box until generated).
-  ctx.direction = rtlDir;
-  ctx.fillStyle = "#8a7452";
-  ctx.font = `600 17px 'Inter', sans-serif`;
-  ctx.fillText(letterSpace((COMING_NEXT_LABEL[lang] || COMING_NEXT_LABEL.en).toUpperCase(), 2), cx, 786);
-  const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
-  const thumb = 182, tgap = 20;
+  // Big square teasers fill the width, 4 across, gutter-to-gutter.
+  const tgap = 20;
+  const thumb = Math.floor((BW - padX * 2 - 3 * tgap) / 4); // ≈ 253
   const rowW = 4 * thumb + 3 * tgap;
   const rowX = cx - rowW / 2;
-  const rowY = 800;
+
+  // Row 1 — "Coming next" personalized mini front covers (empty until generated).
+  ctx.direction = rtlDir;
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#8a7452";
+  ctx.font = `600 18px 'Inter', sans-serif`;
+  ctx.fillText(letterSpace((COMING_NEXT_LABEL[lang] || COMING_NEXT_LABEL.en).toUpperCase(), 2), cx, 430);
+  const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
+  const row1Y = 446;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", coverChild, tx, rowY, thumb, rtl, lang);
+    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", coverChild, tx, row1Y, thumb, rtl, lang);
+  }
+
+  // Row 2 — a taste of our other weekly series (Yamim Tovim, Middos, …).
+  const row2LabelY = row1Y + thumb + 42;
+  ctx.direction = rtlDir;
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#8a7452";
+  ctx.font = `600 18px 'Inter', sans-serif`;
+  ctx.fillText(letterSpace((SERIES_ROW_LABEL[lang] || SERIES_ROW_LABEL.en).toUpperCase(), 2), cx, row2LabelY);
+  const seriesImgs = await Promise.all(SERIES_SHOWCASE.map((s) => safeLoad(s.image)));
+  const row2Y = row2LabelY + 16;
+  for (let i = 0; i < 4; i++) {
+    const tx = rowX + i * (thumb + tgap);
+    drawSeriesTile(ctx, seriesImgs[i], SERIES_SHOWCASE[i].label[lang] || SERIES_SHOWCASE[i].label.en, tx, row2Y, thumb, rtl);
   }
 
   // CTA + site URL (a domain → always LTR).
+  const ctaY = row2Y + thumb + 56;
   ctx.direction = rtlDir;
+  ctx.textAlign = "center";
   ctx.fillStyle = "#5a4a32";
   ctx.font = `italic 30px ${BOOK_TEXT_STYLE.fontFamily}`;
-  ctx.fillText(getCoverCta(lang), cx, 1010);
+  ctx.fillText(getCoverCta(lang), cx, ctaY);
   ctx.direction = "ltr";
   ctx.fillStyle = "#b88a2a";
   ctx.font = `700 40px 'Inter', sans-serif`;
-  ctx.fillText(COVER_URL.toUpperCase(), cx, 1058);
+  ctx.fillText(COVER_URL.toUpperCase(), cx, ctaY + 48);
 
   // ── FRONT COVER: illustration + Parsha name + child (right half LTR, left
   // half for a mirrored RTL wrap). ──

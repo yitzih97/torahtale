@@ -889,7 +889,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
   const submitCollectionRequest = async () => {
     if (!collection || collectionSubmitting || collectionSent) return;
     if (!user) {
-      toast.info("Please sign in to request a collection.");
+      toast.info("Please sign in to request a series.");
       return;
     }
     setCollectionSubmitting(true);
@@ -2185,7 +2185,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   {collection ? (
                     <li className="flex items-start gap-3 text-base">
                       <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground"><span className="text-muted-foreground">Collection:</span> <span className="font-semibold">{collection.name} ({collection.books})</span></span>
+                      <span className="text-foreground"><span className="text-muted-foreground">Series:</span> <span className="font-semibold">{collection.name} ({collection.books})</span></span>
                     </li>
                   ) : planType !== "subscription" && (
                     <li className="flex items-start gap-3 text-base">
@@ -2199,7 +2199,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   </li>
                   <li className="flex items-start gap-3 text-base">
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{collection ? "Collection request" : planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{collection ? "Series request" : planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
                   </li>
                 </motion.ul>
 
