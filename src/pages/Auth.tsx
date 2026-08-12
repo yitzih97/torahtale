@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowLeft } from "lucide-react";
-import { BrandMark } from "@/components/BrandMark";
+import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,7 +139,7 @@ export default function Auth() {
       >
         <div className="text-center mb-5 sm:mb-8">
           <a href="/" className="inline-flex mx-auto mb-3 sm:mb-5">
-            <BrandMark stacked className="gap-1" iconClassName="h-20 w-20 sm:h-24 sm:w-24" wordmarkClassName="h-16 sm:h-[4.5rem] w-auto" />
+            <img src={torahTaleLogoFull} alt="Torah Tale" className="h-28 sm:h-36 w-auto" />
           </a>
           <h1 className="font-heading text-4xl sm:text-5xl text-foreground tracking-tight">
             {mode === "login" ? t.auth.login : mode === "signup" ? t.auth.register : t.auth.resetPassword}
@@ -216,7 +216,8 @@ export default function Auth() {
                 <ArrowLeft className="w-3 h-3" /> {t.auth.backToOptions}
               </button>
             )}
-            {mode !== "forgot" && (
+            {/* Full name is only collected on sign-up — login just needs email + password. */}
+            {mode === "signup" && (
               <motion.div
                 variants={fieldVariants}
                 animate={focusedField === "fullName" ? "focused" : "idle"}
