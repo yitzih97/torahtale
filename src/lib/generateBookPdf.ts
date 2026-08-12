@@ -147,7 +147,18 @@ function textSegments(text: string, rtl: boolean, align: CanvasTextAlign, bodyFo
     });
 }
 
-function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: TextLayout, W: number, H: number, rtl = false) {
+/** Split a bilingual caption ("English paragraph\n\nHebrew paragraph") into its
+ *  Latin and Hebrew halves so they can be placed in SEPARATE blocks (English on
+ *  top, Hebrew on the bottom) instead of one crowded stack. Returns empty
+ *  strings for a language that isn't present (single-language pages). */
+function splitBilingual(text: string): { en: string; he: string } {
+  const parts = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const en = parts.filter((p) => !HEBREW_RE.test(p)).join("\n\n");
+  const he = parts.filter((p) => HEBREW_RE.test(p)).join("\n\n");
+  return { en, he };
+}
+
+function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: TextLayout, W: number, H: number, rtl = false, vAnchor: "top" | "bottom" = "top") {
   if (!text) return;
   // layout.fontSize and padding are absolute px defined against a 1024px-wide
   // reference container (see EditableTextBox / TextLayout). Scale them by the
@@ -183,6 +194,9 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
 
   const textH = rendered.length * lineHeight;
   const boxH = textH + padY * 2;
+  // With a "bottom" anchor, layout.y marks the box's BOTTOM edge, so shift the
+  // box up by its own height (used to sit the Hebrew caption at the page bottom).
+  const boxTop = vAnchor === "bottom" ? boxY - boxH : boxY;
 
   if (layout.background) {
     ctx.save();
@@ -190,14 +204,14 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
     ctx.shadowBlur = 28;
     ctx.shadowOffsetY = 8;
     ctx.fillStyle = "rgba(252, 247, 236, 0.94)";
-    roundedRect(ctx, boxX, boxY, boxW, boxH, 18);
+    roundedRect(ctx, boxX, boxTop, boxW, boxH, 18);
     ctx.fill();
     ctx.restore();
   }
   if (layout.border) {
     ctx.strokeStyle = layout.borderColor ?? DEFAULT_BORDER_COLOR;
     ctx.lineWidth = 2;
-    roundedRect(ctx, boxX, boxY, boxW, boxH, 18);
+    roundedRect(ctx, boxX, boxTop, boxW, boxH, 18);
     ctx.stroke();
   }
 
@@ -225,7 +239,7 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
     ctx.textAlign = align;
     ctx.font = fontStr(font, bold);
     const textAnchorX = anchorFor(align);
-    const ly = boxY + padY + i * lineHeight;
+    const ly = boxTop + padY + i * lineHeight;
     // Shadow pass: paint the OUTER glyph shape with a shadow enabled, then redraw
     // the crisp outline + fill on top (mirrors CSS text-shadow). Two passes — a
     // tight, dense dark halo (thickens the edge like a soft outline) and a softer
@@ -350,7 +364,16 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   if (mode === "portrait") layout = { ...layout, color: "#2b2418", shadow: false, background: true };
 
   if (mode === "spread") drawGutter(ctx, W, H);
-  drawTextOverlay(ctx, page.text || "", layout, W, H, rtl);
+  // Bilingual pages: put the English caption at the TOP of the page and the
+  // Hebrew caption at the BOTTOM, each in its own block, so they never crowd
+  // together. Single-language pages keep the one auto-placed caption.
+  const { en, he } = splitBilingual(page.text || "");
+  if (en && he) {
+    drawTextOverlay(ctx, en, { ...layout, y: 8, align: "center" }, W, H, false, "top");
+    drawTextOverlay(ctx, he, { ...layout, y: 92, align: "center" }, W, H, true, "bottom");
+  } else {
+    drawTextOverlay(ctx, page.text || "", layout, W, H, rtl);
+  }
   // Coloring pages are pure black-on-white line art — JPEG's block compression
   // artifacts (ringing/haloing) are especially visible on hard edges like
   // these, so export losslessly. Painted illustrations stay JPEG (smaller,
