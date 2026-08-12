@@ -862,11 +862,17 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
           } as any)
           .select()
           .single();
-        if (!saveError && bookData) {
+        if (saveError || !bookData) {
+          // Surface a save failure instead of silently proceeding with no order —
+          // otherwise the book never reaches the admin and it looks "stuck".
+          console.error("Book insert failed:", saveError);
+          toast.error("We couldn't save your book. Please try again.");
+        } else {
           setSavedBookId(bookData.id);
         }
     } catch (err) {
       console.error("Failed to save book:", err);
+      toast.error("We couldn't save your book. Please try again.");
     } finally {
       persistingBookRef.current = false;
     }
@@ -2543,14 +2549,17 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
             {(() => {
               const baseBtn = "w-full h-14 rounded-full font-semibold text-base shadow-[0_8px_24px_-12px_rgba(0,0,0,0.4)] disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98]";
               if (step <= 7) {
+                // On the last question (language, step 6) "Continue" also saves the
+                // book (uploads the child photo + inserts the order), which takes a
+                // moment — show a spinner so it never looks frozen/"stuck".
                 return (
                   <motion.button
                     whileTap={{ scale: 0.98 }}
                     onClick={next}
-                    disabled={!canNext}
+                    disabled={!canNext || animating}
                     className={baseBtn}
                   >
-                    {t.common.continue}
+                    {animating ? <Loader2 className="w-5 h-5 animate-spin" /> : t.common.continue}
                   </motion.button>
                 );
               }
