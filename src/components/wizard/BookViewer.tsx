@@ -638,6 +638,12 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     // Text precedence: the admin's manual placement wins; otherwise the layout
     // auto-computed from the illustration's clear space; otherwise the default.
     let layout = migrateLayout(page?.textLayout) || (page ? autoLayouts[page.id] : undefined) || makeDefaultLayout(defaultTextSide, isRtl);
+    // Bilingual page: English caption on top, Hebrew on the bottom — as separate
+    // blocks — matching the printed book (see generateBookPdf renderStorySpread).
+    const capParts = (page?.text || "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+    const capEn = capParts.filter((p) => !/[֐-׿]/.test(p)).join("\n\n");
+    const capHe = capParts.filter((p) => /[֐-׿]/.test(p)).join("\n\n");
+    const bilingual = !!capEn && !!capHe;
     // Coloring pages are line art on WHITE — the white caption default would be
     // invisible, so force dark text with a soft cream backing box.
     if (isColoring) layout = { ...layout, color: "#2b2418", shadow: false, background: true };
@@ -677,8 +683,29 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
           </div>
         )}
 
-        {/* Draggable text on top of the spread */}
-        {page && (
+        {/* Draggable text on top of the spread. Bilingual pages show two fixed
+            blocks (English top, Hebrew bottom) to match the print — text is still
+            edited via the caption panel below. Single-language stays draggable. */}
+        {page && (bilingual ? (
+          <div className="pointer-events-none absolute inset-0">
+            <EditableTextBox
+              layout={{ ...layout, y: 6, align: "center" }}
+              text={capEn}
+              containerRef={spreadRef}
+              rtl={false}
+              onLayoutChange={() => {}}
+              onTextChange={() => {}}
+            />
+            <EditableTextBox
+              layout={{ ...layout, y: 80, align: "center" }}
+              text={capHe}
+              containerRef={spreadRef}
+              rtl
+              onLayoutChange={() => {}}
+              onTextChange={() => {}}
+            />
+          </div>
+        ) : (
           <EditableTextBox
             layout={layout}
             text={page.text || ""}
@@ -689,7 +716,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
             onReset={() => updatePage(page.id, { textLayout: autoLayouts[page.id] })}
             onDuplicate={editable ? applyStyleToAll : undefined}
           />
-        )}
+        ))}
       </div>
     );
   };
