@@ -155,7 +155,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3, ease }}
-                className={`mt-4 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center sm:items-start ${isRtl ? "lg:justify-end" : "lg:justify-start"}`}
+                className="mt-4 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center sm:items-start lg:justify-start"
               >
                 <Button
                   variant="gold"
