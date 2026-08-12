@@ -39,6 +39,7 @@ serve(async (req) => {
   const authErr = await requireUser(req);
   if (authErr) return authErr;
 
+  const t0 = Date.now();
   try {
     const { childName, childrenInfo, age, gender, torahPortion, torahPortionLabel, artStyle, language, pageCount } = await req.json();
 
@@ -519,6 +520,111 @@ No markdown, no explanation, just the JSON object.`;
       out = out.replace(/\s*(?:\.\.\.|…)?\s*wait,?\s*no\.?\s*$/i, "");
       return out.trim();
     };
+
+    // ── Per-language rhyme QA: re-roll any page whose verse doesn't rhyme ──
+    // Hebrew/Yiddish rhyming is the hardest for the model to nail on the first
+    // pass, so we audit every page in every language and rewrite only the verses
+    // that don't genuinely rhyme. Time-boxed + fail-open so it can never break or
+    // time out the main generation (skipped if too little wall-clock remains).
+    const wantsRhymeQA = (hasHebrew || hasYiddish)
+      && !!ANTHROPIC_API_KEY
+      && Array.isArray(parsed.pages) && parsed.pages.length > 0;
+    if (wantsRhymeQA && (Date.now() - t0) < 95_000) {
+      try {
+        const HEB = /[֐-׿]/;
+        // Extract the per-language verses for one page (its text may be a bilingual
+        // object {english, hebrew}, a single-language string, or a combined string).
+        const pageLangs = (val: unknown): Record<string, string> => {
+          if (val && typeof val === "object" && !Array.isArray(val)) {
+            const o = val as Record<string, unknown>; const r: Record<string, string> = {};
+            for (const l of selectedLangs) if (typeof o[l] === "string" && (o[l] as string).trim()) r[l] = o[l] as string;
+            return r;
+          }
+          const s = String(val ?? "");
+          if (selectedLangs.length === 1) return { [selectedLangs[0]]: s };
+          const parts = s.split(/\n{2,}/).map((x) => x.trim()).filter(Boolean);
+          const heb = parts.filter((p) => HEB.test(p)).join("\n\n");
+          const eng = parts.filter((p) => !HEB.test(p)).join("\n\n");
+          const r: Record<string, string> = {};
+          if (selectedLangs.includes("english") && eng) r.english = eng;
+          if (selectedLangs.includes("hebrew") && heb) r.hebrew = heb;
+          else if (selectedLangs.includes("yiddish") && heb) r.yiddish = heb;
+          return r;
+        };
+        const inPages = parsed.pages.map((p: any, i: number) => ({
+          page: typeof p.page === "number" ? p.page : i + 1,
+          ...pageLangs(p.text),
+        }));
+        const qaSchema = {
+          type: "object", additionalProperties: false, required: ["pages"],
+          properties: {
+            pages: {
+              type: "array",
+              items: {
+                type: "object", additionalProperties: false,
+                required: ["page", ...selectedLangs],
+                properties: {
+                  page: { type: "integer" },
+                  ...Object.fromEntries(selectedLangs.map((l) => [l, { type: "string" }])),
+                },
+              },
+            },
+          },
+        };
+        const langList = selectedLangs.map((l) => langNames[l]).join(" and ");
+        const qaSystem = `You are a master editor of children's rhyming verse in ${langList}. You make every verse genuinely rhyme without changing its meaning, and you are especially exacting about Hebrew and Yiddish rhyme (matching final stressed syllables, correct grammar and gender/number agreement, full nikud for Hebrew).`;
+        const qaUser = `Here are the pages of a children's Torah book. Each page has its verse in ${langList}.
+For EVERY page and EVERY language, read the verse aloud in your head and judge whether it GENUINELY RHYMES and flows with a steady beat.
+- If a language's verse already rhymes cleanly, return it UNCHANGED.
+- If it does NOT truly rhyme (matching end sounds) — most common in Hebrew/Yiddish — REWRITE that language's verse so it genuinely rhymes: keep the same meaning and story beat, keep every child/character name, keep the line breaks (one short phrase per line, "\\n" between lines), fix grammar and gender/number agreement, and use full nikud for Hebrew. Never leave a slant rhyme or a non-rhyme.
+Return ALL ${inPages.length} pages, each with the final verse for every language.
+
+PAGES:
+${JSON.stringify(inPages, null, 2)}`;
+        const qaController = new AbortController();
+        const qaTimer = setTimeout(() => qaController.abort(), 45_000);
+        let qaResp: Response;
+        try {
+          qaResp = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+            body: JSON.stringify({
+              model: storyModel,
+              max_tokens: 8000,
+              system: qaSystem,
+              messages: [{ role: "user", content: qaUser }],
+              output_config: { format: { type: "json_schema", schema: qaSchema } },
+            }),
+            signal: qaController.signal,
+          });
+        } finally { clearTimeout(qaTimer); }
+        if (qaResp.ok) {
+          const qaData = await qaResp.json();
+          const qaTextOut = (qaData.content ?? []).filter((b: { type: string }) => b.type === "text").map((b: { text: string }) => b.text).join("");
+          const qaParsed = JSON.parse(qaTextOut);
+          if (Array.isArray(qaParsed?.pages)) {
+            const byPage = new Map<number, any>(qaParsed.pages.map((p: any) => [p.page, p]));
+            parsed.pages = parsed.pages.map((p: any, i: number) => {
+              const key = typeof p.page === "number" ? p.page : i + 1;
+              const fix = byPage.get(key);
+              if (!fix) return p;
+              const langObj: Record<string, string> = {};
+              for (const l of selectedLangs) if (typeof fix[l] === "string" && fix[l].trim()) langObj[l] = fix[l];
+              if (Object.keys(langObj).length === 0) return p;
+              // Single-language book → plain string; multi-language → {lang: text}
+              // object, which flattenText joins in the selected-language order.
+              const newText = selectedLangs.length === 1 ? langObj[selectedLangs[0]] : langObj;
+              return { ...p, text: newText };
+            });
+            console.log(`Rhyme QA pass applied to ${qaParsed.pages.length} pages (${langList})`);
+          }
+        } else {
+          console.warn(`Rhyme QA call failed [${qaResp.status}] — keeping original verses`);
+        }
+      } catch (e) {
+        console.warn("Rhyme QA pass skipped (fail-open):", e instanceof Error ? e.message : e);
+      }
+    }
 
     // Normalize: ensure we have all parts
     const rawPages = Array.isArray(parsed.pages) ? parsed.pages : parsed.pages || [];
