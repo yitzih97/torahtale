@@ -155,6 +155,9 @@ export const ProductsSection = ({ onStart }: Props) => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.45, ease }}
+                  // Hebrew/Yiddish books open right-to-left, so mirror the mockup
+                  // (spine flips to the other side) to match the RTL reading order.
+                  style={{ transform: isRtl ? "scaleX(-1)" : undefined }}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </AnimatePresence>
