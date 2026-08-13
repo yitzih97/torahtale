@@ -8,6 +8,7 @@ import { Loader2, CreditCard, ExternalLink } from "lucide-react";
 import type { SubscriptionRecord } from "@/hooks/useSubscriptions";
 import type { ChildRecord } from "@/hooks/useChildren";
 import { SHOPIFY_ACCOUNT_URL } from "@/lib/shopify";
+import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
@@ -44,6 +45,20 @@ export function SubscriptionEditDialog({ open, onClose, subscription, children, 
       zip: s.zip || "",
     });
   }, [subscription]);
+
+  const openCardUpdate = async () => {
+    if (!subscription) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("shopify-admin-data", {
+        body: { action: "subscription-card-url", subscriptionId: subscription.id },
+      });
+      // Focused Shopify secure card page when available; otherwise the account page.
+      const url = (!error && (data as any)?.url) ? (data as any).url : SHOPIFY_ACCOUNT_URL;
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+      window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener,noreferrer");
+    }
+  };
 
   if (!subscription) return null;
 
@@ -137,7 +152,7 @@ export function SubscriptionEditDialog({ open, onClose, subscription, children, 
               type="button"
               variant="outline"
               className="w-full rounded-xl gap-2"
-              onClick={() => window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener,noreferrer")}
+              onClick={openCardUpdate}
             >
               <CreditCard className="w-4 h-4" />
               {t.dash.subEdit.managePayment}

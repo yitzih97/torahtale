@@ -360,6 +360,20 @@ export const he: typeof en = {
       next4Subtext: "ספר פרשה מותאם אישית חדש מדי שבוע — בכיכוב הילדים שלכם.",
       yourKids: "הילדים שלכם",
     },
+    manage: {
+      title: "ניהול המנוי",
+      loading: "טוען את המנוי שלכם…",
+      noContract: "המנוי הזה עדיין לא מקושר לחיוב. לאחר התשלום הראשון תוכלו לנהל אותו כאן.",
+      status: "סטטוס", nextBilling: "החיוב הבא", plan: "מסלול",
+      card: "כרטיס תשלום", noCard: "אין כרטיס שמור",
+      updateCard: "עדכון כרטיס", cardSecureNote: "לביטחונכם, פרטי הכרטיס מוזנים בעמוד המאובטח של Shopify (נפתח בכרטיסייה חדשה).",
+      shippingAddress: "כתובת למשלוח", noAddress: "עדיין אין כתובת למשלוח",
+      editAddress: "עריכת כתובת", saveAddress: "שמירת כתובת", addressSaved: "כתובת המשלוח עודכנה",
+      pause: "השהיית משלוחים", resume: "חידוש משלוחים", cancelSub: "ביטול המנוי",
+      cancelConfirm: "לבטל את המנוי? הספרים ייפסקו והחיוב יסתיים. תוכלו להירשם מחדש בכל עת.",
+      paused: "המנוי הושהה", resumed: "המנוי חודש", canceled: "המנוי בוטל",
+      actionFailed: "משהו השתבש. אנא נסו שוב.", close: "סגירה", opening: "פותח…",
+    },
   },
 
   // Contact

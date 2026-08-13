@@ -39,6 +39,18 @@ function orderGid(id: string): string {
   return s.startsWith("gid://") ? s : `gid://shopify/Order/${s}`;
 }
 
+// Same, for a Subscription Contract id.
+function contractGid(id: string): string {
+  const s = String(id);
+  return s.startsWith("gid://") ? s : `gid://shopify/SubscriptionContract/${s}`;
+}
+
+// First userErrors[].message from a mutation payload, or null.
+function firstUserError(payload: any): string | null {
+  const errs = payload?.userErrors;
+  return Array.isArray(errs) && errs.length ? (errs[0]?.message || "Request failed") : null;
+}
+
 async function shopifyGraphQL(query: string, variables: Record<string, unknown>) {
   const token = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN");
   if (!token) throw new Error("SHOPIFY_ADMIN_ACCESS_TOKEN is not configured");
@@ -145,7 +157,22 @@ serve(async (req) => {
       .from("user_roles").select("role").eq("user_id", callerId).eq("role", "admin").maybeSingle();
     const isAdmin = !!roleRow;
 
-    const { action, bookId, userId } = await req.json();
+    const { action, bookId, userId, subscriptionId, address } = await req.json();
+
+    // Load a LOCAL subscription (past RLS) and verify the caller owns it, then
+    // return its Shopify contract gid. Every subscription-management action goes
+    // through this so a user can only ever touch their own subscription.
+    const loadOwnedContract = async () => {
+      if (!subscriptionId) return { err: json({ error: "subscriptionId required" }, 400) };
+      const { data: sub } = await admin
+        .from("subscriptions")
+        .select("id, user_id, shopify_contract_id, status")
+        .eq("id", subscriptionId).maybeSingle();
+      if (!sub) return { err: json({ error: "Subscription not found" }, 404) };
+      if (!isAdmin && sub.user_id !== callerId) return { err: json({ error: "Forbidden" }, 403) };
+      if (!sub.shopify_contract_id) return { err: json({ hasContract: false }) };
+      return { sub, cid: contractGid(String(sub.shopify_contract_id)) };
+    };
 
     // ── order: full financials for a single order ──
     if (action === "order") {
@@ -258,6 +285,154 @@ serve(async (req) => {
         };
       });
       return json({ orders, totalRevenue: Math.round(totalRevenue * 100) / 100, currency });
+    }
+
+    // ── subscription-detail: contract status, next billing, address, card ──
+    if (action === "subscription-detail") {
+      const { err, cid } = await loadOwnedContract();
+      if (err) return err;
+      const query = `query($id: ID!) {
+        subscriptionContract(id: $id) {
+          id
+          status
+          nextBillingDate
+          currencyCode
+          billingPolicy { interval intervalCount }
+          lines(first: 5) { edges { node { title variantTitle quantity } } }
+          deliveryMethod {
+            __typename
+            ... on SubscriptionDeliveryMethodShipping {
+              address { firstName lastName address1 address2 city province zip country countryCode phone company }
+            }
+          }
+          customerPaymentMethod {
+            id
+            instrument {
+              __typename
+              ... on CustomerCreditCard { brand lastDigits expiryMonth expiryYear name }
+              ... on CustomerPaypalBillingAgreement { paypalAccountEmail }
+            }
+          }
+        }
+      }`;
+      const data = await shopifyGraphQL(query, { id: cid });
+      const c = data.subscriptionContract;
+      if (!c) return json({ hasContract: false });
+      const ship = c.deliveryMethod?.address || null;
+      const inst = c.customerPaymentMethod?.instrument || null;
+      return json({
+        hasContract: true,
+        contract: {
+          id: c.id,
+          status: c.status,
+          nextBillingDate: c.nextBillingDate,
+          currency: c.currencyCode,
+          interval: c.billingPolicy?.interval || null,
+          intervalCount: c.billingPolicy?.intervalCount || null,
+          lines: (c.lines?.edges || []).map((e: any) => ({
+            title: e.node.title, variantTitle: e.node.variantTitle, quantity: e.node.quantity,
+          })),
+          address: ship ? {
+            firstName: ship.firstName, lastName: ship.lastName,
+            address1: ship.address1, address2: ship.address2, city: ship.city,
+            province: ship.province, zip: ship.zip, country: ship.country,
+            countryCode: ship.countryCode, phone: ship.phone,
+          } : null,
+          paymentMethodId: c.customerPaymentMethod?.id || null,
+          card: inst?.__typename === "CustomerCreditCard" ? {
+            brand: inst.brand, last4: inst.lastDigits, expMonth: inst.expiryMonth, expYear: inst.expiryYear, name: inst.name,
+          } : null,
+          paypalEmail: inst?.__typename === "CustomerPaypalBillingAgreement" ? inst.paypalAccountEmail : null,
+        },
+      });
+    }
+
+    // ── subscription-address: update the delivery address (draft → commit) ──
+    if (action === "subscription-address") {
+      const { err, cid } = await loadOwnedContract();
+      if (err) return err;
+      if (!address || typeof address !== "object") return json({ error: "address required" }, 400);
+      // 1. open a draft
+      const start = await shopifyGraphQL(
+        `mutation($id: ID!) { subscriptionContractUpdate(contractId: $id) { draft { id } userErrors { message } } }`,
+        { id: cid },
+      );
+      const startErr = firstUserError(start.subscriptionContractUpdate);
+      if (startErr) return json({ error: startErr }, 400);
+      const draftId = start.subscriptionContractUpdate?.draft?.id;
+      if (!draftId) return json({ error: "Could not open subscription draft" }, 500);
+      // 2. set the shipping address on the draft
+      const mailing = {
+        firstName: address.firstName ?? null, lastName: address.lastName ?? null,
+        address1: address.address1 ?? null, address2: address.address2 ?? null,
+        city: address.city ?? null, province: address.province ?? null,
+        country: address.country ?? null, zip: address.zip ?? null, phone: address.phone ?? null,
+      };
+      const upd = await shopifyGraphQL(
+        `mutation($draftId: ID!, $input: SubscriptionDraftInput!) {
+          subscriptionDraftUpdate(draftId: $draftId, input: $input) { draft { id } userErrors { message } }
+        }`,
+        { draftId, input: { deliveryMethod: { shipping: { address: mailing } } } },
+      );
+      const updErr = firstUserError(upd.subscriptionDraftUpdate);
+      if (updErr) return json({ error: updErr }, 400);
+      // 3. commit
+      const commit = await shopifyGraphQL(
+        `mutation($draftId: ID!) { subscriptionDraftCommit(draftId: $draftId) { contract { id } userErrors { message } } }`,
+        { draftId },
+      );
+      const commitErr = firstUserError(commit.subscriptionDraftCommit);
+      if (commitErr) return json({ error: commitErr }, 400);
+      // Mirror the address onto the local row so the dashboard shows it immediately.
+      await admin.from("subscriptions")
+        .update({ shipping_data: address, updated_at: new Date().toISOString() } as any)
+        .eq("id", subscriptionId);
+      return json({ ok: true });
+    }
+
+    // ── subscription pause / resume / cancel ──
+    if (action === "subscription-pause" || action === "subscription-resume" || action === "subscription-cancel") {
+      const { err, cid } = await loadOwnedContract();
+      if (err) return err;
+      const map = {
+        "subscription-pause":  { mut: "subscriptionContractPause",    status: "paused" },
+        "subscription-resume": { mut: "subscriptionContractActivate", status: "active" },
+        "subscription-cancel": { mut: "subscriptionContractCancel",   status: "canceled" },
+      } as const;
+      const { mut, status } = map[action as keyof typeof map];
+      const data = await shopifyGraphQL(
+        `mutation($id: ID!) { ${mut}(subscriptionContractId: $id) { contract { id status } userErrors { message } } }`,
+        { id: cid },
+      );
+      const uerr = firstUserError(data[mut]);
+      if (uerr) return json({ error: uerr }, 400);
+      // Mirror status locally for instant dashboard feedback (the webhook also does).
+      await admin.from("subscriptions")
+        .update({ status, ...(status === "canceled" ? { canceled_at: new Date().toISOString() } : {}), updated_at: new Date().toISOString() } as any)
+        .eq("id", subscriptionId);
+      return json({ ok: true, status });
+    }
+
+    // ── subscription-card-url: Shopify's SECURE hosted card-update URL ──
+    // Card entry stays PCI-safe on Shopify; the dashboard just opens this URL.
+    if (action === "subscription-card-url") {
+      const { err, cid } = await loadOwnedContract();
+      if (err) return err;
+      const detail = await shopifyGraphQL(
+        `query($id: ID!) { subscriptionContract(id: $id) { customerPaymentMethod { id } } }`,
+        { id: cid },
+      );
+      const pmId = detail.subscriptionContract?.customerPaymentMethod?.id;
+      if (!pmId) return json({ error: "No payment method on this subscription" }, 400);
+      const res = await shopifyGraphQL(
+        `mutation($id: ID!) { customerPaymentMethodGetUpdateUrl(customerPaymentMethodId: $id) { updatePaymentMethodUrl userErrors { message } } }`,
+        { id: pmId },
+      );
+      const uerr = firstUserError(res.customerPaymentMethodGetUpdateUrl);
+      if (uerr) return json({ error: uerr }, 400);
+      const url = res.customerPaymentMethodGetUpdateUrl?.updatePaymentMethodUrl;
+      if (!url) return json({ error: "Could not get a card-update link" }, 500);
+      return json({ url });
     }
 
     return json({ error: "Unknown action" }, 400);

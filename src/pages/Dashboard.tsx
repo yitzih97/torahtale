@@ -10,6 +10,7 @@ import { EditChildDialog, type EditChildResult } from "@/components/dashboard/Ed
 import { BookViewerModal } from "@/components/wizard/BookViewerModal";
 import { DashboardSettings } from "@/components/dashboard/DashboardSettings";
 import { SubscriptionEditDialog } from "@/components/dashboard/SubscriptionEditDialog";
+import { ManageSubscriptionDialog } from "@/components/dashboard/ManageSubscriptionDialog";
 import { KidCard } from "@/components/dashboard/KidCard";
 import { BookCard } from "@/components/dashboard/BookCard";
 import { BookDetailDialog } from "@/components/dashboard/BookDetailDialog";
@@ -32,7 +33,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useBooks, type BookRecord } from "@/hooks/useBooks";
 import { useChildren, childDisplayName, type ChildRecord } from "@/hooks/useChildren";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
-import { SHOPIFY_ACCOUNT_URL } from "@/lib/shopify";
 import { toast } from "sonner";
 
 const ease = [0.22, 1, 0.36, 1];
@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [editingChild, setEditingChild] = useState<ChildRecord | null>(null);
   
   const [editingSub, setEditingSub] = useState<typeof subscriptions[number] | null>(null);
+  const [managingSub, setManagingSub] = useState<typeof subscriptions[number] | null>(null);
   const [viewingBook, setViewingBook] = useState<BookRecord | null>(null);
   const [openBook, setOpenBook] = useState<BookRecord | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -435,7 +436,7 @@ export default function Dashboard() {
                         sub={sub}
                         index={i}
                         onEdit={() => setEditingSub(sub)}
-                        onManage={() => window.open(SHOPIFY_ACCOUNT_URL, "_blank", "noopener,noreferrer")}
+                        onManage={() => setManagingSub(sub)}
                       />
                     ))}
 
@@ -584,6 +585,14 @@ export default function Dashboard() {
           toast.success(t.dash.sub.updated);
         }}
         isSaving={updateSubscription.isPending}
+      />
+
+      {/* Manage subscription (billing) — local UI backed by Shopify Admin API. */}
+      <ManageSubscriptionDialog
+        open={!!managingSub}
+        onClose={() => setManagingSub(null)}
+        subscription={managingSub}
+        onChanged={() => queryClient.invalidateQueries({ queryKey: ["subscriptions"] })}
       />
 
       {/* Book Detail Dialog */}

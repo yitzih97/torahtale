@@ -370,6 +370,21 @@ export const en = {
       next4Subtext: "A brand-new personalized Parsha book every week — starring your kids as the stars.",
       yourKids: "your kids",
     },
+    // Local subscription management (billing) dialog
+    manage: {
+      title: "Manage subscription",
+      loading: "Loading your subscription…",
+      noContract: "This subscription isn't linked to billing yet. Once your first payment goes through, you can manage it here.",
+      status: "Status", nextBilling: "Next billing", plan: "Plan",
+      card: "Payment card", noCard: "No card on file",
+      updateCard: "Update card", cardSecureNote: "For your security, card details are entered on Shopify's secure page (opens in a new tab).",
+      shippingAddress: "Shipping address", noAddress: "No delivery address yet",
+      editAddress: "Edit address", saveAddress: "Save address", addressSaved: "Delivery address updated",
+      pause: "Pause deliveries", resume: "Resume deliveries", cancelSub: "Cancel subscription",
+      cancelConfirm: "Cancel this subscription? Your books stop and billing ends. You can re-subscribe anytime.",
+      paused: "Subscription paused", resumed: "Subscription resumed", canceled: "Subscription canceled",
+      actionFailed: "Something went wrong. Please try again.", close: "Close", opening: "Opening…",
+    },
   },
 
   // Contact
