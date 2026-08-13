@@ -262,6 +262,113 @@ export const en = {
     managePlan: "Manage plan",
     startPlan: "Start plan",
     editPhoto: "Edit",
+    // Shared
+    forChild: (name: string) => `For ${name}`,
+    comingNextFor: (name: string) => `Coming next for ${name}`,
+    subscribeAnother: "Subscribe Another Child",
+    // Book statuses (DB enum → label)
+    bookStatus: {
+      delivered: "Delivered", shipped: "Shipped", printing: "Printing", ordered: "Ordered",
+      approved: "Approved", creating: "Creating", draft: "Draft", generating: "Generating",
+      onTheWay: "On the way",
+    },
+    // Art style + language values
+    art3dPixar: "3D Pixar", artCartoon: "Cartoon", artGraphicNovel: "Graphic Novel",
+    langEnglish: "English", langHebrew: "Hebrew", langYiddish: "Yiddish",
+    metaArt: "Art", metaLang: "Lang",
+    // Book card / detail
+    book: {
+      open: "Open", taleFallback: "Torah Tale", pages: (n: number) => `${n} pages`,
+      viewPages: "View pages", details: "Details", saving: "Saving…", download: "Download",
+      editReview: "Edit review", review: "Review", reorder: "Reorder",
+      shippedAgo: (ago: string) => `Shipped ${ago} ago`, readySoon: "Ready soon",
+    },
+    detail: {
+      child: "Child", portion: "Portion", artStyle: "Art style", language: "Language",
+      orderNo: "Order #", created: "Created", pagesReady: (n: number) => `${n} pages ready`,
+      shippingTo: "Shipping to", downloadZip: "Download ZIP",
+    },
+    timeline: {
+      title: "Timeline", range: (n: number) => `past 30 days · next ${n} weeks`,
+      nextBook: "Next book ships",
+    },
+    // Orders & invoices
+    orders: {
+      title: "Orders & Invoices", subtitle: "Your past book orders and receipts",
+      manageBilling: "Manage billing", empty: "No orders yet",
+      emptyDesc: "Once you place an order, it'll appear here.",
+      bookAlt: "Book", orderFallback: "Order", bookFallback: "Book", invoice: "Invoice",
+    },
+    // Subscription card / manage
+    sub: {
+      reactivate: "Reactivate in your account", manage: "Manage subscription & payment",
+      reactivateHint: "Restart billing and delivery from your secure account.",
+      manageHint: "Update payment, pause, or cancel anytime in your secure account.",
+      editDelivery: "Edit delivery details",
+      paused: "Subscription paused", resumed: "Subscription resumed!", updated: "Subscription updated",
+    },
+    // Edit-subscription dialog
+    subEdit: {
+      title: "Edit Subscription", child: "Child", chooseChild: "Choose child",
+      frequency: "Frequency", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly",
+      shippingAddress: "Shipping Address", fullName: "Full Name", street: "Street Address",
+      city: "City", state: "State", zip: "ZIP", paymentMethod: "Payment Method",
+      managePayment: "Manage Payment Method",
+      paymentHint: "Payment methods are securely managed in your Shopify account.",
+    },
+    // Review dialog
+    review: {
+      pickRating: "Pick a star rating", updated: "Review updated · thank you!",
+      thanks: "Thanks for your review!", saveError: "Could not save review",
+      removed: "Review removed", deleteError: "Could not delete review",
+      editTitle: "Edit your review", title: "Review this book",
+      starLabel: (n: number) => `${n} ${n === 1 ? "star" : "stars"}`, tapToRate: "Tap to rate",
+      outOf: (n: number) => `${n} / 5`, yourName: "Your name", namePlaceholder: "e.g. Sarah B.",
+      comment: "Tell us about it", commentPlaceholder: "What did your child love most?",
+      delete: "Delete", update: "Update", submit: "Submit review",
+    },
+    // Settings
+    settingsPanel: {
+      profileUpdated: "Profile updated!", profileError: "Failed to update profile",
+      pwTooShort: "Password must be at least 6 characters", pwMismatch: "Passwords don't match",
+      pwUpdated: "Password updated!", pwError: "Failed to change password", signedOut: "Signed out",
+      profile: "Profile", profileSub: "Your personal information", fullName: "Full Name",
+      namePlaceholder: "Your name", email: "Email", password: "Password",
+      passwordSub: "Update your account password", newPassword: "New Password",
+      confirmPassword: "Confirm Password", updatePassword: "Update Password",
+      payment: "Payment Methods", paymentSub: "Securely managed via Shopify",
+      manageCards: "Manage cards in Shopify", cardsHint: "Saved cards and billing live in your Shopify customer account.",
+      manage: "Manage", notifications: "Notifications", notificationsSub: "Choose what emails you receive",
+      notifBookReady: "Book Ready", notifBookReadyDesc: "When your book is ready to view",
+      notifShipping: "Shipping Updates", notifShippingDesc: "Track your book's delivery status",
+      notifSubs: "Subscription Reminders", notifSubsDesc: "Weekly reminders about upcoming deliveries",
+      account: "Account", accountSub: "Sign out or delete your account",
+      signOut: "Sign Out", deleteAccount: "Delete Account",
+    },
+    // Book viewer modal
+    viewer: {
+      pdfDownloaded: "PDF downloaded!", pdfError: "Failed to generate PDF. Please try again.",
+      generatingPdf: "Generating PDF...", downloadPdf: "Download PDF",
+      editBook: "Edit Book", orderAgain: "Order Again",
+    },
+    // Merge kids
+    merge: {
+      done: (name: string) => `Merged into ${name}.`, failed: "Merge failed — please try again.",
+      selected: (n: number) => `${n} selected`, pickAnother: " · pick another to merge",
+      clear: "Clear", mergeSelected: "Merge selected", deselect: "Deselect", select: "Select to merge",
+      title: "Merge kids", description: "Keep one profile and combine the rest into it. First choose which child to keep:",
+      yrs: (n: number) => `${n} yrs`, keepThisOne: " · keep this one",
+      othersPrompt: "What about the other kids' books & subscriptions?",
+      merging: "Merging…", moveOption: "Move their books & subscriptions to the kept child",
+      combineOption: "Just combine the profile (leave books where they are)",
+    },
+    // Download toasts
+    download: { noPages: "No pages to download", ready: "Download ready!", failed: "Download failed" },
+    // Parsha next-4 preview
+    parsha: {
+      next4Heading: (names: string) => `The next 4 books ${names} could receive`,
+      next4Subtext: "A brand-new personalized Parsha book every week — starring your kids as the stars.",
+    },
   },
 
   // Contact
