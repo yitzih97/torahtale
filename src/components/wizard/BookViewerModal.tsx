@@ -27,7 +27,7 @@ interface Props {
 
 export const BookViewerModal = ({ open, onClose, childName, coverChildName, torahPortion, artStyle, language, pages, bookFormat, onEdit, onReorder }: Props) => {
   const [downloading, setDownloading] = useState(false);
-  const { dir, lang: uiLang } = useLanguage();
+  const { t, dir, lang: uiLang } = useLanguage();
   // The book's own language wins over the viewer's UI language.
   const lang = language ? bookLanguageCode(language) : uiLang;
   const rtl = language ? isBookRtl(language) : dir === "rtl";
@@ -44,10 +44,10 @@ export const BookViewerModal = ({ open, onClose, childName, coverChildName, tora
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success("PDF downloaded!");
+      toast.success(t.dash.viewer.pdfDownloaded);
     } catch (err) {
       console.error("PDF generation failed:", err);
-      toast.error("Failed to generate PDF. Please try again.");
+      toast.error(t.dash.viewer.pdfError);
     } finally {
       setDownloading(false);
     }
@@ -66,16 +66,16 @@ export const BookViewerModal = ({ open, onClose, childName, coverChildName, tora
               className="rounded-xl gap-2 flex-1"
             >
               {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              {downloading ? "Generating PDF..." : "Download PDF"}
+              {downloading ? t.dash.viewer.generatingPdf : t.dash.viewer.downloadPdf}
             </Button>
             {onEdit && (
               <Button variant="outline" onClick={onEdit} className="rounded-xl gap-2 flex-1">
-                <Pencil className="w-4 h-4" /> Edit Book
+                <Pencil className="w-4 h-4" /> {t.dash.viewer.editBook}
               </Button>
             )}
             {onReorder && (
               <Button variant="gold" onClick={onReorder} className="rounded-xl gap-2 flex-1">
-                Order Again <ArrowRight className="w-4 h-4" />
+                {t.dash.viewer.orderAgain} <ArrowRight className="w-4 h-4" />
               </Button>
             )}
           </div>

@@ -111,10 +111,10 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ["children"] });
       queryClient.invalidateQueries({ queryKey: ["books"] });
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
-      toast.success(`Merged into ${keep.name}.`);
+      toast.success(t.dash.merge.done(keep.name));
     } catch (e) {
       console.error("merge kids failed", e);
-      toast.error("Merge failed — please try again.");
+      toast.error(t.dash.merge.failed);
     } finally {
       setMerging(false);
       setMergeOpen(false);
@@ -174,7 +174,7 @@ export default function Dashboard() {
 
   const handleDownloadBook = async (book: BookRecord) => {
     const pages = (book.pages_data as any[]) || [];
-    if (!pages.length) { toast.error("No pages to download"); return; }
+    if (!pages.length) { toast.error(t.dash.download.noPages); return; }
     setDownloadingId(book.id);
     try {
       const blob = await generateBookZip(pages, book.child_name || "book", book.order_number || book.id);
@@ -184,8 +184,8 @@ export default function Dashboard() {
       a.download = `${book.child_name || "book"}-${book.torah_portion || "tale"}.zip`.replace(/\s+/g, "-").toLowerCase();
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success("Download ready!");
-    } catch { toast.error("Download failed"); }
+      toast.success(t.dash.download.ready);
+    } catch { toast.error(t.dash.download.failed); }
     finally { setDownloadingId(null); }
   };
 
@@ -286,13 +286,13 @@ export default function Dashboard() {
                     {selectedKidIds.size >= 1 && (
                       <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-border/50 bg-card/70 backdrop-blur px-4 py-2.5">
                         <span className="text-sm text-muted-foreground">
-                          {selectedKidIds.size} selected
-                          {selectedKidIds.size < 2 && " · pick another to merge"}
+                          {t.dash.merge.selected(selectedKidIds.size)}
+                          {selectedKidIds.size < 2 && t.dash.merge.pickAnother}
                         </span>
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => setSelectedKidIds(new Set())}>Clear</Button>
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedKidIds(new Set())}>{t.dash.merge.clear}</Button>
                           <Button variant="gold" size="sm" disabled={selectedKidIds.size < 2} onClick={openMerge}>
-                            Merge selected
+                            {t.dash.merge.mergeSelected}
                           </Button>
                         </div>
                       </div>
@@ -310,7 +310,7 @@ export default function Dashboard() {
                         <button
                           type="button"
                           onClick={() => toggleKidSelect(kid.id)}
-                          aria-label={selected ? "Deselect" : "Select to merge"}
+                          aria-label={selected ? t.dash.merge.deselect : t.dash.merge.select}
                           className={`absolute top-3 left-3 z-20 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${selected ? "bg-accent border-accent text-white" : "bg-white/80 border-border/60 text-transparent hover:border-accent"}`}
                         >
                           <Check className="w-4 h-4" strokeWidth={3} />
@@ -330,7 +330,7 @@ export default function Dashboard() {
                             if (!kidSub) return;
                             const next = kidSub.status === "active" ? "paused" : "active";
                             await updateSubscription.mutateAsync({ id: kidSub.id, status: next });
-                            toast.success(next === "paused" ? "Subscription paused" : "Subscription resumed!");
+                            toast.success(next === "paused" ? t.dash.sub.paused : t.dash.sub.resumed);
                           }}
                         />
                         </div>
@@ -419,8 +419,8 @@ export default function Dashboard() {
                     <div className="relative mt-8 pt-6 border-t border-border/40">
                       <UpcomingBookCovers
                         childNames={kidNames}
-                        heading={`The next 4 books ${kidNames || "your kids"} could receive`}
-                        subtext="A brand-new personalized Parsha book every week — starring your kids as the stars."
+                        heading={t.dash.parsha.next4Heading(kidNames || t.dash.parsha.yourKids)}
+                        subtext={t.dash.parsha.next4Subtext}
                         ctaLabel={t.dash.createAndSubscribe}
                         onCta={() => navigate("/?start=1")}
                       />
@@ -453,7 +453,7 @@ export default function Dashboard() {
                       <div className="w-12 h-12 rounded-2xl bg-white/70 border border-white/70 ring-1 ring-black/5 flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9)]">
                         <Plus className="w-6 h-6" strokeWidth={1.75} />
                       </div>
-                      <span className="text-sm font-medium">Subscribe Another Child</span>
+                      <span className="text-sm font-medium">{t.dash.subscribeAnother}</span>
                     </motion.button>
                     </div>
                   </>
@@ -485,9 +485,9 @@ export default function Dashboard() {
         <DialogContent className="max-w-md rounded-3xl p-6">
           <div className="space-y-4">
             <div>
-              <p className="font-display font-semibold text-base text-foreground">Merge kids</p>
+              <p className="font-display font-semibold text-base text-foreground">{t.dash.merge.title}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Keep one profile and combine the rest into it. First choose which child to keep:
+                {t.dash.merge.description}
               </p>
             </div>
             <div className="space-y-2">
@@ -508,8 +508,8 @@ export default function Dashboard() {
                     <span className="min-w-0">
                       <span className="block text-sm font-semibold text-foreground truncate">{childDisplayName(kid, lang)}</span>
                       <span className="block text-xs text-muted-foreground truncate">
-                        {[kid.age != null ? `${kid.age} yrs` : null, kid.gender].filter(Boolean).join(" · ") || "—"}
-                        {isKeep && " · keep this one"}
+                        {[kid.age != null ? t.dash.merge.yrs(kid.age) : null, kid.gender].filter(Boolean).join(" · ") || t.dash.notSet}
+                        {isKeep && t.dash.merge.keepThisOne}
                       </span>
                     </span>
                   </button>
@@ -517,15 +517,15 @@ export default function Dashboard() {
               })}
             </div>
             <div className="pt-1 space-y-2">
-              <p className="text-xs text-muted-foreground">What about the other kids' books &amp; subscriptions?</p>
+              <p className="text-xs text-muted-foreground">{t.dash.merge.othersPrompt}</p>
               <Button variant="gold" className="w-full rounded-xl h-11" disabled={merging || !mergeKeepId} onClick={() => handleMerge(true)}>
-                {merging ? "Merging…" : "Move their books & subscriptions to the kept child"}
+                {merging ? t.dash.merge.merging : t.dash.merge.moveOption}
               </Button>
               <Button variant="outline" className="w-full rounded-xl h-11 border-border/50" disabled={merging || !mergeKeepId} onClick={() => handleMerge(false)}>
-                Just combine the profile (leave books where they are)
+                {t.dash.merge.combineOption}
               </Button>
               <Button variant="ghost" className="w-full rounded-xl h-9 text-muted-foreground" disabled={merging} onClick={() => setMergeOpen(false)}>
-                Cancel
+                {t.dash.cancel}
               </Button>
             </div>
           </div>
@@ -581,7 +581,7 @@ export default function Dashboard() {
         children={children}
         onSave={async (updates) => {
           await updateSubscription.mutateAsync(updates);
-          toast.success("Subscription updated");
+          toast.success(t.dash.sub.updated);
         }}
         isSaving={updateSubscription.isPending}
       />

@@ -368,6 +368,7 @@ export const en = {
     parsha: {
       next4Heading: (names: string) => `The next 4 books ${names} could receive`,
       next4Subtext: "A brand-new personalized Parsha book every week — starring your kids as the stars.",
+      yourKids: "your kids",
     },
   },
 

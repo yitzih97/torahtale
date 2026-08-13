@@ -358,6 +358,7 @@ export const he: typeof en = {
     parsha: {
       next4Heading: (names: string) => `4 הספרים הבאים ש${names} יכולים לקבל`,
       next4Subtext: "ספר פרשה מותאם אישית חדש מדי שבוע — בכיכוב הילדים שלכם.",
+      yourKids: "הילדים שלכם",
     },
   },
 

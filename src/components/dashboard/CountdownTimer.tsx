@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CountdownTimerProps {
   createdAt: string; // ISO date string
@@ -7,6 +8,7 @@ interface CountdownTimerProps {
 }
 
 export function CountdownTimer({ createdAt, durationMs = 24 * 60 * 60 * 1000 }: CountdownTimerProps) {
+  const { t } = useLanguage();
   const [remaining, setRemaining] = useState(() => {
     const end = new Date(createdAt).getTime() + durationMs;
     return Math.max(0, end - Date.now());
@@ -32,7 +34,7 @@ export function CountdownTimer({ createdAt, durationMs = 24 * 60 * 60 * 1000 }: 
   if (remaining <= 0) {
     return (
       <span className="text-xs text-muted-foreground flex items-center gap-1">
-        <Clock className="w-3 h-3" /> Ready soon
+        <Clock className="w-3 h-3" /> {t.dash.book.readySoon}
       </span>
     );
   }

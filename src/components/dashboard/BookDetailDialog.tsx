@@ -1,18 +1,18 @@
-import { format } from "date-fns";
 import { BookOpen, Eye, Download, RotateCw, Truck, Package, CheckCircle2, Sparkles, Hash, Globe2, Palette, Calendar, User, MapPin, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { BookRecord } from "@/hooks/useBooks";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { dfFormat } from "@/lib/dateLocale";
 
-const statusMeta = (s: string) => {
-  if (s === "delivered") return { cls: "bg-emerald-50 text-emerald-700 border-emerald-200/60", Icon: Truck, label: "Delivered" };
-  if (s === "shipped") return { cls: "bg-sky-50 text-sky-700 border-sky-200/60", Icon: Truck, label: "Shipped" };
-  if (s === "printing" || s === "ordered") return { cls: "bg-blue-50 text-blue-700 border-blue-200/60", Icon: Package, label: s === "printing" ? "Printing" : "Ordered" };
-  if (s === "approved") return { cls: "bg-violet-50 text-violet-700 border-violet-200/60", Icon: CheckCircle2, label: "Approved" };
-  if (s === "generating") return { cls: "bg-amber-50 text-amber-700 border-amber-200/60", Icon: Sparkles, label: "Creating" };
-  return { cls: "bg-muted/60 text-muted-foreground border-border/60", Icon: Sparkles, label: "Draft" };
+const statusMeta = (s: string, bs: Record<string, string>) => {
+  if (s === "delivered") return { cls: "bg-emerald-50 text-emerald-700 border-emerald-200/60", Icon: Truck, label: bs.delivered };
+  if (s === "shipped") return { cls: "bg-sky-50 text-sky-700 border-sky-200/60", Icon: Truck, label: bs.shipped };
+  if (s === "printing" || s === "ordered") return { cls: "bg-blue-50 text-blue-700 border-blue-200/60", Icon: Package, label: s === "printing" ? bs.printing : bs.ordered };
+  if (s === "approved") return { cls: "bg-violet-50 text-violet-700 border-violet-200/60", Icon: CheckCircle2, label: bs.approved };
+  if (s === "generating") return { cls: "bg-amber-50 text-amber-700 border-amber-200/60", Icon: Sparkles, label: bs.creating };
+  return { cls: "bg-muted/60 text-muted-foreground border-border/60", Icon: Sparkles, label: bs.draft };
 };
 
 interface Props {
@@ -26,21 +26,33 @@ interface Props {
 }
 
 export function BookDetailDialog({ book, open, onClose, onView, onDownload, onReorder, downloading }: Props) {
-  const { lang } = useLanguage();
+  const { t, lang } = useLanguage();
   if (!book) return null;
-  const meta = statusMeta(book.status);
+  const meta = statusMeta(book.status, t.dash.bookStatus as Record<string, string>);
   const pages = (book.pages_data as any[]) || [];
   const hasPages = pages.length > 0;
   const ship = book.shipping_data as any;
   const portionDisplay = book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "";
 
+  const artStyleLabel = (v: string) => {
+    if (v === "cartoon") return t.dash.artCartoon;
+    if (v === "graphic-novel") return t.dash.artGraphicNovel;
+    return t.dash.art3dPixar;
+  };
+  const languageLabel = (v: string) => {
+    const lv = v.toLowerCase();
+    if (lv === "hebrew") return t.dash.langHebrew;
+    if (lv === "yiddish") return t.dash.langYiddish;
+    return t.dash.langEnglish;
+  };
+
   const infoRows = [
-    { Icon: User, label: "Child", value: book.child_name || "—" },
-    { Icon: BookOpen, label: "Portion", value: portionDisplay || "—" },
-    { Icon: Palette, label: "Art style", value: (book.art_style || "3d-pixar").replace("3d-pixar", "3D Pixar") },
-    { Icon: Globe2, label: "Language", value: book.language || "English" },
-    { Icon: Hash, label: "Order #", value: book.order_number || "—" },
-    { Icon: Calendar, label: "Created", value: format(new Date(book.created_at), "MMM d, yyyy") },
+    { Icon: User, label: t.dash.detail.child, value: book.child_name || t.dash.notSet },
+    { Icon: BookOpen, label: t.dash.detail.portion, value: portionDisplay || t.dash.notSet },
+    { Icon: Palette, label: t.dash.detail.artStyle, value: artStyleLabel(book.art_style || "3d-pixar") },
+    { Icon: Globe2, label: t.dash.detail.language, value: languageLabel(book.language || "English") },
+    { Icon: Hash, label: t.dash.detail.orderNo, value: book.order_number || t.dash.notSet },
+    { Icon: Calendar, label: t.dash.detail.created, value: dfFormat(new Date(book.created_at), "MMM d, yyyy", lang) },
   ];
 
   return (
@@ -65,13 +77,13 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
             </div>
             <div className="flex-1 min-w-0">
               <DialogHeader className="text-left">
-                <DialogTitle className="font-display text-2xl text-foreground">{portionDisplay || "Torah Tale"}</DialogTitle>
+                <DialogTitle className="font-display text-2xl text-foreground">{portionDisplay || t.dash.book.taleFallback}</DialogTitle>
               </DialogHeader>
-              <p className="text-sm text-muted-foreground mt-1">For {book.child_name || "—"}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t.dash.forChild(book.child_name || t.dash.notSet)}</p>
               <span className={`mt-3 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border ${meta.cls}`}>
                 <meta.Icon className="w-3 h-3" /> {meta.label}
               </span>
-              {hasPages && <p className="text-xs text-muted-foreground mt-3">{pages.length} pages ready</p>}
+              {hasPages && <p className="text-xs text-muted-foreground mt-3">{t.dash.detail.pagesReady(pages.length)}</p>}
             </div>
             <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/70 hover:bg-white border border-white/70 ring-1 ring-black/5 flex items-center justify-center transition-colors">
               <X className="w-4 h-4" />
@@ -96,7 +108,7 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
               <div className="rounded-2xl bg-white/55 border border-white/70 ring-1 ring-black/5 p-4 flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
                 <div className="text-xs">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Shipping to</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">{t.dash.detail.shippingTo}</p>
                   <p className="font-medium text-foreground">{ship.fullName}</p>
                   <p className="text-muted-foreground">{ship.street}{ship.apt ? `, ${ship.apt}` : ""}, {ship.city}, {ship.state} {ship.zip}</p>
                 </div>
@@ -108,14 +120,14 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
           <div className="relative p-6 sm:p-8 flex flex-wrap gap-2">
             {hasPages && (
               <Button onClick={onView} className="rounded-2xl">
-                <Eye className="w-4 h-4 mr-1" /> View pages
+                <Eye className="w-4 h-4 mr-1" /> {t.dash.book.viewPages}
               </Button>
             )}
             <Button variant="outline" onClick={onDownload} disabled={!hasPages || downloading} className="rounded-2xl">
-              <Download className="w-4 h-4 mr-1" /> {downloading ? "Saving…" : "Download ZIP"}
+              <Download className="w-4 h-4 mr-1" /> {downloading ? t.dash.book.saving : t.dash.detail.downloadZip}
             </Button>
             <Button variant="outline" onClick={onReorder} className="rounded-2xl">
-              <RotateCw className="w-4 h-4 mr-1" /> Reorder
+              <RotateCw className="w-4 h-4 mr-1" /> {t.dash.book.reorder}
             </Button>
           </div>
         </div>

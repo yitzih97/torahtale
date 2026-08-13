@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { format } from "date-fns";
+import { dfFormat } from "@/lib/dateLocale";
 import {
   Pencil, BookOpen, Pause, Play, Sparkles, Settings, Plus,
 } from "lucide-react";
@@ -159,7 +159,7 @@ export function KidCard({
               {nextDeliveryCopy}
               {subscription?.next_delivery_date && (
                 <span className="text-muted-foreground/80 font-normal text-sm ml-1.5">
-                  · {format(new Date(subscription.next_delivery_date), "MMM d")}
+                  · {dfFormat(new Date(subscription.next_delivery_date), "MMM d", lang)}
                 </span>
               )}
             </p>

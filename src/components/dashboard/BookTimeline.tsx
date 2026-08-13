@@ -1,9 +1,10 @@
-import { format, addDays, addWeeks, isSameDay } from "date-fns";
+import { addDays, addWeeks, isSameDay } from "date-fns";
 import { Truck, Sparkles, CalendarDays } from "lucide-react";
 import type { BookRecord } from "@/hooks/useBooks";
 import type { SubscriptionRecord } from "@/hooks/useSubscriptions";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { dfFormat } from "@/lib/dateLocale";
 
 interface Props {
   books: BookRecord[];
@@ -19,7 +20,8 @@ type Slot = {
 };
 
 export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
-  const { lang } = useLanguage();
+  const { t, lang } = useLanguage();
+  const statusLabel = (s: string) => (t.dash.bookStatus as Record<string, string>)[s] ?? s;
   const today = new Date();
   const slots: Slot[] = [];
 
@@ -33,7 +35,7 @@ export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
       slots.push({
         date: d,
         kind: b.status === "delivered" ? "past-delivery" : "past-order",
-        label: `${b.torah_portion ? getPortionDisplay(b.torah_portion, lang) : "Tale"} · ${b.status}`,
+        label: `${b.torah_portion ? getPortionDisplay(b.torah_portion, lang) : t.dash.book.taleFallback} · ${statusLabel(b.status)}`,
         sub: b.child_name || undefined,
       });
     });
@@ -50,7 +52,7 @@ export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
         slots.push({
           date: d,
           kind: isSameDay(d, today) ? "today" : "upcoming",
-          label: `Next book ships`,
+          label: t.dash.timeline.nextBook,
           sub: s.child_name || undefined,
         });
       }
@@ -69,8 +71,8 @@ export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
       <div aria-hidden className="pointer-events-none absolute -top-16 -left-16 w-48 h-48 rounded-full blur-3xl opacity-70 bg-gradient-to-br from-amber-200/60 to-orange-200/40" />
       <div className="relative flex items-center gap-2 mb-4">
         <CalendarDays className="w-4 h-4 text-accent" />
-        <h3 className="font-display text-sm font-semibold text-foreground uppercase tracking-wider">Timeline</h3>
-        <span className="text-[10px] text-muted-foreground">past 30 days · next {weeksAhead} weeks</span>
+        <h3 className="font-display text-sm font-semibold text-foreground uppercase tracking-wider">{t.dash.timeline.title}</h3>
+        <span className="text-[10px] text-muted-foreground">{t.dash.timeline.range(weeksAhead)}</span>
       </div>
       <div className="relative flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
         {slots.map((s, i) => {
@@ -87,10 +89,10 @@ export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
             >
               <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider opacity-70 font-medium">
                 <Icon className="w-3 h-3" />
-                {format(s.date, "EEE, MMM d")}
+                {dfFormat(s.date, "EEE, MMM d", lang)}
               </div>
               <p className="text-xs font-semibold mt-1 truncate capitalize">{s.label}</p>
-              {s.sub && <p className="text-[11px] opacity-80 truncate">For {s.sub}</p>}
+              {s.sub && <p className="text-[11px] opacity-80 truncate">{t.dash.forChild(s.sub)}</p>}
             </div>
           );
         })}

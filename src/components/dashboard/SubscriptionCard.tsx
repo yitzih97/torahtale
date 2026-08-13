@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { format } from "date-fns";
 import {
   CalendarHeart, Pencil, CreditCard, Sparkles, Palette, Globe, RotateCcw, BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { dfFormat } from "@/lib/dateLocale";
 import { getUpcomingParsha, getPortionDisplay } from "@/components/wizard/TorahPortions";
 import type { SubscriptionRecord } from "@/hooks/useSubscriptions";
 
@@ -44,6 +44,14 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
     const diff = new Date(sub.next_delivery_date).getTime() - Date.now();
     if (diff < 0) return 0;
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  })();
+
+  const langLabel = (() => {
+    const v = (sub.language || "English").toLowerCase();
+    if (v === "hebrew") return t.dash.langHebrew;
+    if (v === "yiddish") return t.dash.langYiddish;
+    if (v === "english") return t.dash.langEnglish;
+    return sub.language || t.dash.langEnglish;
   })();
 
   // The next few weekly parshiyos this subscription will deliver — shown as small
@@ -87,7 +95,7 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
             {t.dash.parshaClub}
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-            For {sub.child_name || "your child"} ·{" "}
+            {t.dash.forChild(sub.child_name || t.dash.yourChild)} ·{" "}
             <span className="font-medium text-foreground/80">
               {t.currency.symbol}
               {(sub.price_per_week * t.currency.rate).toFixed(2)}
@@ -103,7 +111,13 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
               isActive ? "bg-emerald-500" : isPaused ? "bg-amber-500" : "bg-muted-foreground/40"
             }`}
           />
-          {sub.status}
+          {sub.status === "active"
+            ? t.dash.subActive
+            : sub.status === "paused"
+              ? t.dash.subPaused
+              : sub.status === "canceled"
+                ? t.dash.subCanceled
+                : sub.status}
         </span>
       </div>
 
@@ -118,12 +132,12 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
             </p>
             <p className="text-sm font-display font-semibold text-foreground">
               {daysUntil === 0
-                ? "Shipping today"
+                ? t.dash.shippingToday
                 : daysUntil === 1
-                  ? "Ships tomorrow"
-                  : `In ${daysUntil} days`}
+                  ? t.dash.shipsTomorrow
+                  : t.dash.inDays(daysUntil)}
               <span className="text-muted-foreground font-normal text-xs ml-1.5">
-                · {format(new Date(sub.next_delivery_date!), "MMM d")}
+                · {dfFormat(new Date(sub.next_delivery_date!), "MMM d", lang)}
               </span>
             </p>
           </div>
@@ -132,15 +146,15 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
 
       {/* Meta strip */}
       <div className="relative grid grid-cols-2 gap-2">
-        <MetaPill Icon={Palette} label="Art" value={sub.art_style === "3d-pixar" ? "3D Pixar" : sub.art_style || "Cartoon"} />
-        <MetaPill Icon={Globe} label="Lang" value={sub.language || "English"} />
+        <MetaPill Icon={Palette} label={t.dash.metaArt} value={sub.art_style === "3d-pixar" ? t.dash.art3dPixar : t.dash.artCartoon} />
+        <MetaPill Icon={Globe} label={t.dash.metaLang} value={langLabel} />
       </div>
 
       {/* Coming next — small cover thumbnails of the upcoming weekly books */}
       {!isCanceled && upcoming.length > 0 && (
         <div className="relative">
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
-            Coming next for {sub.child_name || "your child"}
+            {t.dash.comingNextFor(sub.child_name || t.dash.yourChild)}
           </p>
           <div className="grid grid-cols-3 gap-2">
             {upcoming.map((it, i) => (
@@ -152,7 +166,7 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
                 <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_25%,hsl(42_78%_70%/0.55),transparent_60%)]" />
                 <BookOpen className="w-3.5 h-3.5 text-gold/70 mb-1 relative" strokeWidth={1.75} />
                 <p className="relative font-display font-bold text-primary leading-[1.05] text-[11px] line-clamp-2">{it.label}</p>
-                <p className="relative mt-0.5 font-body italic text-gold text-[9px] line-clamp-1">{sub.child_name || "your child"}</p>
+                <p className="relative mt-0.5 font-body italic text-gold text-[9px] line-clamp-1">{sub.child_name || t.dash.yourChild}</p>
               </div>
             ))}
           </div>
@@ -169,15 +183,15 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
           className="w-full rounded-2xl gap-2 h-11"
         >
           {isCanceled ? <RotateCcw className="w-4 h-4" strokeWidth={2} /> : <CreditCard className="w-4 h-4" strokeWidth={2} />}
-          {isCanceled ? "Reactivate in your account" : "Manage subscription & payment"}
+          {isCanceled ? t.dash.sub.reactivate : t.dash.sub.manage}
         </Button>
         <p className="text-[11px] text-muted-foreground text-center leading-snug px-1">
           {isCanceled
-            ? "Restart billing and delivery from your secure account."
-            : "Update payment, pause, or cancel anytime in your secure account."}
+            ? t.dash.sub.reactivateHint
+            : t.dash.sub.manageHint}
         </p>
         {!isCanceled && (
-          <ActionTile Icon={Pencil} label="Edit delivery details" onClick={onEdit} />
+          <ActionTile Icon={Pencil} label={t.dash.sub.editDelivery} onClick={onEdit} />
         )}
       </div>
     </motion.div>

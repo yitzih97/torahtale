@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { format, formatDistanceToNow } from "date-fns";
 import { BookOpen, Eye, Download, RotateCw, Package, Truck, Loader2, Sparkles, CheckCircle2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
 import type { BookRecord } from "@/hooks/useBooks";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { dfFormat, dfDistance } from "@/lib/dateLocale";
 
 
 
@@ -19,13 +19,13 @@ const colorRing = [
   "from-amber-200/60 to-orange-200/40",
 ];
 
-const statusMeta = (s: string) => {
-  if (s === "delivered") return { cls: "bg-emerald-50 text-emerald-700 border-emerald-200/60", dot: "bg-emerald-500", Icon: Truck, label: "Delivered" };
-  if (s === "shipped") return { cls: "bg-sky-50 text-sky-700 border-sky-200/60", dot: "bg-sky-500", Icon: Truck, label: "Shipped" };
-  if (s === "printing" || s === "ordered") return { cls: "bg-blue-50 text-blue-700 border-blue-200/60", dot: "bg-blue-500", Icon: Package, label: s === "printing" ? "Printing" : "Ordered" };
-  if (s === "approved") return { cls: "bg-violet-50 text-violet-700 border-violet-200/60", dot: "bg-violet-500", Icon: CheckCircle2, label: "Approved" };
-  if (s === "generating") return { cls: "bg-amber-50 text-amber-700 border-amber-200/60", dot: "bg-amber-500", Icon: Loader2, label: "Creating" };
-  return { cls: "bg-muted/60 text-muted-foreground border-border/60", dot: "bg-muted-foreground/40", Icon: Sparkles, label: "Draft" };
+const statusMeta = (s: string, bs: Record<string, string>) => {
+  if (s === "delivered") return { cls: "bg-emerald-50 text-emerald-700 border-emerald-200/60", dot: "bg-emerald-500", Icon: Truck, label: bs.delivered };
+  if (s === "shipped") return { cls: "bg-sky-50 text-sky-700 border-sky-200/60", dot: "bg-sky-500", Icon: Truck, label: bs.shipped };
+  if (s === "printing" || s === "ordered") return { cls: "bg-blue-50 text-blue-700 border-blue-200/60", dot: "bg-blue-500", Icon: Package, label: s === "printing" ? bs.printing : bs.ordered };
+  if (s === "approved") return { cls: "bg-violet-50 text-violet-700 border-violet-200/60", dot: "bg-violet-500", Icon: CheckCircle2, label: bs.approved };
+  if (s === "generating") return { cls: "bg-amber-50 text-amber-700 border-amber-200/60", dot: "bg-amber-500", Icon: Loader2, label: bs.creating };
+  return { cls: "bg-muted/60 text-muted-foreground border-border/60", dot: "bg-muted-foreground/40", Icon: Sparkles, label: bs.draft };
 };
 
 interface Props {
@@ -41,8 +41,8 @@ interface Props {
 }
 
 export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, onReview, hasReview, downloading }: Props) {
-  const { lang } = useLanguage();
-  const meta = statusMeta(book.status);
+  const { t, lang } = useLanguage();
+  const meta = statusMeta(book.status, t.dash.bookStatus as Record<string, string>);
   const hasPages = !!book.pages_data && (book.pages_data as any[]).length > 0;
   const pageCount = hasPages ? (book.pages_data as any[]).length : 0;
   const Icon = meta.Icon;
@@ -85,17 +85,17 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
             </div>
           )}
           <span className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-semibold uppercase tracking-wider">
-            Open
+            {t.dash.book.open}
           </span>
         </button>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-lg font-semibold text-foreground leading-tight line-clamp-2">{portionDisplay || "Torah Tale"}</h3>
+          <h3 className="font-display text-lg font-semibold text-foreground leading-tight line-clamp-2">{portionDisplay || t.dash.book.taleFallback}</h3>
           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-            For {book.child_name || "—"} · {format(new Date(book.created_at), "MMM d, yyyy")}
+            {t.dash.forChild(book.child_name || t.dash.notSet)} · {dfFormat(new Date(book.created_at), "MMM d, yyyy", lang)}
           </p>
           {pageCount > 0 && (
-            <p className="text-[11px] text-muted-foreground/80 mt-0.5">{pageCount} pages</p>
+            <p className="text-[11px] text-muted-foreground/80 mt-0.5">{t.dash.book.pages(pageCount)}</p>
           )}
         </div>
 
@@ -114,7 +114,7 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
           bg-white/60 backdrop-blur-md border border-white/70 ring-1 ring-black/5">
           <Icon className="w-4 h-4 text-amber-600 animate-spin" />
           <div className="flex-1">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Generating</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{t.dash.bookStatus.generating}</p>
             <CountdownTimer createdAt={book.created_at} />
           </div>
         </div>
@@ -125,9 +125,9 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
           bg-white/60 backdrop-blur-md border border-white/70 ring-1 ring-black/5">
           <Truck className="w-4 h-4 text-sky-600" />
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">On the way</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{t.dash.bookStatus.onTheWay}</p>
             <p className="text-sm font-display font-semibold text-foreground">
-              Shipped {formatDistanceToNow(new Date(book.updated_at || book.created_at))} ago
+              {t.dash.book.shippedAgo(dfDistance(new Date(book.updated_at || book.created_at), lang))}
             </p>
           </div>
         </div>
@@ -135,18 +135,18 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
 
       {/* Action grid */}
       <div className="relative grid grid-cols-2 gap-2">
-        <ActionTile Icon={Eye} label={hasPages ? "View pages" : "Open"} onClick={hasPages ? onView : onOpen} primary={hasPages} />
-        <ActionTile Icon={BookOpen} label="Details" onClick={onOpen} />
-        <ActionTile Icon={Download} label={downloading ? "Saving…" : "Download"} onClick={onDownload} disabled={!hasPages || downloading} />
+        <ActionTile Icon={Eye} label={hasPages ? t.dash.book.viewPages : t.dash.book.open} onClick={hasPages ? onView : onOpen} primary={hasPages} />
+        <ActionTile Icon={BookOpen} label={t.dash.book.details} onClick={onOpen} />
+        <ActionTile Icon={Download} label={downloading ? t.dash.book.saving : t.dash.book.download} onClick={onDownload} disabled={!hasPages || downloading} />
         {canReview ? (
           <ActionTile
             Icon={Star}
-            label={hasReview ? "Edit review" : "Review"}
+            label={hasReview ? t.dash.book.editReview : t.dash.book.review}
             onClick={onReview!}
             highlight={!hasReview}
           />
         ) : (
-          <ActionTile Icon={RotateCw} label="Reorder" onClick={onReorder} />
+          <ActionTile Icon={RotateCw} label={t.dash.book.reorder} onClick={onReorder} />
         )}
       </div>
 

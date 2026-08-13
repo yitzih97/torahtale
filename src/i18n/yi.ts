@@ -358,6 +358,7 @@ export const yi: typeof en = {
     parsha: {
       next4Heading: (names: string) => `די קומענדיקע 4 ביכער וואָס ${names} קענען באַקומען`,
       next4Subtext: "אַ נײַער פּערזענלעכער פּרשה-בוך יעדע וואָך — מיט אײַערע קינדער אין דער הויפּטראָלע.",
+      yourKids: "אײַערע קינדער",
     },
   },
 
