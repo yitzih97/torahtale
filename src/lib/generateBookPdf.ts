@@ -1046,20 +1046,24 @@ export async function renderPrintImages(
     : bookFormat.startsWith("board") ? 10
     : bookFormat.startsWith("coloring") ? 24
     : 20; // softcover
-  const maxStories = Math.max(1, interiorCapacity - (questionsPage ? 1 : 0));
+  // Coloring books (portrait) have a SEPARATE printed Back cover slot on the
+  // blueprint, so the branded back-matter (logo + discussion questions + "coming
+  // next" teasers) becomes the real BACK COVER rather than a trailing interior
+  // page — that keeps the interior spreads exactly as they are. Bound 8×8/board
+  // books keep the questions as a trailing interior page (no separate back slot).
+  const coloringBack = mode === "portrait";
+  const maxStories = Math.max(1, interiorCapacity - (questionsPage && !coloringBack ? 1 : 0));
   const stories = pages.filter((p) => p.type === "story" || !p.type).slice(0, maxStories);
   for (let i = 0; i < stories.length; i++) {
     interior.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE));
   }
-  // The discussion questions get their OWN page — matching the on-screen PDF.
-  // Bound 8×8/board books have a trailing interior page slot for it (Printify was
-  // leaving that page blank while the questions were composited onto the last
-  // story illustration, overlapping the art). Coloring books get a dedicated
-  // back-matter page instead (they have no back cover for the teasers).
+  let backCoverImg: string | null = null;
   if (questionsPage) {
-    interior.push(mode === "portrait"
-      ? await renderColoringBackMatter(questionsPage, childName, previews, lang, PRINT_SCALE, localizedChildName)
-      : await renderQuestionsSpread(questionsPage, rtl, mode, PRINT_SCALE));
+    if (coloringBack) {
+      backCoverImg = await renderColoringBackMatter(questionsPage, childName, previews, lang, PRINT_SCALE, localizedChildName);
+    } else {
+      interior.push(await renderQuestionsSpread(questionsPage, rtl, mode, PRINT_SCALE));
+    }
   }
 
   // Right-to-left (Hebrew/Yiddish) books open from the other side, so the book is
@@ -1068,8 +1072,12 @@ export async function renderPrintImages(
   // back on the right) by renderCoverSpread. English's back-cover side becomes
   // the Hebrew front, and vice-versa.
   const ordered = rtl ? [...interior].reverse() : interior;
+  // Order: front cover, then (coloring) the back cover, then interiors. The
+  // Printify submitter maps the back-cover image to the blueprint's Back slot by
+  // NAME (see printify-submit), so this order is safe regardless of slot order.
   const final: string[] = [];
   if (coverImg) final.push(coverImg);
+  if (backCoverImg) final.push(backCoverImg);
   final.push(...ordered);
   return final;
 }
