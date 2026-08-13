@@ -182,7 +182,7 @@ const Affiliates = () => {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border border-[hsl(var(--gold)/0.3)] text-xs font-semibold tracking-widest text-accent uppercase mb-6">
             <Sparkles className="w-3.5 h-3.5" /> {c.badge}
           </div>
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.1] text-foreground mb-5">
+          <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.1] text-foreground mb-5">
             {c.title}
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -192,14 +192,14 @@ const Affiliates = () => {
 
         {/* Perks */}
         <section className="container max-w-6xl mt-20 px-4">
-          <h2 className="font-serif text-2xl sm:text-3xl text-center mb-10 text-foreground">{c.perksTitle}</h2>
+          <h2 className="font-heading text-2xl sm:text-3xl text-center mb-10 text-foreground">{c.perksTitle}</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {c.perks.map((p, i) => (
               <Card key={i} className="glass p-7 hover-lift border-[hsl(var(--gold)/0.15)]">
                 <div className="w-12 h-12 rounded-xl gold-gradient flex items-center justify-center mb-5">
                   <p.icon className="w-6 h-6 text-accent-foreground" />
                 </div>
-                <h3 className="font-serif text-xl text-foreground mb-2">{p.title}</h3>
+                <h3 className="font-heading text-xl text-foreground mb-2">{p.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{p.desc}</p>
               </Card>
             ))}
@@ -208,7 +208,7 @@ const Affiliates = () => {
 
         {/* Steps */}
         <section className="container max-w-5xl mt-24 px-4">
-          <h2 className="font-serif text-2xl sm:text-3xl text-center mb-12 text-foreground">{c.stepsTitle}</h2>
+          <h2 className="font-heading text-2xl sm:text-3xl text-center mb-12 text-foreground">{c.stepsTitle}</h2>
           <div className="space-y-5">
             {c.steps.map((s, i) => (
               <div key={i} className="glass rounded-2xl p-6 sm:p-7 flex items-start gap-5 border border-[hsl(var(--gold)/0.12)] hover-lift">
@@ -221,7 +221,7 @@ const Affiliates = () => {
                   </span>
                 </div>
                 <div className="flex-1 pt-1">
-                  <h3 className="font-serif text-xl text-foreground mb-1.5">{s.title}</h3>
+                  <h3 className="font-heading text-xl text-foreground mb-1.5">{s.title}</h3>
                   <p className="text-muted-foreground leading-relaxed">{s.desc}</p>
                 </div>
               </div>
@@ -237,13 +237,13 @@ const Affiliates = () => {
                 <div className="w-16 h-16 mx-auto rounded-full gold-gradient flex items-center justify-center mb-5">
                   <CheckCircle2 className="w-8 h-8 text-accent-foreground" />
                 </div>
-                <h2 className="font-serif text-2xl text-foreground mb-2">{c.successTitle}</h2>
+                <h2 className="font-heading text-2xl text-foreground mb-2">{c.successTitle}</h2>
                 <p className="text-muted-foreground">{c.successDesc}</p>
               </div>
             ) : (
               <>
                 <div className="mb-7 text-center">
-                  <h2 className="font-serif text-2xl sm:text-3xl text-foreground mb-2">{c.formTitle}</h2>
+                  <h2 className="font-heading text-2xl sm:text-3xl text-foreground mb-2">{c.formTitle}</h2>
                   <p className="text-sm text-muted-foreground">{c.formSubtitle}</p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -290,7 +290,7 @@ const Affiliates = () => {
 
         {/* FAQ */}
         <section className="container max-w-3xl mt-24 px-4">
-          <h2 className="font-serif text-2xl sm:text-3xl text-center mb-10 text-foreground">{c.faqTitle}</h2>
+          <h2 className="font-heading text-2xl sm:text-3xl text-center mb-10 text-foreground">{c.faqTitle}</h2>
           <div className="space-y-4">
             {c.faqs.map((f, i) => (
               <div key={i} className="glass rounded-xl p-6 border border-[hsl(var(--gold)/0.1)]">
