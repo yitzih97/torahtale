@@ -51,6 +51,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [printPreview, setPrintPreview] = useState<string[] | null>(null);
   const [previewingPrint, setPreviewingPrint] = useState(false);
+  const [printSlots, setPrintSlots] = useState<any | null>(null);
   const [confirmRegen, setConfirmRegen] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const abortRef = useRef(false);
@@ -647,6 +648,15 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         cn,
       );
       setPrintPreview(imgs);
+      // Also fetch the blueprint's real Printify slots (names + sizes) so the
+      // cover/spread mapping can be verified against the actual print product.
+      try {
+        const productType = (book as any)?.shipping_data?.bookOptions?.productType || "softcover";
+        const { data: slotData } = await supabase.functions.invoke("printify-submit", {
+          body: { action: "describe-slots", productType },
+        });
+        setPrintSlots(slotData || null);
+      } catch { /* slots are diagnostic-only; ignore failures */ }
     } catch (e: any) {
       toast.error(`Print preview failed: ${e?.message || e}`);
     } finally {
@@ -1061,8 +1071,22 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 <div className="mt-4 rounded-2xl border border-border/60 bg-muted/20 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-semibold text-foreground">Print files ({printPreview.length})</p>
-                    <button className="text-xs text-muted-foreground hover:text-foreground" onClick={() => setPrintPreview(null)}>Close</button>
+                    <button className="text-xs text-muted-foreground hover:text-foreground" onClick={() => { setPrintPreview(null); setPrintSlots(null); }}>Close</button>
                   </div>
+                  {printSlots?.slots && (
+                    <div className="mb-3 rounded-lg bg-background/60 border border-border/50 p-2.5">
+                      <p className="text-[11px] font-semibold text-foreground mb-1">
+                        Printify slots for “{printSlots.formatKey}” (blueprint {printSlots.blueprintId}) — {printSlots.slots.length} slots:
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {printSlots.slots.map((s: any, i: number) => (
+                          <span key={i} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                            {s.position}{s.width && s.height ? ` (${Math.round(s.width)}×${Math.round(s.height)})` : ""}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {printPreview.map((src, i) => {
                       const isColoring = bookFormat.startsWith("coloring");

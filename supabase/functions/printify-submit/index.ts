@@ -100,6 +100,37 @@ serve(async (req) => {
       });
     }
 
+    // Read-only: report a format's real Printify print slots (name + size) so the
+    // admin can see the exact cover/spread layout and we can map covers correctly.
+    if (action === "describe-slots") {
+      if (!PRINTIFY_API_KEY) throw new Error("PRINTIFY_API_KEY not configured");
+      const productType = String(body.productType || "");
+      const formatKey = productType === "hardcover" ? "hardcover-8x8"
+        : productType === "board" ? "board"
+        : productType === "coloring" ? "coloring"
+        : "softcover";
+      const fmt = (field: string) => getSetting(`printify-${field}-${formatKey}`) || getSetting(`printify-${field}`) || "";
+      const blueprintId = parseInt(fmt("blueprint-id"));
+      const printProviderId = parseInt(fmt("print-provider-id"));
+      const cfgVariantId = parseInt(fmt("variant-id")) || 0;
+      if (!blueprintId || !printProviderId) {
+        return new Response(JSON.stringify({ error: `No Printify config for "${formatKey}".` }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const vres = await fetch(`${PRINTIFY_BASE}/catalog/blueprints/${blueprintId}/print_providers/${printProviderId}/variants.json`, {
+        headers: { Authorization: `Bearer ${PRINTIFY_API_KEY}` },
+      });
+      if (!vres.ok) throw new Error(`Printify variants fetch failed [${vres.status}]`);
+      const vjson = await vres.json();
+      const variants = vjson?.variants || [];
+      const variant = variants.find((v: any) => v.id === cfgVariantId) || variants[0];
+      const slots = (variant?.placeholders || []).map((ph: any) => ({ position: ph.position, width: ph.width, height: ph.height }));
+      return new Response(JSON.stringify({ formatKey, blueprintId, printProviderId, variantId: variant?.id, slots }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "submit-order") {
       if (!PRINTIFY_API_KEY) throw new Error("PRINTIFY_API_KEY not configured");
       if (!shopId) throw new Error("Printify Shop ID not configured");
