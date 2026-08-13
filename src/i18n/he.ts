@@ -738,6 +738,12 @@ export const he: typeof en = {
     redirectingToShopify: "מעבירים אתכם לתשלום המאובטח ב-Shopify…",
     checkoutFallback: "פותחים את עגלת ה-Shopify (מצב גיבוי)…",
     openCheckout: "מעבר לתשלום",
+    perWeek: "/שבוע", perMonth: "/חודש", perYear: "/שנה",
+    oneTime: "חד-פעמי", bestValue: "הכי משתלם", popular: "פופולרי",
+    switchToYearly: "מעבר לשנתי", payYearlySave: "שלמו פעם אחת לכל השנה וחסכו לעומת שבועי",
+    yearlyPlan: "מסלול שנתי", tapSwitchMonthly: (price: string) => `הקישו לחזרה למסלול החודשי (${price})`,
+    artCartoon: "מצויר", artGraphicNovel: "רומן גרפי",
+    planNamed: (label: string) => `מסלול ${label}`,
   },
 
   // Success

@@ -745,6 +745,12 @@ export const en = {
     redirectingToShopify: "Redirecting to Shopify checkout…",
     checkoutFallback: "Opening Shopify cart (fallback)…",
     openCheckout: "Open checkout",
+    perWeek: "/week", perMonth: "/month", perYear: "/year",
+    oneTime: "one-time", bestValue: "best value", popular: "POPULAR",
+    switchToYearly: "Switch to yearly", payYearlySave: "Pay once for the whole year and save vs weekly",
+    yearlyPlan: "Yearly plan", tapSwitchMonthly: (price: string) => `Tap to switch back to monthly (${price})`,
+    artCartoon: "Cartoon", artGraphicNovel: "Graphic Novel",
+    planNamed: (label: string) => `${label} Plan`,
   },
 
   // Success

@@ -28,6 +28,20 @@ const COLOR_H = 1650;
 // instead of a soft 150 DPI. Text stays crisp; the cover wrap prints sharp.
 const PRINT_SCALE = 2;
 
+// Downloadable review PDF: render pages a bit smaller and ALWAYS as JPEG so
+// jsPDF's internal output string can't overflow V8's max string length on
+// image-heavy books ("Array.join Invalid string length"). Printify rendering
+// keeps PRINT_SCALE + PNG line art untouched. Toggled only inside generateBookPdf.
+const PDF_SCALE = 1.4;
+let PDF_COMPACT = false;
+
+/** Encode a rendered page canvas. Coloring (portrait) line art stays PNG for
+ *  crisp print — except in the compact PDF path, where everything is JPEG. */
+function encodePage(canvas: HTMLCanvasElement, isPortrait = false): string {
+  if (isPortrait && !PDF_COMPACT) return canvas.toDataURL("image/png");
+  return canvas.toDataURL("image/jpeg", PDF_COMPACT ? 0.82 : 0.96);
+}
+
 /** Interior page layout for a book format:
  *   • "spread"   — board (6×6): one wide 2:1 illustration per open spread.
  *   • "portrait" — coloring (8.5×11): one tall line-art page.
@@ -378,7 +392,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   // artifacts (ringing/haloing) are especially visible on hard edges like
   // these, so export losslessly. Painted illustrations stay JPEG (smaller,
   // and JPEG's loss is imperceptible on continuous-tone art).
-  return mode === "portrait" ? canvas.toDataURL("image/png") : canvas.toDataURL("image/jpeg", 0.96);
+  return encodePage(canvas, mode === "portrait");
 }
 
 async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutMode, scale = 1): Promise<string> {
@@ -419,13 +433,13 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
     const fs = Math.min(leftFit.fontSize, rightFit.fontSize);
     drawTextOverlay(ctx, leftText, { ...leftFit, fontSize: fs }, W, H, rtl);
     drawTextOverlay(ctx, rightText, { ...rightFit, fontSize: fs }, W, H, rtl);
-    return canvas.toDataURL("image/jpeg", 0.96);
+    return encodePage(canvas);
   }
 
   const formatted = questions.length ? buildQuestionsText(questions) : (page.text || "");
   const fitted = fitQuestionsLayout(formatted, layout, W, H, rtl);
   drawTextOverlay(ctx, formatted, fitted, W, H, rtl);
-  return canvas.toDataURL("image/jpeg", 0.96);
+  return encodePage(canvas);
 }
 
 /** Cover-fit an image into an arbitrary rounded rect (clipped), for the back-
@@ -827,7 +841,7 @@ async function renderCoverSpread(
     ctx.restore();
   }
 
-  return canvas.toDataURL("image/jpeg", 0.96);
+  return encodePage(canvas);
 }
 
 /** Coloring-book cover: a single 8.5×11 PORTRAIT front cover — the line-art
@@ -868,7 +882,7 @@ async function renderPortraitCover(
     title: getCoverChildLine(childName, lang, localizedChildName),
     rtl,
   });
-  return canvas.toDataURL("image/jpeg", 0.96);
+  return encodePage(canvas);
 }
 
 /** Coloring books have no printed back cover, so the LAST page doubles as the
@@ -976,7 +990,7 @@ async function renderColoringBackMatter(
   ctx.font = `700 28px 'Inter', sans-serif`;
   ctx.fillText(COVER_URL.toUpperCase(), W / 2, urlY);
 
-  return canvas.toDataURL("image/jpeg", 0.96);
+  return encodePage(canvas);
 }
 
 /**
@@ -1069,6 +1083,10 @@ export async function generateBookPdf(
   lang: "en" | "he" | "yi" = "en",
   localizedChildName?: string,
 ): Promise<Blob> {
+  // Compact mode for the whole render: smaller pages + JPEG so jsPDF can't
+  // overflow V8's max string length. Reset in the finally below.
+  PDF_COMPACT = true;
+  try {
   // Cover text: Parsha name is the hero (big), kids are the co-stars (small),
   // mirroring the on-screen BookViewer.
   const parshaLabel = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
@@ -1100,8 +1118,8 @@ export async function generateBookPdf(
   const coverEntry = coverPage
     ? {
         dataUrl: mode === "portrait"
-          ? await renderPortraitCover(coverPage, childName, parshaLabel, PRINT_SCALE, lang, localizedChildName)
-          : await renderCoverSpread(coverPage, childName, parshaLabel, PRINT_SCALE, bookFormat, pdfPreviews, lang, localizedChildName),
+          ? await renderPortraitCover(coverPage, childName, parshaLabel, PDF_SCALE, lang, localizedChildName)
+          : await renderCoverSpread(coverPage, childName, parshaLabel, PDF_SCALE, bookFormat, pdfPreviews, lang, localizedChildName),
         fmt: coverFmt,
       }
     : null;
@@ -1114,10 +1132,10 @@ export async function generateBookPdf(
       // Coloring books have no back cover — the questions page becomes the back
       // matter (logo + up to 10 questions + subscribe + teaser thumbnails).
       dataUrl = mode === "portrait"
-        ? await renderColoringBackMatter(page, childName, pdfPreviews, lang, PRINT_SCALE, localizedChildName)
-        : await renderQuestionsSpread(page, rtl, mode, PRINT_SCALE);
+        ? await renderColoringBackMatter(page, childName, pdfPreviews, lang, PDF_SCALE, localizedChildName)
+        : await renderQuestionsSpread(page, rtl, mode, PDF_SCALE);
     } else {
-      dataUrl = await renderStorySpread(page, storyIdx, rtl, mode, PRINT_SCALE);
+      dataUrl = await renderStorySpread(page, storyIdx, rtl, mode, PDF_SCALE);
       storyIdx += 1;
     }
     interiorEntries.push({ dataUrl, fmt: interior });
@@ -1145,4 +1163,7 @@ export async function generateBookPdf(
   // expose default for any callers that need it
   void DEFAULT_TEXT_LAYOUT;
   return pdf.output("blob");
+  } finally {
+    PDF_COMPACT = false;
+  }
 }

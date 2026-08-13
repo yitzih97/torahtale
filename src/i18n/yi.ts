@@ -738,6 +738,12 @@ export const yi: typeof en = {
     redirectingToShopify: "מיר פירן אייך צו Shopify טשעקאַוט…",
     checkoutFallback: "עפֿענען Shopify וואָגן (רעזערוו)…",
     openCheckout: "עפֿן טשעקאַוט",
+    perWeek: "/וואָך", perMonth: "/חודש", perYear: "/יאָר",
+    oneTime: "איין מאָל", bestValue: "בעסטער ווערט", popular: "פּאָפּולער",
+    switchToYearly: "בײַט צו יערלעך", payYearlySave: "צאָלט איין מאָל פֿאַרן גאַנצן יאָר און שפּאָרט קעגן וועכנטלעך",
+    yearlyPlan: "יערלעכער פּלאַן", tapSwitchMonthly: (price: string) => `קלאַפּט צוריק צו חודשלעך (${price})`,
+    artCartoon: "מולטיק", artGraphicNovel: "גראַפֿישער ראָמאַן",
+    planNamed: (label: string) => `${label} פּלאַן`,
   },
 
   // Success

@@ -3,8 +3,9 @@ import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, L
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
-import { getPortionLabel } from "./TorahPortions";
+import { getPortionLabel, getPortionDisplay } from "./TorahPortions";
 import { type BookOptions, calculateBookPriceForCurrency } from "./BookOptionsStep";
+import { subPrice } from "@/lib/pricing";
 
 export type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
@@ -76,7 +77,7 @@ export const CheckoutStep = ({
     else setSelectedPlanLocal(p);
   };
   const [placingOrder, setPlacingOrder] = useState(false);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { symbol, rate, code } = t.currency;
 
   const isIls = code === "ILS";
@@ -99,8 +100,15 @@ export const CheckoutStep = ({
   const isSubscription = selectedPlan !== "once";
   const activePlan = PLANS.find((p) => p.id === selectedPlan);
 
+  // The subscription price MUST come from the same canonical table (subPrice) the
+  // plan cards use — otherwise the summary shows a different number than the card
+  // the user selected (and than what Shopify actually charges).
+  const subscriptionPrice = isSubscription
+    ? subPrice(selectedPlan as "weekly" | "monthly" | "yearly", bookOptions.productType, isIls)
+    : 0;
+
   const total = isSubscription
-    ? (activePlan?.priceUsd ?? 0) + shippingCost
+    ? subscriptionPrice + shippingCost
     : bookPriceAfterDiscount + shippingCost;
 
   const periodLabel = (id: string) =>
@@ -228,12 +236,12 @@ export const CheckoutStep = ({
           {!isSubscription && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t.wizard.story}</span>
-              <span className="font-medium text-primary">{getPortionLabel(torahPortion)}</span>
+              <span className="font-medium text-primary">{getPortionDisplay(torahPortion, lang) || getPortionLabel(torahPortion)}</span>
             </div>
           )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t.wizard.artStyle}</span>
-            <span className="font-medium text-primary capitalize">{artStyle === "3d-pixar" ? "3D Pixar" : artStyle === "graphic-novel" ? "Graphic Novel" : "Cartoon"}</span>
+            <span className="font-medium text-primary capitalize">{artStyle === "3d-pixar" ? "3D Pixar" : artStyle === "graphic-novel" ? t.checkout.artGraphicNovel : t.checkout.artCartoon}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t.checkout.format}</span>
@@ -258,8 +266,8 @@ export const CheckoutStep = ({
           )}
           {isSubscription && activePlan && (
             <div className="flex justify-between text-accent">
-              <span>{planLabels[activePlan.id]} {t.checkout.plan}</span>
-              <span className="font-medium">{fmt(activePlan.priceUsd)}/{periodLabel(activePlan.id)}</span>
+              <span>{t.checkout.planNamed(planLabels[activePlan.id])}</span>
+              <span className="font-medium">{fmt(subscriptionPrice)}/{periodLabel(activePlan.id)}</span>
             </div>
           )}
           <div className="border-t border-border pt-3 mt-3 flex justify-between font-bold text-base">

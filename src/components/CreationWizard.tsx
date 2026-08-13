@@ -731,7 +731,12 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
   // Called from startGeneration (when already signed in) and from the post-auth
   // effect (when the user signs in at the step-10 gate, after generation began).
   const persistGeneratedBook = async () => {
-    if (!user || savedBookId || persistingBookRef.current) return;
+    // NOTE: we do NOT bail when savedBookId is already set. A returning user's
+    // book id may have been adopted from a PRIOR awaiting-payment book (the
+    // self-heal effect), which carries that book's OLD portion/child/format. We
+    // must re-sync ALL fields to the CURRENT wizard selections, else the wrong
+    // story gets generated (e.g. picked Sukkos but the stale book was Purim).
+    if (!user || persistingBookRef.current) return;
     persistingBookRef.current = true;
     try {
         const portionLabel = getPortionLabel(data.torahPortion);
@@ -842,33 +847,53 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
           })
         );
 
-        const { data: bookData, error: saveError } = await supabase
-          .from("books")
-          .insert({
-            user_id: user.id,
-            child_name: childNames,
-            torah_portion: data.torahPortion,
-            art_style: data.artStyle,
-            language: data.language,
-            status: "awaiting_payment",
-            story_data: {
-              childrenInfo,
-              portionLabel,
-              pageCount: data.pageCount,
-              bookOptions: bookOptions,
-              narrativeStyle: data.narrativeStyle,
-              childDescriptions,
-            },
-          } as any)
-          .select()
-          .single();
-        if (saveError || !bookData) {
-          // Surface a save failure instead of silently proceeding with no order —
-          // otherwise the book never reaches the admin and it looks "stuck".
-          console.error("Book insert failed:", saveError);
-          toast.error("We couldn't save your book. Please try again.");
+        // The current wizard selections — written on both insert and re-sync so a
+        // reused (adopted) book can never keep a stale portion/child/format.
+        const fields = {
+          child_name: childNames,
+          torah_portion: data.torahPortion,
+          art_style: data.artStyle,
+          language: data.language,
+          status: "awaiting_payment",
+          story_data: {
+            childrenInfo,
+            portionLabel,
+            pageCount: data.pageCount,
+            bookOptions: bookOptions,
+            narrativeStyle: data.narrativeStyle,
+            childDescriptions,
+          },
+        };
+
+        if (savedBookId) {
+          // Re-sync the already-linked book to the CURRENT selections. Merge onto
+          // the existing story_data so any pre-generation resume fields survive,
+          // but the recipe (portion/child/format) always reflects this order.
+          const { data: existing } = await supabase
+            .from("books").select("story_data").eq("id", savedBookId).maybeSingle();
+          const prevSd = (existing?.story_data as any) || {};
+          const { error: updErr } = await supabase
+            .from("books")
+            .update({ ...fields, story_data: { ...prevSd, ...fields.story_data } } as any)
+            .eq("id", savedBookId);
+          if (updErr) {
+            console.error("Book re-sync failed:", updErr);
+            toast.error("We couldn't save your book. Please try again.");
+          }
         } else {
-          setSavedBookId(bookData.id);
+          const { data: bookData, error: saveError } = await supabase
+            .from("books")
+            .insert({ user_id: user.id, ...fields } as any)
+            .select()
+            .single();
+          if (saveError || !bookData) {
+            // Surface a save failure instead of silently proceeding with no order —
+            // otherwise the book never reaches the admin and it looks "stuck".
+            console.error("Book insert failed:", saveError);
+            toast.error("We couldn't save your book. Please try again.");
+          } else {
+            setSavedBookId(bookData.id);
+          }
         }
     } catch (err) {
       console.error("Failed to save book:", err);
@@ -2347,10 +2372,10 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   // table (per plan × book format) so what's shown equals what's
                   // charged at checkout.
                   const opts: Array<{ id: "once" | "weekly" | "monthly" | "yearly"; label: string; price: string; suffix: string; popular?: boolean; note?: string }> = [
-                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit),                                          suffix: "one-time" },
-                    { id: "weekly",  label: t.wizard.planWeekly,  price: fmt(subPrice("weekly", bookOptions.productType, isIls)),  suffix: "/week" },
-                    { id: "monthly", label: t.wizard.planMonthly, price: fmt(subPrice("monthly", bookOptions.productType, isIls)), suffix: "/month", popular: true },
-                    { id: "yearly",  label: t.wizard.planYearly,  price: fmt(subPrice("yearly", bookOptions.productType, isIls)),  suffix: "/year",  note: "best value" },
+                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit),                                          suffix: t.checkout.oneTime },
+                    { id: "weekly",  label: t.wizard.planWeekly,  price: fmt(subPrice("weekly", bookOptions.productType, isIls)),  suffix: t.checkout.perWeek },
+                    { id: "monthly", label: t.wizard.planMonthly, price: fmt(subPrice("monthly", bookOptions.productType, isIls)), suffix: t.checkout.perMonth, popular: true },
+                    { id: "yearly",  label: t.wizard.planYearly,  price: fmt(subPrice("yearly", bookOptions.productType, isIls)),  suffix: t.checkout.perYear,  note: t.checkout.bestValue },
                   ];
                   return (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2367,7 +2392,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                             className={`relative text-start p-4 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
                           >
                             {o.popular && (
-                              <span className="absolute -top-2.5 start-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">POPULAR</span>
+                              <span className="absolute -top-2.5 start-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{t.checkout.popular}</span>
                             )}
                             {/* Selected check sits in the END corner so it never
                                 overlaps the (start-aligned) title in RTL or LTR. */}
@@ -2405,11 +2430,11 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                       >
                         <div className="text-start">
                           <p className="font-display font-bold text-primary flex flex-wrap items-baseline gap-x-2">
-                            <span>Switch to yearly ·</span>
-                            <span className="text-muted-foreground line-through font-normal">{fmt(weeklyAnnual)}/year</span>
-                            <span className="text-accent">{fmt(yearlyTotal)}/year</span>
+                            <span>{t.checkout.switchToYearly} ·</span>
+                            <span className="text-muted-foreground line-through font-normal">{fmt(weeklyAnnual)}{t.checkout.perYear}</span>
+                            <span className="text-accent">{fmt(yearlyTotal)}{t.checkout.perYear}</span>
                           </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Pay once for the whole year and save vs weekly</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t.checkout.payYearlySave}</p>
                         </div>
                         <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-input">
                           <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-0.5" />
@@ -2425,8 +2450,8 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                         className="w-full rounded-2xl border-2 border-accent bg-accent/10 p-4 flex items-center justify-between gap-4 transition-all active:scale-[0.99]"
                       >
                         <div className="text-start">
-                          <p className="font-display font-bold text-primary">Yearly plan · {fmt(yearlyTotal)}/year · best value</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Tap to switch back to monthly ({fmt(monthlyTotal)}/month)</p>
+                          <p className="font-display font-bold text-primary">{t.checkout.yearlyPlan} · {fmt(yearlyTotal)}{t.checkout.perYear} · {t.checkout.bestValue}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t.checkout.tapSwitchMonthly(`${fmt(monthlyTotal)}${t.checkout.perMonth}`)}</p>
                         </div>
                         <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-accent">
                           <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-[1.375rem]" />
