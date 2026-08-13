@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { BookViewer, type BookPage } from "@/components/wizard/BookViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { generateBookZip } from "@/lib/generateBookZip";
-import { generateBookPdf } from "@/lib/generateBookPdf";
+import { generateBookPdf, renderPrintImages } from "@/lib/generateBookPdf";
 import { submitBookToPrintify } from "@/lib/submitToPrintify";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,6 +49,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const [saving, setSaving] = useState(false);
   const [downloadingZip, setDownloadingZip] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [printPreview, setPrintPreview] = useState<string[] | null>(null);
+  const [previewingPrint, setPreviewingPrint] = useState(false);
   const [confirmRegen, setConfirmRegen] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const abortRef = useRef(false);
@@ -627,6 +629,31 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     finally { setDownloadingPdf(false); }
   };
 
+  // Render the EXACT print files sent to Printify (front cover, back cover, each
+  // page) so the admin can eyeball the covers — especially the coloring-book back
+  // cover — before approving.
+  const handlePreviewPrint = async () => {
+    if (!pages.length) return;
+    setPreviewingPrint(true);
+    try {
+      const cn = (storyData || book.story_data)?.coverChildName;
+      const imgs = await renderPrintImages(
+        pages as any,
+        book.child_name || "book",
+        book.torah_portion || "",
+        isBookRtl(book.language),
+        bookFormat,
+        bookLanguageCode(book.language),
+        cn,
+      );
+      setPrintPreview(imgs);
+    } catch (e: any) {
+      toast.error(`Print preview failed: ${e?.message || e}`);
+    } finally {
+      setPreviewingPrint(false);
+    }
+  };
+
   const handleClose = () => {
     abortRef.current = true;
     onClose();
@@ -1023,7 +1050,39 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 <Button variant="outline" onClick={handleDownloadPdf} disabled={downloadingPdf} className="gap-2 rounded-xl">
                   {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />} PDF
                 </Button>
+                <Button variant="outline" onClick={handlePreviewPrint} disabled={previewingPrint} className="gap-2 rounded-xl">
+                  {previewingPrint ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />} Print preview
+                </Button>
               </div>
+
+              {/* Exact print files (front cover, back cover, each page) — the same
+                  images uploaded to Printify, so the covers can be checked here. */}
+              {printPreview && (
+                <div className="mt-4 rounded-2xl border border-border/60 bg-muted/20 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold text-foreground">Print files ({printPreview.length})</p>
+                    <button className="text-xs text-muted-foreground hover:text-foreground" onClick={() => setPrintPreview(null)}>Close</button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {printPreview.map((src, i) => {
+                      const isColoring = bookFormat.startsWith("coloring");
+                      const label = i === 0
+                        ? "Front cover"
+                        : (isColoring && i === 1)
+                        ? "Back cover"
+                        : `Page ${isColoring ? i - 1 : i}`;
+                      return (
+                        <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="block group">
+                          <div className="aspect-square rounded-lg overflow-hidden border border-border/50 bg-white">
+                            <img src={src} alt={label} className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform" />
+                          </div>
+                          <p className="mt-1 text-[11px] text-center text-muted-foreground">{label}</p>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="text-center">
                 {confirmRegen ? (

@@ -1058,12 +1058,14 @@ export async function renderPrintImages(
     interior.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE));
   }
   let backCoverImg: string | null = null;
-  if (questionsPage) {
-    if (coloringBack) {
-      backCoverImg = await renderColoringBackMatter(questionsPage, childName, previews, lang, PRINT_SCALE, localizedChildName);
-    } else {
-      interior.push(await renderQuestionsSpread(questionsPage, rtl, mode, PRINT_SCALE));
-    }
+  if (coloringBack) {
+    // Coloring books ALWAYS get a printed back cover (logo + questions + teasers),
+    // even when no questions page was generated — otherwise the blueprint's Back
+    // slot has no image and Printify falls back to duplicating the front.
+    const backPage = questionsPage || ({ id: -1, type: "questions", text: "", questions: [] } as unknown as BookPage);
+    backCoverImg = await renderColoringBackMatter(backPage, childName, previews, lang, PRINT_SCALE, localizedChildName);
+  } else if (questionsPage) {
+    interior.push(await renderQuestionsSpread(questionsPage, rtl, mode, PRINT_SCALE));
   }
 
   // Right-to-left (Hebrew/Yiddish) books open from the other side, so the book is

@@ -323,6 +323,9 @@ serve(async (req) => {
       if (!positions.length) {
         throw new Error(`Blueprint ${blueprintId} / variant ${variantId} exposed no print placeholders — check the Printify config. Order NOT created.`);
       }
+      // Log the exact slot names so a mismatched front/back mapping can be
+      // diagnosed from the function logs (position names vary by blueprint).
+      console.log(`Printify blueprint ${blueprintId} slots [${formatKey}]:`, JSON.stringify(positions), `| ${imageIds.length} images`);
       if (imageIds.length > positions.length) {
         // Images are pushed in page order: cover → story pages → discussion
         // questions LAST. An over-budget book (e.g. an older one generated
