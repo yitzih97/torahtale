@@ -52,6 +52,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const [printPreview, setPrintPreview] = useState<string[] | null>(null);
   const [previewingPrint, setPreviewingPrint] = useState(false);
   const [printSlots, setPrintSlots] = useState<any | null>(null);
+  const [editPageId, setEditPageId] = useState<number | null>(null);
   const [confirmRegen, setConfirmRegen] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const abortRef = useRef(false);
@@ -976,10 +977,11 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
           {/* ── Book viewer (review/done) ── */}
           {(phase === "done") && pages.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+            <motion.div data-book-viewer initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <BookViewer
                 childName={book?.child_name || ""}
                 coverChildName={(storyData || book?.story_data)?.coverChildName}
+                jumpToPageId={editPageId}
                 torahPortion={book?.torah_portion || ""}
                 artStyle={ART_STYLE}
                 language={book?.language || "english"}
@@ -1087,21 +1089,41 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                       </div>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <p className="text-[11px] text-muted-foreground mb-2">Click a page to open it for editing.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {printPreview.map((src, i) => {
                       const isColoring = bookFormat.startsWith("coloring");
-                      const label = i === 0
-                        ? "Front cover"
-                        : (isColoring && i === 1)
-                        ? "Back cover"
-                        : `Page ${isColoring ? i - 1 : i}`;
+                      // Map a print-file index back to its editable book page.
+                      const coverPage = pages.find((p) => p.type === "cover");
+                      const storyPages = pages.filter((p) => p.type === "story");
+                      const questionsPage = pages.find((p) => p.type === "questions");
+                      let label: string;
+                      let pageId: number | null;
+                      if (i === 0) {
+                        label = isColoring ? "Cover (front + back)" : "Cover";
+                        pageId = coverPage?.id ?? null;
+                      } else if (i - 1 < storyPages.length) {
+                        label = `Page ${i}`;
+                        pageId = storyPages[i - 1]?.id ?? null;
+                      } else {
+                        label = "Questions";
+                        pageId = questionsPage?.id ?? null;
+                      }
+                      const openForEdit = () => {
+                        if (pageId == null) return;
+                        setEditPageId(pageId);
+                        setPrintPreview(null);
+                        setPrintSlots(null);
+                        // Bring the editor (rendered above) into view.
+                        setTimeout(() => document.querySelector("[data-book-viewer]")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                      };
                       return (
-                        <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="block group">
-                          <div className="aspect-square rounded-lg overflow-hidden border border-border/50 bg-white">
+                        <button key={i} type="button" onClick={openForEdit} className="block group text-left" title="Open for editing">
+                          <div className="aspect-square rounded-lg overflow-hidden border border-border/50 bg-white group-hover:border-accent group-hover:ring-2 group-hover:ring-accent/30 transition-all">
                             <img src={src} alt={label} className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform" />
                           </div>
-                          <p className="mt-1 text-[11px] text-center text-muted-foreground">{label}</p>
-                        </a>
+                          <p className="mt-1.5 text-xs text-center text-muted-foreground group-hover:text-foreground">{label}</p>
+                        </button>
                       );
                     })}
                   </div>

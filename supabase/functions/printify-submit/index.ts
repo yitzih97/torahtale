@@ -371,35 +371,19 @@ serve(async (req) => {
       } else if (imageIds.length < positions.length) {
         console.warn(`Book has ${imageIds.length} images for ${positions.length} slots — ${positions.length - imageIds.length} will print blank.`);
       }
-      // Map images to print slots. Coloring books have SEPARATE Front + Back
-      // cover slots, and renderPrintImages sends [frontCover, backCover, page1…].
-      // Match those to the blueprint's front/back placeholders BY NAME (they may
-      // not be the first two positions), then fill the remaining page/spread slots
-      // in order — so the interior never shifts. Other formats keep the simple
-      // in-order mapping (cover → page 1 → …).
-      const imgObj = (id: string) => ({ id, x: 0.5, y: 0.5, scale: 1, angle: 0 });
-      const isFront = (p: string) => /front|cover/i.test(p) && !/back/i.test(p);
-      const isBack = (p: string) => /back/i.test(p);
-      const hasBackSlot = positions.some(isBack) && positions.some(isFront);
-
-      let placeholders: Array<{ position: string; images: ReturnType<typeof imgObj>[] }>;
-      if (formatKey === "coloring" && hasBackSlot && imageIds.length >= 2) {
-        const [frontId, backId, ...pageIds] = imageIds;
-        let pageCursor = 0;
-        placeholders = positions.map((position) => {
-          let id: string | undefined;
-          if (isFront(position)) id = frontId;
-          else if (isBack(position)) id = backId;
-          else id = pageIds[pageCursor++];
-          return { position, images: id ? [imgObj(id)] : [] };
-        }).filter((ph) => ph.images.length > 0);
-      } else {
-        // In-order: cover → page 1 → …
-        placeholders = positions
-          .map((position, idx) => ({ position, images: imageIds[idx] ? [imgObj(imageIds[idx])] : [] }))
-          .filter((ph) => ph.images.length > 0);
-      }
-      const printAreas = [{ variant_ids: [variantId], placeholders }];
+      // One image per placeholder, in order: the blueprint's first slot is the
+      // cover (a wide wraparound for coloring — front + back composited by
+      // renderColoringCoverWrap), then page_1…page_N. renderPrintImages emits the
+      // images in exactly that order, so a straight positional map is correct.
+      const printAreas = [{
+        variant_ids: [variantId],
+        placeholders: positions
+          .map((position, idx) => ({
+            position,
+            images: imageIds[idx] ? [{ id: imageIds[idx], x: 0.5, y: 0.5, scale: 1, angle: 0 }] : [],
+          }))
+          .filter((ph) => ph.images.length > 0),
+      }];
 
       // Ensure a Printify product exists whose print areas match the CURRENT
       // images. If the book was submitted before we reuse its product id, but we

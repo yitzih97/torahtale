@@ -131,6 +131,9 @@ interface Props {
   coverChildName?: string;
   torahPortion: string;
   artStyle: string;
+  /** Set to a page id to jump the viewer to that page (e.g. from the admin print
+   *  preview "click to edit"). Re-navigates whenever the value changes. */
+  jumpToPageId?: number | null;
   /** The BOOK's language ("english" | "hebrew" | "yiddish"). Cover + captions
    *  render in this language regardless of the admin/customer UI language. */
   language?: string;
@@ -157,7 +160,7 @@ interface Props {
   };
 }
 
-export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, language, pages, onPagesChange, editable = false, generationContext }: Props) => {
+export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, jumpToPageId, language, pages, onPagesChange, editable = false, generationContext }: Props) => {
   const { dir: uiDir, lang: uiLang } = useLanguage();
   // Cover text and captions follow the BOOK's own language (Hebrew/Yiddish
   // books read RTL and show Hebrew parsha names) — not the viewer's UI language.
@@ -191,6 +194,12 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
   const previewPages = pages.filter((p) => p.type === "preview");
 
   const [currentPage, setCurrentPage] = useState(0);
+  // External "jump to this page" (admin print-preview click-to-edit).
+  useEffect(() => {
+    if (jumpToPageId == null) return;
+    const idx = displayPages.findIndex((p) => p.id === jumpToPageId);
+    if (idx >= 0) setCurrentPage(idx);
+  }, [jumpToPageId]); // eslint-disable-line react-hooks/exhaustive-deps
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [regeneratingId, setRegeneratingId] = useState<number | null>(null);
