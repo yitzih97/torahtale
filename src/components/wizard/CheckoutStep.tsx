@@ -1,10 +1,22 @@
 import { useState, type ReactNode } from "react";
-import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2 } from "lucide-react";
+import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ChevronDown, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel, getPortionDisplay } from "./TorahPortions";
-import { type BookOptions, calculateBookPriceForCurrency } from "./BookOptionsStep";
+import { type BookOptions, calculateBookPriceForCurrency, PAGES_BY_TYPE } from "./BookOptionsStep";
+import softcoverThumb from "@/assets/books/thumb-softcover.jpg";
+import hardcoverThumb from "@/assets/books/thumb-hardcover.jpg";
+import boardThumb from "@/assets/books/thumb-board.jpg";
+import coloringThumb from "@/assets/books/thumb-coloring.jpg";
+
+/** The actual product shot for the format the customer chose. */
+const FORMAT_THUMB: Record<BookOptions["productType"], string> = {
+  softcover: softcoverThumb,
+  hardcover: hardcoverThumb,
+  board: boardThumb,
+  coloring: coloringThumb,
+};
 import { subPrice } from "@/lib/pricing";
 
 export type PlanType = "weekly" | "monthly" | "yearly" | "once";
@@ -52,6 +64,8 @@ interface Props {
   ctaIcon?: ReactNode | null;
   /** Hide the CTA button entirely. */
   hideCta?: boolean;
+  /** Jump back to the step that owns a summary line, so it can be changed. */
+  onEdit?: (target: "story" | "format") => void;
 }
 
 export const CheckoutStep = ({
@@ -69,7 +83,9 @@ export const CheckoutStep = ({
   ctaLabel,
   ctaIcon,
   hideCta = false,
+  onEdit,
 }: Props) => {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedPlanLocal, setSelectedPlanLocal] = useState<PlanType>("monthly");
   const selectedPlan = selectedPlanProp ?? selectedPlanLocal;
   const setSelectedPlan = (p: PlanType) => {
@@ -175,7 +191,7 @@ export const CheckoutStep = ({
                 }`}>
                   {isActive ? <Check className="w-5 h-5" /> : <plan.icon className="w-5 h-5" />}
                 </div>
-                <p className="font-display font-bold text-base text-primary">{planLabels[plan.id]}</p>
+                <p className="font-heading font-bold text-base text-primary">{planLabels[plan.id]}</p>
                 <div className="mt-1.5">
                   <span className="text-xl font-bold text-accent">{fmt(plan.priceUsd)}</span>
                   <span className="text-xs text-muted-foreground">/{periodLabel(plan.id)}</span>
@@ -208,72 +224,135 @@ export const CheckoutStep = ({
     );
   }
 
-  /* ── Order summary screen (step 13) ── */
+  /* ── Order summary screen ──────────────────────────────────────────────────
+   * Leads with the actual product — the mockup of the format they picked, the
+   * story name, and what it costs — because that is what someone is deciding
+   * on. The line-by-line breakdown is real but secondary, so it collapses; each
+   * changeable line carries an Edit that jumps back to the step that owns it,
+   * which previously meant backing out of the flow entirely.
+   */
+  const formatLabel =
+    bookOptions.productType === "hardcover" ? `${t.bookOptions.hardcover} 8″×8″`
+    : bookOptions.productType === "board" ? `${t.bookOptions.boardBook} 6″×6″`
+    : bookOptions.productType === "coloring" ? `${t.productsShowcase.coloring} 8.5″×11″`
+    : `${t.bookOptions.softcover} 8″×8″`;
+  const storyLabel = getPortionDisplay(torahPortion, lang) || getPortionLabel(torahPortion);
+  const artLabel = artStyle === "3d-pixar" ? "3D Pixar"
+    : artStyle === "graphic-novel" ? t.checkout.artGraphicNovel : t.checkout.artCartoon;
+  const pageCount = PAGES_BY_TYPE[bookOptions.productType] ?? 20;
+
+  const EditBtn = ({ target }: { target: "story" | "format" }) => (
+    onEdit ? (
+      <button
+        type="button"
+        onClick={() => onEdit(target)}
+        className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:underline shrink-0"
+      >
+        <Pencil className="w-3 h-3" /> {t.common.edit}
+      </button>
+    ) : null
+  );
+
+  const Row = ({ label, value, target }: { label: string; value: ReactNode; target?: "story" | "format" }) => (
+    <div className="flex items-start justify-between gap-3">
+      <span className="text-muted-foreground shrink-0">{label}</span>
+      <span className="flex items-center gap-2 text-end">
+        <span className="font-medium text-primary">{value}</span>
+        {target && <EditBtn target={target} />}
+      </span>
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="bg-muted/30 rounded-2xl p-5 space-y-3 border border-border">
-        <div className="space-y-2.5 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">
-              {t.checkout.bookFor(childName)}{quantity > 1 ? ` × ${quantity}` : ""}
-            </span>
-            <span className="font-medium text-primary">
-              {isSubscription ? t.checkout.included : fmt(baseBookPrice)}
-            </span>
+    <div className="space-y-5">
+      {/* The book itself */}
+      <div className="rounded-2xl border border-border bg-card overflow-hidden">
+        <div className="flex items-center gap-4 p-4 sm:p-5">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-muted/30 border border-border/50 shrink-0">
+            <img
+              src={FORMAT_THUMB[bookOptions.productType]}
+              alt={formatLabel}
+              width={320}
+              height={320}
+              decoding="async"
+              className="w-full h-full object-cover"
+              style={lang === "en" ? undefined : { transform: "scaleX(-1)" }}
+            />
           </div>
-          {bookOptions.coloringBook && (
-            <div className="flex justify-between text-accent">
-              <span>{t.bookOptions.coloringBookAddon}{quantity > 1 ? ` × ${quantity}` : ""}</span>
-              <span className="font-medium">{isSubscription ? t.checkout.included : fmt(coloringAddonTotal)}</span>
-            </div>
-          )}
-          {!isSubscription && volumeDiscount > 0 && (
-            <div className="flex justify-between text-accent">
-              <span>{t.checkout.volumeDiscount(Math.round(volumeDiscount * 100))}</span>
-              <span className="font-medium">−{fmt(discountAmount)}</span>
-            </div>
-          )}
-          {!isSubscription && (
+          <div className="min-w-0 flex-1">
+            <p className="font-heading text-lg sm:text-xl font-bold text-primary leading-tight truncate">{storyLabel}</p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">{t.checkout.bookFor(childName)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1.5">
+              {formatLabel} · {t.checkout.pagesCount(pageCount)}
+              {quantity > 1 ? ` · ×${quantity}` : ""}
+            </p>
+          </div>
+          <div className="text-end shrink-0">
+            <p className="text-xl sm:text-2xl font-bold text-accent leading-none">{fmt(total)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              {isSubscription && activePlan ? `/${periodLabel(activePlan.id)}` : t.checkout.oneTimePurchase}
+            </p>
+          </div>
+        </div>
+
+        {/* Details — collapsed by default, so the panel stays clean */}
+        <button
+          type="button"
+          onClick={() => setDetailsOpen((v) => !v)}
+          aria-expanded={detailsOpen}
+          className="w-full flex items-center justify-between gap-2 px-4 sm:px-5 py-3 border-t border-border text-sm text-muted-foreground hover:bg-muted/40 transition-colors"
+        >
+          <span className="font-medium">{t.checkout.orderDetails}</span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
+        </button>
+
+        {detailsOpen && (
+          <div className="px-4 sm:px-5 pb-4 space-y-2.5 text-sm border-t border-border pt-3.5">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">{t.wizard.story}</span>
-              <span className="font-medium text-primary">{getPortionDisplay(torahPortion, lang) || getPortionLabel(torahPortion)}</span>
+              <span className="text-muted-foreground">
+                {t.checkout.bookFor(childName)}{quantity > 1 ? ` × ${quantity}` : ""}
+              </span>
+              <span className="font-medium text-primary">
+                {isSubscription ? t.checkout.included : fmt(baseBookPrice)}
+              </span>
             </div>
-          )}
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t.wizard.artStyle}</span>
-            <span className="font-medium text-primary capitalize">{artStyle === "3d-pixar" ? "3D Pixar" : artStyle === "graphic-novel" ? t.checkout.artGraphicNovel : t.checkout.artCartoon}</span>
+            {bookOptions.coloringBook && (
+              <div className="flex justify-between text-accent">
+                <span>{t.bookOptions.coloringBookAddon}{quantity > 1 ? ` × ${quantity}` : ""}</span>
+                <span className="font-medium">{isSubscription ? t.checkout.included : fmt(coloringAddonTotal)}</span>
+              </div>
+            )}
+            {!isSubscription && volumeDiscount > 0 && (
+              <div className="flex justify-between text-accent">
+                <span>{t.checkout.volumeDiscount(Math.round(volumeDiscount * 100))}</span>
+                <span className="font-medium">−{fmt(discountAmount)}</span>
+              </div>
+            )}
+            {!isSubscription && <Row label={t.wizard.story} value={storyLabel} target="story" />}
+            <Row label={t.wizard.artStyle} value={<span className="capitalize">{artLabel}</span>} />
+            <Row
+              label={t.checkout.format}
+              value={`${formatLabel}${bookOptions.coloringBook ? ` + ${t.bookOptions.coloringBookAddon}` : ""}`}
+              target="format"
+            />
+            {shippingCost > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
+                <span className="font-medium text-primary">{fmt(shippingCost)}</span>
+              </div>
+            )}
+            {isSubscription && activePlan && (
+              <div className="flex justify-between text-accent">
+                <span>{t.checkout.planNamed(planLabels[activePlan.id])}</span>
+                <span className="font-medium">{fmt(subscriptionPrice)}/{periodLabel(activePlan.id)}</span>
+              </div>
+            )}
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">{t.checkout.format}</span>
-            <span className="font-medium text-primary">
-              {bookOptions.productType === "hardcover"
-                ? `${t.bookOptions.hardcover} 8″×8″`
-                : bookOptions.productType === "board"
-                ? `${t.bookOptions.boardBook} 6″×6″`
-                : bookOptions.productType === "coloring"
-                ? `${t.productsShowcase.coloring} 8.5″×11″`
-                : `${t.bookOptions.softcover} 8″×8″`}
-              {bookOptions.coloringBook ? ` + ${t.bookOptions.coloringBookAddon}` : ""}
-            </span>
-          </div>
-          {/* Shipping row only shows when it actually costs something — the
-              redundant "free shipping" line is omitted for a cleaner summary. */}
-          {shippingCost > 0 && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
-              <span className="font-medium text-primary">{fmt(shippingCost)}</span>
-            </div>
-          )}
-          {isSubscription && activePlan && (
-            <div className="flex justify-between text-accent">
-              <span>{t.checkout.planNamed(planLabels[activePlan.id])}</span>
-              <span className="font-medium">{fmt(subscriptionPrice)}/{periodLabel(activePlan.id)}</span>
-            </div>
-          )}
-          <div className="border-t border-border pt-3 mt-3 flex justify-between font-bold text-base">
-            <span>{t.checkout.totalToday}</span>
-            <span className="text-accent">{fmt(total)}</span>
-          </div>
+        )}
+
+        <div className="flex justify-between items-baseline px-4 sm:px-5 py-3.5 border-t border-border bg-muted/25 font-bold">
+          <span className="text-primary">{t.checkout.totalToday}</span>
+          <span className="text-accent text-lg">{fmt(total)}</span>
         </div>
       </div>
 

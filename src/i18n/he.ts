@@ -740,6 +740,8 @@ export const he: typeof en = {
     shippingLabel: "משלוח",
     plan: "מסלול",
     totalToday: "סה״כ לתשלום היום",
+    orderDetails: "פרטי ההזמנה",
+    pagesCount: (n: number) => `${n} עמודים`,
     freeShipping: "חינם",
     freeShipNote: "🚚 משלוח חינם בכל מנוי · אפשר לבטל בכל רגע",
     secureCheckout: "תשלום מאובטח · הצפנת 256 ביט · פרטי התשלום שלכם שמורים בבטחה",

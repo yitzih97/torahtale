@@ -740,6 +740,8 @@ export const yi: typeof en = {
     shippingLabel: "משלוח",
     plan: "תוכנית",
     totalToday: "סה״כ היום",
+    orderDetails: "באשטעלונג פרטים",
+    pagesCount: (n: number) => `${n} זייטן`,
     freeShipping: "חינם",
     freeShipNote: "🚚 משלוח חינם בכל מנוי · ביטול בכל עת",
     secureCheckout: "תשלום מאובטח · הצפנת 256 ביט · פרטי התשלום שלכם בטוחים",

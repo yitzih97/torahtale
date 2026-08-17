@@ -136,7 +136,7 @@ export const FamilyPhotoDialog = ({ open, onOpenChange, t, onConfirm }: Props) =
               <Users className="w-5 h-5 text-accent-foreground" />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="font-display text-xl font-bold text-foreground">
+              <DialogTitle className="font-heading text-xl font-bold text-foreground">
                 {people.length ? t.wizard.reviewFamily : t.wizard.uploadFamilyPhoto}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
@@ -152,7 +152,7 @@ export const FamilyPhotoDialog = ({ open, onOpenChange, t, onConfirm }: Props) =
               <div className="w-14 h-14 rounded-2xl bg-accent/15 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                 <Camera className="w-7 h-7 text-accent" />
               </div>
-              <span className="font-display text-base font-semibold text-foreground">
+              <span className="font-heading text-base font-semibold text-foreground">
                 {t.wizard.uploadFamilyPhoto}
               </span>
               <span className="text-xs text-muted-foreground text-center max-w-[15rem]">

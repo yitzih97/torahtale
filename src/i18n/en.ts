@@ -748,6 +748,8 @@ export const en = {
     shippingLabel: "Shipping",
     plan: "Plan",
     totalToday: "Total Today",
+    orderDetails: "Order details",
+    pagesCount: (n: number) => `${n} pages`,
     freeShipping: "Free",
     freeShipNote: "🚚 Free shipping on all subscription deliveries · Cancel anytime",
     secureCheckout: "Secure checkout · 256-bit encryption · Your payment details are safe",

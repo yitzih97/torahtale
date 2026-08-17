@@ -7,6 +7,15 @@ import softcoverImg from "@/assets/books/mockup-softcover.jpg";
 import hardcoverImg from "@/assets/books/mockup-hardcover.jpg";
 import boardImg from "@/assets/books/mockup-board.jpg";
 import coloringImg from "@/assets/books/mockup-coloring.jpg";
+// Square 320px crops of the same mockups. The full files are 2133x1200, and
+// squeezing one into an 80px tile made the browser resample ~27x in a single
+// step — which is what read as blurry. These are pre-cropped to the book and
+// sized for the tile (320 = 80 at 4x), so they land crisp; the full-resolution
+// image is still what the zoom dialog shows.
+import softcoverThumb from "@/assets/books/thumb-softcover.jpg";
+import hardcoverThumb from "@/assets/books/thumb-hardcover.jpg";
+import boardThumb from "@/assets/books/thumb-board.jpg";
+import coloringThumb from "@/assets/books/thumb-coloring.jpg";
 
 export interface BookOptions {
   productType: "softcover" | "hardcover" | "board" | "coloring";
@@ -48,6 +57,7 @@ const PRODUCT_INFO = {
     dims: '8″ × 8″',
     icon: BookOpen,
     image: softcoverImg,
+    thumb: softcoverThumb,
   },
   hardcover: {
     price: 24.99,
@@ -55,6 +65,7 @@ const PRODUCT_INFO = {
     dims: '8″ × 8″',
     icon: Shield,
     image: hardcoverImg,
+    thumb: hardcoverThumb,
   },
   board: {
     price: 29.99,
@@ -62,6 +73,7 @@ const PRODUCT_INFO = {
     dims: '6″ × 6″',
     icon: Baby,
     image: boardImg,
+    thumb: boardThumb,
   },
   coloring: {
     price: 16.99,
@@ -69,6 +81,7 @@ const PRODUCT_INFO = {
     dims: '8.5″ × 11″',
     icon: Palette,
     image: coloringImg,
+    thumb: coloringThumb,
   },
 } as const;
 
@@ -188,7 +201,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setZoomed({ src: info.image, label: productLabels[key] }); } }}
                   className="group/img relative w-20 h-20 rounded-xl overflow-hidden bg-muted/30 shrink-0 border border-border/50 cursor-zoom-in"
                 >
-                  <img src={info.image} alt={productLabels[key]} style={mirror} className="w-full h-full object-cover" loading="lazy" width={80} height={80} />
+                  <img src={info.thumb} alt={productLabels[key]} style={mirror} className="w-full h-full object-cover" decoding="async" width={320} height={320} />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover/img:bg-black/25 transition-colors">
                     <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover/img:opacity-100 transition-opacity drop-shadow" />
                   </div>
@@ -200,7 +213,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3 mb-1">
                     <div>
-                      <span className="font-display font-bold text-base text-primary flex items-center gap-2">
+                      <span className="font-heading font-bold text-base text-primary flex items-center gap-2">
                         <Icon className="w-4 h-4 text-accent" />
                         {productLabels[key]}
                       </span>
@@ -225,7 +238,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
           {zoomed && (
             <div className="flex flex-col items-center gap-2">
               <img src={zoomed.src} alt={zoomed.label} style={mirror} className="w-full h-auto rounded-lg object-contain" />
-              <p className="font-display font-semibold text-sm text-primary pb-1">{zoomed.label}</p>
+              <p className="font-heading font-semibold text-sm text-primary pb-1">{zoomed.label}</p>
             </div>
           )}
         </DialogContent>

@@ -498,12 +498,12 @@ const easternClock = (d: Date): { et: Date; offset: number } => {
 };
 
 /**
- * The order-by deadline shown on the wizard's countdown: simply the NEXT
- * Wednesday 12:00 PM ET rollover, so the countdown is always within a week
- * (a rolling ≤7-day cadence). The ~10-day shipping runway lives in the target
- * itself — getCurrentParsha delivers the Shabbos that is 10 days after each
- * rollover — so ordering by this deadline leaves a full window to ship before
- * Shabbos without inflating the visible countdown past a week.
+ * The order-by deadline shown on the wizard's countdown: the NEXT Wednesday
+ * 12:00 PM ET rollover, so the countdown is always within a week (a rolling
+ * ≤7-day cadence). The production runway lives in the TARGET — getCurrentParsha
+ * delivers the Shabbos 10 days after this deadline, which is exactly 7 business
+ * days (Thu, Fri, Mon–Fri) — so the countdown stays short without promising a
+ * Shabbos we cannot print and ship for.
  */
 export const getNextParshaRollover = (from: Date = new Date()): Date => {
   const { et, offset } = easternClock(from);
@@ -514,31 +514,29 @@ export const getNextParshaRollover = (from: Date = new Date()): Date => {
   return new Date(target.getTime() + offset);
 };
 
+/** Business days a book needs between the order deadline and Shabbos delivery. */
+export const PRINT_LEAD_BUSINESS_DAYS = 7;
+
 /**
- * The parsha to suggest as "this week" in the creation wizard.
+ * The parsha to offer in the creation wizard.
  *
- * A parsha "week" runs from one Wednesday-noon-ET rollover to the next: from
- * Wednesday noon ET we point at the coming Shabbat and hold it through the
- * following Wednesday noon, then roll forward. (Unlike getUpcomingParsha, which
- * adds a multi-week production lead used by the subscription release job — this
- * one shows the current/upcoming week, no lead.)
+ * It is anchored on the DEADLINE the customer is actually being counted down to
+ * — the next Wednesday-noon-ET rollover — and then set 10 days later, which is
+ * exactly PRINT_LEAD_BUSINESS_DAYS business days (Thu, Fri, Mon, Tue, Wed, Thu,
+ * Fri) to print and ship.
  *
- * e.g. now → 2026-07-02 (before Wed 07-08 noon ET) → pinchas (Shabbat 07-04);
- * from Wed 2026-07-08 noon ET → matot (Shabbat 07-11).
+ * It used to anchor on the MOST RECENT rollover instead, which was a week short:
+ * a customer ordering right on the deadline was being promised a Shabbos only
+ * three days away. Anchoring on the next rollover is what makes the offered
+ * parsha "next week's" rather than this week's.
+ *
+ * e.g. Mon 2026-08-17 → deadline Wed 08-19 noon ET → Shabbos 08-29 → ki-tavo
+ * (not ki-teitzei, whose Shabbos 08-22 could not be printed and shipped in time).
  */
 export const getCurrentParsha = (from: Date = new Date()): string => {
-  const { et } = easternClock(from);
-  // Anchor on the most recent Wednesday-noon-ET rollover, then show the parsha
-  // of the Shabbat of the FOLLOWING week (rollover + 10 days). This gives a
-  // production lead: once Wednesday noon passes we advance to next week's parsha.
-  // e.g. Thu 2026-07-02 (past Wed 07-01 noon) -> Shabbat 07-11 = matot-masei;
-  // it flips to the next parsha at Wed 07-08 noon ET.
-  const rollover = new Date(et);
-  rollover.setDate(et.getDate() - ((et.getDay() - 3 + 7) % 7)); // this/most-recent Wednesday
-  rollover.setHours(12, 0, 0, 0);
-  if (rollover.getTime() > et.getTime()) rollover.setDate(rollover.getDate() - 7); // before noon on a Wed
-  const sat = new Date(rollover);
-  sat.setDate(rollover.getDate() + 10);
+  const { et } = easternClock(getNextParshaRollover(from));
+  const sat = new Date(et);
+  sat.setDate(et.getDate() + 10);
   const pad = (n: number) => String(n).padStart(2, "0");
   const key = `${sat.getFullYear()}-${pad(sat.getMonth() + 1)}-${pad(sat.getDate())}`;
 
