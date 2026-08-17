@@ -914,88 +914,124 @@ async function renderColoringBackMatter(
   ctx.imageSmoothingQuality = "high";
   if (scale !== 1) ctx.scale(scale, scale);
   drawPaperFull(ctx, W, H);
+  const cx = W / 2;
   const padX = W * 0.1;
-  let y = H * 0.07; // logo sits a little lower from the top edge
+  const frameM = 44;
 
-  // ── Combined brand logo (single lockup: book icon on top of the wordmark) +
-  //    series headline, centered. ──
-  // Logo only at the top; the "Torah Tale Weekly Series" headline moves to the
-  // bottom section (above the subscribe line + teasers).
+  // Double gold keyline frame — gives the page a finished, real-cover feel.
+  ctx.strokeStyle = "rgba(184,138,42,0.5)"; ctx.lineWidth = 2.5;
+  roundedRect(ctx, frameM, frameM, W - 2 * frameM, H - 2 * frameM, 26); ctx.stroke();
+  ctx.strokeStyle = "rgba(184,138,42,0.22)"; ctx.lineWidth = 1;
+  roundedRect(ctx, frameM + 9, frameM + 9, W - 2 * (frameM + 9), H - 2 * (frameM + 9), 19); ctx.stroke();
+
+  // ── Bottom anchors — built up from the page bottom so nothing ever overflows:
+  //    footer URL, CTA, divider, teaser row, and the series headline above it. ──
+  const yURL = H - frameM - 46;
+  const yCTA = yURL - 42;
+  const yDivider = yCTA - 40;
+  const thumb = 256, tgap = 16;
+  const rowW = 4 * thumb + 3 * tgap;
+  const rowX = cx - rowW / 2;
+  const teasersBottom = yDivider - 30;
+  const teasersTop = teasersBottom - thumb;
+  const shf = 30; // series-headline cap height
+  const headingBaseline = teasersTop - 24;
+
+  // ── Top: brand logo (centered) ──
+  let y = frameM + 40;
   const logo = await safeLoad(torahTaleLogoFull);
   if (logo) {
-    const logoH = 165, logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-    ctx.drawImage(logo, W / 2 - logoW / 2, y, logoW, logoH);
-    y += logoH + 34;
-    ctx.textBaseline = "top";
+    const logoH = 138, logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
+    ctx.drawImage(logo, cx - logoW / 2, y, logoW, logoH);
+    y += logoH + 22;
   }
 
-  // ── Up to 10 discussion questions — header CENTERED, list in a centered
-  //    column so the block sits nicely in the middle of the page. ──
-  const allQ = (page.questions && page.questions.length)
-    ? page.questions.map((q) => `${q.number}. ${q.question}`)
-    : (page.text || "").split("\n").map((s) => s.trim()).filter(Boolean);
-  const questions = allQ.slice(0, 10);
-  ctx.textBaseline = "top";
+  // ── Back-cover blurb (the invitation) — italic serif, centered, wrapped. ──
   ctx.direction = rtl ? "rtl" : "ltr";
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#b88a2a";
-  ctx.font = `bold 38px 'Playfair Display', serif`;
-  const questionsHeader = lang === "he" ? "שאלות לדיון" : lang === "yi" ? "פֿראגן צום רעדן" : "Questions to Talk About";
-  ctx.fillText(questionsHeader, W / 2, y);
-  y += 60;
-  ctx.fillStyle = "#2b2418";
-  ctx.textAlign = rtl ? "right" : "left";
-  const anchorX = rtl ? W - padX : padX;
-  const qf = 27;
-  ctx.font = `${qf}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  for (const q of questions) {
-    for (const ln of wrapLines(ctx, q, W - padX * 2)) { ctx.fillText(ln, anchorX, y); y += qf * 1.32; }
-    y += 6;
-  }
-
-  // ── Bottom block: series headline, subscribe invitation, teasers, URL ──
-  y = Math.max(y + 18, H * 0.62);
-  // Series headline ("The Torah Tale Weekly Series") — now at the bottom.
-  ctx.direction = rtl ? "rtl" : "ltr";
-  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-  const shf = 30;
-  engravedLine(ctx, getCoverHeadline(lang), W / 2, y + shf, coverTitleFont(shf), shf);
-  y += shf + 22;
-  ctx.textBaseline = "top";
-  // Subscribe invitation (localized → RTL); URL stays LTR.
-  ctx.direction = rtl ? "rtl" : "ltr";
-  ctx.textAlign = "center";
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
   ctx.fillStyle = "#5a4a32";
-  const tSize = 32;
-  ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  const taglineLines = page.backCoverText && page.backCoverText.trim()
+  const bSize = 31;
+  ctx.font = `italic ${bSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
+  const blurbLines = page.backCoverText && page.backCoverText.trim()
     ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
     : getCoverTagline(lang);
-  taglineLines.forEach((line, i) => ctx.fillText(line, W / 2, y + i * (tSize * 1.3)));
-  y += taglineLines.length * (tSize * 1.3) + 22;
+  for (const line of blurbLines) {
+    for (const ln of wrapLines(ctx, line, W - padX * 2)) { ctx.fillText(ln, cx, y); y += bSize * 1.34; }
+  }
+  y += 14;
+  coverFlourish(ctx, cx, y + 6, W * 0.26, COVER_GOLD);
+  y += 32;
 
-  // ── "Coming next" teaser thumbnails (mini front covers) ──
+  // ── Questions "feature card" — a framed panel, header centered, list auto-fit
+  //    so all 10 questions sit comfortably inside no matter their length. ──
+  const cardTop = y;
+  const cardBottom = headingBaseline - shf - 26;
+  const cardX = frameM + 30;
+  const cardW = W - 2 * (frameM + 30);
+  const innerPad = 34;
+  const qMaxW = cardW - innerPad * 2;
+  const qList = ((page.questions && page.questions.length)
+    ? page.questions.map((q) => `${q.number}. ${q.question}`)
+    : (page.text || "").split("\n").map((s) => s.trim()).filter(Boolean)).slice(0, 10);
+  const hSize = 33;
+  const headerBlock = hSize * 1.2 + 22;
+  const availH = (cardBottom - cardTop) - innerPad * 2 - headerBlock;
+  let qf = 30;
+  for (; qf >= 19; qf--) {
+    ctx.font = `${qf}px ${BOOK_TEXT_STYLE.fontFamily}`;
+    let hh = 0;
+    for (const q of qList) hh += wrapLines(ctx, q, qMaxW).length * qf * 1.32 + 7;
+    if (hh <= availH) break;
+  }
+  roundedRect(ctx, cardX, cardTop, cardW, cardBottom - cardTop, 20);
+  ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.fill();
+  ctx.strokeStyle = "rgba(184,138,42,0.5)"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.fillStyle = "#b88a2a";
+  ctx.font = `bold ${hSize}px 'Playfair Display', serif`;
+  const questionsHeader = lang === "he" ? "שאלות לדיון" : lang === "yi" ? "פֿראגן צום רעדן" : "Questions to Talk About";
+  let qy = cardTop + innerPad;
+  ctx.fillText(questionsHeader, cx, qy);
+  const qStart = qy + headerBlock;
+  // Vertically CENTER the questions in the space below the header so the card
+  // never looks bottom-heavy or empty.
+  ctx.font = `${qf}px ${BOOK_TEXT_STYLE.fontFamily}`;
+  let qContentH = 0;
+  for (const q of qList) qContentH += wrapLines(ctx, q, qMaxW).length * qf * 1.32 + 7;
+  const qSpace = (cardBottom - innerPad) - qStart;
+  qy = qStart + Math.max(0, (qSpace - qContentH) / 2);
+  ctx.fillStyle = "#2b2418";
+  ctx.textAlign = rtl ? "right" : "left";
+  const qAnchor = rtl ? cardX + cardW - innerPad : cardX + innerPad;
+  for (const q of qList) {
+    for (const ln of wrapLines(ctx, q, qMaxW)) { ctx.fillText(ln, qAnchor, qy); qy += qf * 1.32; }
+    qy += 7;
+  }
+
+  // ── Bottom: series headline + "coming next" teaser covers ──
+  ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  engravedLine(ctx, getCoverHeadline(lang), cx, headingBaseline, coverTitleFont(shf), shf);
+  ctx.textBaseline = "top";
   const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
-  const thumb = 290, tgap = 16; // bigger so each book's title is readable
-  const rowW = 4 * thumb + 3 * tgap;
-  const rowX = W / 2 - rowW / 2;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", coverChild, tx, y, thumb, rtl, lang);
+    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", coverChild, tx, teasersTop, thumb, rtl, lang);
   }
-  y += thumb + 26;
 
-  // ── CTA + site URL ──
-  const urlY = Math.min(y + 30, H - 40);
+  // ── Footer: thin divider + CTA + site URL ──
+  ctx.strokeStyle = "rgba(184,138,42,0.35)"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cx - W * 0.22, yDivider); ctx.lineTo(cx + W * 0.22, yDivider); ctx.stroke();
   ctx.direction = rtl ? "rtl" : "ltr";
-  ctx.textAlign = "center";
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#5a4a32";
-  ctx.font = `italic 24px ${BOOK_TEXT_STYLE.fontFamily}`;
-  ctx.fillText(getCoverCta(lang), W / 2, urlY - 34);
+  ctx.font = `italic 25px ${BOOK_TEXT_STYLE.fontFamily}`;
+  ctx.fillText(getCoverCta(lang), cx, yCTA);
   ctx.direction = "ltr";
   ctx.fillStyle = "#b88a2a";
   ctx.font = `700 28px 'Inter', sans-serif`;
-  ctx.fillText(COVER_URL.toUpperCase(), W / 2, urlY);
+  ctx.fillText(COVER_URL.toUpperCase(), cx, yURL);
 
   return encodePage(canvas);
 }
