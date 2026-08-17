@@ -213,7 +213,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3 mb-1">
                     <div>
-                      <span className="font-heading font-bold text-base text-primary flex items-center gap-2">
+                      <span className="font-display font-bold text-base text-primary flex items-center gap-2">
                         <Icon className="w-4 h-4 text-accent" />
                         {productLabels[key]}
                       </span>
@@ -238,7 +238,7 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
           {zoomed && (
             <div className="flex flex-col items-center gap-2">
               <img src={zoomed.src} alt={zoomed.label} style={mirror} className="w-full h-auto rounded-lg object-contain" />
-              <p className="font-heading font-semibold text-sm text-primary pb-1">{zoomed.label}</p>
+              <p className="font-display font-semibold text-sm text-primary pb-1">{zoomed.label}</p>
             </div>
           )}
         </DialogContent>

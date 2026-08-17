@@ -674,7 +674,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
       <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/25 to-accent/5 flex items-center justify-center mx-auto">
         <Mail className="w-7 h-7 text-accent" />
       </div>
-      <h3 className="font-heading text-xl font-bold text-foreground">{t.wizard.confirmEmailTitle}</h3>
+      <h3 className="font-display text-xl font-bold text-foreground">{t.wizard.confirmEmailTitle}</h3>
       <p className="text-sm text-muted-foreground leading-relaxed">
         {t.wizard.confirmEmailBody}{" "}
         <span className="font-semibold text-foreground" dir="ltr">{confirmEmailPendingFor}</span>.
@@ -1687,7 +1687,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                 <div className="max-w-md mx-auto space-y-4">
                   {/* What works best guide */}
                   <motion.div variants={staggerChild} className="rounded-2xl border border-border/50 bg-card/40 backdrop-blur-sm p-4">
-                    <p className="font-heading font-semibold text-xs text-foreground mb-3 text-center">{t.wizard.photoGuideTitle}</p>
+                    <p className="font-display font-semibold text-xs text-foreground mb-3 text-center">{t.wizard.photoGuideTitle}</p>
                     <div className="grid grid-cols-3 gap-3">
                       {/* GOOD */}
                       <div className="flex flex-col items-center gap-1.5">
@@ -1726,7 +1726,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   <motion.div variants={staggerChild} className="rounded-3xl border border-border/50 bg-card/40 backdrop-blur-sm p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-xl bg-accent/15 flex items-center justify-center"><Camera className="w-4 h-4 text-accent" /></div>
-                      <p className="font-heading font-semibold text-sm text-foreground">{t.wizard.uploadPhoto}</p>
+                      <p className="font-display font-semibold text-sm text-foreground">{t.wizard.uploadPhoto}</p>
                     </div>
                     {child.photoPreview ? (
                       <div className="space-y-3">
@@ -1872,7 +1872,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     }`}
                   >
                     <span className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${selected ? "bg-accent/15 text-accent" : "bg-muted/50 text-foreground/70 group-hover:bg-accent/10 group-hover:text-accent"}`}><PortionIcon name={p.icon} className="w-[18px] h-[18px]" /></span>
-                    <span className="font-heading text-sm font-semibold text-foreground leading-snug pe-5">{short ? stripSeferPrefix(title) : title}</span>
+                    <span className="font-display text-sm font-semibold text-foreground leading-snug pe-5">{short ? stripSeferPrefix(title) : title}</span>
                     {!isHe && (
                       <span className="text-[11px] text-muted-foreground font-medium leading-snug">{short ? stripSeferPrefix(subtitle) : subtitle}</span>
                     )}
@@ -1953,7 +1953,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                             <p className="text-[10px] text-accent font-semibold uppercase tracking-wide flex items-center gap-1">
                               <Sparkles className="w-3 h-3" /> {t.wizard.thisWeeksParsha}
                             </p>
-                            <p className="font-heading text-base sm:text-lg font-bold text-foreground leading-tight mt-1">
+                            <p className="font-display text-base sm:text-lg font-bold text-foreground leading-tight mt-1">
                               {upcomingTitle}
                             </p>
                             <div className="mt-1.5">
@@ -1981,7 +1981,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                           <PortionIcon name="BookOpen" className="w-6 h-6" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-heading text-base sm:text-lg font-bold text-foreground leading-tight">{t.wizard.chooseDifferentStory}</p>
+                          <p className="font-display text-base sm:text-lg font-bold text-foreground leading-tight">{t.wizard.chooseDifferentStory}</p>
                           <p className="text-xs text-muted-foreground mt-1">{t.wizard.chooseDifferentStoryDesc}</p>
                         </div>
                         <ChevronRight className="w-5 h-5 text-muted-foreground rtl:rotate-180 flex-shrink-0" />
@@ -2010,7 +2010,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                           className="relative p-5 rounded-2xl border-2 border-border/50 bg-card/60 hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 backdrop-blur-sm flex flex-col items-center gap-2 text-center"
                         >
                           <span className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent"><PortionIcon name={meta.icon} className="w-6 h-6" /></span>
-                          <span className="font-heading text-sm font-semibold text-foreground">{isHe ? meta.labelHe : meta.label}</span>
+                          <span className="font-display text-sm font-semibold text-foreground">{isHe ? meta.labelHe : meta.label}</span>
                         </motion.button>
                       );
                     })}
@@ -2050,7 +2050,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                             >
                               <span className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${isExpanded || hasSelected ? "bg-accent/15 text-accent" : "bg-muted/50 text-foreground/70"}`}><PortionIcon name="Book" className="w-[18px] h-[18px]" /></span>
                               <span className="min-w-0 flex-1 text-start">
-                                <span className="font-heading text-sm font-semibold text-foreground block leading-tight truncate">{isHe ? seferLabel.he : seferLabel.en}</span>
+                                <span className="font-display text-sm font-semibold text-foreground block leading-tight truncate">{isHe ? seferLabel.he : seferLabel.en}</span>
                                 {!isHe && (
                                   <span className="text-muted-foreground/70 text-[11px] font-normal block truncate">{seferLabel.he}</span>
                                 )}
@@ -2309,7 +2309,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ duration: 0.3 }}
-                          className="font-heading text-xl sm:text-2xl text-foreground font-semibold"
+                          className="font-display text-xl sm:text-2xl text-foreground font-semibold"
                         >
                           {GENERATION_PHASES[animPhaseIdx]?.text}
                         </motion.p>
@@ -2411,7 +2411,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                                 <Check className="w-3 h-3 text-accent-foreground" />
                               </span>
                             )}
-                            <div className="font-heading font-bold text-base text-foreground pe-7">{o.label}</div>
+                            <div className="font-display font-bold text-base text-foreground pe-7">{o.label}</div>
                             <div className="mt-1 flex items-baseline gap-1">
                               <span className="text-xl font-bold text-accent">{o.price}</span>
                               <span className="text-xs text-muted-foreground">{o.suffix}</span>
@@ -2715,7 +2715,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
       <DialogContent className="max-w-md rounded-3xl p-6">
         <div className="space-y-4">
           <div>
-            <p className="font-heading font-semibold text-base text-foreground">
+            <p className="font-display font-semibold text-base text-foreground">
               {lang === "he" ? "האם זה אותו ילד?" : lang === "yi" ? "איז דאס דער זעלבער קינד?" : "Is this the same child?"}
             </p>
             <p className="text-sm text-muted-foreground mt-1">

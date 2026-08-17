@@ -191,7 +191,7 @@ export const CheckoutStep = ({
                 }`}>
                   {isActive ? <Check className="w-5 h-5" /> : <plan.icon className="w-5 h-5" />}
                 </div>
-                <p className="font-heading font-bold text-base text-primary">{planLabels[plan.id]}</p>
+                <p className="font-display font-bold text-base text-primary">{planLabels[plan.id]}</p>
                 <div className="mt-1.5">
                   <span className="text-xl font-bold text-accent">{fmt(plan.priceUsd)}</span>
                   <span className="text-xs text-muted-foreground">/{periodLabel(plan.id)}</span>
@@ -280,7 +280,7 @@ export const CheckoutStep = ({
             />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-heading text-lg sm:text-xl font-bold text-primary leading-tight truncate">{storyLabel}</p>
+            <p className="font-display text-lg sm:text-xl font-bold text-primary leading-tight truncate">{storyLabel}</p>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{t.checkout.bookFor(childName)}</p>
             <p className="text-[11px] text-muted-foreground mt-1.5">
               {formatLabel} · {t.checkout.pagesCount(pageCount)}
