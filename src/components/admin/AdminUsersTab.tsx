@@ -25,6 +25,7 @@ import {
   ORDER_STATUSES, STATUS_LABEL, orderStatusColor, orderStatusIcon, orderNeedsAction,
 } from "@/lib/orderStatus";
 import { formatAddressLine, readOrderAddress } from "@/lib/orderShipping";
+import { subStatusColor } from "@/lib/subStatus";
 
 type Props = {
   profiles: any[];
@@ -51,12 +52,6 @@ const loadVip = (): Set<string> => {
   try { return new Set(JSON.parse(localStorage.getItem(VIP_KEY) || "[]")); } catch { return new Set(); }
 };
 const saveVip = (s: Set<string>) => localStorage.setItem(VIP_KEY, JSON.stringify([...s]));
-
-const subStatusColor = (s: string) => {
-  if (s === "active") return "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-950";
-  if (s === "paused") return "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950";
-  return "text-muted-foreground bg-muted";
-};
 
 /**
  * Fallback per-book total from the local row. Real revenue comes from Shopify

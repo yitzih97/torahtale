@@ -18,7 +18,11 @@ import { useAuth } from "@/contexts/AuthContext";
 // handed to Printify (after which the address can no longer be changed).
 const BOOK_LIST_COLS =
   "id,user_id,child_id,child_name,torah_portion,art_style,language,status,order_number,questions,shipping_data,created_at,updated_at," +
-  "paid_at,shopify_order_id,shopify_order_name,printify_order_id,printify_product_id,story_options:story_data->bookOptions";
+  "paid_at,shopify_order_id,shopify_order_name,printify_order_id,printify_product_id,story_options:story_data->bookOptions," +
+  // Books minted by the Monday release job stamp their subscription id into
+  // story_data — projecting just that key is what lets the subs tab count and
+  // open the books a subscription has actually produced.
+  "subscription_id:story_data->>subscriptionId";
 
 // Fetch the complete book row (including the heavy image columns) for one book —
 // used when opening the generation modal or exporting a ZIP.

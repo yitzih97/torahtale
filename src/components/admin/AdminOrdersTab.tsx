@@ -347,29 +347,83 @@ export function AdminOrdersTab({
     </DropdownMenu>
   );
 
-  /** The one or two highest-value actions for this order, inline. */
-  const QuickActions = ({ book }: { book: any }) => (
-    <>
-      {canGenerate(book) && (
-        <Button
-          variant="ghost" size="sm" className="h-7 w-7 p-0 text-accent"
-          onClick={(e) => { e.stopPropagation(); onGenerate(book); }}
-          title="Generate book content"
-        >
-          <Play className="w-3.5 h-3.5" />
-        </Button>
-      )}
-      {book.has_pages && (book.status === "pending_review" || book.status === "ordered" || book.status === "approved") && (
-        <Button
-          variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600"
-          onClick={(e) => { e.stopPropagation(); onApprove(book); }}
-          title={book.status === "approved" ? "Retry sending to Printify" : "Approve for printing"}
-        >
-          <CheckCircle2 className="w-3.5 h-3.5" />
-        </Button>
-      )}
-    </>
-  );
+  /**
+   * The per-order icon buttons, one tap each — details, generate, view/edit,
+   * ZIP, mark paid, approve. `compact` drops to just the two that drive the
+   * workflow, for the card and board layouts where there's no room for six.
+   * Everything here is also in the labelled menu, so nothing is icon-only.
+   */
+  const QuickActions = ({ book, compact = false }: { book: any; compact?: boolean }) => {
+    const canApprove = book.has_pages &&
+      (book.status === "pending_review" || book.status === "ordered" || book.status === "approved");
+    return (
+      <>
+        {!compact && (
+          <Button
+            variant="ghost" size="sm" className="h-7 w-7 p-0 text-accent"
+            onClick={(e) => { e.stopPropagation(); onOpenDetail(book); }}
+            title="Order details"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </Button>
+        )}
+        {canGenerate(book) && (
+          <Button
+            variant="ghost" size="sm" className="h-7 w-7 p-0 text-accent"
+            onClick={(e) => { e.stopPropagation(); onGenerate(book); }}
+            title="Generate book content"
+          >
+            <Play className="w-3.5 h-3.5" />
+          </Button>
+        )}
+        {!compact && book.has_pages && (
+          <Button
+            variant="ghost" size="sm" className="h-7 w-7 p-0"
+            onClick={(e) => { e.stopPropagation(); onOpenBookEditor(book); }}
+            title="View & edit book"
+          >
+            <Eye className="w-3.5 h-3.5" />
+          </Button>
+        )}
+        {!compact && book.has_pages && (
+          <Button
+            variant="ghost" size="sm" className="h-7 w-7 p-0"
+            disabled={downloadingZip === book.id}
+            onClick={(e) => { e.stopPropagation(); onDownloadZip(book); }}
+            title="Download images (ZIP)"
+          >
+            {downloadingZip === book.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+          </Button>
+        )}
+        {!compact && !book.paid_at && !book.shopify_order_id && (
+          <Button
+            variant="ghost" size="sm" className="h-7 w-7 p-0 text-amber-600"
+            disabled={markBookPaid.isPending}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!window.confirm("Mark this book as PAID? This lets it be sent to Printify without a Shopify payment — use only for test/comp/manual orders.")) return;
+              markBookPaid.mutate({ id: book.id }, {
+                onSuccess: () => toast.success("Book marked as paid"),
+                onError: (err: any) => toast.error(err?.message || "Could not mark paid"),
+              });
+            }}
+            title="Mark paid (admin override for test/manual orders)"
+          >
+            <DollarSign className="w-3.5 h-3.5" />
+          </Button>
+        )}
+        {canApprove && (
+          <Button
+            variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600"
+            onClick={(e) => { e.stopPropagation(); onApprove(book); }}
+            title={book.status === "approved" ? "Retry sending to Printify" : "Approve for printing"}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+          </Button>
+        )}
+      </>
+    );
+  };
 
   const TypeBadge = ({ type, qty }: { type: string; qty: number }) => {
     const Icon = PRODUCT_ICON[type] || BookOpen;
@@ -711,7 +765,7 @@ export function AdminOrdersTab({
                         </p>
                       )}
                     </div>
-                    <QuickActions book={book} />
+                    <QuickActions book={book} compact />
                     <RowActions book={book} />
                   </div>
                 </div>
@@ -753,7 +807,7 @@ export function AdminOrdersTab({
                           <div className="flex items-start justify-between gap-1">
                             <p className="text-xs font-semibold text-foreground truncate">{book.child_name || "—"}</p>
                             <div className="flex items-center gap-0.5 shrink-0">
-                              <QuickActions book={book} />
+                              <QuickActions book={book} compact />
                               <RowActions book={book} />
                             </div>
                           </div>

@@ -4,19 +4,15 @@ import { motion } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBookGenerationModal } from "@/components/admin/AdminBookGenerationModal";
-import { Input } from "@/components/ui/input";
 import {
-  Package, Truck, Wand2, Users, BookOpen, CalendarHeart,
-  Settings, Eye, Download, Search, ShieldCheck, Mail, MapPin,
-  Clock, Loader2, AlertTriangle, CheckCircle2, Play, Maximize2, DollarSign,
-  LayoutDashboard,
+  Package, Wand2, Users, BookOpen, CalendarHeart,
+  Settings, ShieldCheck, Mail, Loader2, AlertTriangle, LayoutDashboard,
 } from "lucide-react";
 import { AdminDashboardTab } from "@/components/admin/AdminDashboardTab";
 import { AdminOrdersTab } from "@/components/admin/AdminOrdersTab";
+import { AdminSubsTab } from "@/components/admin/AdminSubsTab";
 import { AdminOrderDetailDialog } from "@/components/admin/AdminOrderDetailDialog";
 import { AdminOrderEditDialog } from "@/components/admin/AdminOrderEditDialog";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
@@ -25,7 +21,6 @@ import { useAdminData, fetchBookFull } from "@/hooks/useAdminData";
 import { submitBookToPrintify } from "@/lib/submitToPrintify";
 import { bookLanguageCode, isBookRtl } from "@/components/wizard/TorahPortions";
 import { generateBookZip } from "@/lib/generateBookZip";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { AdminCMS } from "@/components/admin/AdminCMS";
 import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
@@ -33,12 +28,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const ease = [0.22, 1, 0.36, 1];
-
-const subStatusColor = (s: string) => {
-  if (s === "active") return "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-950";
-  if (s === "paused") return "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950";
-  return "text-muted-foreground bg-muted";
-};
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -328,71 +317,17 @@ export default function Admin() {
 
               {/* ═══ TAB: SUBSCRIPTIONS ═══ */}
               <TabsContent value="subs">
-                {subscriptionsLoading ? (
-                  <div className="space-y-3">{[1, 2].map((i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}</div>
-                ) : subscriptions.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">No subscriptions yet.</div>
-                ) : (
-                  <div className="bg-card rounded-2xl border border-border shadow-soft-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-border bg-secondary/50">
-                            {["Customer", "Child", "Style", "Price", "Frequency", "Next Delivery", "Status", "Action"].map((h) => (
-                              <th key={h} className="text-left p-3 font-mono text-[10px] tracking-widest uppercase text-muted-foreground">{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {subscriptions.map((sub: any) => {
-                            const profile = profiles.find((p: any) => p.id === sub.user_id);
-                            return (
-                              <tr key={sub.id} className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors">
-                                <td className="p-3">
-                                  <button onClick={() => setSelectedUserId(sub.user_id)} className="text-xs text-accent hover:underline">
-                                    {profile?.full_name || profile?.email || sub.user_id.slice(0, 8)}
-                                  </button>
-                                </td>
-                                <td className="p-3 text-xs font-medium text-foreground">{sub.child_name || "—"}</td>
-                                <td className="p-3 text-xs text-muted-foreground capitalize">{sub.art_style || "—"}</td>
-                                <td className="p-3 text-xs text-foreground">${sub.price_per_week}</td>
-                                <td className="p-3 text-xs text-muted-foreground capitalize">{sub.frequency}</td>
-                                <td className="p-3 text-xs text-muted-foreground">
-                                  {sub.next_delivery_date ? format(new Date(sub.next_delivery_date), "MMM d, yyyy") : "—"}
-                                </td>
-                                <td className="p-3">
-                                  <Select
-                                    value={sub.status}
-                                    onValueChange={(v) => {
-                                      updateSubscriptionStatus.mutate({ id: sub.id, status: v });
-                                      toast.success(`Subscription ${v}`);
-                                    }}
-                                  >
-                                    <SelectTrigger className="w-[110px] h-7 text-[11px]">
-                                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${subStatusColor(sub.status)}`}>
-                                        <SelectValue />
-                                      </div>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="active">Active</SelectItem>
-                                      <SelectItem value="paused">Paused</SelectItem>
-                                      <SelectItem value="canceled">Canceled</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </td>
-                                <td className="p-3">
-                                  <Button variant="ghost" size="sm" className="text-[11px] h-7" onClick={() => setSelectedUserId(sub.user_id)}>
-                                    <Eye className="w-3 h-3" />
-                                  </Button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
+                <AdminSubsTab
+                  subscriptions={subscriptions}
+                  subscriptionsLoading={subscriptionsLoading}
+                  profiles={profiles}
+                  books={books}
+                  children={children}
+                  updateSubscriptionStatus={updateSubscriptionStatus}
+                  onSelectUser={(userId) => openCustomerFromOrder(userId)}
+                  onOpenOrderDetail={(book) => setSelectedOrder(book)}
+                  onOpenBookEditor={(book) => openGenerationModal(book)}
+                />
               </TabsContent>
 
               {/* ═══ TAB: MESSAGES ═══ */}
