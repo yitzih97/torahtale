@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import {
   User, Mail, BookOpen, Palette, Globe2, Hash, Calendar, MapPin, Package,
   Truck, CheckCircle2, Play, Eye, Download, Loader2, ExternalLink, DollarSign,
-  CreditCard, ReceiptText,
+  CreditCard, ReceiptText, Pencil,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { PAGES_BY_TYPE } from "@/components/wizard/BookOptionsStep";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getProductType, getCogs, getProfit } from "@/lib/bookCosts";
 import { fetchOrderDetails, formatMoney, type OrderDetails } from "@/lib/shopifyAdmin";
+import { shippingSpeedLabel } from "@/lib/orderShipping";
 
 const PRODUCT_LABEL: Record<string, string> = {
   softcover: "Softcover (8×8)",
@@ -33,6 +34,7 @@ interface Props {
   onDownload: () => void;
   onApprove: () => void;
   onViewCustomer: () => void;
+  onEditOrder?: () => void;
 }
 
 const Row = ({ Icon, label, value }: { Icon: any; label: string; value: React.ReactNode }) => (
@@ -45,7 +47,7 @@ const Row = ({ Icon, label, value }: { Icon: any; label: string; value: React.Re
 
 export function AdminOrderDetailDialog({
   book, open, onClose, profile, kids, canGenerate, downloading,
-  onGenerate, onViewEdit, onDownload, onApprove, onViewCustomer,
+  onGenerate, onViewEdit, onDownload, onApprove, onViewCustomer, onEditOrder,
 }: Props) {
   const { lang } = useLanguage();
   const [fin, setFin] = useState<OrderDetails | null>(null);
@@ -105,6 +107,10 @@ export function AdminOrderDetailDialog({
             <Row Icon={Palette} label="Art style" value={(book.art_style || "3d-pixar").replace("3d-pixar", "3D Pixar")} />
             <Row Icon={Globe2} label="Language" value={book.language || "English"} />
             <Row Icon={Hash} label="Pages" value={String(PAGES_BY_TYPE[productType] ?? "—")} />
+            <Row Icon={Package} label="Quantity" value={String(Math.max(1, parseInt(ship?.quantity) || 1))} />
+            {ship?.bookOptions?.coloringBook && productType !== "coloring" && (
+              <Row Icon={Palette} label="Add-on" value="Coloring book" />
+            )}
           </section>
 
           {/* Children */}
@@ -130,18 +136,30 @@ export function AdminOrderDetailDialog({
           )}
 
           {/* Shipping address */}
-          {ship && (ship.street || ship.address1 || ship.city) && (
-            <section className="space-y-1 border-t border-border pt-4">
+          <section className="space-y-1 border-t border-border pt-4">
+            <div className="flex items-center justify-between gap-2">
               <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5" /> Ship to
               </h3>
-              <p className="text-sm text-foreground">
-                {[ship.fullName, ship.street || ship.address1, ship.apt || ship.address2, [ship.city, ship.state || ship.province, ship.zip].filter(Boolean).join(", "), ship.country]
-                  .filter(Boolean).join(" · ")}
-              </p>
-              {ship.phone && <p className="text-xs text-muted-foreground">{ship.phone}</p>}
-            </section>
-          )}
+              {onEditOrder && (
+                <Button variant="ghost" size="sm" className="h-7 text-[11px] text-accent" onClick={onEditOrder}>
+                  <Pencil className="w-3 h-3" /> Edit order
+                </Button>
+              )}
+            </div>
+            {ship && (ship.street || ship.address1 || ship.city) ? (
+              <>
+                <p className="text-sm text-foreground">
+                  {[ship.fullName, ship.street || ship.address1, ship.apt || ship.address2, [ship.city, ship.state || ship.province, ship.zip].filter(Boolean).join(", "), ship.country]
+                    .filter(Boolean).join(" · ")}
+                </p>
+                {ship.phone && <p className="text-xs text-muted-foreground">{ship.phone}</p>}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No address on file yet.</p>
+            )}
+            <Row Icon={Truck} label="Speed" value={shippingSpeedLabel(ship)} />
+          </section>
 
           {/* Financials (live from Shopify) */}
           <section className="space-y-2 border-t border-border pt-4">
@@ -206,6 +224,11 @@ export function AdminOrderDetailDialog({
 
           {/* Actions */}
           <section className="flex flex-wrap gap-2 border-t border-border pt-4">
+            {onEditOrder && (
+              <Button size="sm" variant="outline" className="h-8 text-xs" onClick={onEditOrder}>
+                <Pencil className="w-3.5 h-3.5" /> Edit order
+              </Button>
+            )}
             {canGenerate && (
               <Button size="sm" className="h-8 text-xs" onClick={onGenerate}><Play className="w-3.5 h-3.5" /> Generate</Button>
             )}

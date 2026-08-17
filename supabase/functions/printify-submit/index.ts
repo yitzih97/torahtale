@@ -234,6 +234,24 @@ serve(async (req) => {
       const opts = shipping.bookOptions || {};
       const quantity = Math.max(1, parseInt(shipping.quantity) || 1);
 
+      // Shipping speed. The customer picks standard/express at checkout and an
+      // admin can override it from the orders table right up until submission;
+      // both write shipping_data.shippingMethod. Printify wants a numeric code:
+      // 1 standard, 2 priority, 3 Printify Express, 4 economy. Keep this map in
+      // sync with SHIPPING_SPEEDS in src/lib/orderShipping.ts.
+      const SHIPPING_METHOD_CODES: Record<string, number> = {
+        standard: 1,
+        express: 2, // what the wizard sells as "express" = Printify's "priority"
+        priority: 2,
+        printify_express: 3,
+        economy: 4,
+      };
+      const rawSpeed = shipping.shippingMethod;
+      const shippingMethodCode =
+        (typeof rawSpeed === "number" && rawSpeed >= 1 && rawSpeed <= 4)
+          ? rawSpeed
+          : SHIPPING_METHOD_CODES[String(rawSpeed || "").toLowerCase().replace(/[\s-]+/g, "_")] || 1;
+
       // Resolve per-format Printify config. Each book format maps to its own
       // blueprint / print provider / variant / price, configured in site_settings
       // (category "integrations"). Falls back to the legacy generic keys, then to
@@ -449,7 +467,7 @@ serve(async (req) => {
           external_id: `${book.shopify_order_id || book.id}-${Date.now().toString(36)}`,
           label: book.shopify_order_name || `Torah Tale ${book.id}`,
           line_items: [{ product_id: productId, variant_id: variantId, quantity }],
-          shipping_method: 1,
+          shipping_method: shippingMethodCode,
           send_shipping_notification: false,
           address_to: {
             first_name: shipping.firstName || book.child_name || "Customer",

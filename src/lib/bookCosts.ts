@@ -20,11 +20,19 @@ const AI_COST_PER_PAGE_USD = 0.04;
 
 type ProductType = BookOptions["productType"];
 
-/** Resolve the book's product type from the stored order/story options. */
+/**
+ * Resolve the book's product type from the stored order/story options.
+ *
+ * `story_options` is the admin list's JSON-path projection of
+ * story_data->bookOptions (the full story_data is far too heavy to select for a
+ * list), so older books whose type only ever landed in story_data still resolve
+ * correctly in the orders table.
+ */
 export function getProductType(book: any): ProductType {
   const pt: string | undefined =
     book?.shipping_data?.bookOptions?.productType ??
-    book?.story_data?.bookOptions?.productType;
+    book?.story_data?.bookOptions?.productType ??
+    book?.story_options?.productType;
   if (pt === "softcover" || pt === "hardcover" || pt === "board" || pt === "coloring") return pt;
   return "softcover";
 }
@@ -35,7 +43,11 @@ export function getCogs(book: any): number {
   const pages = PAGES_BY_TYPE[pt] ?? 20;
   let cogs = PRODUCTION_COST_USD[pt] + AI_COST_PER_PAGE_USD * (pages + 1); // +1 = cover
   // A bundled standalone coloring book adds its own production cost.
-  if (book?.shipping_data?.bookOptions?.coloringBook) cogs += PRODUCTION_COST_USD.coloring;
+  const coloringAddon =
+    book?.shipping_data?.bookOptions?.coloringBook ??
+    book?.story_data?.bookOptions?.coloringBook ??
+    book?.story_options?.coloringBook;
+  if (coloringAddon) cogs += PRODUCTION_COST_USD.coloring;
   return Math.round(cogs * 100) / 100;
 }
 

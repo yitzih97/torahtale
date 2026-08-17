@@ -9,8 +9,16 @@ import { useAuth } from "@/contexts/AuthContext";
 // metadata only and fetch the full row on demand (opening/downloading a book).
 // Pulling `select("*")` here was re-downloading ~118 MB every refetch, which is
 // what made the admin page crawl and pounded the database.
+//
+// `story_options` is a JSON-path select of story_data->bookOptions only — the
+// product type of older books lives there rather than in shipping_data, and the
+// path select costs a few bytes instead of the whole (image-laden) story_data.
+// The payment/fulfilment correlation columns are needed by the orders table to
+// tell a paid order from an unpaid one and to know when a book has already been
+// handed to Printify (after which the address can no longer be changed).
 const BOOK_LIST_COLS =
-  "id,user_id,child_id,child_name,torah_portion,art_style,language,status,order_number,questions,shipping_data,created_at,updated_at";
+  "id,user_id,child_id,child_name,torah_portion,art_style,language,status,order_number,questions,shipping_data,created_at,updated_at," +
+  "paid_at,shopify_order_id,shopify_order_name,printify_order_id,printify_product_id,story_options:story_data->bookOptions";
 
 // Fetch the complete book row (including the heavy image columns) for one book —
 // used when opening the generation modal or exporting a ZIP.
@@ -153,6 +161,22 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-books"] }),
   });
 
+  // Admin edit of an order's fulfilment details (book format, quantity,
+  // shipping address, shipping speed). Everything lives inside shipping_data,
+  // which is what printify-submit reads when it places the print order — so
+  // this is the one write that can still change what actually gets printed and
+  // where it goes, right up until the book is handed to Printify.
+  const updateBookOrderDetails = useMutation({
+    mutationFn: async ({ id, shipping_data }: { id: string; shipping_data: any }) => {
+      const { error } = await supabase
+        .from("books")
+        .update({ shipping_data, updated_at: new Date().toISOString() } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-books"] }),
+  });
+
   const updateSubscriptionStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const updates: any = { status, updated_at: new Date().toISOString() };
@@ -179,6 +203,7 @@ export function useAdminData() {
     subscriptionsLoading: allSubscriptionsQuery.isLoading,
     updateBookStatus,
     markBookPaid,
+    updateBookOrderDetails,
     updateSubscriptionStatus,
   };
 }

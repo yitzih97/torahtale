@@ -16,7 +16,9 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { AdminDashboardTab } from "@/components/admin/AdminDashboardTab";
+import { AdminOrdersTab } from "@/components/admin/AdminOrdersTab";
 import { AdminOrderDetailDialog } from "@/components/admin/AdminOrderDetailDialog";
+import { AdminOrderEditDialog } from "@/components/admin/AdminOrderEditDialog";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData, fetchBookFull } from "@/hooks/useAdminData";
@@ -31,23 +33,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const ease = [0.22, 1, 0.36, 1];
-
-const orderStatusColor = (s: string) => {
-  if (s === "draft") return "text-muted-foreground bg-muted";
-  if (s === "generating") return "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950";
-  if (s === "ordered" || s === "printing") return "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950";
-  if (s === "approved") return "text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-950";
-  if (s === "shipped" || s === "delivered") return "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-950";
-  return "text-accent bg-accent/10";
-};
-
-const orderStatusIcon = (s: string) => {
-  if (s === "draft") return <Wand2 className="w-3.5 h-3.5" />;
-  if (s === "generating") return <Loader2 className="w-3.5 h-3.5 animate-spin" />;
-  if (s === "ordered" || s === "printing") return <Package className="w-3.5 h-3.5" />;
-  if (s === "approved") return <CheckCircle2 className="w-3.5 h-3.5" />;
-  return <Truck className="w-3.5 h-3.5" />;
-};
 
 const subStatusColor = (s: string) => {
   if (s === "active") return "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-950";
@@ -65,7 +50,7 @@ export default function Admin() {
     profiles, profilesLoading,
     children,
     subscriptions, subscriptionsLoading,
-    updateBookStatus, markBookPaid, updateSubscriptionStatus,
+    updateBookStatus, markBookPaid, updateBookOrderDetails, updateSubscriptionStatus,
   } = useAdminData();
 
   const [generatingBook, setGeneratingBook] = useState<any>(null);
@@ -73,6 +58,10 @@ export default function Admin() {
   const [downloadingZip, setDownloadingZip] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [editingOrder, setEditingOrder] = useState<any>(null);
+  // The full book row is fetched on demand (the list omits the image columns),
+  // so a row click has a real wait — surface it instead of looking dead.
+  const [openingBookId, setOpeningBookId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
@@ -130,11 +119,16 @@ export default function Admin() {
   // The list rows carry metadata only (no pages_data/story_data/cover). Fetch the
   // full book before opening the generation modal, which reads those heavy fields.
   const openGenerationModal = async (book: any) => {
+    setOpeningBookId(book.id);
     try {
       const full = await fetchBookFull(book.id);
-      setGeneratingBook(full || book);
+      // Keep the list-only flags (has_pages, story_options) that the full row
+      // doesn't carry, so the modal and its actions behave the same either way.
+      setGeneratingBook(full ? { ...book, ...full } : book);
     } catch {
       toast.error("Couldn't load the book — please retry.");
+    } finally {
+      setOpeningBookId(null);
     }
   };
 
@@ -210,24 +204,6 @@ export default function Admin() {
   const totalDrafts = books.filter((b: any) => b.status === "draft").length;
   const activeSubs = subscriptions.filter((s: any) => s.status === "active").length;
 
-  // Filter books by search
-  const filteredBooks = books.filter((b: any) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      (b.child_name || "").toLowerCase().includes(q) ||
-      (b.torah_portion || "").toLowerCase().includes(q) ||
-      (b.order_number || "").toLowerCase().includes(q) ||
-      (b.shopify_order_name || "").toLowerCase().includes(q) ||
-      (b.status || "").toLowerCase().includes(q)
-    );
-  });
-
-
-
-
-  
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar transparentHero={false} />
@@ -300,164 +276,25 @@ export default function Admin() {
 
               {/* ═══ TAB: ORDERS ═══ */}
               <TabsContent value="orders">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by child, portion, order #, or status..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 rounded-xl"
-                    />
-                  </div>
-
-                  {booksLoading ? (
-                    <div className="space-y-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}</div>
-                  ) : filteredBooks.length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground">No books found.</div>
-                  ) : (
-                    <div className="bg-card rounded-2xl border border-border shadow-soft-sm overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b border-border bg-secondary/50">
-                              {["Order", "Customer", "Child", "Portion", "Style", "Placed", "Status", "Actions"].map((h) => (
-                                <th key={h} className="text-left p-3 font-mono text-[10px] tracking-widest uppercase text-muted-foreground">{h}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filteredBooks.map((book: any, i: number) => {
-                              const profile = profiles.find((p: any) => p.id === book.user_id);
-                              return (
-                                <motion.tr
-                                  key={book.id}
-                                  initial={{ opacity: 0 }}
-                                  animate={{ opacity: 1 }}
-                                  transition={{ delay: i * 0.03 }}
-                                  className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors"
-                                >
-                                  <td className="p-3 font-mono text-xs text-primary">{book.order_number || book.shopify_order_name || "—"}</td>
-                                  <td className="p-3">
-                                    <button
-                                      onClick={() => setSelectedUserId(book.user_id)}
-                                      className="text-xs text-accent hover:underline"
-                                    >
-                                      {profile?.full_name || profile?.email || book.user_id.slice(0, 8)}
-                                    </button>
-                                  </td>
-                                  <td className="p-3 text-xs font-medium text-foreground">{book.child_name || "—"}</td>
-                                  <td className="p-3 text-xs text-muted-foreground">{book.torah_portion || "—"}</td>
-                                  <td className="p-3 text-xs text-muted-foreground capitalize">{book.art_style || "—"}</td>
-                                  <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
-                                    {format(new Date(book.paid_at || book.created_at), "MMM d, yy · h:mm a")}
-                                  </td>
-                                  <td className="p-3">
-                                    <Select
-                                      value={book.status}
-                                      onValueChange={(v) => {
-                                        updateBookStatus.mutate({ id: book.id, status: v });
-                                        toast.success(`Status updated to ${v}`);
-                                      }}
-                                    >
-                                      <SelectTrigger className="w-[130px] h-7 text-[11px]">
-                                        <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full ${orderStatusColor(book.status)}`}>
-                                          {orderStatusIcon(book.status)}
-                                          <SelectValue />
-                                        </div>
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="draft">Draft</SelectItem>
-                                        <SelectItem value="awaiting_payment">Awaiting payment</SelectItem>
-                                        <SelectItem value="paid">Paid</SelectItem>
-                                        <SelectItem value="generating">Generating</SelectItem>
-                                        <SelectItem value="pending_review">Pending review</SelectItem>
-                                        <SelectItem value="approved">Approved</SelectItem>
-                                        <SelectItem value="printing">Printing</SelectItem>
-                                        <SelectItem value="shipped">Shipped</SelectItem>
-                                        <SelectItem value="delivered">Delivered</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </td>
-                                  <td className="p-3">
-                                    <div className="flex gap-1">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-[11px] h-7 px-2 text-accent"
-                                        onClick={() => setSelectedOrder(book)}
-                                        title="Open order details"
-                                      >
-                                        <Maximize2 className="w-3 h-3" />
-                                      </Button>
-                                      {canGenerate(book) && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="text-[11px] h-7 px-2 text-accent"
-                                          onClick={() => handleTriggerGeneration(book)}
-                                          title="Generate book content"
-                                        >
-                                          <Play className="w-3 h-3" />
-                                        </Button>
-                                      )}
-                                      {book.has_pages && (
-                                        <Button variant="ghost" size="sm" className="text-[11px] h-7 px-2" onClick={() => openGenerationModal(book)} title="View & edit book">
-                                          <Eye className="w-3 h-3" />
-                                        </Button>
-                                      )}
-                                      {book.has_pages && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="text-[11px] h-7 px-2"
-                                          disabled={downloadingZip === book.id}
-                                          onClick={() => handleDownloadZip(book)}
-                                          title="Download images (ZIP)"
-                                        >
-                                          {downloadingZip === book.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-                                        </Button>
-                                      )}
-                                      {!book.paid_at && !book.shopify_order_id && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="text-[11px] h-7 px-2 text-amber-600"
-                                          disabled={markBookPaid.isPending}
-                                          onClick={() => {
-                                            if (!window.confirm("Mark this book as PAID? This lets it be sent to Printify without a Shopify payment — use only for test/comp/manual orders.")) return;
-                                            markBookPaid.mutate({ id: book.id }, {
-                                              onSuccess: () => toast.success("Book marked as paid"),
-                                              onError: (e: any) => toast.error(e?.message || "Could not mark paid"),
-                                            });
-                                          }}
-                                          title="Mark paid (admin override for test/manual orders)"
-                                        >
-                                          <DollarSign className="w-3 h-3" />
-                                        </Button>
-                                      )}
-                                      {book.has_pages && (book.status === "pending_review" || book.status === "ordered" || book.status === "approved") && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="text-[11px] h-7 px-2 text-green-600"
-                                          onClick={() => approveAndSubmit(book)}
-                                          title={book.status === "approved" ? "Retry sending to Printify" : "Approve for printing"}
-                                        >
-                                          <CheckCircle2 className="w-3 h-3" />
-                                        </Button>
-                                      )}
-                                    </div>
-                                  </td>
-                                </motion.tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <AdminOrdersTab
+                  books={books}
+                  booksLoading={booksLoading}
+                  profiles={profiles}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  updateBookStatus={updateBookStatus}
+                  markBookPaid={markBookPaid}
+                  downloadingZip={downloadingZip}
+                  openingBookId={openingBookId}
+                  canGenerate={canGenerate}
+                  onOpenDetail={(book) => setSelectedOrder(book)}
+                  onOpenBookEditor={(book) => openGenerationModal(book)}
+                  onGenerate={(book) => handleTriggerGeneration(book)}
+                  onDownloadZip={(book) => handleDownloadZip(book)}
+                  onApprove={(book) => approveAndSubmit(book)}
+                  onEditOrder={(book) => setEditingOrder(book)}
+                  onSelectUser={(userId) => openCustomerFromOrder(userId)}
+                />
               </TabsContent>
 
               {/* ═══ TAB: USERS ═══ */}
@@ -583,6 +420,20 @@ export default function Admin() {
           onDownload={() => handleDownloadZip(selectedOrder)}
           onApprove={() => approveAndSubmit(selectedOrder)}
           onViewCustomer={() => openCustomerFromOrder(selectedOrder.user_id)}
+          onEditOrder={() => { setEditingOrder(selectedOrder); setSelectedOrder(null); }}
+        />
+      )}
+
+      {/* Edit an order's book format, shipping address and shipping speed */}
+      {editingOrder && (
+        <AdminOrderEditDialog
+          book={editingOrder}
+          open={!!editingOrder}
+          onClose={() => setEditingOrder(null)}
+          saving={updateBookOrderDetails.isPending}
+          onSave={(shipping_data) =>
+            updateBookOrderDetails.mutateAsync({ id: editingOrder.id, shipping_data })
+          }
         />
       )}
 
