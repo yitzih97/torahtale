@@ -76,13 +76,56 @@ serve(async (req) => {
       yiddish: "Yiddish (Eastern/Litvish Yiddish in Hebrew script — the traditional Chareidi mama-loshen)",
     };
     const otherLangs = selectedLangs.filter((l) => l !== "english").map((l) => langNames[l]).join(" and ");
+
+    /* ── Reading level ──────────────────────────────────────────────────────
+     * A rhyming verse is right for a toddler and wrong for a nine-year-old:
+     * squeezing the parsha into couplets means the STORY gets lost, and older
+     * kinderlach end up with a babyish book. So only the 0–3 band rhymes; every
+     * older band writes real narrative prose that actually TELLS the story, and
+     * the oldest band carries genuine insights from the meforshim.
+     *
+     * With several stars, the OLDEST child sets the level — a younger sibling is
+     * being read to anyway, while an older one handed a toddler's book notices.
+     */
+    const ageNum = Math.max(0, Math.min(18, Math.round(Number(age)) || 6));
+    const band = ageNum <= 3 ? "toddler" : ageNum <= 6 ? "early" : ageNum <= 9 ? "reader" : "insight";
+    const NARRATIVE_STYLE: Record<string, string> = {
+      toddler: `READING LEVEL — ages 0–3 (RHYMING VERSE).
+- Each page is a SHORT rhyming verse: 2 lines, roughly 6–10 words per line, a steady sing-song beat for reading aloud.
+- Tiny, concrete words a toddler knows. One single idea per page. Lots of sound and repetition.
+- The rhyme is REAL: matching end-sounds, never forced, slant, or absent.`,
+      early: `READING LEVEL — ages 4–6 (SIMPLE STORYTELLING PROSE — NO RHYME).
+- Do NOT rhyme. Write real sentences that TELL the story, the way a parent tells it at bedtime.
+- 2–3 short, clear sentences per page. Simple words, but a genuine narrative: what happened, then what happened next.
+- Include a little dialogue and feeling ("Noach looked up at the sky and wondered...") so it reads as a story, not a summary.`,
+      reader: `READING LEVEL — ages 7–9 (REAL NARRATIVE STORYTELLING — NO RHYME).
+- Absolutely NO rhyme and NO verse. This is a proper story, told in flowing prose.
+- 4–6 sentences per page, with real dialogue, tension, and description. Vary sentence length so it reads well aloud.
+- Actually NARRATE the events: build the scene, show what the characters do and say, carry the story forward page to page.
+- Richer vocabulary is welcome — explain a harder word inside the sentence rather than avoiding it.`,
+      insight: `READING LEVEL — ages 10+ (NARRATIVE STORYTELLING WITH REAL INSIGHT — NO RHYME).
+- Absolutely NO rhyme and NO verse. Write engaging, substantial narrative prose.
+- 5–8 sentences per page: vivid scene-setting, real dialogue, and the characters' inner thoughts and struggles.
+- On MOST pages, weave in a genuine INSIGHT the way a good rebbe would — a Rashi, a Midrash, a mefarshim's question and its answer, or a mussar point drawn out of the pesukim. Introduce it inside the story ("Rashi teaches that...", "The Midrash asks: why...?"), never as a detached footnote.
+- Ask the interesting question the text itself raises, and answer it. Treat the reader as capable of a real idea.
+- Stay accurate to the pesukim and accepted meforshim — never invent a source or attribute an idea to someone who did not say it.`,
+    };
+    const narrativeStyle = NARRATIVE_STYLE[band];
+    const rhymes = band === "toddler";
+
     const languageInstruction = isMultiLang
       ? `LANGUAGES — this is a BILINGUAL book. Write EVERYTHING in BOTH ${selectedLangs.map((l) => langNames[l]).join(" AND ")}: every page's text, the cover title and subtitle, the synopsis, the dedication, and every question. For each of those fields return a JSON OBJECT with one key per language — e.g. "text": { ${selectedLangs.map((l) => `"${l}": "..."`).join(", ")} }.
-  · Each language conveys the SAME story beat, but is COMPOSED INDEPENDENTLY in that language — NEVER a word-for-word translation. Rhyme and natural flow come FIRST: reword freely in each language, keeping the meaning but sacrificing literalness so the verse truly rhymes.
-  · EVERY language must GENUINELY RHYME ON ITS OWN — English AND ${otherLangs} alike, with EQUAL care. On every page, in EACH language, the lines must end in real matching rhyming sounds, be grammatically correct and natural, and scan smoothly (a steady beat) when read aloud like a real children's rhyme in that language. A line that does not rhyme in ANY language is WRONG — rewrite it until it does.
+  · Each language conveys the SAME story beat, but is COMPOSED INDEPENDENTLY in that language — NEVER a word-for-word translation. Natural, idiomatic writing in each language comes FIRST: reword freely, keeping the meaning but sacrificing literalness so it reads beautifully in that language.
+${rhymes
+  ? `  · EVERY language must GENUINELY RHYME ON ITS OWN — English AND ${otherLangs} alike, with EQUAL care. On every page, in EACH language, the lines must end in real matching rhyming sounds, be grammatically correct and natural, and scan smoothly (a steady beat) when read aloud like a real children's rhyme in that language. A line that does not rhyme in ANY language is WRONG — rewrite it until it does.
   · HEBREW / YIDDISH specifically: correct grammar with gender/number agreement, natural word order, full nikud (Hebrew), and line-endings whose final stressed syllables actually rhyme (e.g. ...רַךְ / ...רָךְ, ...לוּשׁ / ...חוּשׁ) — never an off or slant rhyme.
-  · SELF-CHECK before you finish: read every page's verse aloud in your head in EACH language separately. If any language's lines on any page don't clearly rhyme and flow, rewrite THAT language's verse for THAT page until they do. Do not return a page unless its verse rhymes cleanly in every language.`
-      : `Write everything in ${langNames[selectedLangs[0]]}. Every page is a short verse that GENUINELY RHYMES in ${langNames[selectedLangs[0]]} — real matching end-sounds, a steady beat, grammatically correct and natural, never a forced, slant, or non-rhyming line. Before finishing, read each page aloud in your head; rewrite any page whose lines don't clearly rhyme and flow.`;
+  · SELF-CHECK before you finish: read every page's verse aloud in your head in EACH language separately. If any language's lines on any page don't clearly rhyme and flow, rewrite THAT language's verse for THAT page until they do.`
+  : `  · Do NOT rhyme in ANY language. Every language gets real, flowing narrative prose at the reading level below — the same story beat, each told naturally in its own language.
+  · HEBREW / YIDDISH specifically: correct grammar with gender/number agreement, natural word order, and full nikud (Hebrew). It must read like a book written IN that language, not translated into it.
+  · SELF-CHECK before you finish: read each page aloud in your head in EACH language. If any reads as stilted, translated, or as a summary rather than a told story, rewrite it.`}`
+      : rhymes
+        ? `Write everything in ${langNames[selectedLangs[0]]}. Every page is a short verse that GENUINELY RHYMES in ${langNames[selectedLangs[0]]} — real matching end-sounds, a steady beat, grammatically correct and natural, never a forced, slant, or non-rhyming line. Before finishing, read each page aloud in your head; rewrite any page whose lines don't clearly rhyme and flow.`
+        : `Write everything in ${langNames[selectedLangs[0]]}, as real narrative prose at the reading level below — NOT verse and NOT rhyme. It must read like a story written in ${langNames[selectedLangs[0]]}, natural and idiomatic, never translated-sounding. Before finishing, read each page aloud in your head; rewrite any page that reads as a summary rather than a told story.`;
 
     // Page count is driven by book type (board=10, soft/hardcover=20). Validate to a sane range.
     const requestedPages = Number(pageCount);
@@ -129,7 +172,7 @@ serve(async (req) => {
       }
     } catch (e) { console.error("Failed to load site_settings:", e); }
 
-    const systemPrompt = customSystemPrompt || `You are a master storyteller for frum Yiddishe kinderlach in the Chareidi community. You write warm, engaging, age-appropriate retellings of the parsha in which the star kinderlach live INSIDE the Torah story itself. Every story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim, and ahavas Yisrael. The kinderlach discover the hidden lesson by living through the actual events of the Torah story, learning how to apply it in their own lives.
+    const baseSystemPrompt = customSystemPrompt || `You are a master storyteller for frum Yiddishe kinderlach in the Chareidi community. You write warm, engaging, age-appropriate retellings of the parsha in which the star kinderlach live INSIDE the Torah story itself. Every story MUST teach a clear moral lesson rooted in middos tovos — chesed, emes, hakaras hatov, ometz lev, kibud av va'em, yiras Shamayim, and ahavas Yisrael. The kinderlach discover the hidden lesson by living through the actual events of the Torah story, learning how to apply it in their own lives.
 
 STORY STRUCTURE — NON-NEGOTIABLE (these rules OVERRIDE any admin page template or other guidance below if they ever conflict):
 - The book opens INSIDE the Torah story. On PAGE 1 the star kinderlach are ALREADY present within the events of the parsha — standing in the scene and part of the action from the very first sentence. There is NO build-up, introduction, or setup at home.
@@ -144,7 +187,11 @@ IMPORTANT CULTURAL RULES:
 - Reference daily frum life: davening Shacharis, learning in cheder or Bais Yaakov, making brachos, the Shabbos table, zemiros, havdalah
 - NO mention of TV, movies, video games, secular entertainment, or non-tznius activities
 - The stories should be vivid, imaginative, and make the kinderlach the stars of the narrative
-- Maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic Yiddishe children's book, told in smooth, flowing RHYME with short rhyming verses on every page
+- Maintain a consistent narrative voice throughout — warm, gentle, and enchanting like a classic Yiddishe children's book, pitched to the READING LEVEL below
+
+${narrativeStyle}
+
+TELL THE STORY — applies to EVERY reading level: the text must actually NARRATE what happens, page by page, as a story with a beginning, middle and end. Never let form win over substance: a page that sounds pretty but doesn't move the story forward, or that merely gestures at an event instead of telling it, is WRONG. The reader should be able to follow the whole parsha from the pages alone.
 
 CRITICAL NAME TRANSLITERATION RULES — ALWAYS use the Yiddish/Hebrew transliterations, NEVER the English/Christian versions:
 - Avraham (NOT Abraham), Yitzchak (NOT Isaac), Yaakov (NOT Jacob)
@@ -169,6 +216,11 @@ CRITICAL ACCURACY RULES:
 - NEVER describe the star children's clothing, outfit, or clothing colors anywhere in the story text (no "wearing a blue shirt", no "her favorite skirt"). The illustrations control what the children wear, and clothing mentioned in text will contradict the pictures. Describe actions, feelings, and the scene — never the stars' wardrobe.
 
 CRITICAL RULE: The MAJORITY of story pages (at least 70%) MUST depict the ACTUAL events from the Torah portion in vivid, specific detail. For example, if the story is about the Exodus, you must show the individual plagues, the splitting of the sea, etc. — not just mention them in passing. The child characters must be PRESENT IN and PARTICIPATING IN those actual Torah scenes, witnessing the miracles and events firsthand. Do NOT summarize the Torah events in 1-2 pages and spend the rest on generic adventure. Each Torah event deserves its own page with rich, specific detail.`;
+
+    // The reading level is a PRODUCT rule, not a template detail — append it even
+    // when an admin has replaced the system prompt from site_settings, or a custom
+    // prompt would silently put every age back on rhyming verse.
+    const systemPrompt = `${baseSystemPrompt}\n\n${narrativeStyle}`;
 
     const characterDesc = childrenInfo
       ? `Characters: ${childrenInfo}`

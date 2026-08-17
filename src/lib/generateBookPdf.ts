@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
-import { BOOK_TEXT_STYLE, COVER_URL, getCoverTagline, getCoverHeadline, getCoverCta, getCoverChildLine, COMING_NEXT_LABEL, type BookPage } from "@/components/wizard/BookViewer";
+import { BOOK_TEXT_STYLE, COVER_URL, getCoverHeadline, getCoverChildLine, type BookPage } from "@/components/wizard/BookViewer";
 import { BOOK_HEBREW_FONT } from "@/components/wizard/EditableTextBox";
+import { getSeriesName, getShortTitle } from "@/lib/bookSeries";
 import { getPortionDisplay } from "@/components/wizard/TorahPortions";
 import { DEFAULT_TEXT_LAYOUT, DEFAULT_BORDER_COLOR, DEFAULT_OUTLINE_COLOR, makeDefaultLayout, makeQuestionsLayout, migrateLayout, type TextLayout } from "@/components/wizard/EditableTextBox";
 import { computeAutoTextLayout } from "@/lib/analyzeImageLayout";
@@ -455,7 +456,13 @@ function drawImageInRect(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x
   ctx.restore();
 }
 
-export interface BackCoverPreview { label: string; url: string | null }
+export interface BackCoverPreview {
+  /** The featured book's title, drawn ON the cover art. */
+  label: string;
+  url: string | null;
+  /** The series this book belongs to, drawn under the stack. */
+  series?: string;
+}
 
 /* ─────────────── Cover "furniture": frame + majestic typography ───────────────
  * Draws the branded cover chrome over an already-drawn illustration, in the
@@ -689,6 +696,88 @@ function drawMiniCover(
   roundedRect(ctx, x, y, size, size, r); ctx.stroke();
 }
 
+/**
+ * One SERIES on the back cover: the featured book's cover with a couple of book
+ * edges fanned behind it, so four entries read as four libraries rather than
+ * four single titles. The series name sits underneath.
+ *
+ * `size` is the front cover's width; the stack needs a little room to its sides
+ * and below, which the caller allows for via stackFootprint().
+ */
+function drawCollectionStack(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | null,
+  title: string,
+  series: string,
+  childName: string,
+  x: number, y: number, size: number,
+  rtl: boolean,
+  lang: "en" | "he" | "yi" = "en",
+) {
+  const r = Math.max(8, size * 0.06);
+  // Two receding "books" behind the cover, offset AWAY from the reading
+  // direction so the stack fans the way the book opens. The offsets have to be
+  // generous: at thumbnail size a subtle fan just reads as a drop shadow, and
+  // the whole point is that these look like SERIES, not single titles.
+  const dir = rtl ? -1 : 1;
+  const layers = [
+    { dx: dir * size * 0.17, dy: -size * 0.10, s: 0.90, fill: "#c6b696", edge: "rgba(0,0,0,0.28)" },
+    { dx: dir * size * 0.085, dy: -size * 0.05, s: 0.95, fill: "#ddd0b2", edge: "rgba(0,0,0,0.24)" },
+  ];
+  for (const l of layers) {
+    const w = size * l.s, h = size * l.s;
+    const lx = x + (size - w) / 2 + l.dx, ly = y + (size - h) / 2 + l.dy;
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.28)"; ctx.shadowBlur = size * 0.055; ctx.shadowOffsetY = size * 0.014;
+    ctx.fillStyle = l.fill;
+    roundedRect(ctx, lx, ly, w, h, r * l.s); ctx.fill();
+    ctx.restore();
+    // Page block along the outer edge, so each layer reads as a closed book.
+    ctx.save();
+    roundedRect(ctx, lx, ly, w, h, r * l.s); ctx.clip();
+    const edgeW = w * 0.13;
+    const ex = rtl ? lx : lx + w - edgeW;
+    const g = ctx.createLinearGradient(ex, 0, ex + (rtl ? edgeW : -edgeW), 0);
+    g.addColorStop(0, "rgba(255,252,244,0.95)"); g.addColorStop(1, "rgba(255,252,244,0)");
+    ctx.fillStyle = g; ctx.fillRect(lx, ly, w, h);
+    // Faint page lines in the block.
+    ctx.strokeStyle = "rgba(0,0,0,0.10)"; ctx.lineWidth = 1;
+    for (let i = 1; i <= 3; i++) {
+      const px = rtl ? lx + (edgeW * i) / 4 : lx + w - (edgeW * i) / 4;
+      ctx.beginPath(); ctx.moveTo(px, ly + h * 0.1); ctx.lineTo(px, ly + h * 0.9); ctx.stroke();
+    }
+    ctx.restore();
+    ctx.strokeStyle = l.edge; ctx.lineWidth = 1.5;
+    roundedRect(ctx, lx, ly, w, h, r * l.s); ctx.stroke();
+  }
+
+  // The featured cover on top, with its own drop shadow so it lifts off the stack.
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.32)"; ctx.shadowBlur = size * 0.07; ctx.shadowOffsetY = size * 0.02;
+  ctx.fillStyle = "#efe7d3";
+  roundedRect(ctx, x, y, size, size, r); ctx.fill();
+  ctx.restore();
+  drawMiniCover(ctx, img, title, childName, x, y, size, rtl, lang);
+
+  // Series name beneath the stack.
+  if (series) {
+    ctx.save();
+    ctx.direction = rtl ? "rtl" : "ltr";
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    let fs = Math.round(size * 0.098);
+    ctx.font = `600 ${fs}px 'Cinzel', serif`;
+    while (ctx.measureText(series).width > size * 1.02 && fs > size * 0.06) {
+      fs -= 1; ctx.font = `600 ${fs}px 'Cinzel', serif`;
+    }
+    ctx.fillStyle = "#6b5636";
+    ctx.fillText(series, x + size / 2, y + size + size * 0.075);
+    ctx.restore();
+  }
+}
+
+/** Vertical room a stack needs beyond `size`: the fan above, the caption below. */
+const stackFootprint = (size: number) => ({ top: size * 0.10, bottom: size * 0.075 + size * 0.115 });
+
 async function renderCoverSpread(
   page: BookPage,
   childName: string,
@@ -724,9 +813,11 @@ async function renderCoverSpread(
   const frontX = rtl ? 0 : HALF_W;
   drawPaperHalf(ctx, rtl ? "right" : "left");
 
-  // ── BACK COVER: a clean cream panel (no decorative frame) with the combined
-  // brand logo, the series headline, a professional subscribe invitation, a row
-  // of "coming next" teaser covers, and the site URL. ──
+  // ── BACK COVER: a clean cream panel carrying only what a back cover needs —
+  // the brand logo, ONE line of copy in the Torah Tale display face, the four
+  // series shown as stacks of books, and the domain. The old three-line
+  // subscribe blurb and the "coming next" label are gone: with four series
+  // stacks on the page, the invitation is the artwork, not a paragraph. ──
   const BW = HALF_W;                              // back cover = BW × SPREAD_H square
   const cx = backX + BW / 2;
 
@@ -734,62 +825,50 @@ async function renderCoverSpread(
   // one clean file so the book + text stay perfectly aligned.
   const logo = await safeLoad(torahTaleLogoFull);
   if (logo) {
-    const logoH = 270;
+    const logoH = 300;
     const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-    ctx.drawImage(logo, cx - logoW / 2, 92, logoW, logoH);
+    ctx.drawImage(logo, cx - logoW / 2, 120, logoW, logoH);
   }
 
-  // Gold flourish + series headline — flat gold (no engrave/shadow) so it stays
-  // crisp and sharp, and a touch bigger.
-  coverFlourish(ctx, cx, 502, BW * 0.28, COVER_GOLD);
+  // The one line of copy: "Your next Torah Tale awaits…", set in the Torah Tale
+  // display face, engraved gold, with a flourish above it.
+  coverFlourish(ctx, cx, 500, BW * 0.28, COVER_GOLD);
   ctx.direction = rtlDir;
-  const hSize = 52;
   {
+    const headline = getCoverHeadline(lang);
     ctx.save();
-    ctx.font = coverTitleFont(hSize); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = goldFill(ctx, 562, hSize);
-    ctx.fillText(getCoverHeadline(lang), cx, 562);
+    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    let hSize = 74;
+    ctx.font = coverTitleFont(hSize);
+    while (ctx.measureText(headline).width > BW * 0.84 && hSize > 40) {
+      hSize -= 2; ctx.font = coverTitleFont(hSize);
+    }
+    engravedLine(ctx, headline, cx, 600, coverTitleFont(hSize), hSize);
     ctx.restore();
   }
 
-  // Professional subscribe invitation (localized → RTL) — or the per-book override.
-  ctx.fillStyle = "#5a4a32";
-  ctx.direction = rtlDir;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const tSize = 38;
-  ctx.font = `italic ${tSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  const taglineLines = page.backCoverText && page.backCoverText.trim()
-    ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
-    : getCoverTagline(lang);
-  taglineLines.forEach((line, i) => {
-    ctx.fillText(line, cx, 620 + i * (tSize * 1.35));
-  });
-
-  // "Coming next" label + a row of 4 teaser covers (empty box until generated).
-  ctx.direction = rtlDir;
-  ctx.fillStyle = "#8a7452";
-  ctx.font = `600 17px 'Inter', sans-serif`;
-  ctx.fillText(letterSpace((COMING_NEXT_LABEL[lang] || COMING_NEXT_LABEL.en).toUpperCase(), 2), cx, 786);
+  // The four series, each a stack of books topped by its featured title.
   const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
-  const thumb = 182, tgap = 20;
+  const thumb = 216, tgap = 46;
   const rowW = 4 * thumb + 3 * tgap;
-  const rowX = cx - rowW / 2;
-  const rowY = 800;
+  // The fan leans outward, so shift the row back by half its lean to stay centred.
+  const rowX = cx - rowW / 2 - (rtl ? -1 : 1) * thumb * 0.085;
+  const rowY = 770;
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", coverChild, tx, rowY, thumb, rtl, lang);
+    drawCollectionStack(
+      ctx, previewImgs[i], previews[i]?.label || "", previews[i]?.series || "",
+      coverChild, tx, rowY, thumb, rtl, lang,
+    );
   }
 
-  // CTA + site URL (a domain → always LTR).
-  ctx.direction = rtlDir;
-  ctx.fillStyle = "#5a4a32";
-  ctx.font = `italic 30px ${BOOK_TEXT_STYLE.fontFamily}`;
-  ctx.fillText(getCoverCta(lang), cx, 1010);
+  // Domain at the foot of the cover (a domain → always LTR).
   ctx.direction = "ltr";
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  coverFlourish(ctx, cx, 1092, BW * 0.22, COVER_GOLD);
   ctx.fillStyle = "#b88a2a";
-  ctx.font = `700 40px 'Inter', sans-serif`;
-  ctx.fillText(COVER_URL.toUpperCase(), cx, 1058);
+  ctx.font = `700 44px 'Inter', sans-serif`;
+  ctx.fillText(letterSpace(COVER_URL.toUpperCase(), 1), cx, 1170);
 
   // ── FRONT COVER: illustration + Parsha name + child (right half LTR, left
   // half for a mirrored RTL wrap). ──
@@ -925,17 +1004,17 @@ async function renderColoringBackMatter(
   roundedRect(ctx, frameM + 9, frameM + 9, W - 2 * (frameM + 9), H - 2 * (frameM + 9), 19); ctx.stroke();
 
   // ── Bottom anchors — built up from the page bottom so nothing ever overflows:
-  //    footer URL, CTA, divider, teaser row, and the series headline above it. ──
-  const yURL = H - frameM - 46;
-  const yCTA = yURL - 42;
-  const yDivider = yCTA - 40;
-  const thumb = 256, tgap = 16;
+  //    footer URL, divider, the series stacks, and the headline above them. ──
+  const yURL = H - frameM - 44;
+  const yDivider = yURL - 46;
+  const thumb = 232, tgap = 22;
   const rowW = 4 * thumb + 3 * tgap;
   const rowX = cx - rowW / 2;
-  const teasersBottom = yDivider - 30;
-  const teasersTop = teasersBottom - thumb;
-  const shf = 30; // series-headline cap height
-  const headingBaseline = teasersTop - 24;
+  const foot = stackFootprint(thumb);
+  const teasersBottom = yDivider - 26;
+  const teasersTop = teasersBottom - foot.bottom - thumb;
+  const shf = 40; // headline cap height
+  const headingBaseline = teasersTop - foot.top - 26;
 
   // ── Top: brand logo (centered) ──
   let y = frameM + 40;
@@ -946,26 +1025,16 @@ async function renderColoringBackMatter(
     y += logoH + 22;
   }
 
-  // ── Back-cover blurb (the invitation) — italic serif, centered, wrapped. ──
-  ctx.direction = rtl ? "rtl" : "ltr";
-  ctx.textAlign = "center"; ctx.textBaseline = "top";
-  ctx.fillStyle = "#5a4a32";
-  const bSize = 31;
-  ctx.font = `italic ${bSize}px ${BOOK_TEXT_STYLE.fontFamily}`;
-  const blurbLines = page.backCoverText && page.backCoverText.trim()
-    ? page.backCoverText.split("\n").map((l) => l.trim()).filter(Boolean)
-    : getCoverTagline(lang);
-  for (const line of blurbLines) {
-    for (const ln of wrapLines(ctx, line, W - padX * 2)) { ctx.fillText(ln, cx, y); y += bSize * 1.34; }
-  }
-  y += 14;
+  // A single gold flourish under the logo — the invitation paragraph that used
+  // to sit here is gone; the series stacks at the foot of the page carry it.
+  y += 6;
   coverFlourish(ctx, cx, y + 6, W * 0.26, COVER_GOLD);
-  y += 32;
+  y += 34;
 
   // ── Questions "feature card" — a framed panel, header centered, list auto-fit
   //    so all 10 questions sit comfortably inside no matter their length. ──
   const cardTop = y;
-  const cardBottom = headingBaseline - shf - 26;
+  const cardBottom = headingBaseline - shf - 42;
   const cardX = frameM + 30;
   const cardW = W - 2 * (frameM + 30);
   const innerPad = 34;
@@ -1009,29 +1078,34 @@ async function renderColoringBackMatter(
     qy += 7;
   }
 
-  // ── Bottom: series headline + "coming next" teaser covers ──
+  // ── Bottom: the one headline + the four series stacks ──
   ctx.direction = rtl ? "rtl" : "ltr";
   ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-  engravedLine(ctx, getCoverHeadline(lang), cx, headingBaseline, coverTitleFont(shf), shf);
+  {
+    const headline = getCoverHeadline(lang);
+    let hs = shf;
+    ctx.font = coverTitleFont(hs);
+    while (ctx.measureText(headline).width > W * 0.86 && hs > 22) { hs -= 1; ctx.font = coverTitleFont(hs); }
+    engravedLine(ctx, headline, cx, headingBaseline, coverTitleFont(hs), hs);
+  }
   ctx.textBaseline = "top";
   const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
   for (let i = 0; i < 4; i++) {
     const tx = rowX + i * (thumb + tgap);
-    drawMiniCover(ctx, previewImgs[i], previews[i]?.label || "", coverChild, tx, teasersTop, thumb, rtl, lang);
+    drawCollectionStack(
+      ctx, previewImgs[i], previews[i]?.label || "", previews[i]?.series || "",
+      coverChild, tx, teasersTop, thumb, rtl, lang,
+    );
   }
 
-  // ── Footer: thin divider + CTA + site URL ──
+  // ── Footer: thin divider + the domain ──
   ctx.strokeStyle = "rgba(184,138,42,0.35)"; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(cx - W * 0.22, yDivider); ctx.lineTo(cx + W * 0.22, yDivider); ctx.stroke();
-  ctx.direction = rtl ? "rtl" : "ltr";
-  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "#5a4a32";
-  ctx.font = `italic 25px ${BOOK_TEXT_STYLE.fontFamily}`;
-  ctx.fillText(getCoverCta(lang), cx, yCTA);
   ctx.direction = "ltr";
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#b88a2a";
-  ctx.font = `700 28px 'Inter', sans-serif`;
-  ctx.fillText(COVER_URL.toUpperCase(), cx, yURL);
+  ctx.font = `700 30px 'Inter', sans-serif`;
+  ctx.fillText(letterSpace(COVER_URL.toUpperCase(), 1), cx, yURL);
 
   return encodePage(canvas);
 }
@@ -1050,13 +1124,21 @@ async function renderColoringBackMatter(
  * onto the last story illustration, which overlapped the art.
  */
 /** Pull the back-cover teasers from the generated "preview" pages (each carries
- *  an upcoming `portion` + its generated cover `image`). Label is derived from
- *  the portion so it follows the book's language. */
+ *  a featured `portion` + its generated cover `image`, starring this book's own
+ *  kids). Both the book title and the series name are derived from the portion,
+ *  so they follow the book's language — and so a book generated before the
+ *  series change still labels whatever teasers it happens to have. */
 function backCoverPreviews(pages: BookPage[], lang: "en" | "he" | "yi"): BackCoverPreview[] {
   return pages
     .filter((p) => p.type === "preview")
     .slice(0, 4)
-    .map((p) => ({ label: getPortionDisplay(p.portion || "", lang) || p.portion || "", url: p.image }));
+    .map((p) => ({
+      label: getShortTitle(p.portion || "", lang)
+        || getPortionDisplay(p.portion || "", lang)
+        || p.portion || "",
+      url: p.image,
+      series: getSeriesName(p.portion || "", lang),
+    }));
 }
 
 /** Coloring book cover = ONE wide wraparound image for blueprint 2721's single

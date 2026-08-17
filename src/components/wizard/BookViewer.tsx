@@ -17,6 +17,7 @@ import torahTaleLogoFull from "@/assets/brand/torah-tale-logo-full.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPortionDisplay, bookLanguageCode, isBookRtl } from "./TorahPortions";
 import { COVER_GOLD } from "@/lib/coverBranding";
+import { getSeriesName, getShortTitle } from "@/lib/bookSeries";
 import { localizedCoverName } from "@/lib/hebrewName";
 import { toLineArtDataURL } from "@/lib/lineArt";
 
@@ -75,11 +76,16 @@ export const COVER_TAGLINE_BY_LANG: Record<"en" | "he" | "yi", string[]> = {
 export const getCoverTagline = (lang: "en" | "he" | "yi"): string[] =>
   COVER_TAGLINE_BY_LANG[lang] || COVER_TAGLINE;
 
-/** Back-cover headline above the invitation — the series name. */
+/**
+ * The ONE line of copy on the back cover, set in the Torah Tale display font
+ * under the logo. It replaced a headline plus a three-line invitation: the back
+ * cover now says who we are (logo), what's next (the four series), and where to
+ * get it (the domain) — nothing else.
+ */
 export const COVER_BACK_HEADLINE_BY_LANG: Record<"en" | "he" | "yi", string> = {
-  en: "The Torah Tale Weekly Series",
-  he: "הסדרה השבועית",
-  yi: "די וועכנטלעכע סעריע",
+  en: "Your next Torah Tale awaits...",
+  he: "הסיפור הבא שלכם מחכה...",
+  yi: "אייער נעקסטע מעשה ווארט...",
 };
 export const getCoverHeadline = (lang: "en" | "he" | "yi"): string =>
   COVER_BACK_HEADLINE_BY_LANG[lang] || COVER_BACK_HEADLINE_BY_LANG.en;
@@ -420,8 +426,39 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
   // One "coming next" teaser, styled like a miniature front cover (illustration
   // + localized parsha name + kids). In editable mode each can be regenerated in
   // place, or opened as its own page for a full Custom-Prompt edit.
+  /** A series on the back cover: the featured book's mini-cover with two book
+   *  edges fanned behind it, and the series name beneath. Mirrors
+   *  drawCollectionStack in generateBookPdf. */
+  const renderSeriesStack = (pv: BookPage) => (
+    <div key={`stack-${pv.id}`} className="flex flex-col items-center">
+      <div className="relative w-full pt-[6%]">
+        {/* Two receding book edges, offset away from the reading direction. */}
+        <span
+          className="absolute inset-x-0 top-0 aspect-square rounded-md border border-black/15 bg-[#cfc3a6] shadow-sm"
+          style={{ transform: `translate(${dir === "rtl" ? "-" : ""}7.5%, -1%) scale(0.94)` }}
+        />
+        <span
+          className="absolute inset-x-0 top-0 aspect-square rounded-md border border-black/15 bg-[#e2d8bf] shadow-sm"
+          style={{ transform: `translate(${dir === "rtl" ? "-" : ""}3.8%, 1.5%) scale(0.97)` }}
+        />
+        <div className="relative">{renderMiniCover(pv)}</div>
+      </div>
+      <p
+        className="mt-1 w-full truncate text-[7px] font-semibold leading-tight text-primary/70 sm:text-[9px]"
+        style={{ fontFamily: "'Cinzel', serif" }}
+        dir={dir}
+        title={getSeriesName(pv.portion || "", lang)}
+      >
+        {getSeriesName(pv.portion || "", lang)}
+      </p>
+    </div>
+  );
+
   const renderMiniCover = (pv: BookPage) => {
-    const pvLabel = getPortionDisplay(pv.portion || "", lang) || pv.portion || "";
+    // Short title where one exists — matches backCoverPreviews in generateBookPdf.
+    const pvLabel = getShortTitle(pv.portion || "", lang)
+      || getPortionDisplay(pv.portion || "", lang)
+      || pv.portion || "";
     const pvIdx = displayPages.findIndex((p) => p.id === pv.id);
     const regenning = regeneratingId === pv.id;
     return (
@@ -572,36 +609,40 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     // wrap is mirrored: the FRONT cover sits on the LEFT half and the BACK on the
     // RIGHT — matching the printed file (see renderCoverSpread in generateBookPdf).
     const backCover = (
-      /* Back cover: brand logo, the 4 "coming next" teaser mini-covers,
-          a subscribe invitation, and the site URL. */
+      /* Back cover: brand logo, ONE line of copy in the Torah Tale display face,
+         the four series shown as stacks of books, and the domain. Mirrors
+         renderCoverSpread in generateBookPdf — keep the two in step. */
       <div className="relative flex flex-col items-center justify-between gap-2 p-3 sm:p-5 text-center bg-[hsl(42_50%_94%)]">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
 
-        {/* Combined brand logo (single lockup: book on top of the wordmark) with
-            the series headline beneath. */}
+        {/* Combined brand logo (single lockup: book on top of the wordmark). */}
         <div className="relative flex flex-col items-center pt-2">
-          <img src={torahTaleLogoFull} alt="Torah Tale" className="h-14 sm:h-[3.75rem] w-auto object-contain" />
-          <p className="mt-1.5 font-display font-semibold text-sm sm:text-base text-gold leading-tight" dir={dir} style={{ textShadow: "none" }}>{getCoverHeadline(lang)}</p>
+          <img src={torahTaleLogoFull} alt="Torah Tale" className="h-16 sm:h-[4.25rem] w-auto object-contain" />
+          <span className="mt-2 block h-px w-16 bg-gold/60" />
+          <p
+            className="mt-2 leading-tight text-base sm:text-xl"
+            dir={dir}
+            style={{
+              fontFamily: "'TorahTaleTitle', 'Cinzel', serif",
+              backgroundImage: "linear-gradient(180deg,#fff6d5,#e7be5c 55%,#a9791f)",
+              WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
+            }}
+          >
+            {getCoverHeadline(lang)}
+          </p>
         </div>
 
-        <div className="relative font-body italic text-primary/80 leading-snug space-y-0.5 text-xs sm:text-sm whitespace-pre-line" dir={dir}>
-          {((page?.backCoverText && page.backCoverText.trim() ? page.backCoverText.split("\n") : getCoverTagline(lang))).map((line, i) => (
-            <p key={i}>{line}</p>
-          ))}
-        </div>
-
-        {/* "Coming next" teaser mini-covers (each looks like a front cover). */}
+        {/* The four series, each a stack of books topped by its featured title. */}
         {previewPages.length > 0 && (
           <div className="relative w-full">
-            <p className="mb-1 text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/60">{COMING_NEXT_LABEL[lang]}</p>
-            <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
-              {previewPages.slice(0, 4).map((pv) => renderMiniCover(pv))}
+            <div className="grid grid-cols-4 gap-1.5 pe-[3%] sm:gap-2.5">
+              {previewPages.slice(0, 4).map((pv) => renderSeriesStack(pv))}
             </div>
           </div>
         )}
 
         <div className="relative">
-          <p className="font-body italic text-[10px] sm:text-xs text-primary/70 leading-tight" dir={dir}>{getCoverCta(lang)}</p>
+          <span className="mx-auto mb-1 block h-px w-12 bg-gold/50" />
           <p className="font-mono text-[10px] sm:text-xs tracking-[0.2em] text-gold uppercase">{COVER_URL}</p>
         </div>
       </div>

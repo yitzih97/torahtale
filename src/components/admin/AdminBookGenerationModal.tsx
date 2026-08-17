@@ -16,7 +16,8 @@ import {
   BookOpen, Sparkles, FileDown, Package, PenLine, Image as ImageIcon,
   AlertTriangle, ChevronRight, Wand2, Baby, Palette, Languages, Layers,
 } from "lucide-react";
-import { getPortionDisplay, bookLanguageCode, isBookRtl, getBackCoverPreviewPortions, PREVIEW_OUTFITS } from "@/components/wizard/TorahPortions";
+import { getPortionDisplay, bookLanguageCode, isBookRtl, PREVIEW_OUTFITS } from "@/components/wizard/TorahPortions";
+import { getSeriesPreviewPortions } from "@/lib/bookSeries";
 
 type Phase = "idle" | "character" | "story" | "storyReview" | "images" | "done";
 
@@ -248,7 +249,12 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         body: {
           childName: book.child_name,
           childrenInfo: sd.childrenInfo || book.child_name,
-          age: childDescriptions[0]?.age || "6",
+          // The OLDEST star sets the reading level (see generate-story): a younger
+          // sibling is being read to anyway, an older one handed a toddler's
+          // rhyming book notices immediately.
+          age: String(childDescriptions.reduce(
+            (m: number, c: any) => Math.max(m, Number(c?.age) || 0), 0,
+          ) || 6),
           gender: childDescriptions[0]?.gender || "boy",
           torahPortion: book.torah_portion,
           torahPortionLabel: portionLabel || book.torah_portion,
@@ -295,10 +301,11 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
           type: "questions", questions,
         });
       }
-      // Back-cover teasers: the next 4 upcoming parshiyos, rendered as cover-style
-      // thumbnails starring the same kids. Generated WITH the book (in the images
-      // phase) so they show on the back cover instead of empty boxes.
-      getBackCoverPreviewPortions(book.torah_portion, bookLanguageCode(book.language)).forEach(({ value }, i) => {
+      // Back-cover teasers: one flagship story from each of the four SERIES,
+      // rendered as cover-style thumbnails starring the same kids. Generated WITH
+      // the book (in the images phase) so they show on the back cover instead of
+      // empty boxes.
+      getSeriesPreviewPortions(book.torah_portion).forEach((value, i) => {
         allPages.push({ id: pageId++, text: "", image: null, imageLoading: false, type: "preview", portion: value, outfit: PREVIEW_OUTFITS[i % PREVIEW_OUTFITS.length] });
       });
       setPages(allPages);

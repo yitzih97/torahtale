@@ -135,15 +135,24 @@ const PREVIEW_OUTFITS = [
   "royal celebration — boys in a burgundy sweater-vest over a white shirt, girls in a deep burgundy velvet long-sleeved dress with delicate gold trim",
 ];
 
+/**
+ * The four back-cover teasers: one flagship story per SERIES, illustrated with
+ * this book's own kids. They used to be the next four parshiyos, which only ever
+ * advertised the coming month; showing one book from each series tells the
+ * reader their child can star across the whole catalogue.
+ *
+ * Keep in sync with BACK_COVER_SERIES in src/lib/bookSeries.ts.
+ */
+const SERIES_FEATURED: { featured: string; alt: string }[] = [
+  { featured: "noach", alt: "bereishit" },                 // Torah
+  { featured: "david-goliath", alt: "david-yonatan" },     // Nevi'im & Kesuvim
+  { featured: "purim", alt: "chanukah" },                  // Holidays
+  { featured: "edu-kibud", alt: "edu-chesed" },            // Inspirational
+];
+
+/** Never advertise the book the reader is already holding — swap in the series' alternate. */
 function upcomingPortions(current: string): string[] {
-  if (MEGILLOT.includes(current)) return MEGILLOT.filter((m) => m !== current).slice(0, 4);
-  const i = TORAH_ORDER.indexOf(current);
-  if (i >= 0) {
-    const out: string[] = [];
-    for (let k = 1; out.length < 4 && k <= TORAH_ORDER.length; k++) out.push(TORAH_ORDER[(i + k) % TORAH_ORDER.length]);
-    return out;
-  }
-  return TORAH_ORDER.slice(0, 4);
+  return SERIES_FEATURED.map(({ featured, alt }) => (featured === current ? alt : featured));
 }
 
 // Build the generate-image task bodies for every page that still needs an image.
@@ -366,7 +375,10 @@ async function generate(bookId: string) {
       const story = await callFn("generate-story", {
         childName: book.child_name,
         childrenInfo: sdState.childrenInfo || book.child_name,
-        age: (sdState.childDescriptions?.[0]?.age) || "6",
+        // The OLDEST star sets the reading level — see generate-story.
+        age: String((sdState.childDescriptions || []).reduce(
+          (m: number, c: any) => Math.max(m, Number(c?.age) || 0), 0,
+        ) || 6),
         gender: (sdState.childDescriptions?.[0]?.gender) || "boy",
         torahPortion: book.torah_portion,
         torahPortionLabel: book.torah_portion,
