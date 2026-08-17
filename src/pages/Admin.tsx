@@ -332,7 +332,7 @@ export default function Admin() {
 
               {/* ═══ TAB: MESSAGES ═══ */}
               <TabsContent value="messages">
-                <AdminMessagesTab />
+                <AdminMessagesTab onSelectUser={(userId) => openCustomerFromOrder(userId)} />
               </TabsContent>
 
               {/* ═══ TAB: SETTINGS ═══ */}

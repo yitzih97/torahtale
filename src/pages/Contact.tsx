@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { notifyContactTicket } from "@/lib/contactTickets";
 import { toast } from "@/hooks/use-toast";
 import { Mail, Clock, MessageSquare, Send, CheckCircle2, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -37,16 +38,20 @@ const Contact = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("contact_tickets").insert({
+    const { data, error } = await supabase.from("contact_tickets").insert({
       name: form.name.trim(),
       email: form.email.trim(),
       subject: form.subject,
       message: form.message.trim(),
-    });
+    }).select("id").maybeSingle();
     setSubmitting(false);
     if (error) {
       toast({ title: t.contact.error, description: t.contact.errorDesc, variant: "destructive" });
     } else {
+      // Acknowledge to the sender and alert the support inbox. Fire-and-forget:
+      // the ticket is already saved, so a mail hiccup must not read as a failed
+      // submission.
+      if (data?.id) notifyContactTicket(data.id);
       setSent(true);
       setForm({ name: "", email: "", subject: "general", message: "" });
     }

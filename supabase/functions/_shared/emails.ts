@@ -56,16 +56,46 @@ function small(html: string): string {
 
 interface LayoutOpts {
   preheader: string;
-  title: { file: string; alt: string; w: number; h: number };
+  /**
+   * The brand heading. A `file` title is one of the pre-rendered TorahTale-font
+   * PNGs; a `text` title is set live in a serif face. Support emails use text —
+   * their headings are written per message, and a wrong-wording PNG would be
+   * worse than an honest text heading in a matching serif.
+   */
+  title: { file: string; alt: string; w: number; h: number } | { text: string };
   body: string; // inner HTML (greeting/paras/button)
   closing?: string; // small print below the card body
   footerNote: string; // one-line reason-for-receiving
 }
 
+function titleBlock(t: LayoutOpts["title"]): { html: string; alt: string } {
+  if ("text" in t) {
+    return {
+      alt: t.text,
+      html: `<p style="margin:0;padding:0;font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:36px;font-weight:bold;color:${C.navy};text-align:center">${t.text}</p>`,
+    };
+  }
+  return {
+    alt: t.alt,
+    html: `<img alt="${t.alt}" width="${t.w}" height="${t.h}" src="${TITLE_BASE}/${t.file}" style="display:block;outline:none;border:0;text-decoration:none;max-width:100%;height:auto;margin:0 auto"/>`,
+  };
+}
+
 function layout(o: LayoutOpts): string {
-  const t = o.title;
+  const t = titleBlock(o.title);
   const divider = `<table role="presentation" border="0" cellPadding="0" cellSpacing="0" align="center" style="margin:16px auto 22px auto"><tbody><tr><td style="width:56px;border-top:2px solid ${C.gold};font-size:0;line-height:0">&nbsp;</td></tr></tbody></table>`;
-  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html dir="ltr" lang="en"><head><meta content="width=device-width" name="viewport"/><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/><meta name="x-apple-disable-message-reformatting"/><meta content="telephone=no,address=no,email=no,date=no,url=no" name="format-detection"/><title>${t.alt}</title></head><body dir="ltr" lang="en" style="background-color:${C.page};margin:0;padding:0"><div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0" data-skip-in-text="true">${o.preheader}</div><table border="0" width="100%" cellPadding="0" cellSpacing="0" role="presentation" align="center" style="background-color:${C.page}"><tbody><tr><td align="center" style="padding:40px 12px"><table width="600" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="background-color:${C.card};border-radius:14px;overflow:hidden;max-width:600px;width:100%;border:1px solid #efe6d0"><tbody><tr><td align="center" style="padding:40px 24px 8px 24px"><img alt="Torah Tale" height="132" width="132" src="${LOGO_URL}" style="display:block;outline:none;border:0;text-decoration:none"/></td></tr><tr><td align="center" style="padding:6px 32px 0 32px"><img alt="${t.alt}" width="${t.w}" height="${t.h}" src="${TITLE_BASE}/${t.file}" style="display:block;outline:none;border:0;text-decoration:none;max-width:100%;height:auto;margin:0 auto"/></td></tr><tr><td align="center" style="padding:0 40px">${divider}</td></tr><tr><td style="padding:0 40px 8px 40px">${o.body}</td></tr>${o.closing ? `<tr><td style="padding:24px 40px 0 40px">${o.closing}</td></tr>` : ""}<tr><td style="padding:28px 40px 36px 40px"><hr style="width:100%;border:0;border-top:1px solid #eee6d4;margin:0 0 16px 0"/><p style="margin:0 0 6px 0;padding:0;font-size:13px;line-height:20px;color:${C.muted};text-align:center">Torah Tale &middot; Bringing Torah stories to life</p><p style="margin:0;padding:0;font-size:12px;line-height:18px;color:${C.faint};text-align:center">${o.footerNote}</p></td></tr></tbody></table></td></tr></tbody></table></body></html>`;
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html dir="ltr" lang="en"><head><meta content="width=device-width" name="viewport"/><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/><meta name="x-apple-disable-message-reformatting"/><meta content="telephone=no,address=no,email=no,date=no,url=no" name="format-detection"/><title>${t.alt}</title></head><body dir="ltr" lang="en" style="background-color:${C.page};margin:0;padding:0"><div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0" data-skip-in-text="true">${o.preheader}</div><table border="0" width="100%" cellPadding="0" cellSpacing="0" role="presentation" align="center" style="background-color:${C.page}"><tbody><tr><td align="center" style="padding:40px 12px"><table width="600" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="background-color:${C.card};border-radius:14px;overflow:hidden;max-width:600px;width:100%;border:1px solid #efe6d0"><tbody><tr><td align="center" style="padding:40px 24px 8px 24px"><img alt="Torah Tale" height="132" width="132" src="${LOGO_URL}" style="display:block;outline:none;border:0;text-decoration:none"/></td></tr><tr><td align="center" style="padding:6px 32px 0 32px">${t.html}</td></tr><tr><td align="center" style="padding:0 40px">${divider}</td></tr><tr><td style="padding:0 40px 8px 40px">${o.body}</td></tr>${o.closing ? `<tr><td style="padding:24px 40px 0 40px">${o.closing}</td></tr>` : ""}<tr><td style="padding:28px 40px 36px 40px"><hr style="width:100%;border:0;border-top:1px solid #eee6d4;margin:0 0 16px 0"/><p style="margin:0 0 6px 0;padding:0;font-size:13px;line-height:20px;color:${C.muted};text-align:center">Torah Tale &middot; Bringing Torah stories to life</p><p style="margin:0;padding:0;font-size:12px;line-height:18px;color:${C.faint};text-align:center">${o.footerNote}</p></td></tr></tbody></table></td></tr></tbody></table></body></html>`;
+}
+
+/** A customer's own words, quoted back to them in a soft card. */
+function quote(text: string): string {
+  const safe = escapeHtml(text).replace(/\n/g, "<br/>");
+  return `<table role="presentation" border="0" width="100%" cellPadding="0" cellSpacing="0" style="margin:4px 0 18px 0"><tbody><tr><td style="background-color:#FBF7EC;border-left:3px solid ${C.gold};border-radius:6px;padding:14px 16px"><p style="margin:0;padding:0;font-size:15px;line-height:24px;color:${C.body};text-align:left;white-space:pre-wrap">${safe}</p></td></tr></tbody></table>`;
+}
+
+/** Left-aligned body copy — support replies read as a letter, not a headline. */
+function paraLeft(html: string): string {
+  return `<p style="margin:0 0 16px 0;padding:0;font-size:16px;line-height:26px;color:${C.body};text-align:left">${html}</p>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -162,6 +192,86 @@ export function renderRecoveryEmail(resetUrl = "{{ .ConfirmationURL }}"): string
     body,
     closing,
     footerNote: "You are receiving this email because a password reset was requested for your Torah Tale account.",
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Support emails (contact form → contact-notify / contact-reply)
+// ---------------------------------------------------------------------------
+
+export const SUPPORT_SUBJECT_LABELS: Record<string, string> = {
+  general: "General",
+  order: "Order",
+  technical: "Technical",
+  feedback: "Feedback",
+  partnership: "Partnership",
+  collection: "Collection Request",
+};
+
+const supportLabel = (subject?: string | null) =>
+  SUPPORT_SUBJECT_LABELS[String(subject || "general")] || String(subject || "General");
+
+/** Sent to the customer the moment their contact form lands. */
+export function renderContactAckEmail(input: { name?: string | null; subject?: string | null; message: string }): string {
+  const first = (input.name || "").trim().split(/\s+/)[0];
+  const hi = first ? `Thanks, ${escapeHtml(first)}!` : "Thanks for writing!";
+  const body =
+    greeting(hi) +
+    paraLeft("We&#x27;ve got your message and a real person will read it — we usually reply within one business day.") +
+    paraLeft("Here&#x27;s what you sent us:") +
+    quote(input.message) +
+    paraLeft("Need to add something? Just reply to this email and it lands on the same thread.");
+  return layout({
+    preheader: "We received your message — we'll reply within one business day.",
+    title: { text: "We got your message" },
+    body,
+    closing: small(`Reference: ${escapeHtml(supportLabel(input.subject))} enquiry &middot; sent to help@torahtale.com`),
+    footerNote: "You are receiving this email because you contacted Torah Tale through our website.",
+  });
+}
+
+/** The admin's reply, sent to the customer from help@torahtale.com. */
+export function renderContactReplyEmail(input: {
+  name?: string | null;
+  subject?: string | null;
+  originalMessage: string;
+  reply: string;
+}): string {
+  const first = (input.name || "").trim().split(/\s+/)[0];
+  const hi = first ? `Hi ${escapeHtml(first)},` : "Hi there,";
+  const body =
+    greeting(hi) +
+    paraLeft(escapeHtml(input.reply).replace(/\n/g, "<br/>")) +
+    paraLeft("<span style=\"color:#8A8171;font-size:14px\">You wrote:</span>") +
+    quote(input.originalMessage);
+  return layout({
+    preheader: input.reply.slice(0, 120),
+    title: { text: "A note from Torah Tale" },
+    body,
+    closing: small("Just reply to this email if you need anything else — it comes straight back to our team."),
+    footerNote: "You are receiving this email because you contacted Torah Tale through our website.",
+  });
+}
+
+/** Internal heads-up to help@torahtale.com when a new ticket arrives. */
+export function renderContactAdminAlertEmail(input: {
+  name: string;
+  email: string;
+  subject?: string | null;
+  message: string;
+  ticketId: string;
+}): string {
+  const body =
+    greeting(`New ${escapeHtml(supportLabel(input.subject))} message`) +
+    paraLeft(`<strong>${escapeHtml(input.name)}</strong> &lt;${escapeHtml(input.email)}&gt;`) +
+    quote(input.message) +
+    button("Open in admin", "https://torahtale.com/admin");
+  return layout({
+    preheader: `${input.name}: ${input.message.slice(0, 90)}`,
+    title: { text: "New customer message" },
+    body,
+    closing: small(`Ticket ${escapeHtml(input.ticketId)}`),
+    footerNote: "Internal notification from the Torah Tale contact form.",
   });
 }
 

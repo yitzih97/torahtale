@@ -28,3 +28,10 @@ verify_jwt = false
 # bucket. Invoked with x-cron-secret or an admin JWT; it authorizes itself.
 [functions.backfill-images]
 verify_jwt = false
+
+# The contact form is public (a logged-out visitor can write to us), so the
+# post-insert notifier must accept the anon key. It takes only a ticket id,
+# reads everything else server-side, and stamps each send — so it can't be used
+# to mail an arbitrary address, or the same one twice.
+[functions.contact-notify]
+verify_jwt = false

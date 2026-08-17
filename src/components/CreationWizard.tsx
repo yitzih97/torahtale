@@ -30,6 +30,7 @@ import { PortionIcon } from "./wizard/portionIcons";
 import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
 import { subPrice, singlePrice } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
+import { notifyContactTicket } from "@/lib/contactTickets";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -950,13 +951,15 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
         `Language: ${data.language}\n` +
         `Children:\n${childLines.join("\n")}\n\n` +
         `Submitted from the creation wizard (collection mode). Send the customer an invoice; books are generated manually after payment is received.`;
-      const { error } = await supabase.from("contact_tickets").insert({
+      const { data: ticket, error } = await supabase.from("contact_tickets").insert({
         name: requesterName,
         email: user.email ?? "",
         subject: "collection",
         message,
-      });
+      }).select("id").maybeSingle();
       if (error) throw error;
+      // Same acknowledgement + support alert as the contact page.
+      if (ticket?.id) notifyContactTicket(ticket.id);
       try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
       setCollectionSent(true);
       toast.success("Request sent! We'll be in touch shortly.");
