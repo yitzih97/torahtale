@@ -11,6 +11,7 @@ import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
 import { getCogs, getProductType } from "@/lib/bookCosts";
+import { useAdminRevenue } from "@/hooks/useAdminRevenue";
 import { PAGES_BY_TYPE } from "@/components/wizard/BookOptionsStep";
 
 /* ── Fixed monthly vendor costs — editable, stored in site_settings ('finance'). ── */
@@ -83,18 +84,8 @@ export const AdminDashboardTab = ({ books, profiles, children, subscriptions }: 
   const queryClient = useQueryClient();
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
-  /* ── Revenue (exact, from Shopify) ── */
-  const revenueQuery = useQuery({
-    queryKey: ["admin-revenue-summary"],
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("shopify-admin-data", {
-        body: { action: "revenue-summary" },
-      });
-      if (error) throw error;
-      return data as { orders: any[]; totalRevenue: number; currency: string | null };
-    },
-  });
+  /* ── Revenue (exact, from Shopify) — shared cache, see useAdminRevenue ── */
+  const revenueQuery = useAdminRevenue();
 
   /* ── Site views (first-party page_views table, last 30 days) ── */
   const viewsQuery = useQuery({

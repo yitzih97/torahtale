@@ -307,8 +307,13 @@ export default function Admin() {
                   profilesLoading={profilesLoading}
                   selectedUserId={selectedUserId}
                   setSelectedUserId={setSelectedUserId}
-                  setGeneratingBook={setGeneratingBook}
+                  // The list rows carry no pages_data/story_data, so handing a row
+                  // straight to the modal opened an empty book. Go through the
+                  // full-row fetch, same as the orders tab.
+                  setGeneratingBook={openGenerationModal}
                   handleDownloadZip={handleDownloadZip}
+                  downloadingZip={downloadingZip}
+                  onOpenOrderDetail={(book) => setSelectedOrder(book)}
                   updateBookStatus={updateBookStatus}
                   updateSubscriptionStatus={updateSubscriptionStatus}
                   refetchAll={() => {

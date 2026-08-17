@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAdminRevenue } from "@/hooks/useAdminRevenue";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -116,19 +115,9 @@ export function AdminOrdersTab({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
 
-  /* Real per-order money, straight from Shopify. Shares its cache with the
-     dashboard tab's identical query, so opening Orders costs no extra call. */
-  const revenueQuery = useQuery({
-    queryKey: ["admin-revenue-summary"],
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("shopify-admin-data", {
-        body: { action: "revenue-summary" },
-      });
-      if (error) throw error;
-      return data as { orders: any[]; totalRevenue: number; currency: string | null };
-    },
-  });
+  /* Real per-order money, straight from Shopify — cache-shared with the
+     dashboard and users tabs, so opening Orders costs no extra call. */
+  const revenueQuery = useAdminRevenue();
 
   const payByBook = useMemo(() => {
     const m = new Map<string, any>();
