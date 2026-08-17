@@ -38,6 +38,10 @@ interface Props {
 
 const PAGE_COUNT_CHOICES = [10, 14, 20];
 
+// Keeps a rendered print preview alive across modal closes/reopens (per book) so
+// the admin can pop out to edit a page and come back to the same preview.
+const printPreviewCache = new Map<string, { images: string[]; slots: any }>();
+
 export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }: Props) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [pages, setPages] = useState<BookPage[]>([]);
@@ -53,6 +57,12 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   const [previewingPrint, setPreviewingPrint] = useState(false);
   const [printSlots, setPrintSlots] = useState<any | null>(null);
   const [editPageId, setEditPageId] = useState<number | null>(null);
+  // Restore a previously-rendered print preview when the modal reopens for a book.
+  useEffect(() => {
+    if (!open || !book?.id) return;
+    const cached = printPreviewCache.get(book.id);
+    if (cached) { setPrintPreview(cached.images); setPrintSlots(cached.slots); }
+  }, [open, book?.id]);
   const [confirmRegen, setConfirmRegen] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const abortRef = useRef(false);
@@ -651,13 +661,17 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       setPrintPreview(imgs);
       // Also fetch the blueprint's real Printify slots (names + sizes) so the
       // cover/spread mapping can be verified against the actual print product.
+      let slotData: any = null;
       try {
         const productType = (book as any)?.shipping_data?.bookOptions?.productType || "softcover";
-        const { data: slotData } = await supabase.functions.invoke("printify-submit", {
+        const res = await supabase.functions.invoke("printify-submit", {
           body: { action: "describe-slots", productType },
         });
-        setPrintSlots(slotData || null);
+        slotData = res.data || null;
+        setPrintSlots(slotData);
       } catch { /* slots are diagnostic-only; ignore failures */ }
+      // Cache so it survives closing the modal / popping out to edit a page.
+      if (book?.id) printPreviewCache.set(book.id, { images: imgs, slots: slotData });
     } catch (e: any) {
       toast.error(`Print preview failed: ${e?.message || e}`);
     } finally {
@@ -1073,7 +1087,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 <div className="mt-4 rounded-2xl border border-border/60 bg-muted/20 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-semibold text-foreground">Print files ({printPreview.length})</p>
-                    <button className="text-xs text-muted-foreground hover:text-foreground" onClick={() => { setPrintPreview(null); setPrintSlots(null); }}>Close</button>
+                    <button className="text-xs text-muted-foreground hover:text-foreground" onClick={() => { setPrintPreview(null); setPrintSlots(null); if (book?.id) printPreviewCache.delete(book.id); }}>Close</button>
                   </div>
                   {printSlots?.slots && (
                     <div className="mb-3 rounded-lg bg-background/60 border border-border/50 p-2.5">
@@ -1112,9 +1126,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                       const openForEdit = () => {
                         if (pageId == null) return;
                         setEditPageId(pageId);
-                        setPrintPreview(null);
-                        setPrintSlots(null);
-                        // Bring the editor (rendered above) into view.
+                        // Keep the print preview open (it persists across edits) and
+                        // bring the editor (rendered above) into view.
                         setTimeout(() => document.querySelector("[data-book-viewer]")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                       };
                       return (

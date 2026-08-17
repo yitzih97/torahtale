@@ -914,8 +914,8 @@ async function renderColoringBackMatter(
   ctx.imageSmoothingQuality = "high";
   if (scale !== 1) ctx.scale(scale, scale);
   drawPaperFull(ctx, W, H);
-  const padX = W * 0.08;
-  let y = H * 0.035;
+  const padX = W * 0.1;
+  let y = H * 0.07; // logo sits a little lower from the top edge
 
   // ── Combined brand logo (single lockup: book icon on top of the wordmark) +
   //    series headline, centered. ──
@@ -923,35 +923,37 @@ async function renderColoringBackMatter(
   if (logo) {
     const logoH = 165, logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
     ctx.drawImage(logo, W / 2 - logoW / 2, y, logoW, logoH);
-    y += logoH + 14;
+    y += logoH + 16;
     ctx.direction = rtl ? "rtl" : "ltr";
     ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
     const hf = 30;
     engravedLine(ctx, getCoverHeadline(lang), W / 2, y + hf, coverTitleFont(hf), hf);
-    y += hf + 24;
+    y += hf + 30;
     ctx.textBaseline = "top";
   }
 
-  // ── Up to 10 discussion questions ──
+  // ── Up to 10 discussion questions — header CENTERED, list in a centered
+  //    column so the block sits nicely in the middle of the page. ──
   const allQ = (page.questions && page.questions.length)
     ? page.questions.map((q) => `${q.number}. ${q.question}`)
     : (page.text || "").split("\n").map((s) => s.trim()).filter(Boolean);
   const questions = allQ.slice(0, 10);
-  ctx.direction = rtl ? "rtl" : "ltr";
-  ctx.textAlign = rtl ? "right" : "left";
   ctx.textBaseline = "top";
-  const anchorX = rtl ? W - padX : padX;
+  ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.textAlign = "center";
   ctx.fillStyle = "#b88a2a";
   ctx.font = `bold 38px 'Playfair Display', serif`;
   const questionsHeader = lang === "he" ? "שאלות לדיון" : lang === "yi" ? "פֿראגן צום רעדן" : "Questions to Talk About";
-  ctx.fillText(questionsHeader, anchorX, y);
-  y += 54;
+  ctx.fillText(questionsHeader, W / 2, y);
+  y += 60;
   ctx.fillStyle = "#2b2418";
+  ctx.textAlign = rtl ? "right" : "left";
+  const anchorX = rtl ? W - padX : padX;
   const qf = 27;
   ctx.font = `${qf}px ${BOOK_TEXT_STYLE.fontFamily}`;
   for (const q of questions) {
     for (const ln of wrapLines(ctx, q, W - padX * 2)) { ctx.fillText(ln, anchorX, y); y += qf * 1.32; }
-    y += 5;
+    y += 6;
   }
 
   // ── Subscribe invitation (localized → RTL); URL stays LTR ──
@@ -969,7 +971,7 @@ async function renderColoringBackMatter(
 
   // ── "Coming next" teaser thumbnails (mini front covers) ──
   const previewImgs = await Promise.all(previews.slice(0, 4).map((p) => (p.url ? safeLoad(p.url) : Promise.resolve(null))));
-  const thumb = 235, tgap = 22;
+  const thumb = 290, tgap = 16; // bigger so each book's title is readable
   const rowW = 4 * thumb + 3 * tgap;
   const rowX = W / 2 - rowW / 2;
   for (let i = 0; i < 4; i++) {
