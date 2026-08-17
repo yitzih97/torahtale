@@ -919,16 +919,13 @@ async function renderColoringBackMatter(
 
   // ── Combined brand logo (single lockup: book icon on top of the wordmark) +
   //    series headline, centered. ──
+  // Logo only at the top; the "Torah Tale Weekly Series" headline moves to the
+  // bottom section (above the subscribe line + teasers).
   const logo = await safeLoad(torahTaleLogoFull);
   if (logo) {
     const logoH = 165, logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
     ctx.drawImage(logo, W / 2 - logoW / 2, y, logoW, logoH);
-    y += logoH + 16;
-    ctx.direction = rtl ? "rtl" : "ltr";
-    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-    const hf = 30;
-    engravedLine(ctx, getCoverHeadline(lang), W / 2, y + hf, coverTitleFont(hf), hf);
-    y += hf + 30;
+    y += logoH + 34;
     ctx.textBaseline = "top";
   }
 
@@ -956,8 +953,16 @@ async function renderColoringBackMatter(
     y += 6;
   }
 
-  // ── Subscribe invitation (localized → RTL); URL stays LTR ──
-  y = Math.max(y + 18, H * 0.66);
+  // ── Bottom block: series headline, subscribe invitation, teasers, URL ──
+  y = Math.max(y + 18, H * 0.62);
+  // Series headline ("The Torah Tale Weekly Series") — now at the bottom.
+  ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  const shf = 30;
+  engravedLine(ctx, getCoverHeadline(lang), W / 2, y + shf, coverTitleFont(shf), shf);
+  y += shf + 22;
+  ctx.textBaseline = "top";
+  // Subscribe invitation (localized → RTL); URL stays LTR.
   ctx.direction = rtl ? "rtl" : "ltr";
   ctx.textAlign = "center";
   ctx.fillStyle = "#5a4a32";
