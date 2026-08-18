@@ -22,6 +22,14 @@ picks the right one (Yiddish falls back to Hebrew).
 write it in English and Hebrew, validates the draft, and writes
 `src/content/blog/stories/<slug>.mjs`.
 
+**The Hebrew is written, not translated.** English and Hebrew come from two
+independent calls that run concurrently and never see each other's output. The
+Hebrew one is briefed in Hebrew, with its own product-fact sheet in Hebrew, and
+is asked for its own title, meta description, headings, FAQ and search phrases —
+because an Israeli parent searches `פרשת נח לילדים`, not a rendering of "Parshas
+Noach for kids". Validation enforces it: Hebrew keywords must be Hebrew, and a
+run of English prose in the Hebrew body is rejected outright.
+
 It picks in this order:
 
 1. a Yom Tov inside the next six weeks (from Hebcal — best-effort; a failed
@@ -36,6 +44,7 @@ node scripts/blog-agent.mjs --plan            # what would it write? (no API cal
 node scripts/blog-agent.mjs                   # write today's article
 node scripts/blog-agent.mjs --count 5         # backfill five
 node scripts/blog-agent.mjs --topic noach     # force one story
+node scripts/blog-agent.mjs --rewrite-hebrew <slug>   # rewrite one article's Hebrew from scratch
 ```
 
 Needs `ANTHROPIC_API_KEY` and `npm install --no-save @anthropic-ai/sdk` (the
@@ -65,6 +74,22 @@ silently never run.
 
 Run it by hand from the Actions tab (or `gh workflow run daily-blog.yml`), with
 inputs for `count`, `topic`, and a `plan` dry run.
+
+## Two languages, two URLs
+
+The Hebrew article is a page in its own right, not a translation toggle:
+
+| | English | Hebrew |
+|---|---|---|
+| Index | `/blog` | `/he/blog` |
+| Article | `/blog/<slug>` | `/he/blog/<slug>` |
+
+Each carries its own `<title>`, meta description, `BlogPosting`/`FAQPage`
+structured data and `lang`/`dir`, and the pair is tied together with `hreflang`
+(in the page head and in `sitemap.xml`), so Google serves the Hebrew page to
+Hebrew searchers instead of reading the two as duplicates. Landing on a `/he/`
+URL switches the site to Hebrew. `src/hooks/useBlogLocale.ts` is what the blog
+pages use to know which language a URL serves.
 
 ## SEO and answer engines
 

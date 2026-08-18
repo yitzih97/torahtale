@@ -92,6 +92,8 @@ export const localizeArticle = (article, lang) => {
       bodyHtml: article.he.bodyHtml,
       keyFacts: article.he.keyFacts || article.keyFacts,
       faq: article.he.faq || article.faq,
+      keywords: article.he.keywords || article.keywords,
+      readingMins: article.he.readingMins || article.readingMins,
     };
   }
   return article;

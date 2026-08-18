@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 // Plain ESM modules, imported by the tests exactly as the agent imports them.
-import { rotationCandidates, validate } from "../../scripts/blog-agent.mjs";
+import { rotationCandidates, validateEnglish, validateHebrew } from "../../scripts/blog-agent.mjs";
 import { TORAH_PORTIONS_DATA } from "../components/wizard/torahData.mjs";
+import { ARTICLES } from "../content/blog/index.mjs";
 
 // The agent writes to the live site unattended, so the two pieces that decide
 // *what* it writes and *whether the result is publishable* are worth pinning.
@@ -16,6 +17,33 @@ const body = (extra = "") => `
   [[IMAGE:products]]
   <p><a href="/create">Create the book</a></p>
   ${extra}`;
+
+const hebrewBody = `
+  <p>${"משפט על הפרשה שההורה קורא בעברית פשוטה וברורה. ".repeat(40)}</p>
+  <h2>מה קורה בסיפור</h2>
+  <p>${"עוד על הסיפור, מסופר לילדים בגובה העיניים. ".repeat(40)}</p>
+  [[IMAGE:cover]]
+  <h2>איך מסבירים לילד</h2>
+  <p>${"הדרכה מעשית להורה לשולחן השבת. ".repeat(30)}</p>
+  [[IMAGE:products]]
+  <p><a href="/create">ליצירת הספר</a></p>`;
+
+const hebrew = (overrides: Record<string, unknown> = {}) => ({
+  title: "פרשת נח לילדים: התיבה, החיות והקשת",
+  description:
+    "איך מספרים לילדים את פרשת נח — מה קורה בסיפור, איזו מידה הוא מלמד, ואיך מסבירים את המבול לילד בן ארבע בלי להפחיד אותו.",
+  excerpt: "התיבה, החיות שנכנסו שניים שניים, והקשת בענן שבסוף.",
+  keywords: ["פרשת נח לילדים", "סיפור נח לילדים", "התיבה של נח"],
+  keyFacts: ["עובדה ראשונה על הפרשה.", "עובדה שנייה על הפרשה.", "עובדה שלישית על הפרשה."],
+  faq: [
+    { q: "שאלה ראשונה?", a: "תשובה ראשונה." },
+    { q: "שאלה שנייה?", a: "תשובה שנייה." },
+    { q: "שאלה שלישית?", a: "תשובה שלישית." },
+    { q: "שאלה רביעית?", a: "תשובה רביעית." },
+  ],
+  bodyHtml: hebrewBody,
+  ...overrides,
+});
 
 const article = (overrides: Record<string, unknown> = {}) => ({
   slug: "parshas-noach-for-kids",
@@ -33,27 +61,17 @@ const article = (overrides: Record<string, unknown> = {}) => ({
     { q: "Q4?", a: "A4." },
   ],
   bodyHtml: body(),
-  he: {
-    title: "פרשת נח לילדים",
-    description: "איך מספרים לילדים את פרשת נח.",
-    excerpt: "התיבה, החיות והקשת.",
-    keyFacts: ["עובדה.", "עוד עובדה.", "עובדה שלישית."],
-    faq: [
-      { q: "ש1?", a: "ת1." },
-      { q: "ש2?", a: "ת2." },
-      { q: "ש3?", a: "ת3." },
-      { q: "ש4?", a: "ת4." },
-    ],
-    bodyHtml: body().replace("What happens in the story", "מה קורה בסיפור") + "<p>עברית</p>",
-  },
   ...overrides,
 });
 
 describe("blog agent topic rotation", () => {
-  it("offers every story exactly once", () => {
+  it("offers every story that has no article yet, exactly once", () => {
+    const covered = new Set(ARTICLES.map((a: { portion?: string }) => a.portion).filter(Boolean));
     const candidates = rotationCandidates();
-    expect(candidates.length).toBe(TORAH_PORTIONS_DATA.length);
+    expect(candidates.length).toBe(TORAH_PORTIONS_DATA.length - covered.size);
     expect(new Set(candidates.map((c: { value: string }) => c.value)).size).toBe(candidates.length);
+    // Nothing already written should come round again.
+    expect(candidates.filter((c: { value: string }) => covered.has(c.value))).toEqual([]);
   });
 
   it("interleaves collections instead of draining Chumash first", () => {
@@ -64,38 +82,59 @@ describe("blog agent topic rotation", () => {
   });
 });
 
-describe("blog agent article validation", () => {
+describe("blog agent English validation", () => {
   it("accepts a well-formed article", () => {
-    expect(validate(article())).toEqual([]);
+    expect(validateEnglish(article())).toEqual([]);
   });
 
   it("rejects an invented internal link", () => {
     const bad = article({ bodyHtml: body('<p><a href="/blog/made-up-post">see this</a></p>') });
-    expect(validate(bad).join(" ")).toMatch(/made-up-post/);
+    expect(validateEnglish(bad).join(" ")).toMatch(/made-up-post/);
   });
 
   it("rejects an unknown image token", () => {
     const bad = article({ bodyHtml: body("[[IMAGE:hero]]") });
-    expect(validate(bad).join(" ")).toMatch(/hero/);
+    expect(validateEnglish(bad).join(" ")).toMatch(/hero/);
   });
 
   it("rejects raw <img> and other disallowed tags", () => {
     const bad = article({ bodyHtml: body('<img src="/x.jpg" alt="x" />') });
-    expect(validate(bad).join(" ")).toMatch(/disallowed tag <img>/);
+    expect(validateEnglish(bad).join(" ")).toMatch(/disallowed tag <img>/);
   });
 
   it("rejects a slug that already exists on the blog", () => {
     const bad = article({ slug: "best-personalized-jewish-gifts-for-kids" });
-    expect(validate(bad).join(" ")).toMatch(/already used/);
-  });
-
-  it("rejects a Hebrew body that is not in Hebrew", () => {
-    const bad = article({ he: { ...article().he, bodyHtml: body() } });
-    expect(validate(bad).join(" ")).toMatch(/actually be written in Hebrew/);
+    expect(validateEnglish(bad).join(" ")).toMatch(/already used/);
   });
 
   it("rejects a thin article", () => {
     const bad = article({ bodyHtml: "<h2>Short</h2><p>Too short.</p>[[IMAGE:cover]][[IMAGE:products]]" });
-    expect(validate(bad).join(" ")).toMatch(/write more/);
+    expect(validateEnglish(bad).join(" ")).toMatch(/write more/);
+  });
+});
+
+describe("blog agent Hebrew validation", () => {
+  it("accepts a well-formed Hebrew article", () => {
+    expect(validateHebrew(hebrew())).toEqual([]);
+  });
+
+  it("rejects an English body handed in as the Hebrew one", () => {
+    expect(validateHebrew(hebrew({ bodyHtml: body() })).join(" ")).toMatch(/Hebrew/);
+  });
+
+  it("rejects a Hebrew article whose prose is half English", () => {
+    const mixed = hebrew({
+      bodyHtml: hebrewBody + "<p>This is a long run of English prose that should never appear here.</p>",
+    });
+    expect(validateHebrew(mixed).join(" ")).toMatch(/do not translate/);
+  });
+
+  it("rejects English search keywords on the Hebrew article", () => {
+    const bad = hebrew({ keywords: ["parshas noach for kids", "noach story", "teivah"] });
+    expect(validateHebrew(bad).join(" ")).toMatch(/Hebrew search phrases/);
+  });
+
+  it("rejects a Hebrew title that is really English", () => {
+    expect(validateHebrew(hebrew({ title: "Parshas Noach for Kids" })).join(" ")).toMatch(/he\.title/);
   });
 });

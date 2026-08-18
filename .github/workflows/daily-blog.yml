@@ -23,6 +23,10 @@ on:
         description: "Force a story (a TORAH_PORTIONS value, e.g. noach). Blank = the agent chooses."
         type: string
         default: ""
+      rewrite_hebrew:
+        description: "Rewrite one existing article's Hebrew from scratch (its slug). Overrides count/topic."
+        type: string
+        default: ""
       plan:
         description: "Only print what it would write — no API call, no commit"
         type: boolean
@@ -59,14 +63,19 @@ jobs:
           BLOG_MODEL: ${{ vars.BLOG_MODEL }}
           INPUT_COUNT: ${{ inputs.count || '1' }}
           INPUT_TOPIC: ${{ inputs.topic }}
+          INPUT_HEBREW: ${{ inputs.rewrite_hebrew }}
           INPUT_PLAN: ${{ inputs.plan }}
         run: |
           set -euo pipefail
           if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
             echo "::error::ANTHROPIC_API_KEY repo secret is not set."; exit 1
           fi
-          args=(--count "$INPUT_COUNT")
-          if [ -n "$INPUT_TOPIC" ]; then args+=(--topic "$INPUT_TOPIC"); fi
+          if [ -n "$INPUT_HEBREW" ]; then
+            args=(--rewrite-hebrew "$INPUT_HEBREW")
+          else
+            args=(--count "$INPUT_COUNT")
+            if [ -n "$INPUT_TOPIC" ]; then args+=(--topic "$INPUT_TOPIC"); fi
+          fi
           if [ "$INPUT_PLAN" = "true" ]; then args+=(--plan); fi
           node scripts/blog-agent.mjs "${args[@]}"
 
@@ -83,6 +92,8 @@ jobs:
       - name: Commit
         id: commit
         if: ${{ inputs.plan != true }}
+        env:
+          INPUT_HEBREW: ${{ inputs.rewrite_hebrew }}
         run: |
           set -euo pipefail
           if [ -z "$(git status --porcelain src/content/blog/stories)" ]; then
@@ -92,10 +103,12 @@ jobs:
           fi
           slug=$(git status --porcelain src/content/blog/stories \
             | grep -oE '[^/]+\.mjs' | grep -v '^index\.mjs$' | head -1 | sed 's/\.mjs$//')
+          subject="Blog: ${slug}"
+          if [ -n "$INPUT_HEBREW" ]; then subject="Blog: rewrite the Hebrew of ${slug}"; fi
           git config user.name "torahtale-blog-bot"
           git config user.email "bot@torahtale.com"
           git add src/content/blog/stories
-          git commit -m "Blog: ${slug}"
+          git commit -m "$subject"
           # Writing an article takes minutes, and main moves while it does — so
           # rebase onto whatever landed meanwhile rather than losing the article
           # to a rejected push. The commit only ever adds files under

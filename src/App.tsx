@@ -69,6 +69,11 @@ const AppInner = () => {
             <Route path="/affiliates" element={<Affiliates />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogArticle />} />
+            {/* The Hebrew blog is written independently, not translated, so it
+                gets its own indexable URLs. The pages switch the site to Hebrew
+                on arrival; /blog and /he/blog are hreflang alternates. */}
+            <Route path="/he/blog" element={<Blog />} />
+            <Route path="/he/blog/:slug" element={<BlogArticle />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

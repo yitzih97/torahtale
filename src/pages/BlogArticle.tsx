@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/SEO";
 import { getArticle, localizeArticle, relatedArticles, renderArticleHtml } from "@/content/blog/index.mjs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBlogLocale } from "@/hooks/useBlogLocale";
 
 const BlogArticle = () => {
   const { slug } = useParams();
   const { lang, dir } = useLanguage();
-  const isHe = lang === "he" || lang === "yi";
+  const { isHe, blogPath } = useBlogLocale();
   const raw = getArticle(slug || "");
-  const article = raw ? localizeArticle(raw, lang) : undefined;
+  const article = raw ? localizeArticle(raw, isHe ? "he" : lang) : undefined;
 
   const copy = isHe
     ? {
@@ -41,12 +42,12 @@ const BlogArticle = () => {
   if (!article) {
     return (
       <div className="min-h-screen bg-background text-foreground" dir={dir}>
-        <SEO title="Article not found — Torah Tale" description="This article could not be found." path={`/blog/${slug || ""}`} />
+        <SEO title="Article not found — Torah Tale" description="This article could not be found." path={blogPath(slug || "")} />
         <Navbar transparentHero={false} />
         <div className="container max-w-3xl mx-auto px-6 pt-40 pb-24 text-center">
           <h1 className="font-display text-3xl font-bold">{copy.notFoundTitle}</h1>
           <p className="mt-3 text-muted-foreground">{copy.notFoundDesc}</p>
-          <Link to="/blog" className="mt-6 inline-block">
+          <Link to={blogPath()} className="mt-6 inline-block">
             <Button variant="outline" className="rounded-full">{copy.backToBlog}</Button>
           </Link>
         </div>
@@ -55,24 +56,30 @@ const BlogArticle = () => {
     );
   }
 
-  const others = relatedArticles(raw!, 3).map((a) => localizeArticle(a, lang));
+  const others = relatedArticles(raw!, 3).map((a) => localizeArticle(a, isHe ? "he" : lang));
 
-  // SEO/structured data stays in English (the canonical indexed version).
+  // Each language is its own indexed page: the Hebrew article is written in
+  // Hebrew rather than translated, so it carries its own title, description and
+  // structured data at its own URL, with hreflang tying the pair together.
   // A graph, not a single node: the article itself, a breadcrumb trail, and —
   // when the article carries a FAQ — a FAQPage, which is what answer engines
   // and rich results lift question-and-answer pairs out of.
-  const url = `https://torahtale.com/blog/${article.slug}`;
+  const paths = { en: `/blog/${article.slug}`, he: `/he/blog/${article.slug}` };
+  const url = `https://torahtale.com${isHe ? paths.he : paths.en}`;
+  const meta = isHe
+    ? { title: raw!.he.title, description: raw!.he.description, keywords: raw!.he.keywords }
+    : { title: raw!.title, description: raw!.description, keywords: raw!.keywords };
   const graph: Record<string, unknown>[] = [
     {
       "@type": "BlogPosting",
-      headline: raw!.title,
-      description: raw!.description,
+      headline: meta.title,
+      description: meta.description,
       datePublished: raw!.dateISO,
       dateModified: raw!.updatedISO || raw!.dateISO,
       image: "https://torahtale.com/og-image.jpg",
       url,
-      keywords: raw!.keywords?.join(", "),
-      inLanguage: "en",
+      keywords: meta.keywords?.join(", "),
+      inLanguage: isHe ? "he" : "en",
       isAccessibleForFree: true,
       author: { "@type": "Organization", name: "Torah Tale", url: "https://torahtale.com" },
       publisher: {
@@ -85,16 +92,17 @@ const BlogArticle = () => {
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://torahtale.com/" },
-        { "@type": "ListItem", position: 2, name: "Blog", item: "https://torahtale.com/blog" },
-        { "@type": "ListItem", position: 3, name: raw!.title, item: url },
+        { "@type": "ListItem", position: 1, name: isHe ? "דף הבית" : "Home", item: "https://torahtale.com/" },
+        { "@type": "ListItem", position: 2, name: isHe ? "בלוג" : "Blog", item: `https://torahtale.com${isHe ? "/he/blog" : "/blog"}` },
+        { "@type": "ListItem", position: 3, name: meta.title, item: url },
       ],
     },
   ];
-  if (raw!.faq?.length) {
+  const faq = isHe ? raw!.he.faq : raw!.faq;
+  if (faq?.length) {
     graph.push({
       "@type": "FAQPage",
-      mainEntity: raw!.faq.map((f: { q: string; a: string }) => ({
+      mainEntity: faq.map((f: { q: string; a: string }) => ({
         "@type": "Question",
         name: f.q,
         acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -105,12 +113,20 @@ const BlogArticle = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir={dir}>
-      <SEO title={`${raw!.title} — Torah Tale`} description={raw!.description} path={`/blog/${article.slug}`} ogType="article" jsonLd={jsonLd} />
+      <SEO
+        title={`${meta.title} — Torah Tale`}
+        description={meta.description}
+        path={isHe ? paths.he : paths.en}
+        ogType="article"
+        locale={isHe ? "he" : "en"}
+        alternates={paths}
+        jsonLd={jsonLd}
+      />
       <Navbar transparentHero={false} />
 
       <article className="pt-32 pb-16 md:pt-40">
         <div className="container max-w-2xl mx-auto px-6">
-          <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+          <Link to={blogPath()} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4 rtl:rotate-180" /> {copy.allGuides}
           </Link>
           <p className="mt-6 text-xs text-muted-foreground">{article.date} · {article.readingMins} {copy.minRead}</p>
@@ -138,7 +154,7 @@ const BlogArticle = () => {
             <h2 className="font-display text-xl font-bold">{copy.keepReading}</h2>
             <div className="mt-4 space-y-3">
               {others.map((a) => (
-                <Link key={a.slug} to={`/blog/${a.slug}`} className="block rounded-xl border border-border/50 bg-card/50 p-4 hover:border-accent/40">
+                <Link key={a.slug} to={blogPath(a.slug)} className="block rounded-xl border border-border/50 bg-card/50 p-4 hover:border-accent/40">
                   <h3 className="font-semibold text-foreground">{a.title}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{a.excerpt}</p>
                 </Link>

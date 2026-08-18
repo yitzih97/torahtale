@@ -19,7 +19,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ARTICLES, renderArticleHtml, stripHtml } from "../src/content/blog/index.mjs";
+import { ARTICLES, localizeArticle, renderArticleHtml, stripHtml } from "../src/content/blog/index.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = join(__dirname, "..", "dist");
@@ -46,28 +46,32 @@ const HOME_HTML = `
     <p><a href="/create">Create your child's book</a> · <a href="/pricing">See pricing</a> · <a href="/blog">Read our guides</a></p>
   </main>`;
 
-const blogIndexHtml = () => `
-  <main>
-    <h1>Torah Tale Blog — Guides to Personalized Torah Storybooks</h1>
-    <p>Step-by-step guides and ideas for making personalized Torah storybooks for Jewish children.</p>
+const blogIndexHtml = (isHe = false) => {
+  const items = ARTICLES.map((a) => localizeArticle(a, isHe ? "he" : "en"));
+  const base = isHe ? "/he/blog" : "/blog";
+  return `
+  <main${isHe ? ' dir="rtl" lang="he"' : ""}>
+    <h1>${isHe ? "הבלוג של טורה־טייל — מדריכים לספרי תורה מותאמים אישית" : "Torah Tale Blog — Guides to Personalized Torah Storybooks"}</h1>
+    <p>${isHe ? "מדריכים ורעיונות ליצירת ספרי סיפורי תורה מותאמים אישית לילדים." : "Step-by-step guides and ideas for making personalized Torah storybooks for Jewish children."}</p>
     <ul>
-      ${ARTICLES.map((a) => `<li><a href="/blog/${a.slug}">${esc(a.title)}</a> — <time datetime="${esc(a.dateISO)}">${esc(a.date)}</time> — ${esc(a.excerpt)}</li>`).join("\n      ")}
+      ${items.map((a) => `<li><a href="${base}/${a.slug}">${esc(a.title)}</a> — <time datetime="${esc(a.dateISO)}">${esc(a.date)}</time> — ${esc(a.excerpt)}</li>`).join("\n      ")}
     </ul>
   </main>`;
+};
 
-const articleHtml = (a) => `
-  <main>
+const articleHtml = (a, isHe = false) => `
+  <main${isHe ? ' dir="rtl" lang="he"' : ""}>
     <article>
       <h1>${esc(a.title)}</h1>
       <p>${esc(a.excerpt)}</p>
-      <p>Published <time datetime="${esc(a.dateISO)}">${esc(a.date)}</time> by Torah Tale.</p>
-      ${renderArticleHtml(a)}
-      <p><a href="/create">Create a personalized Torah storybook</a></p>
+      <p>${isHe ? "פורסם" : "Published"} <time datetime="${esc(a.dateISO)}">${esc(a.date)}</time>${isHe ? " על ידי טורה־טייל." : " by Torah Tale."}</p>
+      ${renderArticleHtml(a, isHe)}
+      <p><a href="/create">${isHe ? "צרו ספר תורה מותאם אישית" : "Create a personalized Torah storybook"}</a></p>
     </article>
   </main>`;
 
-const articleJsonLd = (a) => {
-  const url = `${SITE}/blog/${a.slug}`;
+const articleJsonLd = (a, isHe = false) => {
+  const url = `${SITE}${isHe ? "/he" : ""}/blog/${a.slug}`;
   const graph = [
     {
       "@type": "BlogPosting",
@@ -78,7 +82,7 @@ const articleJsonLd = (a) => {
       image: `${SITE}/og-image.jpg`,
       url,
       keywords: a.keywords?.join(", "),
-      inLanguage: "en",
+      inLanguage: isHe ? "he" : "en",
       isAccessibleForFree: true,
       author: { "@type": "Organization", name: "Torah Tale", url: SITE },
       publisher: { "@type": "Organization", name: "Torah Tale", logo: { "@type": "ImageObject", url: `${SITE}/apple-touch-icon.png` } },
@@ -87,8 +91,8 @@ const articleJsonLd = (a) => {
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
-        { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE}/blog` },
+        { "@type": "ListItem", position: 1, name: isHe ? "דף הבית" : "Home", item: `${SITE}/` },
+        { "@type": "ListItem", position: 2, name: isHe ? "בלוג" : "Blog", item: `${SITE}${isHe ? "/he" : ""}/blog` },
         { "@type": "ListItem", position: 3, name: a.title, item: url },
       ],
     },
@@ -116,7 +120,7 @@ const routes = [
   { path: "/contact", title: "Contact Torah Tale", description: "Get in touch with the Torah Tale team. We're happy to help with your personalized Torah storybook order." },
   { path: "/affiliates", title: "Affiliate Program — Torah Tale", description: "Earn by sharing Torah Tale's personalized Torah storybooks with your community. Join the affiliate program." },
   { path: "/create", title: "Create Your Child's Torah Storybook — Torah Tale", description: "Start building a personalized Torah storybook starring your child in about five minutes. Choose the parsha, language, and book format." },
-  { path: "/blog", title: "Torah Tale Blog — Guides to Personalized Torah Storybooks", description: "Step-by-step guides and ideas for making personalized Torah storybooks for Jewish kids — choosing the weekly parsha, gift ideas, and how it works.", content: blogIndexHtml() },
+  { path: "/blog", title: "Torah Tale Blog — Guides to Personalized Torah Storybooks", description: "Step-by-step guides and ideas for making personalized Torah storybooks for Jewish kids — choosing the weekly parsha, gift ideas, and how it works.", content: blogIndexHtml(), alternates: { en: "/blog", he: "/he/blog" } },
   { path: "/terms", title: "Terms of Service — Torah Tale", description: "Torah Tale's terms of service." },
   { path: "/privacy", title: "Privacy Policy — Torah Tale", description: "How Torah Tale handles your data and your child's photos with care." },
   ...ARTICLES.map((a) => ({
@@ -126,7 +130,35 @@ const routes = [
     content: articleHtml(a),
     ogType: "article",
     jsonLd: articleJsonLd(a),
+    alternates: { en: `/blog/${a.slug}`, he: `/he/blog/${a.slug}` },
   })),
+
+  // ── Hebrew ────────────────────────────────────────────────────────────────
+  // The Hebrew articles are written in Hebrew rather than translated, so each
+  // one is a page in its own right: its own URL, its own title and description,
+  // its own structured data, tied to the English by hreflang.
+  {
+    path: "/he/blog",
+    title: "הבלוג של טורה־טייל — מדריכים לספרי תורה מותאמים אישית",
+    description:
+      "מדריכים ורעיונות ליצירת ספרי תורה מותאמים אישית לילדים — סיפורי פרשה לפי שבוע, איך בוחרים סיפור, ורעיונות למתנה לכל שמחה.",
+    content: blogIndexHtml(true),
+    locale: "he",
+    alternates: { en: "/blog", he: "/he/blog" },
+  },
+  ...ARTICLES.map((a) => {
+    const he = localizeArticle(a, "he");
+    return {
+      path: `/he/blog/${a.slug}`,
+      title: `${he.title} — Torah Tale`,
+      description: he.description,
+      content: articleHtml(he, true),
+      ogType: "article",
+      locale: "he",
+      jsonLd: articleJsonLd(he, true),
+      alternates: { en: `/blog/${a.slug}`, he: `/he/blog/${a.slug}` },
+    };
+  }),
 ];
 
 const replaceTag = (html, re, replacement) => {
@@ -151,6 +183,20 @@ for (const r of routes) {
   html = replaceTag(html, /<meta property="og:type"[^>]*>/, `<meta property="og:type" content="${r.ogType || "website"}" />`);
   html = replaceTag(html, /<meta name="twitter:title"[^>]*>/, `<meta name="twitter:title" content="${title}" />`);
   html = replaceTag(html, /<meta name="twitter:description"[^>]*>/, `<meta name="twitter:description" content="${desc}" />`);
+
+  if (r.locale === "he") {
+    html = html.replace(/<html lang="[^"]*"/, '<html lang="he" dir="rtl"');
+  }
+
+  // hreflang pairs, so Google serves the Hebrew page to Hebrew searchers and
+  // does not read the two languages as duplicates of each other.
+  if (r.alternates) {
+    const links = Object.entries(r.alternates)
+      .map(([lang, p]) => `<link rel="alternate" hreflang="${lang}" href="${SITE}${p}" />`)
+      .concat(`<link rel="alternate" hreflang="x-default" href="${SITE}${r.alternates.en}" />`)
+      .join("\n    ");
+    html = html.replace("</head>", `    ${links}\n  </head>`);
+  }
 
   // Route-specific JSON-LD (the global Org/WebSite already lives in index.html head).
   if (r.jsonLd) {
@@ -202,23 +248,40 @@ const sitemapUrls = [
     changefreq,
     priority,
   })),
-  ...ARTICLES.map((a) => ({
-    loc: `${SITE}/blog/${a.slug}`,
-    lastmod: a.updatedISO || a.dateISO,
-    changefreq: "monthly",
+  {
+    loc: `${SITE}/he/blog`,
+    lastmod: lastPost,
+    changefreq: "daily",
     priority: "0.8",
-  })),
+    alternates: { en: "/blog", he: "/he/blog" },
+  },
+  ...ARTICLES.flatMap((a) => {
+    const alternates = { en: `/blog/${a.slug}`, he: `/he/blog/${a.slug}` };
+    return ["en", "he"].map((lang) => ({
+      loc: `${SITE}${alternates[lang]}`,
+      lastmod: a.updatedISO || a.dateISO,
+      changefreq: "monthly",
+      priority: "0.8",
+      alternates,
+    }));
+  }),
 ];
 
 writeFileSync(
   join(DIST, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${sitemapUrls
-  .map(
-    (u) =>
-      `  <url><loc>${u.loc}</loc><lastmod>${u.lastmod}</lastmod><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`
-  )
+  .map((u) => {
+    // Declaring both languages on each entry is what tells Google the Hebrew
+    // page is the Hebrew version of the English one, not a duplicate of it.
+    const alts = u.alternates
+      ? Object.entries(u.alternates)
+          .map(([lang, p]) => `\n    <xhtml:link rel="alternate" hreflang="${lang}" href="${SITE}${p}" />`)
+          .join("")
+      : "";
+    return `  <url><loc>${u.loc}</loc><lastmod>${u.lastmod}</lastmod><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority>${alts}${alts ? "\n  " : ""}</url>`;
+  })
   .join("\n")}
 </urlset>\n`,
   "utf8"
@@ -270,9 +333,16 @@ Torah Tale (https://torahtale.com) creates custom hardcover, softcover and board
 - [Testimonials](${SITE}/testimonials): Reviews from families.
 - [Contact](${SITE}/contact): Get in touch with the team.
 
-## Blog
+## Blog (English)
 
 ${ARTICLES.map((a) => `- [${a.title}](${SITE}/blog/${a.slug}): ${a.description}`).join("\n")}
+
+## Blog (Hebrew — written in Hebrew, not translated)
+
+${ARTICLES.map((a) => {
+  const he = localizeArticle(a, "he");
+  return `- [${he.title}](${SITE}/he/blog/${a.slug}): ${he.description}`;
+}).join("\n")}
 
 ## Optional
 
@@ -308,6 +378,22 @@ ${ARTICLES.map((a) =>
     .filter(Boolean)
     .join("\n\n")
 ).join("\n\n---\n\n")}
+
+${ARTICLES.map((a) => {
+  const he = localizeArticle(a, "he");
+  return [
+    `## ${he.title}`,
+    `URL: ${SITE}/he/blog/${a.slug}`,
+    `Language: Hebrew`,
+    `Published: ${a.dateISO}`,
+    `Summary: ${he.description}`,
+    he.keyFacts?.length ? `${he.keyFacts.map((f) => `- ${stripHtml(f)}`).join("\n")}` : "",
+    stripHtml(he.bodyHtml),
+    he.faq?.length ? he.faq.map((f) => `${stripHtml(f.q)}\n${stripHtml(f.a)}`).join("\n\n") : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}).join("\n\n---\n\n")}
 `,
   "utf8"
 );
