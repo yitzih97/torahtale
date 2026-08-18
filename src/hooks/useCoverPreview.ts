@@ -19,6 +19,12 @@ export interface CoverPreviewState {
 
 const empty: CoverPreviewState = { url: null, loading: false, regens: 0, error: null, key: null };
 
+/** A stable id for a photo, ignoring any signature/expiry on a signed URL. */
+const photoIdentity = (src: string): string => {
+  if (src.startsWith("data:")) return `d${src.length}:${src.slice(-24)}`;
+  try { return new URL(src).pathname; } catch { return src.split("?")[0]; }
+};
+
 const load = (): CoverPreviewState => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -68,8 +74,15 @@ export function useCoverPreview(inputs: Inputs) {
 
   // Which inputs the current image belongs to — a change here is a NEW cover,
   // not a regeneration, so it must not consume the customer's allowance.
+  //
+  // The photo identity has to be STABLE. A saved child's photo arrives as a
+  // signed storage URL whose token carries iat/exp and is re-issued on every
+  // new session, so keying on the raw string (or its tail, which IS the
+  // signature) produced a different key each time — silently regenerating the
+  // cover at real cost and resetting the customer's allowance to two again.
+  // The path identifies the photo; the query string only signs it.
   const key = referenceImage && torahPortion
-    ? `${torahPortion}|${childName || ""}|${referenceImage.slice(-64)}`
+    ? `${torahPortion}|${childName || ""}|${photoIdentity(referenceImage)}`
     : null;
 
   const run = useCallback(async (nextKey: string, isRegen: boolean) => {
