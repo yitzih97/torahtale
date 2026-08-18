@@ -2416,7 +2416,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
 
             {/* ── STEP 11: Shipping + Order Summary (combined final step) ── */}
             {step === 11 && (
-              <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-3.5 w-full">
+              <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-3 w-full">
                 <div className="text-center">
                   <h2 className="font-heading text-2xl sm:text-3xl font-bold text-primary">
                     {t.checkout.orderSummary}

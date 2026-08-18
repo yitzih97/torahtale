@@ -274,7 +274,7 @@ export const CheckoutStep = ({
   );
 
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-3">
       {/* The book itself */}
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
         {/* Wraps rather than squeezing: on a narrow phone the cover, the title
@@ -406,7 +406,7 @@ export const CheckoutStep = ({
         <span>{t.checkout.secureCheckout}</span>
       </div>
 
-      <p className="text-[11px] text-muted-foreground leading-snug px-1">
+      <p className="text-[11px] text-muted-foreground leading-tight px-1">
         {t.checkout.disclaimer}
       </p>
 
