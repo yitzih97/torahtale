@@ -24,6 +24,7 @@ import { SuccessStep } from "./wizard/SuccessStep";
 import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, getColoringBookAddonPrice, getStoryPageCount, type BookOptions } from "./wizard/BookOptionsStep";
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
+import { categoryArt } from "@/lib/categoryArt";
 import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getCurrentParsha, stripSeferPrefix, bookLanguageCode, type TorahOption } from "./wizard/TorahPortions";
 import { ParshaCountdown } from "./wizard/ParshaCountdown";
 import { PortionIcon } from "./wizard/portionIcons";
@@ -1232,7 +1233,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
 
   return (
     <>
-    <div className="wizard-glass min-h-screen w-full flex flex-col relative bg-background">
+    <div className="wizard-glass h-screen h-[100dvh] w-full flex flex-col relative overflow-hidden bg-background">
       {/* ── Clean minimal top bar — back · step title + dots · close ── */}
       {(() => {
         const stepTitles: Record<number, string> = {
@@ -1258,7 +1259,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
         if (!showHeader) return null;
         const stepProgress = ((currentIdx + 1) / mainSteps.length) * 100;
         return (
-          <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl">
+          <div className="shrink-0 z-30 bg-background/90 backdrop-blur-xl">
             {/* Slim progress bar — fills step-by-step toward a finished book */}
             <div className="h-1 w-full bg-foreground/10" role="progressbar" aria-valuenow={Math.round(stepProgress)} aria-valuemin={0} aria-valuemax={100}>
               <motion.div
@@ -1317,9 +1318,16 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
         );
       })()}
 
-      {/* ── Main content area — generous spacing, Fanvue clean layout ── */}
-      <div className="flex-1 w-full">
-        <div className="max-w-2xl mx-auto px-6 sm:px-8 py-6 sm:py-10 pb-[140px] sm:pb-32">
+      {/* ── Main content area ──────────────────────────────────────────────────
+       * The wizard owns exactly one viewport: header and action bar are fixed
+       * flex children and this region takes whatever is left. It scrolls ONLY
+       * inside itself, and `justify-center` on a min-h-full inner wrapper means
+       * a short step sits centred rather than hugging the top with dead space
+       * under it — which is what made the steps feel half-empty. A step taller
+       * than the space still scrolls, but the chrome stays put.
+       */}
+      <div className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain">
+        <div className="max-w-2xl mx-auto px-6 sm:px-8 py-3 sm:py-8 min-h-full flex flex-col justify-center">
           <h1 className="sr-only">{t.wizard.createYourBook}</h1>
 
         <div>
@@ -1857,6 +1865,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
               // where the header already names the sefer).
               const renderStoryCard = (p: TorahOption, short = false) => {
                 const selected = data.torahPortion === p.value;
+                const art = categoryArt(p.category);
                 const title = isHe ? p.sub : p.label;
                 const subtitle = isHe ? p.label : p.sub;
                 return (
@@ -1871,7 +1880,13 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                         : "border-border/40 bg-card/70 hover:border-accent/40 hover:bg-accent/5 hover:shadow-sm backdrop-blur-sm"
                     }`}
                   >
-                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${selected ? "bg-accent/15 text-accent" : "bg-muted/50 text-foreground/70 group-hover:bg-accent/10 group-hover:text-accent"}`}><PortionIcon name={p.icon} className="w-[18px] h-[18px]" /></span>
+                    <span className={`w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center shrink-0 transition-all ${selected ? "ring-2 ring-accent shadow-sm" : "ring-1 ring-border/50 group-hover:ring-accent/40"}`}>
+                      {art ? (
+                        <img src={art} alt="" aria-hidden="true" width={256} height={256} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      ) : (
+                        <PortionIcon name={p.icon} className="w-[18px] h-[18px] text-foreground/70" />
+                      )}
+                    </span>
                     <span className="font-display text-sm font-semibold text-foreground leading-snug pe-5">{short ? stripSeferPrefix(title) : title}</span>
                     {!isHe && (
                       <span className="text-[11px] text-muted-foreground font-medium leading-snug">{short ? stripSeferPrefix(subtitle) : subtitle}</span>
@@ -2009,7 +2024,13 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                           }}
                           className="relative p-5 rounded-2xl border-2 border-border/50 bg-card/60 hover:border-accent/50 hover:bg-accent/5 transition-all duration-300 backdrop-blur-sm flex flex-col items-center gap-2 text-center"
                         >
-                          <span className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent"><PortionIcon name={meta.icon} className="w-6 h-6" /></span>
+                          <span className="w-16 h-16 rounded-2xl overflow-hidden ring-1 ring-border/50 flex items-center justify-center">
+                            {categoryArt(cat) ? (
+                              <img src={categoryArt(cat)} alt="" aria-hidden="true" width={256} height={256} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                            ) : (
+                              <PortionIcon name={meta.icon} className="w-6 h-6 text-accent" />
+                            )}
+                          </span>
                           <span className="font-display text-sm font-semibold text-foreground">{isHe ? meta.labelHe : meta.label}</span>
                         </motion.button>
                       );
@@ -2030,7 +2051,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                       <Search className="w-4 h-4 text-muted-foreground/50 absolute start-3.5 top-1/2 -translate-y-1/2" />
                     </motion.div>
 
-                    <motion.div variants={staggerChild} className="max-h-[44vh] overflow-y-auto pe-1 scrollbar-thin space-y-2.5">
+                    <motion.div variants={staggerChild} className="flex-1 min-h-[200px] overflow-y-auto pe-1 scrollbar-thin space-y-2.5">
                       {showAccordion && catBooks!.map((book) => {
                         const bookPortions = TORAH_PORTIONS.filter((p) => p.category === portionFilter && p.book === book);
                         if (bookPortions.length === 0) return null;
@@ -2585,9 +2606,9 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, ...springTransition }}
-          className="fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur-xl"
+          className="shrink-0 w-full z-30 bg-background/95 backdrop-blur-xl border-t border-border/40"
         >
-          <div className="max-w-2xl mx-auto px-6 sm:px-8 py-4 sm:py-5">
+          <div className="max-w-2xl mx-auto px-6 sm:px-8 py-3.5 sm:py-4 pb-[max(0.875rem,env(safe-area-inset-bottom))]">
             {(() => {
               const baseBtn = "w-full h-14 rounded-full font-semibold text-base shadow-[0_8px_24px_-12px_rgba(0,0,0,0.4)] disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98]";
               if (step <= 7) {
