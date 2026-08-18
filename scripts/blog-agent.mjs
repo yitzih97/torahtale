@@ -373,18 +373,51 @@ Two audiences read every piece: a parent skimming on a phone, and an answer engi
 
 Only claim what the provided product facts support. If you are unsure whether a detail about the story is pshat, Midrash, or your own inference, either attribute it correctly or leave it out.`;
 
+/** Every layer of an error, since a dropped stream surfaces as a bare "terminated". */
+const describeError = (err) => {
+  const parts = [];
+  for (let e = err, depth = 0; e && depth < 4; e = e.cause, depth++) {
+    const bits = [e.name, e.message].filter(Boolean).join(": ");
+    const extra = [
+      e.status !== undefined && `status ${e.status}`,
+      e.request_id && `request ${e.request_id}`,
+      e.code && `code ${e.code}`,
+    ].filter(Boolean);
+    parts.push(extra.length ? `${bits} (${extra.join(", ")})` : bits);
+  }
+  return parts.filter(Boolean).join(" ← ");
+};
+
+/**
+ * One model call. The SDK retries a request that never connected, but a stream
+ * that dies partway through is ours to redo — and on a long article that is the
+ * failure that actually happens.
+ */
+const requestArticle = async (client, messages) => {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const stream = client.messages.stream({
+        model: MODEL,
+        max_tokens: 32000,
+        system: SYSTEM,
+        output_config: { effort: EFFORT, format: { type: "json_schema", schema: SCHEMA } },
+        messages,
+      });
+      return await stream.finalMessage();
+    } catch (err) {
+      const detail = describeError(err);
+      if (attempt === 3) throw new Error(`the model call failed 3 times — ${detail}`);
+      console.warn(`blog-agent: model call failed (${detail}); retrying in ${attempt * 20}s`);
+      await new Promise((r) => setTimeout(r, attempt * 20_000));
+    }
+  }
+};
+
 const generate = async (client, portion, plannedSlugs, dateISO) => {
   const messages = [{ role: "user", content: buildPrompt(portion, dateISO) }];
 
   for (let attempt = 1; attempt <= 3; attempt++) {
-    const stream = client.messages.stream({
-      model: MODEL,
-      max_tokens: 32000,
-      system: SYSTEM,
-      output_config: { effort: EFFORT, format: { type: "json_schema", schema: SCHEMA } },
-      messages,
-    });
-    const message = await stream.finalMessage();
+    const message = await requestArticle(client, messages);
 
     if (message.stop_reason === "refusal") {
       throw new Error(`the model declined this request (${message.stop_details?.category || "no category"})`);
@@ -532,7 +565,9 @@ const main = async () => {
     // be imported by tests in an environment where the SDK isn't installed.
     const sdk = "@anthropic-ai/sdk";
     const { default: Anthropic } = await import(/* @vite-ignore */ sdk);
-    const client = new Anthropic();
+    // A bilingual article at high effort is a long single response; give the
+    // request room rather than letting the default timeout cut the stream.
+    const client = new Anthropic({ timeout: 20 * 60 * 1000, maxRetries: 3 });
 
     const dateISO = COUNT === 1 ? RUN_DATE : new Date(Date.parse(RUN_DATE) - n * 86400000).toISOString().slice(0, 10);
     const article = await generate(client, pick.portion, plannedSlugs, dateISO);
@@ -565,7 +600,8 @@ const main = async () => {
 // Importable for tests; only runs when invoked directly.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((err) => {
-    console.error(`blog-agent: ${err.message}`);
+    console.error(`blog-agent: ${describeError(err)}`);
+    if (err.stack) console.error(err.stack);
     process.exit(1);
   });
 }
