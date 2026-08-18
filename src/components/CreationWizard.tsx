@@ -433,6 +433,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
     const serializable = {
       step,
       planType,
+      selectedPlan,
       bookOptionsChosenEarly,
       savedBookId,
       data: {
@@ -450,7 +451,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
     try {
       localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
     } catch { /* ignore quota */ }
-  }, [step, planType, bookOptionsChosenEarly, savedBookId, data, shipping, bookOptions, portionFilter, quantity]);
+  }, [step, planType, selectedPlan, bookOptionsChosenEarly, savedBookId, data, shipping, bookOptions, portionFilter, quantity]);
 
   // Restore wizard state on mount (whether logged in or not)
   useEffect(() => {
@@ -465,6 +466,9 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
         setStep(restoredStep);
         if (parsed.planType === "single" || parsed.planType === "subscription") {
           setPlanType(parsed.planType);
+        }
+        if (["once", "weekly", "monthly", "yearly"].includes(parsed.selectedPlan)) {
+          setSelectedPlan(parsed.selectedPlan);
         }
         if (typeof parsed.bookOptionsChosenEarly === "boolean") {
           setBookOptionsChosenEarly(parsed.bookOptionsChosenEarly);
@@ -2437,7 +2441,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     { id: "yearly",  label: t.wizard.planYearly,  price: fmt(subPrice("yearly", bookOptions.productType, isIls)),  suffix: t.checkout.perYear,  note: t.checkout.bestValue },
                   ];
                   return (
-                    <div className="grid grid-cols-2 gap-2.5">
+                    <div className="grid grid-cols-2 gap-2">
                       {opts.map((o) => {
                         const active = (o.id === "once" && planType === "single") || (o.id !== "once" && planType === "subscription" && selectedPlan === o.id);
                         return (
@@ -2448,7 +2452,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                               if (o.id === "once") { setPlanType("single"); setSelectedPlan("once"); }
                               else { setPlanType("subscription"); setSelectedPlan(o.id); }
                             }}
-                            className={`relative text-start px-3 py-2.5 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
+                            className={`relative text-start px-3 py-2 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
                           >
                             {o.popular && (
                               <span className="absolute -top-2.5 start-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{t.checkout.popular}</span>
@@ -2472,6 +2476,18 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     </div>
                   );
                 })()}
+                {/* A subscription always drips the UPCOMING WEEKLY PARSHA — one
+                    book per Monday, whatever plan pays for it (the frequency is
+                    the billing period, not the delivery cadence). The story
+                    chosen here is only book one. When that story is not the
+                    parsha, say so plainly: the card above reads e.g. "Tisha B'Av
+                    · $19.44/wk", which otherwise implies a weekly Tisha B'Av. */}
+                {planType === "subscription" && data.torahPortion !== getCurrentParsha() && (
+                  <p className="-mt-1.5 flex items-start gap-1.5 px-1 text-[11px] leading-snug text-muted-foreground">
+                    <Sparkles className="mt-px h-3 w-3 shrink-0 text-accent" />
+                    <span>{t.checkout.subDripNote}</span>
+                  </p>
+                )}
                 {planType === "subscription" && (() => {
                   const isIls = t.currency.code === "ILS";
                   const fmtType = bookOptions.productType;
@@ -2640,7 +2656,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
           transition={{ delay: 0.15, ...springTransition }}
           className="shrink-0 w-full z-30 bg-background/95 backdrop-blur-xl border-t border-border/40"
         >
-          <div className="max-w-2xl mx-auto px-6 sm:px-8 py-3.5 sm:py-4 pb-[max(0.875rem,env(safe-area-inset-bottom))]">
+          <div className="max-w-2xl mx-auto px-6 sm:px-8 py-3 sm:py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             {(() => {
               const baseBtn = "w-full h-14 rounded-full font-semibold text-base shadow-[0_8px_24px_-12px_rgba(0,0,0,0.4)] disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98]";
               if (step <= 7) {
