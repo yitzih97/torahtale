@@ -2460,16 +2460,29 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   // Subscription prices come straight from the canonical Shopify
                   // table (per plan × book format) so what's shown equals what's
                   // charged at checkout.
-                  const opts: Array<{ id: "once" | "weekly" | "monthly" | "yearly"; label: string; price: string; suffix: string; popular?: boolean; note?: string }> = [
-                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit),                                          suffix: t.checkout.oneTime },
-                    { id: "weekly",  label: t.wizard.planWeekly,  price: fmt(subPrice("weekly", bookOptions.productType, isIls)),  suffix: t.checkout.perWeek },
-                    { id: "monthly", label: t.wizard.planMonthly, price: fmt(subPrice("monthly", bookOptions.productType, isIls)), suffix: t.checkout.perMonth, popular: true },
-                    { id: "yearly",  label: t.wizard.planYearly,  price: fmt(subPrice("yearly", bookOptions.productType, isIls)),  suffix: t.checkout.perYear,  note: t.checkout.bestValue },
+                  // Two ways to buy: this book once, or the monthly plan. Weekly
+                  // and the year bundle are no longer cards — yearly is reached
+                  // from the savings toggle below, which only appears once the
+                  // customer is actually on a plan.
+                  // Yearly is a billing period of the same plan, not a card of its
+                  // own, so the one subscription card mirrors whichever period is
+                  // active. Otherwise switching to yearly left no card highlighted
+                  // and the summary looked like nothing was selected.
+                  const onYearly = selectedPlan === "yearly";
+                  const opts: Array<{ id: "once" | "monthly"; label: string; price: string; suffix: string; popular?: boolean }> = [
+                    { id: "once",    label: t.wizard.planSingle,  price: fmt(unit), suffix: t.checkout.oneTime },
+                    {
+                      id: "monthly",
+                      label: onYearly ? t.wizard.planYearly : t.wizard.planMonthly,
+                      price: fmt(subPrice(onYearly ? "yearly" : "monthly", bookOptions.productType, isIls)),
+                      suffix: onYearly ? t.checkout.perYear : t.checkout.perMonth,
+                      popular: true,
+                    },
                   ];
                   return (
                     <div className="grid grid-cols-2 gap-2">
                       {opts.map((o) => {
-                        const active = (o.id === "once" && planType === "single") || (o.id !== "once" && planType === "subscription" && selectedPlan === o.id);
+                        const active = o.id === "once" ? planType === "single" : planType === "subscription";
                         return (
                           <button
                             key={o.id}
@@ -2477,7 +2490,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                             onClick={() => {
                               planTouchedRef.current = true;
                               if (o.id === "once") { setPlanType("single"); setSelectedPlan("once"); }
-                              else { setPlanType("subscription"); setSelectedPlan(o.id); }
+                              else { setPlanType("subscription"); setSelectedPlan(onYearly ? "yearly" : "monthly"); }
                             }}
                             className={`relative text-start px-2.5 py-1.5 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
                           >
@@ -2496,7 +2509,9 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                               <span className="text-lg font-bold text-accent">{o.price}</span>
                               <span className="text-[11px] text-muted-foreground">{o.suffix}</span>
                             </div>
-                            {o.note && <div className="text-[11px] text-accent/80">{o.note}</div>}
+                            {o.id === "monthly" && active && (
+                              <div className="text-[11px] leading-snug text-accent/80">{t.checkout.fourBooksMonth}</div>
+                            )}
                           </button>
                         );
                       })}
@@ -2520,7 +2535,13 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   const fmtType = bookOptions.productType;
                   const monthlyTotal = subPrice("monthly", fmtType, isIls);
                   const yearlyTotal = subPrice("yearly", fmtType, isIls);
-                  const weeklyAnnual = subPrice("weekly", fmtType, isIls) * 52; // pay-weekly-for-a-year cost
+                  const monthlyAnnual = monthlyTotal * 12; // what a year on the monthly plan costs
+                  // The year bundle was priced to beat the WEEKLY plan, which is no
+                  // longer offered. Against monthly it currently costs more, so the
+                  // saving is computed rather than asserted: the strikethrough and
+                  // the "save" line appear only if yearly is genuinely cheaper, and
+                  // come back on their own if the yearly price is ever lowered.
+                  const yearlySaves = yearlyTotal < monthlyAnnual;
                   const sym = t.currency.symbol;
                   const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
                   if (selectedPlan === "monthly") {
@@ -2532,8 +2553,13 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                       >
                         <span className="text-start text-[11px] leading-snug text-primary flex flex-wrap items-baseline gap-x-1.5">
                           <span className="font-semibold">{t.checkout.switchToYearly}</span>
-                          <span className="text-muted-foreground line-through">{fmt(weeklyAnnual)}{t.checkout.perYear}</span>
+                          {yearlySaves && (
+                            <span className="text-muted-foreground line-through">{fmt(monthlyAnnual)}{t.checkout.perYear}</span>
+                          )}
                           <span className="font-bold text-accent">{fmt(yearlyTotal)}{t.checkout.perYear}</span>
+                          {yearlySaves && (
+                            <span className="text-accent/80">{t.checkout.saveAmount(fmt(monthlyAnnual - yearlyTotal))}</span>
+                          )}
                         </span>
                         <span className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-input">
                           <span className="inline-block h-4 w-4 transform rounded-full bg-background shadow translate-x-0.5" />
