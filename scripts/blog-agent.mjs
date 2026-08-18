@@ -777,12 +777,15 @@ const main = async () => {
     // request room rather than letting the default timeout cut the stream.
     const client = new Anthropic({ timeout: 20 * 60 * 1000, maxRetries: 3 });
 
-    const dateISO = COUNT === 1 ? RUN_DATE : new Date(Date.parse(RUN_DATE) - n * 86400000).toISOString().slice(0, 10);
-    const article = await generate(client, pick.portion, plannedSlugs, dateISO);
+    // Everything written in one run carries that run's date. A backfill used to
+    // spread the articles back across previous days so the archive looked
+    // gradual, which was just a lie about when they were written — and it went
+    // into the sitemap's lastmod and the RSS pubDate.
+    const article = await generate(client, pick.portion, plannedSlugs, RUN_DATE);
     plannedSlugs.add(article.slug);
 
     const file = join(STORIES_DIR, `${article.slug}.mjs`);
-    writeFileSync(file, renderModule(article, pick.portion, dateISO), "utf8");
+    writeFileSync(file, renderModule(article, pick.portion, RUN_DATE), "utf8");
     written.push({ slug: article.slug, title: article.title, portion: pick.portion.value });
     console.log(`blog-agent: wrote src/content/blog/stories/${article.slug}.mjs — "${article.title}"`);
   }
