@@ -583,7 +583,7 @@ export const yi: typeof en = {
     thisWeeksParsha: "פרשת השבוע קומענדיק",
     useAutoParsha: "נבחר אוטומטית לפי השבת הקרובה",
     orderWithin: "באשטעלט אינערהאלב",
-    forDeliveryBeforeShabbos: "פאר משלוח פאר שבת",
+    forDeliveryBeforeShabbos: "פאר משלוח פאר קומענדיקן שבת",
     orChooseManually: "או בחרו ידנית",
     backToOptions: "→ חזרה לאפשרויות הבחירה",
     all: "הכל",

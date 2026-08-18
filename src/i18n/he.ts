@@ -583,7 +583,7 @@ export const he: typeof en = {
     thisWeeksParsha: "פרשת השבוע הבא",
     useAutoParsha: "נבחרת אוטומטית לפי השבת הקרובה",
     orderWithin: "הזמינו תוך",
-    forDeliveryBeforeShabbos: "למשלוח לפני שבת",
+    forDeliveryBeforeShabbos: "למשלוח לפני שבת הבאה",
     orChooseManually: "או בחרו בעצמכם",
     backToOptions: "→ חזרה לאפשרויות הבחירה",
     all: "הכל",

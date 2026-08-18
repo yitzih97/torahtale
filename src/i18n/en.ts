@@ -591,7 +591,7 @@ export const en = {
     thisWeeksParsha: "Next Week's Parsha",
     useAutoParsha: "Automatically selected based on the upcoming Shabbat",
     orderWithin: "Order within",
-    forDeliveryBeforeShabbos: "for delivery before Shabbos",
+    forDeliveryBeforeShabbos: "for delivery before next week's Shabbos",
     orChooseManually: "Or choose manually",
     backToOptions: "← Back to selection options",
     all: "All",
