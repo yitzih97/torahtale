@@ -469,8 +469,14 @@
   --ring: 0 0% 7%;
 }
 /* Big bold left-aligned headlines inside the wizard */
+/* Every step question in the wizard is an h2, and this rule used to hard-set
+   Cormorant Garamond here. A descendant selector (0,1,1) outranks the
+   `font-heading` utility class (0,1,0) on the heading itself, so the brand face
+   was silently overridden — inside the wizard ONLY, which is exactly why the
+   rest of the site looked right while every "What's your child's name?" did
+   not. Same stack as font-heading now. */
  .wizard-glass h2 {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'TorahTaleTitle', 'Playfair Display', Georgia, serif;
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.05;
@@ -518,3 +524,22 @@
 .blog-prose strong { color: hsl(var(--foreground)); font-weight: 600; }
 .blog-prose a { color: hsl(var(--accent)); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
 .blog-prose a:hover { opacity: 0.85; }
+.blog-prose blockquote { margin: 0 0 1rem; padding-inline-start: 1rem; border-inline-start: 3px solid hsl(var(--accent) / 0.4); color: hsl(var(--muted-foreground)); font-style: italic; }
+
+/* Wide content (comparison tables) scrolls inside itself rather than the page */
+.blog-prose table { width: 100%; border-collapse: collapse; margin: 0 0 1.25rem; font-size: 0.9rem; display: block; overflow-x: auto; }
+.blog-prose th, .blog-prose td { border: 1px solid hsl(var(--border)); padding: 0.5rem 0.65rem; text-align: start; vertical-align: top; }
+.blog-prose th { background: hsl(var(--muted) / 0.4); color: hsl(var(--foreground)); font-weight: 600; }
+.blog-prose td { color: hsl(var(--muted-foreground)); }
+
+/* "The short answer" — the quotable summary answer engines and skimmers lift */
+.blog-keyfacts { margin: 0 0 1.75rem; padding: 1rem 1.15rem; border: 1px solid hsl(var(--accent) / 0.28); background: hsl(var(--accent) / 0.06); border-radius: 1rem; }
+.blog-keyfacts-title { margin: 0 0 0.5rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: hsl(var(--accent)); }
+.blog-keyfacts ul { margin: 0 0 0 1.15rem; list-style: disc; color: hsl(var(--muted-foreground)); }
+.blog-keyfacts li { margin-bottom: 0.35rem; }
+.blog-keyfacts li:last-child { margin-bottom: 0; }
+.blog-keyfacts strong { color: hsl(var(--foreground)); font-weight: 600; }
+
+.blog-faq { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid hsl(var(--border) / 0.7); }
+.blog-faq-item { margin-bottom: 1.1rem; }
+.blog-faq-item h3 { margin-top: 0; }
