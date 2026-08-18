@@ -580,7 +580,7 @@ export const he: typeof en = {
     parshaAndHolidaysDesc: "פרשת השבוע, ובנוסף סיפורים לימים טובים ולמועדים מיוחדים",
     chooseManually: "בחירה ידנית",
     chooseManuallyDesc: "דפדפו בכל התנ״ך ובחרו כל סיפור שבא לכם",
-    thisWeeksParsha: "פרשת השבוע",
+    thisWeeksParsha: "פרשת השבוע הבא",
     useAutoParsha: "נבחרת אוטומטית לפי השבת הקרובה",
     orderWithin: "הזמינו תוך",
     forDeliveryBeforeShabbos: "למשלוח לפני שבת",

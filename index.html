@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Brand display font. Preloaded so the title face is in hand before first
+         paint: it is referenced from a CSS @font-face, which the browser only
+         discovers after the stylesheet parses, and a late fetch means headings
+         flash (or, on a flaky load, stay) in the Playfair fallback. -->
+    <link rel="preload" href="/fonts/TorahTale-Regular.woff2" as="font" type="font/woff2" crossorigin />
+
     <!-- Google Analytics 4 (gtag.js) — SPA page views via enhanced measurement -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-MQYQ3JNGZB"></script>
     <script>

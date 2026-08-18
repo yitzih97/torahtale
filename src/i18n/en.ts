@@ -588,7 +588,7 @@ export const en = {
     parshaAndHolidaysDesc: "Weekly parsha plus stories for Yom Tov and special occasions",
     chooseManually: "Choose Manually",
     chooseManuallyDesc: "Browse the full Tanach and pick any story you'd like",
-    thisWeeksParsha: "This Week's Parsha",
+    thisWeeksParsha: "Next Week's Parsha",
     useAutoParsha: "Automatically selected based on the upcoming Shabbat",
     orderWithin: "Order within",
     forDeliveryBeforeShabbos: "for delivery before Shabbos",

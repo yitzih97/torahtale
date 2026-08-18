@@ -580,7 +580,7 @@ export const yi: typeof en = {
     parshaAndHolidaysDesc: "פרשת השבוע + סיפורים לחגים ולמועדים מיוחדים",
     chooseManually: "בחירה ידנית",
     chooseManuallyDesc: "דפדפו בתנ״ך המלא ובחרו כל סיפור שתרצו",
-    thisWeeksParsha: "פרשת השבוע",
+    thisWeeksParsha: "פרשת השבוע קומענדיק",
     useAutoParsha: "נבחר אוטומטית לפי השבת הקרובה",
     orderWithin: "באשטעלט אינערהאלב",
     forDeliveryBeforeShabbos: "פאר משלוח פאר שבת",
