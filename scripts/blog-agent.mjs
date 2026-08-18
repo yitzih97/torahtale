@@ -303,6 +303,7 @@ const buildHebrewPrompt = (portion, dateISO) => {
   }[portion.category];
 
   const existing = ARTICLES.map((a) => `- /blog/${a.slug} — ${a.he?.title || a.title}`).join("\n");
+  const existingTitles = ARTICLES.map((a) => a.he?.title).filter(Boolean);
 
   return `כתוב את מאמר הבלוג של טורה־טייל להיום. התאריך: ${dateISO}.
 
@@ -341,6 +342,9 @@ ${existing}
 קשר לשניים או שלושה מהם היכן שהקשר אמיתי. אל תמציא כתובת /blog/.
 
 title: כותרת בעברית, 20 עד 70 תווים, שאדם היה מקליד או לוחץ עליה.
+הכותרות שכבר קיימות בבלוג:
+${existingTitles.map((t) => `  - ${t}`).join("\n")}
+הכותרת שלך חייבת להיות שונה מהן באמת — לא אותה תבנית עם שם חג או פרשה אחרים. אם הכותרת שלך נראית כמו אחת מהן אחרי הנקודתיים או המקף, כתוב אותה מחדש. חשוב על מה ייחודי דווקא בסיפור הזה, ותן לזה להוביל.
 description: תיאור מטא בעברית, 80 עד 165 תווים.
 excerpt: משפט או שניים שמופיעים מתחת לכותרת בדף המאמר.
 keywords: 3 עד 8 ביטויי חיפוש בעברית שהורה ישראלי באמת מקליד.
@@ -403,7 +407,16 @@ export const validateEnglish = (art, { plannedSlugs = new Set() } = {}) => {
   return [...problems, ...validateBody(art.bodyHtml, "bodyHtml", { minWords: 700 })];
 };
 
-export const validateHebrew = (he) => {
+/** The half of a title after its colon or dash — the part that goes templated. */
+const titleTail = (t) =>
+  String(t || "")
+    .split(/[:—–-]/)
+    .slice(1)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export const validateHebrew = (he, { publishedTitles = ARTICLES.map((a) => a.he?.title).filter(Boolean) } = {}) => {
   const problems = [];
   const req = (cond, msg) => { if (!cond) problems.push(msg); };
   const hebrew = (s) => /[\u0590-\u05FF]/.test(s || "");
@@ -418,6 +431,17 @@ export const validateHebrew = (he) => {
   req(Array.isArray(he.keyFacts) && he.keyFacts.length >= 3 && he.keyFacts.length <= 5 && he.keyFacts.every(hebrew), "he.keyFacts must be 3 to 5 entries, all in Hebrew");
   req(Array.isArray(he.faq) && he.faq.length >= 4 && he.faq.length <= 6 && he.faq.every((f) => hebrew(f.q) && hebrew(f.a)), "he.faq must be 4 to 6 Hebrew question/answer pairs");
   req(hebrew(he.bodyHtml), "he.bodyHtml must be written in Hebrew");
+
+  // Three holiday articles once shipped with the identical tail
+  // "איך מספרים את הסיפור בבית" — distinct bodies under templated titles, which
+  // is what a search engine reads as filler.
+  const tail = titleTail(he.title);
+  const clash = publishedTitles.find((t) => t !== he.title && tail && titleTail(t) === tail);
+  if (clash) {
+    problems.push(
+      `he.title repeats the shape of an existing title ("${clash}") — the part after the colon must not be reused, write a title specific to this story`
+    );
+  }
   req(!latinRun(he.bodyHtml), "he.bodyHtml contains a run of English prose — write the article in Hebrew, do not translate");
 
   // Hebrew says the same thing in fewer words than English, so the floor is lower.

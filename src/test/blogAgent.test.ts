@@ -134,6 +134,17 @@ describe("blog agent Hebrew validation", () => {
     expect(validateHebrew(bad).join(" ")).toMatch(/Hebrew search phrases/);
   });
 
+  it("rejects a Hebrew title that reuses an existing title's shape", () => {
+    // Three holiday articles once shipped as "<chag> לילדים: איך מספרים את הסיפור בבית".
+    const published = ["ראש השנה לילדים: איך מספרים את הסיפור בבית"];
+    const templated = hebrew({ title: "סוכות לילדים: איך מספרים את הסיפור בבית" });
+    expect(validateHebrew(templated, { publishedTitles: published }).join(" ")).toMatch(
+      /repeats the shape/
+    );
+    const distinct = hebrew({ title: "סוכות לילדים: למה יוצאים מהבית לשבעה ימים" });
+    expect(validateHebrew(distinct, { publishedTitles: published })).toEqual([]);
+  });
+
   it("rejects a Hebrew title that is really English", () => {
     expect(validateHebrew(hebrew({ title: "Parshas Noach for Kids" })).join(" ")).toMatch(/he\.title/);
   });

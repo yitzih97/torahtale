@@ -506,6 +506,14 @@ serve(async (req) => {
       imagePrompt += ` ⚠️ ART-STYLE LOCK (HIGHEST PRIORITY — overrides the visual look of any attached photo): The FINAL image MUST be a ${styleName}, rendered ENTIRELY in this style: ${styleDesc}. The attached photo is ONLY a likeness reference for the child's face and hair — do NOT reproduce its photographic look, lighting or texture. The output must NOT be a real photograph, NOT photorealistic, and NOT a lightly-edited photo. Fully re-render the child and the entire scene from scratch as a ${styleName}. EVERY page of this book must share this exact same ${styleName} art style — never mix in a realistic/photographic page.`;
     }
 
+    // ── MALACHIM ────────────────────────────────────────────────────────────
+    // Angels appear all over Tanach — Yaakov's ladder, Bilaam's donkey, the
+    // malach at Yeshayahu's coal — and image models default to drawing them as
+    // winged human figures with faces. A depicted face on a malach is not what
+    // this product should be putting in front of frum children, so wherever one
+    // belongs in the scene it is rendered as light rather than as a person.
+    imagePrompt += ` ⚠️ MALACHIM / ANGELS — ABSOLUTE RULE: NEVER draw a face on a malach (angel). If the scene calls for a malach, depict it ONLY as radiant light: a glowing presence, a column or beam of light, a luminous silhouette, or wings of light — with NO face, NO facial features, NO eyes, mouth or nose, and NO human head. Do not render angels as people. This applies to every angel, seraph, cherub or heavenly messenger, in the foreground or the background, no matter how small.`;
+
     // ── CAPTION SPACE ───────────────────────────────────────────────────────
     // Reserve a calm band along the bottom of story-page illustrations so the app
     // can auto-place the story text there without overlapping faces or action.
