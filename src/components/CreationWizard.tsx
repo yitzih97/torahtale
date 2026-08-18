@@ -373,11 +373,13 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
   }, []);
 
   // Build the className for a wizard step's outer <section>.
-  // Only the active step is rendered, and it occupies the full viewport
-  // so the user sees the current question perfectly centered with no
-  // distractions from previous/next sections.
+  // Only the active step is rendered. It must NOT claim a viewport height of
+  // its own: the scroll region it sits in is already exactly one viewport minus
+  // the header and the action bar, and its wrapper centres a short step. A
+  // `min-h-[calc(100vh-...)]` here was taller than that region on every step, so
+  // every question scrolled by a few rem and opened with dead space above it.
   const sectionClass = useCallback((_n: number) => {
-    return "relative scroll-mt-24 min-h-[calc(100vh-11rem)] flex items-center justify-center py-10 sm:py-14";
+    return "relative scroll-mt-24 flex items-center justify-center py-2 sm:py-4";
   }, []);
 
   const child = data.children[data.activeChildIdx] || data.children[0];
@@ -1093,6 +1095,10 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
     toast.success(t.wizard.createYourBook ? `${t.wizard.createYourBook} · ${"1/8"}` : "Wizard reset");
   }, [lang, t]);
 
+  // Drives the spinner on the action-bar checkout button (step 11). The button
+  // lives in the sticky bar, not in CheckoutStep, so the state lives here too.
+  const [placingOrder, setPlacingOrder] = useState(false);
+
   const handlePlaceOrder = async (planType: string = "once") => {
     // Real checkout: hand the order off to Shopify's hosted checkout. The book stays
     // "awaiting_payment" until the orders/paid webhook flips it to "paid"; the admin
@@ -1344,7 +1350,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
        * than the space still scrolls, but the chrome stays put.
        */}
       <div className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain">
-        <div className="max-w-2xl mx-auto px-6 sm:px-8 py-3 sm:py-8 min-h-full flex flex-col justify-center">
+        <div className="max-w-2xl mx-auto px-6 sm:px-8 py-1 sm:py-3.5 min-h-full flex flex-col justify-center">
           <h1 className="sr-only">{t.wizard.createYourBook}</h1>
 
         <div>
@@ -2410,9 +2416,9 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
 
             {/* ── STEP 11: Shipping + Order Summary (combined final step) ── */}
             {step === 11 && (
-              <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-6">
-                <div className="text-center pb-2">
-                  <h2 className="font-heading text-4xl sm:text-5xl font-bold text-primary">
+              <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-3.5 w-full">
+                <div className="text-center">
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-primary">
                     {t.checkout.orderSummary}
                   </h2>
                 </div>
@@ -2431,7 +2437,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     { id: "yearly",  label: t.wizard.planYearly,  price: fmt(subPrice("yearly", bookOptions.productType, isIls)),  suffix: t.checkout.perYear,  note: t.checkout.bestValue },
                   ];
                   return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2.5">
                       {opts.map((o) => {
                         const active = (o.id === "once" && planType === "single") || (o.id !== "once" && planType === "subscription" && selectedPlan === o.id);
                         return (
@@ -2442,7 +2448,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                               if (o.id === "once") { setPlanType("single"); setSelectedPlan("once"); }
                               else { setPlanType("subscription"); setSelectedPlan(o.id); }
                             }}
-                            className={`relative text-start p-4 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
+                            className={`relative text-start px-3 py-2.5 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
                           >
                             {o.popular && (
                               <span className="absolute -top-2.5 start-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{t.checkout.popular}</span>
@@ -2450,16 +2456,16 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                             {/* Selected check sits in the END corner so it never
                                 overlaps the (start-aligned) title in RTL or LTR. */}
                             {active && (
-                              <span className="absolute top-3 end-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center shadow-sm">
-                                <Check className="w-3 h-3 text-accent-foreground" />
+                              <span className="absolute top-2.5 end-2.5 w-4 h-4 rounded-full bg-accent flex items-center justify-center shadow-sm">
+                                <Check className="w-2.5 h-2.5 text-accent-foreground" />
                               </span>
                             )}
-                            <div className="font-display font-bold text-base text-foreground pe-7">{o.label}</div>
-                            <div className="mt-1 flex items-baseline gap-1">
-                              <span className="text-xl font-bold text-accent">{o.price}</span>
-                              <span className="text-xs text-muted-foreground">{o.suffix}</span>
+                            <div className="font-display font-bold text-sm text-foreground pe-6">{o.label}</div>
+                            <div className="mt-0.5 flex items-baseline gap-1 flex-wrap">
+                              <span className="text-lg font-bold text-accent">{o.price}</span>
+                              <span className="text-[11px] text-muted-foreground">{o.suffix}</span>
                             </div>
-                            {o.note && <div className="text-xs text-accent/80 mt-1">{o.note}</div>}
+                            {o.note && <div className="text-[11px] text-accent/80">{o.note}</div>}
                           </button>
                         );
                       })}
@@ -2531,6 +2537,9 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   // Editing a summary line jumps to the step that owns it, instead
                   // of making the customer back out through the whole flow.
                   coverPreview={coverPreview}
+                  // The pay button belongs in the sticky action bar, not at the
+                  // bottom of a summary the customer has to scroll to reach.
+                  hideCta
                   onEdit={(target) => {
                     setDir(-1);
                     if (target === "story") { setPortionView("mode"); setStep(5); }
@@ -2684,6 +2693,29 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     className={baseBtn}
                   >
                     {t.common.continue}
+                  </motion.button>
+                );
+              }
+              if (step === 11) {
+                return (
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      if (placingOrder) return;
+                      setPlacingOrder(true);
+                      void handlePlaceOrder(selectedPlan).finally(() => setPlacingOrder(false));
+                    }}
+                    disabled={placingOrder}
+                    className={`${baseBtn} !bg-accent !text-accent-foreground hover:!bg-accent/90`}
+                  >
+                    {placingOrder ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        {planType === "subscription" ? t.checkout.subscribeOrderShort : t.checkout.placeOrderShort}
+                      </>
+                    )}
                   </motion.button>
                 );
               }

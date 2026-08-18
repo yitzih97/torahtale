@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { BookOpen } from "lucide-react";
 import { CreationWizard } from "@/components/CreationWizard";
 import {
   AlertDialog,
@@ -70,20 +71,43 @@ const Create = () => {
         path="/create"
       />
       <CreationWizard onClose={handleClose} collection={collection} />
+      {/* Branded to match the wizard it interrupts: the same accent tile, the
+          Torah Tale display face on the question, and a clear primary action.
+          The two ways of leaving are separated from the way back — "Discard"
+          is the destructive one and reads as such. */}
       <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent dir={dir} className={dir === "rtl" ? "text-right" : undefined}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.wizard.exitTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
+        <AlertDialogContent
+          dir={dir}
+          className={`max-w-md rounded-3xl border-border/50 bg-card p-6 sm:p-7 shadow-[0_30px_80px_-30px_rgba(60,45,15,0.45)] ${dir === "rtl" ? "text-right" : ""}`}
+        >
+          <AlertDialogHeader className="space-y-3 sm:text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/25 to-accent/5 text-accent ring-1 ring-accent/20">
+              <BookOpen className="h-7 w-7" />
+            </span>
+            <AlertDialogTitle className="font-heading text-2xl sm:text-3xl font-bold text-primary">
+              {t.wizard.exitTitle}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed text-muted-foreground sm:text-center">
               {t.wizard.exitDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-2">
-            <AlertDialogCancel>{t.wizard.exitKeep}</AlertDialogCancel>
-            <Button variant="ghost" onClick={discardAndExit}>
+          <AlertDialogFooter className="mt-5 flex-col gap-2 sm:flex-col sm:space-x-0">
+            <AlertDialogAction
+              onClick={saveAndExit}
+              className="h-12 w-full rounded-full bg-accent text-accent-foreground text-base font-semibold shadow-[0_8px_24px_-12px_rgba(0,0,0,0.4)] hover:bg-accent/90"
+            >
+              {t.wizard.exitSave}
+            </AlertDialogAction>
+            <AlertDialogCancel className="mt-0 h-11 w-full rounded-full border-border/60 text-base font-medium">
+              {t.wizard.exitKeep}
+            </AlertDialogCancel>
+            <Button
+              variant="ghost"
+              onClick={discardAndExit}
+              className="h-9 w-full rounded-full text-sm font-normal text-muted-foreground hover:text-destructive"
+            >
               {t.wizard.exitDiscard}
             </Button>
-            <AlertDialogAction onClick={saveAndExit}>{t.wizard.exitSave}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

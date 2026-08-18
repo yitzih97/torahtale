@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { blogHref } from "@/hooks/useBlogLocale";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { BrandMark } from "@/components/BrandMark";
@@ -56,7 +57,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
     { label: t.nav.about, href: "/about" },
     { label: t.nav.pricing, href: "/pricing" },
     { label: t.nav.testimonials, href: "/testimonials" },
-    { label: t.nav.blog, href: "/blog" },
+    { label: t.nav.blog, href: blogHref(lang) },
     { label: t.nav.contact ?? "Contact Us", href: "/contact" },
   ];
 

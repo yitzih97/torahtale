@@ -112,6 +112,8 @@ export const en = {
     legal: "Legal",
     privacyPolicy: "Privacy Policy",
     termsOfService: "Terms of Service",
+    affiliates: "Affiliate Program",
+    copyright: "Torah Tale. Made with ahavas Yisrael.",
     poweredBy: "Powered by AI · Inspired by Torah",
   },
 

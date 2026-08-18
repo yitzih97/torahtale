@@ -114,6 +114,8 @@ export const he: typeof en = {
     legal: "מידע משפטי",
     privacyPolicy: "מדיניות פרטיות",
     termsOfService: "תנאי שימוש",
+    affiliates: "תוכנית שותפים",
+    copyright: "טורה־טייל. נעשה באהבת ישראל.",
     poweredBy: "בעזרת AI · בהשראת התורה",
   },
 

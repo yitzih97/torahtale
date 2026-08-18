@@ -1,10 +1,11 @@
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { blogHref } from "@/hooks/useBlogLocale";
 import { BrandMark } from "@/components/BrandMark";
 
 export const Footer = () => {
   const { getSetting } = useSiteSettings("website");
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   const brandName = getSetting("website", "brand-name", "Torah Tale");
 
@@ -37,9 +38,9 @@ export const Footer = () => {
             <h4 className="text-xs font-semibold tracking-widest text-accent/60 uppercase">{t.footer.discover}</h4>
             <nav className="flex flex-col gap-2.5">
               <a href="/#how-it-works" className={linkCls}>{t.footer.howItWorks}</a>
-              <a href="/blog" className={linkCls}>{t.footer.blog}</a>
+              <a href={blogHref(lang)} className={linkCls}>{t.footer.blog}</a>
               <a href="/faq" className={linkCls}>{t.footer.faq}</a>
-              <a href="/affiliates" className={linkCls}>Affiliate Program</a>
+              <a href="/affiliates" className={linkCls}>{t.footer.affiliates}</a>
             </nav>
           </div>
 
@@ -61,7 +62,7 @@ export const Footer = () => {
         </div>
 
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {getSetting("website", "footer-copyright", "Torah Tale. Made with ahavas Yisrael.")}</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {lang === "en" ? getSetting("website", "footer-copyright", t.footer.copyright) : t.footer.copyright}</p>
           <p className="text-xs text-muted-foreground">{t.footer.poweredBy}</p>
         </div>
       </div>

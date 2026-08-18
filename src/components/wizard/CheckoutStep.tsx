@@ -274,16 +274,20 @@ export const CheckoutStep = ({
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3.5">
       {/* The book itself */}
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
-        <div className="flex items-center gap-4 p-4 sm:p-5">
+        {/* Wraps rather than squeezing: on a narrow phone the cover, the title
+            and the price cannot share one line — without a floor on the title
+            column it collapsed to a few pixels wide and wrapped one letter per
+            line, several hundred pixels tall. */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-5">
           {/* The customer's OWN cover once it exists — the point of the moment
               before paying is seeing the actual book, not a stock product shot.
               It is shown flat, not printed onto a mock-up: the format they chose
               doesn't change the artwork. Falls back to the product photo while
               it generates or if it could not be made. */}
-          <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-muted/30 border border-border/50 shrink-0">
+          <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-muted/30 border border-border/50 shrink-0">
             {coverPreview?.url ? (
               <img src={coverPreview.url} alt={storyLabel} decoding="async" className="w-full h-full object-cover" />
             ) : (
@@ -303,7 +307,7 @@ export const CheckoutStep = ({
               </div>
             )}
           </div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-[8rem] flex-1">
             <p className="font-display text-lg sm:text-xl font-bold text-primary leading-tight truncate">{storyLabel}</p>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{t.checkout.bookFor(childName)}</p>
             <p className="text-[11px] text-muted-foreground mt-1.5">
@@ -328,9 +332,9 @@ export const CheckoutStep = ({
               </div>
             )}
           </div>
-          <div className="text-end shrink-0">
+          <div className="shrink-0 w-full flex items-baseline gap-2 sm:w-auto sm:block sm:text-end">
             <p className="text-xl sm:text-2xl font-bold text-accent leading-none">{fmt(total)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">
+            <p className="text-[11px] text-muted-foreground sm:mt-1">
               {isSubscription && activePlan ? `/${periodLabel(activePlan.id)}` : t.checkout.oneTimePurchase}
             </p>
           </div>
@@ -397,12 +401,12 @@ export const CheckoutStep = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-xl p-3">
-        <ShieldCheck className="w-4 h-4 text-accent" />
+      <div className="flex items-start gap-2 text-[11px] text-muted-foreground bg-muted/50 rounded-xl px-3 py-2">
+        <ShieldCheck className="w-3.5 h-3.5 text-accent shrink-0 mt-px" />
         <span>{t.checkout.secureCheckout}</span>
       </div>
 
-      <p className="text-xs text-muted-foreground leading-relaxed px-1">
+      <p className="text-[11px] text-muted-foreground leading-snug px-1">
         {t.checkout.disclaimer}
       </p>
 
