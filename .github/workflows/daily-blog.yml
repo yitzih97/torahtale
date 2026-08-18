@@ -96,7 +96,15 @@ jobs:
           git config user.email "bot@torahtale.com"
           git add src/content/blog/stories
           git commit -m "Blog: ${slug}"
-          git push
+          # Writing an article takes minutes, and main moves while it does — so
+          # rebase onto whatever landed meanwhile rather than losing the article
+          # to a rejected push. The commit only ever adds files under
+          # src/content/blog/stories, so there is nothing for it to conflict with.
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push && break
+            if [ "$i" = 3 ]; then echo "::error::could not push the article after 3 tries"; exit 1; fi
+            sleep $((i * 10))
+          done
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
   deploy:
