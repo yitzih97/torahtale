@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ChevronDown, Pencil } from "lucide-react";
+import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ChevronDown, Pencil, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
@@ -66,6 +66,15 @@ interface Props {
   hideCta?: boolean;
   /** Jump back to the step that owns a summary line, so it can be changed. */
   onEdit?: (target: "story" | "format") => void;
+  /** The customer's own generated cover, from useCoverPreview. */
+  coverPreview?: {
+    url: string | null;
+    loading: boolean;
+    error: string | null;
+    regensLeft: number;
+    canRegenerate: boolean;
+    regenerate: () => void;
+  };
 }
 
 export const CheckoutStep = ({
@@ -84,6 +93,7 @@ export const CheckoutStep = ({
   ctaIcon,
   hideCta = false,
   onEdit,
+  coverPreview,
 }: Props) => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedPlanLocal, setSelectedPlanLocal] = useState<PlanType>("monthly");
@@ -268,16 +278,30 @@ export const CheckoutStep = ({
       {/* The book itself */}
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
         <div className="flex items-center gap-4 p-4 sm:p-5">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-muted/30 border border-border/50 shrink-0">
-            <img
-              src={FORMAT_THUMB[bookOptions.productType]}
-              alt={formatLabel}
-              width={320}
-              height={320}
-              decoding="async"
-              className="w-full h-full object-cover"
-              style={lang === "en" ? undefined : { transform: "scaleX(-1)" }}
-            />
+          {/* The customer's OWN cover once it exists — the point of the moment
+              before paying is seeing the actual book, not a stock product shot.
+              It is shown flat, not printed onto a mock-up: the format they chose
+              doesn't change the artwork. Falls back to the product photo while
+              it generates or if it could not be made. */}
+          <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-muted/30 border border-border/50 shrink-0">
+            {coverPreview?.url ? (
+              <img src={coverPreview.url} alt={storyLabel} decoding="async" className="w-full h-full object-cover" />
+            ) : (
+              <img
+                src={FORMAT_THUMB[bookOptions.productType]}
+                alt={formatLabel}
+                width={320}
+                height={320}
+                decoding="async"
+                className="w-full h-full object-cover"
+                style={lang === "en" ? undefined : { transform: "scaleX(-1)" }}
+              />
+            )}
+            {coverPreview?.loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+                <Loader2 className="w-5 h-5 animate-spin text-accent" />
+              </div>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-display text-lg sm:text-xl font-bold text-primary leading-tight truncate">{storyLabel}</p>
@@ -286,6 +310,23 @@ export const CheckoutStep = ({
               {formatLabel} · {t.checkout.pagesCount(pageCount)}
               {quantity > 1 ? ` · ×${quantity}` : ""}
             </p>
+            {coverPreview && (coverPreview.url || coverPreview.loading) && (
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-[11px] text-accent font-medium">
+                  {coverPreview.loading ? t.checkout.coverPreparing : t.checkout.coverYours}
+                </span>
+                {coverPreview.canRegenerate && (
+                  <button
+                    type="button"
+                    onClick={coverPreview.regenerate}
+                    className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-accent underline underline-offset-2"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    {t.checkout.coverTryAnother(coverPreview.regensLeft)}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           <div className="text-end shrink-0">
             <p className="text-xl sm:text-2xl font-bold text-accent leading-none">{fmt(total)}</p>

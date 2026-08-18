@@ -25,6 +25,7 @@ import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, g
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { categoryArt } from "@/lib/categoryArt";
+import { useCoverPreview } from "@/hooks/useCoverPreview";
 import { storyCover } from "@/lib/storyCovers";
 import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getCurrentParsha, stripSeferPrefix, bookLanguageCode, type TorahOption } from "./wizard/TorahPortions";
 import { ParshaCountdown } from "./wizard/ParshaCountdown";
@@ -380,6 +381,21 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
   }, []);
 
   const child = data.children[data.activeChildIdx] || data.children[0];
+
+  /* The customer's REAL cover, generated in the background the moment both
+     halves of it exist — the child's photo and the chosen story — so it is
+     already on screen by the time they reach the summary. See useCoverPreview. */
+  const coverPreview = useCoverPreview({
+    referenceImage: data.children[0]?.photoPreview || null,
+    childName: data.children.map((c) => c.name).filter(Boolean).join(" & "),
+    age: data.children[0]?.age,
+    torahPortion: data.torahPortion,
+    artStyle: data.artStyle,
+    childRefs: data.children
+      .filter((c) => c.name)
+      .map((c) => ({ name: c.name, age: c.age, gender: c.gender, photoUrl: c.photoPreview })),
+    enabled: !collection,
+  });
 
   const update = useCallback((partial: Partial<WizardData>) => {
     setData((prev) => ({ ...prev, ...partial }));
@@ -2514,6 +2530,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   ctaLabel={planType === "subscription" ? t.checkout.subscribeOrderShort : t.checkout.placeOrderShort}
                   // Editing a summary line jumps to the step that owns it, instead
                   // of making the customer back out through the whole flow.
+                  coverPreview={coverPreview}
                   onEdit={(target) => {
                     setDir(-1);
                     if (target === "story") { setPortionView("mode"); setStep(5); }
