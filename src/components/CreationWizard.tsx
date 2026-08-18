@@ -191,6 +191,13 @@ const ageToBracketLabel = (age: string): string => {
 
 /* ───────────────── constants ───────────────── */
 
+/**
+ * Which plan the summary pre-selects when the customer kept the upcoming parsha.
+ * Monthly is the plan the UI already badges "popular", and it costs less per book
+ * than paying weekly — so it is the fair one to open on rather than the priciest.
+ */
+const DEFAULT_PARSHA_PLAN = "monthly" as const;
+
 const TOTAL_STEPS = 16;
 
 /* New spring-based transition variants */
@@ -469,6 +476,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
         }
         if (["once", "weekly", "monthly", "yearly"].includes(parsed.selectedPlan)) {
           setSelectedPlan(parsed.selectedPlan);
+          planTouchedRef.current = true; // don't overwrite what they last chose
         }
         if (typeof parsed.bookOptionsChosenEarly === "boolean") {
           setBookOptionsChosenEarly(parsed.bookOptionsChosenEarly);
@@ -1103,6 +1111,24 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
   // lives in the sticky bar, not in CheckoutStep, so the state lives here too.
   const [placingOrder, setPlacingOrder] = useState(false);
 
+  // Keeping the upcoming parsha IS the subscription intent — that customer wants
+  // the weekly cycle, not one book. So the summary opens on a plan for them, and
+  // one-time stays one tap away. Picking any other story leaves the default at a
+  // single purchase, because nothing about a Yom Tov book implies a weekly drip.
+  // Applied at most once, and never over a choice the customer already made or a
+  // plan restored from a previous session.
+  const planTouchedRef = useRef(false);
+  const parshaPlanDefaultedRef = useRef(false);
+
+  useEffect(() => {
+    if (step !== 11) return;
+    if (planTouchedRef.current || parshaPlanDefaultedRef.current) return;
+    if (!data.torahPortion || data.torahPortion !== getCurrentParsha()) return;
+    parshaPlanDefaultedRef.current = true;
+    setPlanType("subscription");
+    setSelectedPlan(DEFAULT_PARSHA_PLAN);
+  }, [step, data.torahPortion]);
+
   const handlePlaceOrder = async (planType: string = "once") => {
     // Real checkout: hand the order off to Shopify's hosted checkout. The book stays
     // "awaiting_payment" until the orders/paid webhook flips it to "paid"; the admin
@@ -1296,7 +1322,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                 transition={{ type: "spring", stiffness: 140, damping: 22 }}
               />
             </div>
-            <div className="max-w-3xl mx-auto px-5 sm:px-8 h-16 sm:h-20 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+            <div className="max-w-3xl mx-auto px-5 sm:px-8 h-14 sm:h-20 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
               <div className="flex items-center">
                 {step > 1 ? (
                   <button
@@ -2420,7 +2446,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
 
             {/* ── STEP 11: Shipping + Order Summary (combined final step) ── */}
             {step === 11 && (
-              <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-3 w-full">
+              <motion.div key="s11" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={springTransition} className="space-y-2.5 w-full">
                 <div className="text-center">
                   <h2 className="font-heading text-2xl sm:text-3xl font-bold text-primary">
                     {t.checkout.orderSummary}
@@ -2449,10 +2475,11 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                             key={o.id}
                             type="button"
                             onClick={() => {
+                              planTouchedRef.current = true;
                               if (o.id === "once") { setPlanType("single"); setSelectedPlan("once"); }
                               else { setPlanType("subscription"); setSelectedPlan(o.id); }
                             }}
-                            className={`relative text-start px-3 py-2 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
+                            className={`relative text-start px-2.5 py-1.5 rounded-2xl border-2 transition-all ${active ? "border-accent bg-accent/10 ring-1 ring-accent/30 shadow-sm" : "border-border/40 bg-card/60 hover:border-accent/40"}`}
                           >
                             {o.popular && (
                               <span className="absolute -top-2.5 start-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{t.checkout.popular}</span>
@@ -2500,19 +2527,16 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     return (
                       <button
                         type="button"
-                        onClick={() => setSelectedPlan("yearly")}
-                        className="w-full rounded-2xl border-2 border-accent/40 bg-gradient-to-r from-accent/10 to-accent/5 p-4 flex items-center justify-between gap-4 hover:border-accent transition-all active:scale-[0.99]"
+                        onClick={() => { planTouchedRef.current = true; setSelectedPlan("yearly"); }}
+                        className="w-full rounded-xl border border-accent/40 bg-accent/5 px-3 py-2 flex items-center justify-between gap-3 hover:border-accent transition-all active:scale-[0.99]"
                       >
-                        <div className="text-start">
-                          <p className="font-display font-bold text-primary flex flex-wrap items-baseline gap-x-2">
-                            <span>{t.checkout.switchToYearly} ·</span>
-                            <span className="text-muted-foreground line-through font-normal">{fmt(weeklyAnnual)}{t.checkout.perYear}</span>
-                            <span className="text-accent">{fmt(yearlyTotal)}{t.checkout.perYear}</span>
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{t.checkout.payYearlySave}</p>
-                        </div>
-                        <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-input">
-                          <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-0.5" />
+                        <span className="text-start text-[11px] leading-snug text-primary flex flex-wrap items-baseline gap-x-1.5">
+                          <span className="font-semibold">{t.checkout.switchToYearly}</span>
+                          <span className="text-muted-foreground line-through">{fmt(weeklyAnnual)}{t.checkout.perYear}</span>
+                          <span className="font-bold text-accent">{fmt(yearlyTotal)}{t.checkout.perYear}</span>
+                        </span>
+                        <span className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-input">
+                          <span className="inline-block h-4 w-4 transform rounded-full bg-background shadow translate-x-0.5" />
                         </span>
                       </button>
                     );
@@ -2521,15 +2545,15 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     return (
                       <button
                         type="button"
-                        onClick={() => setSelectedPlan("monthly")}
-                        className="w-full rounded-2xl border-2 border-accent bg-accent/10 p-4 flex items-center justify-between gap-4 transition-all active:scale-[0.99]"
+                        onClick={() => { planTouchedRef.current = true; setSelectedPlan("monthly"); }}
+                        className="w-full rounded-xl border border-accent bg-accent/10 px-3 py-2 flex items-center justify-between gap-3 transition-all active:scale-[0.99]"
                       >
-                        <div className="text-start">
-                          <p className="font-display font-bold text-primary">{t.checkout.yearlyPlan} · {fmt(yearlyTotal)}{t.checkout.perYear} · {t.checkout.bestValue}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{t.checkout.tapSwitchMonthly(`${fmt(monthlyTotal)}${t.checkout.perMonth}`)}</p>
-                        </div>
-                        <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-accent">
-                          <span className="inline-block h-5 w-5 transform rounded-full bg-background shadow translate-x-[1.375rem]" />
+                        <span className="text-start text-[11px] leading-snug text-primary flex flex-wrap items-baseline gap-x-1.5">
+                          <span className="font-semibold">{t.checkout.yearlyPlan} · {fmt(yearlyTotal)}{t.checkout.perYear}</span>
+                          <span className="text-muted-foreground">{t.checkout.tapSwitchMonthly(`${fmt(monthlyTotal)}${t.checkout.perMonth}`)}</span>
+                        </span>
+                        <span className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-accent">
+                          <span className="inline-block h-4 w-4 transform rounded-full bg-background shadow translate-x-[1.125rem]" />
                         </span>
                       </button>
                     );

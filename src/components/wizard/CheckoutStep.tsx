@@ -274,14 +274,14 @@ export const CheckoutStep = ({
   );
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-2">
       {/* The book itself */}
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
         {/* Wraps rather than squeezing: on a narrow phone the cover, the title
             and the price cannot share one line — without a floor on the title
             column it collapsed to a few pixels wide and wrapped one letter per
             line, several hundred pixels tall. */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-3 sm:p-5">
           {/* The customer's OWN cover once it exists — the point of the moment
               before paying is seeing the actual book, not a stock product shot.
               It is shown flat, not printed onto a mock-up: the format they chose
