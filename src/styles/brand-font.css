@@ -31,6 +31,12 @@
   font-weight: 400;
   font-style: normal;
   font-display: block;
+  /* Scales every glyph up, so the display face sits at a weight of presence
+     comparable to the sans around it. This was removed while hunting the
+     font bug; the real cause turned out to be a `.wizard-glass h2` override,
+     so the descriptor was never at fault — and without it the headings read
+     noticeably small. */
+  size-adjust: 116%;
 }
 @font-face {
   font-family: "TorahTaleTitle";
@@ -38,4 +44,10 @@
   font-weight: 700;
   font-style: normal;
   font-display: block;
+  /* Scales every glyph up, so the display face sits at a weight of presence
+     comparable to the sans around it. This was removed while hunting the
+     font bug; the real cause turned out to be a `.wizard-glass h2` override,
+     so the descriptor was never at fault — and without it the headings read
+     noticeably small. */
+  size-adjust: 116%;
 }
