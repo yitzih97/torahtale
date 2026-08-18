@@ -72,7 +72,13 @@ jobs:
 
       - name: Check the article builds
         if: ${{ inputs.plan != true }}
-        run: node -e "import('./src/content/blog/index.mjs').then(m => { if (!m.ARTICLES.length) { throw new Error('no articles'); } console.log(m.ARTICLES.length + ' articles, newest: ' + m.ARTICLES[0].slug); })"
+        run: |
+          node -e "
+            import('./src/content/blog/index.mjs').then((m) => {
+              if (!m.ARTICLES.length) throw new Error('no articles');
+              console.log(m.ARTICLES.length + ' articles, newest: ' + m.ARTICLES[0].slug);
+            });
+          "
 
       - name: Commit
         id: commit
