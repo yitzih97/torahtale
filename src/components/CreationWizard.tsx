@@ -25,6 +25,7 @@ import { BookOptionsStep, DEFAULT_BOOK_OPTIONS, calculateBookPriceForCurrency, g
 import { StoryPreviewStep } from "./wizard/StoryPreviewStep";
 import { QuantityStep, getVolumeDiscount } from "./wizard/QuantityStep";
 import { categoryArt } from "@/lib/categoryArt";
+import { storyCover } from "@/lib/storyCovers";
 import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionLabel, getCurrentParsha, stripSeferPrefix, bookLanguageCode, type TorahOption } from "./wizard/TorahPortions";
 import { ParshaCountdown } from "./wizard/ParshaCountdown";
 import { PortionIcon } from "./wizard/portionIcons";
@@ -1865,7 +1866,10 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
               // where the header already names the sefer).
               const renderStoryCard = (p: TorahOption, short = false) => {
                 const selected = data.torahPortion === p.value;
-                const art = categoryArt(p.category);
+                // This story's own cover when it exists; otherwise the category's
+                // sample title page, so the grid is never missing an image while
+                // the per-story set is being filled in.
+                const art = storyCover(p.value) || categoryArt(p.category);
                 const title = isHe ? p.sub : p.label;
                 const subtitle = isHe ? p.label : p.sub;
                 return (
@@ -1874,17 +1878,19 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => { update({ torahPortion: p.value }); autoAdvance(); }}
-                    className={`group relative flex flex-col items-start gap-2 p-3.5 rounded-2xl border text-start transition-all duration-200 ${
+                    className={`group relative flex flex-col items-stretch gap-2 p-2.5 rounded-2xl border text-start transition-all duration-200 ${
                       selected
                         ? "border-accent bg-accent/10 shadow-md shadow-accent/15 ring-1 ring-accent/40"
                         : "border-border/40 bg-card/70 hover:border-accent/40 hover:bg-accent/5 hover:shadow-sm backdrop-blur-sm"
                     }`}
                   >
-                    <span className={`w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center shrink-0 transition-all ${selected ? "ring-2 ring-accent shadow-sm" : "ring-1 ring-border/50 group-hover:ring-accent/40"}`}>
+                    <span className={`relative block w-full aspect-square rounded-xl overflow-hidden shrink-0 transition-all ${selected ? "ring-2 ring-accent shadow-md" : "ring-1 ring-border/50 shadow-sm group-hover:ring-accent/40"}`}>
                       {art ? (
-                        <img src={art} alt="" aria-hidden="true" width={256} height={256} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                        <img src={art} alt="" aria-hidden="true" width={400} height={400} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
                       ) : (
-                        <PortionIcon name={p.icon} className="w-[18px] h-[18px] text-foreground/70" />
+                        <span className="absolute inset-0 flex items-center justify-center bg-muted/40">
+                          <PortionIcon name={p.icon} className="w-6 h-6 text-foreground/60" />
+                        </span>
                       )}
                     </span>
                     <span className="font-display text-sm font-semibold text-foreground leading-snug pe-5">{short ? stripSeferPrefix(title) : title}</span>
