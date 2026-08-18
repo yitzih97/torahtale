@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/SEO";
-import { getArticle, localizeArticle, ARTICLES } from "@/content/blog.mjs";
+import { getArticle, localizeArticle, relatedArticles, renderArticleHtml } from "@/content/blog/index.mjs";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const BlogArticle = () => {
@@ -55,28 +55,53 @@ const BlogArticle = () => {
     );
   }
 
-  const others = ARTICLES.filter((a) => a.slug !== article.slug)
-    .slice(0, 2)
-    .map((a) => localizeArticle(a, lang));
+  const others = relatedArticles(raw!, 3).map((a) => localizeArticle(a, lang));
 
   // SEO/structured data stays in English (the canonical indexed version).
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: raw!.title,
-    description: raw!.description,
-    datePublished: raw!.dateISO,
-    dateModified: raw!.dateISO,
-    image: "https://torahtale.com/og-image.jpg",
-    url: `https://torahtale.com/blog/${article.slug}`,
-    author: { "@type": "Organization", name: "Torah Tale" },
-    publisher: {
-      "@type": "Organization",
-      name: "Torah Tale",
-      logo: { "@type": "ImageObject", url: "https://torahtale.com/apple-touch-icon.png" },
+  // A graph, not a single node: the article itself, a breadcrumb trail, and —
+  // when the article carries a FAQ — a FAQPage, which is what answer engines
+  // and rich results lift question-and-answer pairs out of.
+  const url = `https://torahtale.com/blog/${article.slug}`;
+  const graph: Record<string, unknown>[] = [
+    {
+      "@type": "BlogPosting",
+      headline: raw!.title,
+      description: raw!.description,
+      datePublished: raw!.dateISO,
+      dateModified: raw!.updatedISO || raw!.dateISO,
+      image: "https://torahtale.com/og-image.jpg",
+      url,
+      keywords: raw!.keywords?.join(", "),
+      inLanguage: "en",
+      isAccessibleForFree: true,
+      author: { "@type": "Organization", name: "Torah Tale", url: "https://torahtale.com" },
+      publisher: {
+        "@type": "Organization",
+        name: "Torah Tale",
+        logo: { "@type": "ImageObject", url: "https://torahtale.com/apple-touch-icon.png" },
+      },
+      mainEntityOfPage: url,
     },
-    mainEntityOfPage: `https://torahtale.com/blog/${article.slug}`,
-  };
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://torahtale.com/" },
+        { "@type": "ListItem", position: 2, name: "Blog", item: "https://torahtale.com/blog" },
+        { "@type": "ListItem", position: 3, name: raw!.title, item: url },
+      ],
+    },
+  ];
+  if (raw!.faq?.length) {
+    graph.push({
+      "@type": "FAQPage",
+      mainEntity: raw!.faq.map((f: { q: string; a: string }) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    });
+  }
+  const jsonLd = { "@context": "https://schema.org", "@graph": graph };
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir={dir}>
@@ -92,7 +117,10 @@ const BlogArticle = () => {
           <h1 className="mt-2 font-display text-3xl md:text-4xl font-bold leading-tight">{article.title}</h1>
           <p className="mt-4 text-lg text-muted-foreground">{article.excerpt}</p>
 
-          <div className="blog-prose mt-8" dangerouslySetInnerHTML={{ __html: article.bodyHtml }} />
+          <div
+            className="blog-prose mt-8"
+            dangerouslySetInnerHTML={{ __html: renderArticleHtml(article, isHe) }}
+          />
 
           <div className="mt-10 rounded-2xl border border-accent/30 bg-accent/5 p-6 text-center">
             <p className="font-display text-lg font-bold">{copy.ctaTitle}</p>

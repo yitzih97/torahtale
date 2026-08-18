@@ -4,6 +4,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch: {}
+  # Called by daily-blog.yml after it commits a new article: a push made with
+  # GITHUB_TOKEN does not trigger workflows, so the deploy has to be chained.
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref to build (defaults to the tip of main)"
+        type: string
+        default: main
 
 concurrency:
   group: pages
@@ -19,6 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Empty on push/dispatch, so checkout falls back to the triggering ref.
+          ref: ${{ inputs.ref }}
 
       - uses: oven-sh/setup-bun@v2
         with:

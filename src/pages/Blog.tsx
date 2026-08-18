@@ -1,30 +1,64 @@
+import { useMemo, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { SEO } from "@/components/SEO";
-import { ARTICLES, localizeArticle } from "@/content/blog.mjs";
+import {
+  ARTICLES,
+  CATEGORY_LABELS,
+  CATEGORY_ORDER,
+  localizeArticle,
+} from "@/content/blog/index.mjs";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Blog = () => {
   const { lang, dir } = useLanguage();
   const isHe = lang === "he" || lang === "yi";
-  const articles = ARTICLES.map((a) => localizeArticle(a, lang));
+  const [filter, setFilter] = useState<string>("all");
+
+  const articles = useMemo(
+    () => ARTICLES.map((a) => ({ ...localizeArticle(a, lang), category: a.category })),
+    [lang]
+  );
+
+  // Only offer a chip for a category that actually has articles — the archive
+  // fills in category by category as the daily agent works through the collections.
+  const categories = useMemo(
+    () => CATEGORY_ORDER.filter((c: string) => articles.some((a) => a.category === c)),
+    [articles]
+  );
+
+  const visible = filter === "all" ? articles : articles.filter((a) => a.category === filter);
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Blog",
-    name: "Torah Tale Blog",
-    url: "https://torahtale.com/blog",
-    description:
-      "Guides and ideas for creating personalized Torah storybooks for Jewish children — parsha tips, gift guides, and step-by-step how-tos.",
-    blogPost: ARTICLES.map((a) => ({
-      "@type": "BlogPosting",
-      headline: a.title,
-      description: a.description,
-      datePublished: a.dateISO,
-      url: `https://torahtale.com/blog/${a.slug}`,
-    })),
+    "@graph": [
+      {
+        "@type": "Blog",
+        name: "Torah Tale Blog",
+        url: "https://torahtale.com/blog",
+        inLanguage: "en",
+        description:
+          "Guides and ideas for creating personalized Torah storybooks for Jewish children — parsha tips, gift guides, and step-by-step how-tos.",
+        publisher: { "@type": "Organization", name: "Torah Tale", url: "https://torahtale.com" },
+        blogPost: ARTICLES.map((a) => ({
+          "@type": "BlogPosting",
+          headline: a.title,
+          description: a.description,
+          datePublished: a.dateISO,
+          dateModified: a.updatedISO || a.dateISO,
+          url: `https://torahtale.com/blog/${a.slug}`,
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://torahtale.com/" },
+          { "@type": "ListItem", position: 2, name: "Blog", item: "https://torahtale.com/blog" },
+        ],
+      },
+    ],
   };
 
   const copy = isHe
@@ -34,6 +68,7 @@ const Blog = () => {
         sub: "איך הופכים את הילד שלכם לגיבור של פרשת השבוע — מדריכים שלב אחרי שלב, טיפים לבחירת פרשה ורעיונות למתנה לכל שמחה.",
         minRead: "דקות קריאה",
         readGuide: "לקריאת המדריך",
+        all: "הכל",
       }
     : {
         kicker: "Torah Tale Blog",
@@ -41,7 +76,15 @@ const Blog = () => {
         sub: "How to turn your child into the star of the weekly parsha — step-by-step guides, parsha tips, and gift ideas for every simcha.",
         minRead: "min read",
         readGuide: "Read the guide",
+        all: "All",
       };
+
+  const chip = (active: boolean) =>
+    `rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+      active
+        ? "border-accent bg-accent/10 text-accent"
+        : "border-border/60 text-muted-foreground hover:border-accent/40 hover:text-foreground"
+    }`;
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir={dir}>
@@ -53,7 +96,7 @@ const Blog = () => {
       />
       <Navbar transparentHero={false} />
 
-      <section className="pt-36 pb-10 md:pt-44">
+      <section className="pt-36 pb-8 md:pt-44">
         <div className="container max-w-3xl mx-auto px-6 text-center">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-accent">
             <BookOpen className="w-4 h-4" /> {copy.kicker}
@@ -67,9 +110,29 @@ const Blog = () => {
         </div>
       </section>
 
+      {categories.length > 1 && (
+        <section className="pb-6">
+          <div className="container max-w-3xl mx-auto px-6 flex flex-wrap justify-center gap-2">
+            <button type="button" onClick={() => setFilter("all")} className={chip(filter === "all")}>
+              {copy.all}
+            </button>
+            {categories.map((c: string) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setFilter(c)}
+                className={chip(filter === c)}
+              >
+                {isHe ? CATEGORY_LABELS[c]?.he : CATEGORY_LABELS[c]?.en}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="pb-24">
         <div className="container max-w-3xl mx-auto px-6 space-y-5">
-          {articles.map((a) => (
+          {visible.map((a) => (
             <Link
               key={a.slug}
               to={`/blog/${a.slug}`}
@@ -77,6 +140,9 @@ const Blog = () => {
             >
               <p className="text-xs text-muted-foreground">
                 {a.date} · {a.readingMins} {copy.minRead}
+                {a.category && CATEGORY_LABELS[a.category] ? (
+                  <> · {isHe ? CATEGORY_LABELS[a.category].he : CATEGORY_LABELS[a.category].en}</>
+                ) : null}
               </p>
               <h2 className="mt-1.5 font-display text-xl md:text-2xl font-bold text-foreground">
                 {a.title}
