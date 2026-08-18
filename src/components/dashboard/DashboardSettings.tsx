@@ -74,7 +74,6 @@ export function DashboardSettings({ user }: Props) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [notifBookReady, setNotifBookReady] = useState(true);
   const [notifShipping, setNotifShipping] = useState(true);
   const [notifSubscription, setNotifSubscription] = useState(true);
 
@@ -179,7 +178,6 @@ export function DashboardSettings({ user }: Props) {
       <GlassPanel index={3} Icon={Bell} title={t.dash.settingsPanel.notifications} subtitle={t.dash.settingsPanel.notificationsSub}>
         <div className="space-y-2">
           {[
-            { label: t.dash.settingsPanel.notifBookReady, desc: t.dash.settingsPanel.notifBookReadyDesc, value: notifBookReady, onChange: setNotifBookReady },
             { label: t.dash.settingsPanel.notifShipping, desc: t.dash.settingsPanel.notifShippingDesc, value: notifShipping, onChange: setNotifShipping },
             { label: t.dash.settingsPanel.notifSubs, desc: t.dash.settingsPanel.notifSubsDesc, value: notifSubscription, onChange: setNotifSubscription },
           ].map((pref) => (

@@ -335,7 +335,6 @@ export const yi: typeof en = {
       payment: "צאָלונג-מיטלען", paymentSub: "זיכער פֿאַרוואַלטעט דורך Shopify",
       manageCards: "פֿאַרוואַלטן קאַרטלעך אין Shopify", cardsHint: "געשפּײַכלערטע קאַרטלעך און חשבון געפֿינען זיך אין אײַער Shopify קאָנטע.",
       manage: "פֿאַרוואַלטן", notifications: "מעלדונגען", notificationsSub: "קלײַבט וועלכע אימעילן צו באַקומען",
-      notifBookReady: "בוך גרייט", notifBookReadyDesc: "ווען אײַער בוך איז גרייט צו זען",
       notifShipping: "צושטעל-מעלדונגען", notifShippingDesc: "פֿאָלגט דעם צושטעל-סטאַטוס פֿון אײַער בוך",
       notifSubs: "אַבאָנעמענט-דערמאָנונגען", notifSubsDesc: "וועכנטלעכע דערמאָנונגען וועגן קומענדיקע צושטעלן",
       account: "קאָנטע", accountSub: "אויסלאָגירן אָדער אויסמעקן אײַער קאָנטע",

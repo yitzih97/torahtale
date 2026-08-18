@@ -335,7 +335,6 @@ export const he: typeof en = {
       payment: "אמצעי תשלום", paymentSub: "מנוהל באופן מאובטח דרך Shopify",
       manageCards: "ניהול כרטיסים ב-Shopify", cardsHint: "הכרטיסים השמורים והחיוב נמצאים בחשבון ה-Shopify שלכם.",
       manage: "ניהול", notifications: "התראות", notificationsSub: "בחרו אילו אימיילים לקבל",
-      notifBookReady: "הספר מוכן", notifBookReadyDesc: "כשהספר מוכן לצפייה",
       notifShipping: "עדכוני משלוח", notifShippingDesc: "מעקב אחר סטטוס המשלוח של הספר",
       notifSubs: "תזכורות מנוי", notifSubsDesc: "תזכורות שבועיות על משלוחים קרובים",
       account: "חשבון", accountSub: "התנתקות או מחיקת החשבון",

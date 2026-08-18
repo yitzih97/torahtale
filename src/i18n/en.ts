@@ -341,7 +341,6 @@ export const en = {
       payment: "Payment Methods", paymentSub: "Securely managed via Shopify",
       manageCards: "Manage cards in Shopify", cardsHint: "Saved cards and billing live in your Shopify customer account.",
       manage: "Manage", notifications: "Notifications", notificationsSub: "Choose what emails you receive",
-      notifBookReady: "Book Ready", notifBookReadyDesc: "When your book is ready to view",
       notifShipping: "Shipping Updates", notifShippingDesc: "Track your book's delivery status",
       notifSubs: "Subscription Reminders", notifSubsDesc: "Weekly reminders about upcoming deliveries",
       account: "Account", accountSub: "Sign out or delete your account",
