@@ -12,17 +12,29 @@ export const SITE = "https://torahtale.com";
 export const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/** Strips tags — used for the plain-text corpus (llms-full.txt) and RSS. */
+/**
+ * Flattens article HTML to readable plain text for the corpus at
+ * /llms-full.txt and for word counts. Headings and list items keep their shape
+ * as Markdown, because that structure is most of what makes a long article
+ * parseable once the tags are gone.
+ */
 export const stripHtml = (html) =>
   String(html)
     .replace(/<figure[\s\S]*?<\/figure>/g, "")
-    .replace(/<[^>]+>/g, " ")
+    .replace(/<\/(p|li|h2|h3|ul|ol|blockquote|tr)>/g, "\n")
+    .replace(/<h2[^>]*>/g, "\n## ")
+    .replace(/<h3[^>]*>/g, "\n### ")
+    .replace(/<li[^>]*>/g, "- ")
+    .replace(/<br\s*\/?>/g, "\n")
+    .replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/[ \t]+/g, " ")
+    .replace(/ *\n */g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
