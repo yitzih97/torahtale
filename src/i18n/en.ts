@@ -521,7 +521,7 @@ export const en = {
     orEnterNewName: "or enter a new name",
     enterChildName: "Enter child's name",
     child: "Child",
-    isBoyOrGirl: (name: string) => `Is ${name || "your star"} a boy or girl?`,
+    isBoyOrGirl: (name: string) => `Is ${name || "your child"} a boy or girl?`,
     boy: "Boy",
     girl: "Girl",
     howOld: (name: string, _gender?: string) => `How old is ${name || "your star"}?`,
