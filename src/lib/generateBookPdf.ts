@@ -514,13 +514,19 @@ function goldFill(ctx: CanvasRenderingContext2D, baselineY: number, capH: number
 }
 
 // One line of engraved gold caps (deep shadow → dark bevel → gold face → highlight).
-function engravedLine(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, font: string, capH: number) {
+function engravedLine(
+  ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, font: string, capH: number,
+  opts: { shadow?: boolean } = {},
+) {
+  const shadow = opts.shadow !== false;
   ctx.save();
   ctx.font = font; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillText(text, cx + 3, y + 4);
+  // The two offset passes ARE the 3-D relief; the blurred shadow underneath is
+  // separate and can be dropped where the type sits on a clean ground.
+  if (shadow) { ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillText(text, cx + 3, y + 4); }
   ctx.fillStyle = "#5b3d0e"; ctx.fillText(text, cx, y + 2);
   ctx.fillStyle = goldFill(ctx, y, capH);
-  ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+  if (shadow) { ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2; }
   ctx.fillText(text, cx, y);
   ctx.shadowColor = "transparent";
   ctx.lineWidth = Math.max(1, capH * 0.012); ctx.strokeStyle = "rgba(255,250,225,0.5)"; ctx.strokeText(text, cx, y);
@@ -610,20 +616,18 @@ function drawCoverFurniture(
     // Hebrew each render on ONE compact line, in the right font + direction —
     // keeps the title small and near the top instead of sprawling over faces.
     const titleLines = opts.title.split(/\n{2,}/).map((l) => l.trim()).filter(Boolean);
-    const baseM = Math.round(U * 0.052);
+    const baseM = Math.round(U * 0.066);
     let my = ty + U * 0.045 + U * 0.038;
     for (const raw of titleLines) {
       const heb = HEBREW_RE.test(raw);
       const fam = heb ? BOOK_HEBREW_FONT : "'Cormorant Garamond', serif";
       let mf = baseM; ctx.font = `600 ${mf}px ${fam}`;
-      while (ctx.measureText(raw).width > W * 0.8 && mf > U * 0.024) { mf -= 2; ctx.font = `600 ${mf}px ${fam}`; }
+      while (ctx.measureText(raw).width > W * 0.8 && mf > U * 0.030) { mf -= 2; ctx.font = `600 ${mf}px ${fam}`; }
       ctx.direction = heb ? "rtl" : "ltr";
-      // Golden letters (same gold as the parsha title), with a soft dark shadow
-      // for legibility over the illustration.
-      ctx.shadowColor = "rgba(0,0,0,0.55)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
-      ctx.fillStyle = goldFill(ctx, my, mf);
-      ctx.fillText(raw, W / 2, my);
-      ctx.shadowColor = "transparent";
+      // Set with the SAME engraved relief as the parsha title above, so the
+      // child's name reads as part of the title block rather than a caption
+      // washed over the art.
+      engravedLine(ctx, raw, W / 2, my, `600 ${mf}px ${fam}`, mf);
       my += mf * 1.14;
     }
     ctx.direction = "ltr";
@@ -682,15 +686,9 @@ function drawMiniCover(
   const lines = wrapLines(ctx, label || "", size - size * 0.12).slice(0, 2);
   let ty = y + size * 0.12 + fs;
   for (const ln of lines) { ctx.fillStyle = goldFill(ctx, ty, fs); ctx.fillText(ln, x + size / 2, ty); ty += fs * 1.1; }
-  // Child line — "with [name]" in gold italic, localized to the book language.
-  if (childName) {
-    const cfs = Math.round(size * 0.07);
-    ctx.font = `italic 600 ${cfs}px 'Cormorant Garamond', serif`;
-    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-    ctx.direction = rtl ? "rtl" : "ltr";
-    ctx.fillStyle = goldFill(ctx, ty + cfs * 0.15, cfs);
-    ctx.fillText(getCoverChildLine(childName, lang) || "", x + size / 2, ty + cfs * 0.15);
-  }
+  // No child line here. At 216px the "with [name]" line was unreadable anyway and
+  // sat right across the children's faces — the series name below the stack
+  // carries the meaning instead.
   ctx.restore();
   ctx.strokeStyle = "rgba(0,0,0,0.30)"; ctx.lineWidth = 2;
   roundedRect(ctx, x, y, size, size, r); ctx.stroke();
@@ -843,7 +841,7 @@ async function renderCoverSpread(
     while (ctx.measureText(headline).width > BW * 0.84 && hSize > 40) {
       hSize -= 2; ctx.font = coverTitleFont(hSize);
     }
-    engravedLine(ctx, headline, cx, 600, coverTitleFont(hSize), hSize);
+    engravedLine(ctx, headline, cx, 600, coverTitleFont(hSize), hSize, { shadow: false });
     ctx.restore();
   }
 

@@ -25,7 +25,7 @@ const SERIES_NAME: Record<string, Record<Lang, string>> = {
   ketuvim: { en: "Nevi'im & Kesuvim", he: "נביאים וכתובים", yi: "נביאים און כתובים" },
   megillot: { en: "The Megillos", he: "המגילות", yi: "די מגילות" },
   holiday: { en: "The Holiday Series", he: "סדרת המועדים", yi: "די יום־טוב סעריע" },
-  educational: { en: "Inspirational Stories", he: "סיפורי השראה", yi: "מוסר מעשיות" },
+  educational: { en: "The Middos Series", he: "סדרת המידות", yi: "די מידות סעריע" },
 };
 
 const categoryOf = (portion: string): string =>
