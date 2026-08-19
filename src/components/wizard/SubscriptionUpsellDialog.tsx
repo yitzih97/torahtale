@@ -6,7 +6,7 @@ import { Crown, Zap, CalendarDays, Check, TrendingDown, Loader2, Sparkles, Credi
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { subPrice, type BookFormat } from "@/lib/pricing";
+import { subPrice, singlePrice, type BookFormat } from "@/lib/pricing";
 import { toast } from "sonner";
 
 type PlanType = "weekly" | "monthly" | "yearly";
@@ -28,19 +28,49 @@ interface PlanData {
    (every book the sub entitles carries one shipment's cost). Subscription orders
    are therefore free-shipping at checkout. */
 const SHIP_PER_BOOK = 5.95;
+/* The same per-book shipping in shekels, derived from the canonical table:
+   sub_per_book = book × (1 − tier) + ship, which solves to 18.13–18.70 across
+   the three plans. Single orders pay shipping too, so this is also the baseline
+   a subscription is compared against. */
+const SHIP_PER_BOOK_ILS = 18.5;
+const shipPerBook = (isIls: boolean) => (isIls ? SHIP_PER_BOOK_ILS : SHIP_PER_BOOK);
+
+/**
+ * What a plan saves PER BOOK against simply buying single books — the thing the
+ * reader of this dialog is actually deciding against, and measured the same way
+ * for all three plans so the ladder is comparable.
+ *
+ * The old badges mixed baselines: weekly and monthly showed the discount tier
+ * taken off the book price, while yearly showed a real saving. That made the
+ * cheapest plan per book look like the worst deal. Both a single book and a
+ * subscription book carry one shipment, so shipping sits on both sides.
+ *
+ * Computed, never asserted: if prices ever stop favouring a plan its badge
+ * disappears rather than claiming a discount the customer would not get.
+ */
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+const savingsBadge = (perBookPrice: number, bookPrice: number, isIls = false): { savings: string; savingsPct: number } => {
+  const baseline = bookPrice + shipPerBook(isIls);
+  const pct = baseline > 0 ? (baseline - perBookPrice) / baseline : 0;
+  return pct <= 0.005
+    ? { savings: "", savingsPct: 0 }
+    : { savings: `${Math.round(pct * 100)}% off`, savingsPct: round2(pct) };
+};
 
 /* Default fallback pricing (used when no bookPriceUsd is provided) — softcover base,
    shipping included. */
+const DEFAULT_BOOK_USD = 14.99; // softcover, the base this fallback assumes
 const DEFAULT_PLANS: PlanData[] = [
-  { id: "weekly", priceUsd: 19.44, perWeekUsd: 19.44, savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
-  { id: "monthly", priceUsd: 74.77, perWeekUsd: 18.69, savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
-  { id: "yearly", priceUsd: 932.98, perWeekUsd: 17.94, savings: "4% off", savingsPct: 0.04, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+  { id: "weekly", priceUsd: 19.44, perWeekUsd: 19.44, ...savingsBadge(19.44, DEFAULT_BOOK_USD), booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
+  { id: "monthly", priceUsd: 74.77, perWeekUsd: 18.69, ...savingsBadge(18.69, DEFAULT_BOOK_USD), booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
+  { id: "yearly", priceUsd: 932.98, perWeekUsd: 17.94, ...savingsBadge(17.94, DEFAULT_BOOK_USD), booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
 ];
 
-/* Round to 2 decimals. NOTE: these MUST equal the live Shopify subscription variant
-   prices = (book × (1 − discount) + shipping) × books, or the customer sees one
-   price and is billed another. Discount ladder: weekly 10% / monthly 15% / yearly 20%. */
-const round2 = (n: number) => Math.round(n * 100) / 100;
+/* NOTE: these MUST equal the live Shopify subscription variant prices =
+   (book × (1 − discount) + shipping) × books, or the customer sees one price and
+   is billed another. Discount ladder: weekly 10% / monthly 15% / yearly 20% —
+   that is the cut off the BOOK price, not what the badge shows. */
 const perBook = (bookPriceUsd: number, disc: number) => bookPriceUsd * (1 - disc) + SHIP_PER_BOOK;
 
 function buildPlansForBook(bookPriceUsd: number): PlanData[] {
@@ -49,9 +79,9 @@ function buildPlansForBook(bookPriceUsd: number): PlanData[] {
   const yearly = round2(perBook(bookPriceUsd, 0.20) * 52);
 
   return [
-    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
-    { id: "monthly", priceUsd: monthly, perWeekUsd: round2(monthly / 4), savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
-    { id: "yearly", priceUsd: yearly, perWeekUsd: round2(yearly / 52), savings: "4% off", savingsPct: 0.04, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, ...savingsBadge(weekly, bookPriceUsd), booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
+    { id: "monthly", priceUsd: monthly, perWeekUsd: round2(monthly / 4), ...savingsBadge(round2(monthly / 4), bookPriceUsd), booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
+    { id: "yearly", priceUsd: yearly, perWeekUsd: round2(yearly / 52), ...savingsBadge(round2(yearly / 52), bookPriceUsd), booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
   ];
 }
 
@@ -89,10 +119,15 @@ interface Props {
 /** Plans built from the canonical Shopify subscription table (exact prices). */
 function canonicalPlans(format: BookFormat, isIls: boolean): PlanData[] {
   const p = (plan: "weekly" | "monthly" | "yearly") => subPrice(plan, format, isIls);
+  // Compared against a single book of the SAME format and currency.
+  const book = singlePrice(format, isIls);
+  const perWeek = p("weekly");
+  const perMonthBook = round2(p("monthly") / 4);
+  const perYearBook = round2(p("yearly") / 52);
   return [
-    { id: "weekly", priceUsd: p("weekly"), perWeekUsd: p("weekly"), savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
-    { id: "monthly", priceUsd: p("monthly"), perWeekUsd: round2(p("monthly") / 4), savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
-    { id: "yearly", priceUsd: p("yearly"), perWeekUsd: round2(p("yearly") / 52), savings: "4% off", savingsPct: 0.04, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+    { id: "weekly", priceUsd: p("weekly"), perWeekUsd: perWeek, ...savingsBadge(perWeek, book, isIls), booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
+    { id: "monthly", priceUsd: p("monthly"), perWeekUsd: perMonthBook, ...savingsBadge(perMonthBook, book, isIls), booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
+    { id: "yearly", priceUsd: p("yearly"), perWeekUsd: perYearBook, ...savingsBadge(perYearBook, book, isIls), booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
   ];
 }
 
