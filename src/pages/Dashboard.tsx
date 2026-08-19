@@ -22,7 +22,7 @@ import { generateBookZip } from "@/lib/generateBookZip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Check } from "lucide-react";
+import { Check, Trash2, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, BookOpen, CalendarHeart, Plus, Settings, BookMarked,
@@ -41,7 +41,7 @@ const ease = [0.22, 1, 0.36, 1];
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { t, lang } = useLanguage();
+  const { t, lang, dir } = useLanguage();
   const { books, isLoading: booksLoading } = useBooks();
   const { children, isLoading: childrenLoading, addChild, updateChild, deleteChild } = useChildren();
   const { subscriptions, isLoading: subsLoading, updateSubscription } = useSubscriptions();
@@ -72,6 +72,34 @@ export default function Dashboard() {
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
+
+  /* Removing kids selected on the cards. Deliberately guarded: children.id is
+     ON DELETE SET NULL on books and subscriptions, so a delete does not remove
+     their books — it orphans them — and a live subscription would keep minting
+     weekly books with no child record behind them, losing the photo likeness.
+     So an active subscription blocks the delete rather than breaking quietly. */
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  const kidsToRemove = children.filter((c) => selectedKidIds.has(c.id));
+  const blockedBySub = kidsToRemove.filter((c) =>
+    subscriptions.some((s) => s.child_id === c.id && s.status !== "canceled"));
+  const removableBookCount = books.filter((b) => selectedKidIds.has(b.child_id ?? "")).length;
+
+  const confirmRemove = async () => {
+    if (!kidsToRemove.length || blockedBySub.length) return;
+    setRemoving(true);
+    try {
+      for (const kid of kidsToRemove) await deleteChild.mutateAsync(kid.id);
+      toast.success(t.dash.remove.done(kidsToRemove.length));
+      setSelectedKidIds(new Set());
+      setRemoveOpen(false);
+    } catch {
+      toast.error(t.dash.remove.failed);
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   const openMerge = () => {
     const ids = [...selectedKidIds];
@@ -292,6 +320,15 @@ export default function Dashboard() {
                         </span>
                         <div className="flex items-center gap-2">
                           <Button variant="ghost" size="sm" onClick={() => setSelectedKidIds(new Set())}>{t.dash.merge.clear}</Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => setRemoveOpen(true)}
+                          >
+                            <Trash2 className="w-4 h-4 me-1.5" />
+                            {t.dash.remove.action}
+                          </Button>
                           <Button variant="gold" size="sm" disabled={selectedKidIds.size < 2} onClick={openMerge}>
                             {t.dash.merge.mergeSelected}
                           </Button>
@@ -482,6 +519,60 @@ export default function Dashboard() {
 
       {/* Merge kids dialog: choose which child to keep, then pick what to do
           with the others' books & subscriptions. */}
+      {/* Remove kids — destructive, so it names exactly what happens and what
+          does NOT happen (their books stay), and refuses while a subscription
+          is still live rather than silently orphaning its weekly releases. */}
+      <Dialog open={removeOpen} onOpenChange={(o) => { if (!o && !removing) setRemoveOpen(false); }}>
+        <DialogContent className="max-w-md rounded-3xl" dir={dir}>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="font-heading text-xl font-bold text-primary">
+                  {t.dash.remove.title(kidsToRemove.length)}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {kidsToRemove.map((c) => childDisplayName(c, lang)).join(", ")}
+                </p>
+              </div>
+            </div>
+
+            {blockedBySub.length > 0 ? (
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-3.5 text-sm text-primary">
+                {t.dash.remove.blocked(blockedBySub.map((c) => childDisplayName(c, lang)).join(", "))}
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-muted/50 p-3.5 text-sm text-muted-foreground">
+                {removableBookCount > 0
+                  ? t.dash.remove.booksKept(removableBookCount)
+                  : t.dash.remove.noBooks}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 pt-1">
+              <Button
+                variant="destructive"
+                className="h-11 w-full rounded-full"
+                disabled={removing || blockedBySub.length > 0}
+                onClick={() => void confirmRemove()}
+              >
+                {removing ? t.dash.remove.removing : t.dash.remove.confirm(kidsToRemove.length)}
+              </Button>
+              <Button
+                variant="outline"
+                className="h-10 w-full rounded-full border-border/60"
+                disabled={removing}
+                onClick={() => setRemoveOpen(false)}
+              >
+                {t.common.cancel}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={mergeOpen} onOpenChange={(o) => { if (!o && !merging) setMergeOpen(false); }}>
         <DialogContent className="max-w-md rounded-3xl p-6">
           <div className="space-y-4">

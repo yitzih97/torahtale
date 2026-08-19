@@ -353,6 +353,17 @@ export const en = {
       editBook: "Edit Book", orderAgain: "Order Again",
     },
     // Merge kids
+    remove: {
+      action: "Remove",
+      title: (n: number) => (n === 1 ? "Remove this child?" : `Remove ${n} children?`),
+      confirm: (n: number) => (n === 1 ? "Remove child" : `Remove ${n} children`),
+      removing: "Removing…",
+      booksKept: (n: number) => `Their ${n === 1 ? "book" : `${n} books`} will stay in your library, but will no longer be linked to them. This cannot be undone.`,
+      noBooks: "This cannot be undone.",
+      blocked: (names: string) => `${names} still has an active subscription. Cancel or pause it first — otherwise the weekly books would keep coming with no child profile behind them.`,
+      done: (n: number) => (n === 1 ? "Child removed." : `${n} children removed.`),
+      failed: "Couldn't remove — please try again.",
+    },
     merge: {
       done: (name: string) => `Merged into ${name}.`, failed: "Merge failed — please try again.",
       selected: (n: number) => `${n} selected`, pickAnother: " · pick another to merge",
