@@ -41,7 +41,11 @@ function wrapCount(ctx: CanvasRenderingContext2D, text: string, maxWidth: number
  *
  * `W`/`H` are the logical page dimensions (e.g. 1200×1200 for an 8×8 square).
  */
-export function fitQuestionsLayout(text: string, base: TextLayout, W: number, H: number, _rtl: boolean): TextLayout {
+export function fitQuestionsLayout(
+  text: string, base: TextLayout, W: number, H: number, _rtl: boolean,
+  /** Fraction of the page height reserved above the list (for a heading). */
+  topInsetPct = 0,
+): TextLayout {
   const listAlign: TextLayout["align"] = "center"; // questions are centered
   let ctx: CanvasRenderingContext2D | null = null;
   try { ctx = document.createElement("canvas").getContext("2d"); } catch { /* ignore */ }
@@ -49,14 +53,25 @@ export function fitQuestionsLayout(text: string, base: TextLayout, W: number, H:
 
   const scale = W / 1024;
   const maxTextW = (base.width / 100) * W - 6 * scale * 2;
-  const availH = H - (base.y / 100) * H - H * 0.06; // top offset + bottom margin
+  const topPct = Math.max(base.y, topInsetPct);
+  const bottomMarginPct = 6;
+  const availH = H - (topPct / 100) * H - (bottomMarginPct / 100) * H;
   const weight = base.bold ? "700" : "400";
   const lineHeight = 1.45;
   let fontSize = 9;
+  let lines = 0;
   for (let fsRef = 24; fsRef >= 9; fsRef--) {
     const fs = fsRef * scale;
     ctx.font = `${weight} ${fs}px ${base.fontFamily}`;
-    if (wrapCount(ctx, text, maxTextW) * fs * lineHeight <= availH) { fontSize = fsRef; break; }
+    lines = wrapCount(ctx, text, maxTextW);
+    if (lines * fs * lineHeight <= availH) { fontSize = fsRef; break; }
+    fontSize = fsRef; // keep the last measured size if nothing fits
   }
-  return { ...base, fontSize, lineHeight, align: listAlign };
+  // Centre the finished block in the space that is left, instead of pinning it
+  // to the top — ten short questions used to sit high with a wide empty band
+  // under them.
+  const blockH = lines * fontSize * scale * lineHeight;
+  const slackPct = Math.max(0, ((availH - blockH) / H) * 100);
+  const y = topPct + slackPct / 2;
+  return { ...base, y, fontSize, lineHeight, align: listAlign };
 }

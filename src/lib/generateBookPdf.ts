@@ -396,7 +396,15 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   return encodePage(canvas, mode === "portrait");
 }
 
-async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutMode, scale = 1): Promise<string> {
+/** The questions-page heading, in the book's language. Set in the Torah Tale
+ *  display face, like the cover titles, so the page belongs to the book. */
+const QUESTIONS_HEADING: Record<"en" | "he" | "yi", string> = {
+  en: "Let's Talk About It",
+  he: "בואו נדבר על זה",
+  yi: "לאָמיר רעדן דערוועגן",
+};
+
+async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutMode, scale = 1, lang: "en" | "he" | "yi" = "en"): Promise<string> {
   await ensureBookFonts();
   // The questions page sits on a clean, empty parchment page (no illustration)
   // so the discussion text is always easy to read.
@@ -437,8 +445,26 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
     return encodePage(canvas);
   }
 
+  // Heading in the Torah Tale display face, with the same engraved gold as the
+  // covers, then the list centred in whatever height is left below it.
+  const headText = QUESTIONS_HEADING[lang] || QUESTIONS_HEADING.en;
+  const headSize = Math.round(H * 0.062);
+  const headBaseline = H * 0.115;
+  ctx.save();
+  ctx.direction = rtl ? "rtl" : "ltr";
+  let hs = headSize;
+  ctx.font = coverTitleFont(hs);
+  while (ctx.measureText(headText).width > W * 0.8 && hs > H * 0.03) {
+    hs -= 2; ctx.font = coverTitleFont(hs);
+  }
+  engravedLine(ctx, headText, W / 2, headBaseline, coverTitleFont(hs), hs, { shadow: false });
+  coverFlourish(ctx, W / 2, headBaseline + hs * 0.42, W * 0.22, COVER_GOLD);
+  ctx.restore();
+
   const formatted = questions.length ? buildQuestionsText(questions) : (page.text || "");
-  const fitted = fitQuestionsLayout(formatted, layout, W, H, rtl);
+  // Reserve the heading band so the list never rides up into it.
+  const headInsetPct = ((headBaseline + hs * 0.9) / H) * 100;
+  const fitted = fitQuestionsLayout(formatted, layout, W, H, rtl, headInsetPct);
   drawTextOverlay(ctx, formatted, fitted, W, H, rtl);
   return encodePage(canvas);
 }
@@ -1211,7 +1237,7 @@ export async function renderPrintImages(
     interior.push(await renderStorySpread(stories[i], i, rtl, mode, PRINT_SCALE));
   }
   if (questionsInInterior) {
-    interior.push(await renderQuestionsSpread(questionsPage!, rtl, mode, PRINT_SCALE));
+    interior.push(await renderQuestionsSpread(questionsPage!, rtl, mode, PRINT_SCALE, lang));
   }
 
   // Right-to-left (Hebrew/Yiddish) books open from the other side, so the book is
@@ -1284,7 +1310,7 @@ export async function generateBookPdf(
       // matter (logo + up to 10 questions + subscribe + teaser thumbnails).
       dataUrl = mode === "portrait"
         ? await renderColoringBackMatter(page, childName, pdfPreviews, lang, PDF_SCALE, localizedChildName)
-        : await renderQuestionsSpread(page, rtl, mode, PDF_SCALE);
+        : await renderQuestionsSpread(page, rtl, mode, PDF_SCALE, lang);
     } else {
       dataUrl = await renderStorySpread(page, storyIdx, rtl, mode, PDF_SCALE);
       storyIdx += 1;
