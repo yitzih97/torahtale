@@ -408,6 +408,42 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
     enabled: !collection,
   });
 
+  /** A saved dashboard child as a wizard ChildProfile — used by the "Pick saved
+      kids" chips and by the ?child=<id> deep link, so both stay identical. */
+  const profileFromRecord = useCallback((k: ChildRecord): ChildProfile => ({
+    ...createChild(),
+    name: k.name,
+    name_he: k.name_he ?? null,
+    name_yi: k.name_yi ?? null,
+    age: k.age ? String(k.age) : "",
+    gender: k.gender || "",
+    photoPreview: k.photo_url || null,
+    existingPhotoUrl: k.photo_url || null,
+    description: k.description || "",
+    savedChildId: k.id,
+  }), []);
+
+  /* "Create a book" on a dashboard kid card links to /create?child=<id>. Land
+     with that child already chosen instead of an empty name field. Runs once,
+     after the saved children load, and never fights a restored session that
+     already has children in it. */
+  const preselectedChildId = new URLSearchParams(window.location.search).get("child");
+  const preselectAppliedRef = useRef(false);
+  useEffect(() => {
+    if (preselectAppliedRef.current || !preselectedChildId || !existingChildren.length) return;
+    const record = existingChildren.find((k) => k.id === preselectedChildId);
+    if (!record) return;
+    preselectAppliedRef.current = true;
+    setData((prev) => {
+      if (prev.children.some((c) => c.savedChildId === record.id)) return prev;
+      const onlyEmptyStarter =
+        prev.children.length === 1 && !prev.children[0].name && !prev.children[0].savedChildId;
+      const entry = profileFromRecord(record);
+      const children = onlyEmptyStarter ? [entry] : [...prev.children, entry];
+      return { ...prev, children, activeChildIdx: children.length - 1 };
+    });
+  }, [preselectedChildId, existingChildren, profileFromRecord]);
+
   const update = useCallback((partial: Partial<WizardData>) => {
     setData((prev) => ({ ...prev, ...partial }));
   }, []);
@@ -1487,18 +1523,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                                   };
                                 }
                                 // Toggle on — add this saved kid
-                                const newEntry: ChildProfile = {
-                                  ...createChild(),
-                                  name: k.name,
-                                  name_he: k.name_he ?? null,
-                                  name_yi: k.name_yi ?? null,
-                                  age: k.age ? String(k.age) : "",
-                                  gender: k.gender || "",
-                                  photoPreview: k.photo_url || null,
-                                  existingPhotoUrl: k.photo_url || null,
-                                  description: k.description || "",
-                                  savedChildId: k.id,
-                                };
+                                const newEntry: ChildProfile = profileFromRecord(k);
                                 // If the only existing child is the empty starter, replace it
                                 const base = prev.children;
                                 const onlyEmptyStarter =

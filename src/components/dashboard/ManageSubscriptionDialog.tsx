@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, CreditCard, MapPin, Pause, Play, XCircle, ExternalLink, CalendarDays } from "lucide-react";
+import { Loader2, CreditCard, MapPin, Pause, Play, XCircle, Mail, CalendarDays, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -99,12 +99,22 @@ export function ManageSubscriptionDialog({ open, onClose, subscription, onChange
     }
   };
 
+  /* Everything on this dialog is handled here — pause, resume, cancel and the
+     address all go straight to the Shopify Admin API and come back into this
+     panel. The ONE thing that cannot be local is card entry: card numbers must
+     never touch our servers. So instead of dropping the customer into Shopify's
+     customer-accounts portal (which shows invoices and no card form), we have
+     Shopify email them a secure link to the real form. */
+  const [cardEmailSent, setCardEmailSent] = useState<string | null>(null);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+
   const updateCard = async () => {
     setBusy("card");
     try {
-      const { data, error } = await invoke({ action: "subscription-card-url" });
-      if (error || data?.error || !data?.url) throw new Error(data?.error || "failed");
-      window.open(data.url as string, "_blank", "noopener,noreferrer");
+      const { data, error } = await invoke({ action: "subscription-card-email" });
+      if (error || data?.error || !data?.sent) throw new Error(data?.error || "failed");
+      setCardEmailSent((data.email as string) || "");
+      toast.success(t.dash.manage.cardEmailSent);
     } catch {
       toast.error(t.dash.manage.actionFailed);
     } finally {
@@ -113,7 +123,7 @@ export function ManageSubscriptionDialog({ open, onClose, subscription, onChange
   };
 
   const cancelSub = async () => {
-    if (!window.confirm(t.dash.manage.cancelConfirm)) return;
+    setConfirmingCancel(false);
     await runAction("subscription-cancel", t.dash.manage.canceled);
   };
 
@@ -124,9 +134,14 @@ export function ManageSubscriptionDialog({ open, onClose, subscription, onChange
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg rounded-3xl border-border/50 bg-card max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-heading text-primary">{t.dash.manage.title}</DialogTitle>
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/25 to-accent/5 text-accent ring-1 ring-accent/20">
+              <Settings className="h-5 w-5" />
+            </span>
+            <DialogTitle className="font-heading text-2xl font-bold text-primary">{t.dash.manage.title}</DialogTitle>
+          </div>
         </DialogHeader>
 
         {loading ? (
@@ -156,8 +171,8 @@ export function ManageSubscriptionDialog({ open, onClose, subscription, onChange
             <div className="rounded-2xl border border-border/60 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-primary flex items-center gap-2"><CreditCard className="w-4 h-4 text-muted-foreground" />{t.dash.manage.card}</p>
-                <Button variant="outline" size="sm" className="rounded-lg gap-1.5" onClick={updateCard} disabled={busy === "card"}>
-                  {busy === "card" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                <Button variant="outline" size="sm" className="rounded-full gap-1.5 border-accent/40" onClick={updateCard} disabled={busy === "card"}>
+                  {busy === "card" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
                   {t.dash.manage.updateCard}
                 </Button>
               </div>
@@ -168,7 +183,13 @@ export function ManageSubscriptionDialog({ open, onClose, subscription, onChange
                   ? `PayPal · ${detail.paypalEmail}`
                   : t.dash.manage.noCard}
               </p>
-              <p className="text-[11px] text-muted-foreground leading-snug">{t.dash.manage.cardSecureNote}</p>
+              {cardEmailSent !== null ? (
+                <p className="rounded-xl bg-accent/10 px-3 py-2 text-[11px] leading-snug text-primary">
+                  {t.dash.manage.cardEmailNote(cardEmailSent)}
+                </p>
+              ) : (
+                <p className="text-[11px] text-muted-foreground leading-snug">{t.dash.manage.cardSecureNote}</p>
+              )}
             </div>
 
             {/* Shipping address */}
@@ -211,8 +232,24 @@ export function ManageSubscriptionDialog({ open, onClose, subscription, onChange
               )}
             </div>
 
+            {/* Cancelling asks in the dialog, in the brand's own voice, instead of
+                a browser confirm() box. */}
+            {!isCanceled && confirmingCancel && (
+              <div className="rounded-2xl border-2 border-destructive/30 bg-destructive/5 p-4 space-y-3">
+                <p className="text-sm text-primary">{t.dash.manage.cancelConfirm}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="destructive" size="sm" className="rounded-full" onClick={cancelSub} disabled={!!busy}>
+                    {busy === "subscription-cancel" ? <Loader2 className="w-4 h-4 animate-spin" /> : t.dash.manage.cancelYes}
+                  </Button>
+                  <Button variant="outline" size="sm" className="rounded-full border-border/60" onClick={() => setConfirmingCancel(false)} disabled={!!busy}>
+                    {t.dash.manage.cancelNo}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Pause / resume / cancel */}
-            {!isCanceled && (
+            {!isCanceled && !confirmingCancel && (
               <div className="flex flex-wrap gap-2">
                 {isPaused ? (
                   <Button variant="outline" className="rounded-xl gap-1.5 flex-1" onClick={() => runAction("subscription-resume", t.dash.manage.resumed)} disabled={!!busy}>
@@ -223,8 +260,8 @@ export function ManageSubscriptionDialog({ open, onClose, subscription, onChange
                     {busy === "subscription-pause" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pause className="w-4 h-4" />}{t.dash.manage.pause}
                   </Button>
                 )}
-                <Button variant="ghost" className="rounded-xl gap-1.5 text-destructive hover:text-destructive" onClick={cancelSub} disabled={!!busy}>
-                  {busy === "subscription-cancel" ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}{t.dash.manage.cancelSub}
+                <Button variant="ghost" className="rounded-full gap-1.5 text-destructive hover:text-destructive" onClick={() => setConfirmingCancel(true)} disabled={!!busy}>
+                  <XCircle className="w-4 h-4" />{t.dash.manage.cancelSub}
                 </Button>
               </div>
             )}

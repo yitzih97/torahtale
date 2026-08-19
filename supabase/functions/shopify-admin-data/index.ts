@@ -435,6 +435,30 @@ serve(async (req) => {
       return json({ url });
     }
 
+    // ── subscription-card-email: Shopify emails the customer a SECURE link to
+    // ── replace the card on this subscription.
+    // Card data can never touch our servers (PCI), so the entry form has to be
+    // the processor's. The direct updatePaymentMethodUrl above now lands in
+    // Shopify's new customer-accounts portal — a list of invoices with no card
+    // form — so this sends the customer straight to the real form instead.
+    if (action === "subscription-card-email") {
+      const { err, cid } = await loadOwnedContract();
+      if (err) return err;
+      const detail = await shopifyGraphQL(
+        `query($id: ID!) { subscriptionContract(id: $id) { customerPaymentMethod { id } } }`,
+        { id: cid },
+      );
+      const pmId = detail.subscriptionContract?.customerPaymentMethod?.id;
+      if (!pmId) return json({ error: "No payment method on this subscription" }, 400);
+      const res = await shopifyGraphQL(
+        `mutation($id: ID!) { customerPaymentMethodSendUpdateEmail(customerPaymentMethodId: $id) { customer { id email } userErrors { message } } }`,
+        { id: pmId },
+      );
+      const uerr = firstUserError(res.customerPaymentMethodSendUpdateEmail);
+      if (uerr) return json({ error: uerr }, 400);
+      return json({ sent: true, email: res.customerPaymentMethodSendUpdateEmail?.customer?.email ?? null });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("shopify-admin-data error:", e);

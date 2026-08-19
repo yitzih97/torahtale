@@ -16,6 +16,8 @@ interface KidCardProps {
   bookCount: number;
   onEdit: () => void;
   onViewBooks: () => void;
+  /** Start the wizard for THIS child — not the books tab. */
+  onCreateBook: () => void;
   onManageSubscription: () => void;
   onToggleSubscription: () => Promise<void> | void;
 }
@@ -39,6 +41,7 @@ export function KidCard({
   bookCount,
   onEdit,
   onViewBooks,
+  onCreateBook,
   onManageSubscription,
   onToggleSubscription,
 }: KidCardProps) {
@@ -169,7 +172,7 @@ export function KidCard({
         {/* Primary action */}
         <button
           type="button"
-          onClick={onViewBooks}
+          onClick={onCreateBook}
           className="group/btn w-full py-3.5 px-6 mb-5 rounded-2xl
             text-white font-semibold text-sm
             bg-gradient-to-br from-[hsl(42_78%_70%)] via-gold to-[hsl(42_78%_42%)]

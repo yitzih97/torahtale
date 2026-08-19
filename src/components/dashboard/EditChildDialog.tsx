@@ -168,22 +168,29 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="wizard-glass max-w-2xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-[28px] border-white/60 bg-white/85 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.35),inset_0_1px_0_0_rgba(255,255,255,0.9)]">
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
-          <div className="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-gradient-to-br from-sky-200/40 to-indigo-200/0 blur-3xl" />
-          <div className="absolute -bottom-24 -right-16 w-80 h-80 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/0 blur-3xl" />
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-3xl border-border/50 bg-card shadow-[0_30px_80px_-30px_rgba(60,45,15,0.45)]">
+        {/* Warm accent wash, in the brand's own gold rather than the sky/indigo
+            glass this dialog used to carry. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
+          <div className="absolute -top-24 -left-16 w-72 h-72 rounded-full bg-gradient-to-br from-accent/15 to-transparent blur-3xl" />
+          <div className="absolute -bottom-24 -right-16 w-80 h-80 rounded-full bg-gradient-to-br from-accent/10 to-transparent blur-3xl" />
         </div>
 
         <div className="relative p-6 sm:p-8" dir={dir}>
-          <header className="mb-6">
-            <h2 className="font-display text-2xl font-bold text-primary">{t.dash.editChildTitle}</h2>
-            <p className="text-xs text-muted-foreground mt-1">{t.dash.editChildSubtitle}</p>
+          <header className="mb-6 flex items-center gap-3.5">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/25 to-accent/5 text-accent ring-1 ring-accent/20">
+              <User className="h-6 w-6" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-primary leading-tight">{t.dash.editChildTitle}</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">{t.dash.editChildSubtitle}</p>
+            </div>
           </header>
 
           <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-6">
             {/* Photo column */}
             <div className="flex flex-col items-center gap-3">
-              <div className="relative w-40 h-40 rounded-2xl overflow-hidden bg-muted/50 border border-border/50 ring-1 ring-black/5 shadow-sm">
+              <div className="relative w-40 h-40 rounded-3xl overflow-hidden bg-muted/40 border-2 border-accent/25 ring-1 ring-accent/10 shadow-[0_12px_30px_-16px_rgba(60,45,15,0.5)]">
                 {previewSrc ? (
                   <img src={previewSrc} alt="Child" className="w-full h-full object-cover" />
                 ) : (
@@ -193,7 +200,7 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
                 )}
               </div>
               <div className="flex flex-wrap items-center justify-center gap-1.5 w-full">
-                <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs h-8 px-3 rounded-lg border border-border bg-white/70 hover:bg-white font-medium transition-colors">
+                <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs h-8 px-3 rounded-full border border-accent/40 bg-accent/5 text-primary hover:bg-accent/10 font-medium transition-colors">
                   <Camera className="w-3.5 h-3.5" />
                   {photoPreview ? t.dash.replacePhoto : t.dash.uploadPhoto}
                   <input type="file" accept="image/*" onChange={handlePhotoSelect} className="hidden" />
@@ -302,13 +309,15 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
             </div>
           </div>
 
-          <footer className="flex items-center justify-between mt-8 pt-4 border-t border-border/50">
-            <Button variant="ghost" onClick={onClose} className="text-muted-foreground">{t.dash.cancel}</Button>
+          <footer className="mt-8 flex flex-col-reverse gap-2 border-t border-border/50 pt-5 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+            <Button variant="outline" onClick={onClose} className="h-11 rounded-full border-border/60 sm:min-w-[7rem]">
+              {t.dash.cancel}
+            </Button>
             <Button
               variant="gold"
               onClick={handleSave}
               disabled={!canSave || isPending || uploading}
-              className="gap-2"
+              className="h-11 gap-2 rounded-full px-7 sm:min-w-[11rem]"
             >
               {uploading || isPending ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> {t.dash.saving}</>

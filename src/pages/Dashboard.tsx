@@ -360,6 +360,11 @@ export default function Dashboard() {
                           bookCount={kidBooks}
                           onEdit={() => setEditingChild(kid)}
                           onViewBooks={() => setActiveTab("books")}
+                          // Straight into the wizard with this child chosen.
+                          onCreateBook={() => {
+                            try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
+                            navigate(`/create?child=${kid.id}`);
+                          }}
                           onManageSubscription={() => {
                             if (kidSub) setEditingSub(kidSub);
                             else setActiveTab("subs");
