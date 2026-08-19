@@ -99,14 +99,20 @@ export const COVER_BY_PORTION = {
   yonah: ["s10-cover.jpg", "Yonah and the Great Dag — a real printed Torah Tale book from Sefer Yonah"],
 };
 
-/** Fallback hero art per collection, from the real wizard category tiles. */
+/**
+ * Hero art per collection. These replaced the 256x256 wizard tiles that were
+ * being blown up to 520px in an article — they are original 3D illustrations
+ * starring the same children who front the home-page gallery, so a reader meets
+ * the same faces across the site. See docs/blog-art.md for the
+ * recipe and the exact prompts, so they can be regenerated on the same model.
+ */
 const CATEGORY_IMAGE = {
-  torah: ["torah.jpg", "Chumash story books from the Torah Tale collection"],
-  neviim: ["neviim.jpg", "Nevi'im story books from the Torah Tale collection"],
-  ketuvim: ["ketuvim.jpg", "Kesuvim story books from the Torah Tale collection"],
-  megillot: ["megillot.jpg", "Megillos story books from the Torah Tale collection"],
-  holiday: ["holiday.jpg", "Yom Tov story books from the Torah Tale collection"],
-  educational: ["educational.jpg", "Middos story books from the Torah Tale collection"],
+  torah: ["torah.jpg", "Two children reading a Torah Tale storybook together in a home library"],
+  neviim: ["neviim.jpg", "Two children with a Torah Tale storybook on a hilltop in Eretz Yisrael"],
+  ketuvim: ["ketuvim.jpg", "Two children reading a Torah Tale storybook beside a stream"],
+  megillot: ["megillot.jpg", "Two children unrolling an illustrated scroll in a palace hall"],
+  holiday: ["holiday.jpg", "Two children with a Torah Tale storybook at a Yom Tov table"],
+  educational: ["educational.jpg", "A girl putting a coin in a tzedakah box a boy is holding"],
 };
 
 const CATEGORY_FIG = (category, rtl) => {
