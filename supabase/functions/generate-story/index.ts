@@ -41,7 +41,7 @@ serve(async (req) => {
 
   const t0 = Date.now();
   try {
-    const { childName, childrenInfo, age, gender, torahPortion, torahPortionLabel, artStyle, language, pageCount, castingPlan, castPerPage } = await req.json();
+    const { childName, childrenInfo, age, gender, torahPortion, torahPortionLabel, artStyle, language, pageCount, castingPlan, castPerPage, parents } = await req.json();
 
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -272,6 +272,15 @@ This family has more children than can share one illustration, so each page star
 ${castingPlan}`
       : "";
 
+    /* The family page. Parents are kept out of every Torah scene (see the rule
+       above); this is the one page they belong on — a warm closing beat back at
+       home, after the story is over. */
+    const parentList: Array<{ name: string; role: string }> = Array.isArray(parents) ? parents : [];
+    const familyBlock = parentList.length
+      ? `\n\nFAMILY PAGE — write this as "familyPage":
+After the story ends, the book closes with ONE short page back at home with the whole family: the children together with ${parentList.map((p) => `${p.name} (their ${p.role === "tatty" ? "father" : "mother"})`).join(" and ")}. Two to four warm lines, in the same voice and rhyme scheme as the story, tying what the children learned back to their own family — sharing it at the Shabbos table, telling ${parentList.map((p) => p.name).join(" and ")} what they saw. Name every star child here; this is the one page they are all together. ${parentList.map((p) => p.name).join(" and ")} may be named ONLY on this page and nowhere else in the book.`
+      : "";
+
     const userPrompt = `Write a personalized children's book with a front cover, ${pages} story pages, a back cover, and 10 discussion questions.
 
 Details:
@@ -304,7 +313,7 @@ Requirements:
 - Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting like a Yiddishe bubbe telling a maaseh
 - ${languageInstruction}
 ${templateGuidance}
-${castingBlock}
+${castingBlock}${familyBlock}
 
 You MUST respond with ONLY a valid JSON object with this exact structure:
 {
@@ -320,6 +329,7 @@ You MUST respond with ONLY a valid JSON object with this exact structure:
   "backCover": {
     "synopsis": "A short 1-2 sentence synopsis for the back cover",
     "dedication": "A warm dedication message to the child/children",
+  "familyPage": "ONLY when a FAMILY PAGE was requested above: 2-4 warm closing lines with the children and their parents at home, same voice and rhyme as the story. Omit otherwise.",
     "questions": [
       { "number": 1, "question": "Discussion question 1" },
       { "number": 2, "question": "Discussion question 2" },

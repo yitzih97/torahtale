@@ -362,6 +362,7 @@ export const he: typeof en = {
     },
     remove: {
       action: "הסרה",
+      deleteProfile: "מחיקת הילד הזה",
       title: (n: number) => (n === 1 ? "להסיר את הילד?" : `להסיר ${n} ילדים?`),
       confirm: (n: number) => (n === 1 ? "הסירו את הילד" : `הסירו ${n} ילדים`),
       removing: "מסירים…",
@@ -593,6 +594,12 @@ export const he: typeof en = {
     roleMommy: "אמא",
     roleChild: "ילד",
     namePlaceholderRole: (role: string) => `השם של ${role}`,
+    parents: {
+      addParent: "הוספת הורה",
+      hint: "ההורים מופיעים פעם אחת, בעמוד האחרון — הסיפור עצמו מככב את הילדים.",
+      tatty: "אבא", mommy: "אמא",
+      name: "השם שלהם", photo: "תמונה", save: "הוסיפו לספר",
+    },
     addAnotherChild: "הוספת ילד נוסף",
     addAnotherTitle: "להוסיף ילד נוסף?",
     addAnotherDesc: "אפשר ליצור ספר אחד עם כל הילדים יחד, או להמשיך עם הילד הזה בלבד.",

@@ -370,6 +370,7 @@ export const en = {
     // Merge kids
     remove: {
       action: "Remove",
+      deleteProfile: "Delete this child",
       title: (n: number) => (n === 1 ? "Remove this child?" : `Remove ${n} children?`),
       confirm: (n: number) => (n === 1 ? "Remove child" : `Remove ${n} children`),
       removing: "Removing…",
@@ -601,6 +602,12 @@ export const en = {
     roleMommy: "Mommy",
     roleChild: "Child",
     namePlaceholderRole: (role: string) => `${role}'s name`,
+    parents: {
+      addParent: "Add a parent",
+      hint: "Parents appear once, on the last page — the story itself stars the children.",
+      tatty: "Tatty", mommy: "Mommy",
+      name: "Their name", photo: "Photo", save: "Add to the book",
+    },
     addAnotherChild: "Add Another Child",
     addAnotherTitle: "Add another child?",
     addAnotherDesc: "Create one book starring all your children together, or continue with just this one.",

@@ -279,6 +279,13 @@ serve(async (req) => {
       imagePrompt += ` SCENE TO ILLUSTRATE: "${pageText}". Depict this specific moment vividly.`;
     }
 
+    /* The family page: the one page the parents appear on. It is present-day and
+       domestic — NOT a Torah scene — and the two adults must read unmistakably
+       as grown-ups beside their children, not as older kids. */
+    if (pageType === "family" && !prompt) {
+      imagePrompt += ` THIS IS THE CLOSING FAMILY PAGE — a warm PRESENT-DAY scene at home with the whole family together (around the Shabbos table, in the living room, or by the front door), NOT a biblical or Torah scene, no desert, no ancient dress. ${pageText ? `The moment: "${pageText}".` : ""} The ADULTS in the references are the children's parents: draw them clearly as grown adults — full adult height and proportions, standing head and shoulders above the children — never as older children. The father wears a kippah; the mother's hair is covered with a tichel or snood and she wears a modest long-sleeved top with a skirt below the knee. Everyone is together in one affectionate group.`;
+    }
+
     // Inject child description into prompt if available
     if (childDescription && !prompt) {
       imagePrompt += ` The child character has these features: ${childDescription}.`;

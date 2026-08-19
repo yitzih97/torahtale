@@ -178,6 +178,18 @@ function buildPendingTasks(
      keeps a big family inside the 4-attachment budget and leaves room for the
      scene's Torah characters. A page with no stored cast (every book made before
      casting existed, and every small family) gets the whole cast, unchanged. */
+  /* Parent references, built once. They are appended ONLY to the family page —
+     never to a story page, a cover or a teaser — so a parent can never wander
+     into a Torah scene. */
+  const parentRefs = (sdState.parents || []).map((pr: any) => ({
+    name: pr.name,
+    age: pr.role === "tatty" ? "35" : "33",
+    gender: pr.role === "tatty" ? "boy" : "girl",
+    description: `${pr.description || ""} A grown adult ${pr.role === "tatty" ? "father" : "mother"}.`.trim(),
+    photoUrl: pr.photoUrl || null,
+    characterSheet: sheets[pr.name] || null,
+  }));
+
   const refsForPage = (pg: any) => {
     const cast: string[] | null = Array.isArray(pg?.starChildren) ? pg.starChildren : null;
     if (!cast || cast.length === 0) return allChildRefs;
@@ -233,7 +245,7 @@ function buildPendingTasks(
         artStyle: book.art_style,
         torahPortion: isPreview ? pg.portion : book.torah_portion,
         bookFormat,
-        pageType: isPreview ? "cover" : pg.type,
+        pageType: isPreview ? "cover" : pg.isFamilyPage ? "family" : pg.type,
         outfitVariant: isPreview ? pg.outfit || undefined : undefined,
         pageNumber: pg.type === "story" ? storyPageNumber : undefined,
         characterSheet: primarySheet,
@@ -241,9 +253,16 @@ function buildPendingTasks(
         childDescription: primaryDesc,
         characterSheets: sheets,
         // Only this page's cast — see refsForPage. Covers and preview pages keep
-        // the whole family (they are the group shot).
-        childRefs: (pg.type === "story") ? refsForPage(pg) : allChildRefs,
-        storyCharacterRefs: isPreview ? [] : storyCharacterRefs,
+        // the whole family (they are the group shot). The family page adds the
+        // PARENTS on top of the children — the one page they appear on.
+        // Parents FIRST on the family page: they are the reason the page exists,
+        // and generate-image still caps attachments at 4. With a big family the
+        // remaining children spill past that cap — the composite reference sheet
+        // is what removes the limit here.
+        childRefs: pg.isFamilyPage ? [...parentRefs, ...allChildRefs]
+          : pg.type === "story" ? refsForPage(pg)
+          : allChildRefs,
+        storyCharacterRefs: (isPreview || pg.isFamilyPage) ? [] : storyCharacterRefs,
         pageText: pg.text,
       },
     });
@@ -364,6 +383,27 @@ async function generate(bookId: string) {
           console.error("generate-book: character sheet failed for", child?.name, e);
         }
       }));
+      // Parents need a sheet as well — they are drawn once, on the family page,
+      // and must still look like themselves.
+      const parentList: any[] = sdState.parents || [];
+      await Promise.all(parentList.map(async (pr: any) => {
+        if (!pr?.name || sheets[pr.name]) return;
+        try {
+          const sheet = await callFn("generate-character-sheet", {
+            bookId: book.id,
+            childName: pr.name,
+            age: pr.role === "tatty" ? "35" : "33",
+            gender: pr.role === "tatty" ? "boy" : "girl",
+            artStyle: book.art_style || "cartoon",
+            description: `${pr.description || ""} An adult ${pr.role === "tatty" ? "father" : "mother"}, drawn as a grown-up — never as a child.`.trim(),
+            referenceImage: pr.photoUrl || null,
+            torahPortion: book.torah_portion,
+          });
+          if (sheet?.imageUrl) sheets[pr.name] = sheet.imageUrl;
+        } catch (e) {
+          console.error("generate-book: parent sheet failed for", pr?.name, e);
+        }
+      }));
       sdState = { ...sdState, _characterSheets: sheets, _sheetsDone: true };
       await persist();
     }
@@ -385,7 +425,12 @@ async function generate(bookId: string) {
       // story page — and hard-cap below in case the LLM overshoots — or the book
       // ends up over the slot count and Printify submit hard-fails ("22 vs 21").
       const pageCount = sdState.pageCount || 20;
-      const storyPageCount = Math.max(1, pageCount - 1);
+      // The Printify blueprint has exactly `pageCount` interior slots. The
+      // questions page takes one; a family page (when there are parents) takes
+      // another. Reserve both here or the book overflows the slot count and
+      // Printify submit hard-fails ("22 vs 21").
+      const hasParents = ((sdState.parents || []) as any[]).length > 0;
+      const storyPageCount = Math.max(1, pageCount - 1 - (hasParents ? 1 : 0));
       // Who appears on which page. Above CAST_ALL_UPTO children this splits the
       // family across the pages; at or below it every child is on every page and
       // the plan is a no-op, so existing books are unaffected.
@@ -401,6 +446,8 @@ async function generate(bookId: string) {
         // ignores it for small families.
         castingPlan: isCastRotated ? describeCastingPlan(castingPlan) : undefined,
         castPerPage: isCastRotated ? castingPlan[0]?.length : undefined,
+        // Lets the story write its closing family page — and ONLY that page.
+        parents: (sdState.parents || []).map((pr: any) => ({ name: pr.name, role: pr.role })),
         // The OLDEST star sets the reading level — see generate-story.
         age: String((sdState.childDescriptions || []).reduce(
           (m: number, c: any) => Math.max(m, Number(c?.age) || 0), 0,
@@ -430,6 +477,26 @@ async function generate(bookId: string) {
         });
         storyIdx++;
       }
+      /* The family page — the ONLY place a parent appears. It sits after the last
+         story page, so the story itself stays the children's. Skipped entirely
+         when no parents were added. */
+      const parentsForBook: any[] = sdState.parents || [];
+      if (parentsForBook.length > 0) {
+        pages.push({
+          id: pageId++,
+          text: story.familyPage || story.dedication || "",
+          image: null,
+          // A story page as far as every renderer, page count and print path is
+          // concerned — the marker is what tells generate-book to add the
+          // parents and switch the scene to present-day.
+          type: "story",
+          isFamilyPage: true,
+          characters: [],
+          starChildren: castNames,
+          parentNames: parentsForBook.map((pr: any) => pr.name),
+        });
+      }
+
       if (questions.length > 0) {
         const qText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
         pages.push({ id: pageId++, text: qText, image: null, type: "questions", questions });

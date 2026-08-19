@@ -362,6 +362,7 @@ export const yi: typeof en = {
     },
     remove: {
       action: "אַראָפּנעמען",
+      deleteProfile: "אויסמעקן דעם קינד",
       title: (n: number) => (n === 1 ? "אַראָפּנעמען דעם קינד?" : `אַראָפּנעמען ${n} קינדער?`),
       confirm: (n: number) => (n === 1 ? "נעמט אַראָפּ דעם קינד" : `נעמט אַראָפּ ${n} קינדער`),
       removing: "מען נעמט אַראָפּ…",
@@ -593,6 +594,12 @@ export const yi: typeof en = {
     roleMommy: "מאמי",
     roleChild: "קינד",
     namePlaceholderRole: (role: string) => `${role}'ס נאמען`,
+    parents: {
+      addParent: "צולייגן אַן עלטער",
+      hint: "עלטערן קומען פֿאָר איין מאָל, אויפֿן לעצטן בלאַט — די מעשה אַליין שטערנט די קינדער.",
+      tatty: "טאַטע", mommy: "מאַמע",
+      name: "זייער נאָמען", photo: "בילד", save: "לייגט צו צום ספר",
+    },
     addAnotherChild: "הוסיפו ילד נוסף",
     addAnotherTitle: "צולייגן נאך א קינד?",
     addAnotherDesc: "מאכט איין בוך מיט אלע קינדער צוזאמען, אדער גייט װײַטער מיט נאר דעם דאזיקן קינד.",

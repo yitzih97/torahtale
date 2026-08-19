@@ -112,8 +112,30 @@ const createChild = (): ChildProfile => ({
   role: "child",
 });
 
+/**
+ * A parent on the book. Kept in its own array rather than as a ChildProfile with
+ * a role flag, so a parent can never be swept into the star cast by code that
+ * iterates `children` — they are stars of nothing, and appear on exactly one
+ * page at the very end.
+ */
+export interface ParentProfile {
+  id: string;
+  role: "tatty" | "mommy";
+  name: string;
+  photo: File | null;
+  photoPreview: string | null;
+  photoOriginalSrc?: string | null;
+  description: string;
+}
+
+const createParent = (role: "tatty" | "mommy"): ParentProfile => ({
+  id: generateId(), role, name: "", photo: null, photoPreview: null, description: "",
+});
+
 interface WizardData {
   children: ChildProfile[];
+  /** Optional — at most one tatty and one mommy. */
+  parents: ParentProfile[];
   torahPortion: string;
   artStyle: string;
   narrativeStyle: "story" | "comic";
@@ -124,6 +146,7 @@ interface WizardData {
 
 const initialData: WizardData = {
   children: [createChild()],
+  parents: [],
   torahPortion: "",
   artStyle: "3d-pixar",
   narrativeStyle: "story",
@@ -771,6 +794,9 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   ) : null;
 
   const [cropState, setCropState] = useState<{ childId: string; src: string; fileName: string } | null>(null);
+  /** The parent currently being added/edited in the parent sheet (null = closed). */
+  const [addingParent, setAddingParent] = useState<ParentProfile | null>(null);
+  const [parentCrop, setParentCrop] = useState<{ src: string; fileName: string } | null>(null);
   const [familyDialogOpen, setFamilyDialogOpen] = useState(false);
 
   const handleFamilyPhotoConfirm = (people: ReviewedPerson[]) => {
@@ -926,6 +952,29 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
           })
         );
 
+        /* Parents: upload the face and record name + role. They are NOT saved to
+           the children table and never enter childDescriptions — the pipeline
+           reads them from their own key and puts them on one page at the end. */
+        const parentDescriptions = await Promise.all(
+          data.parents.filter((pr) => !!pr.photoPreview).map(async (pr) => {
+            let photoUrl: string | null = null;
+            if (pr.photo) {
+              const filePath = `${user.id}/parent-${pr.id}-${Date.now()}.jpg`;
+              const { error: upErr } = await supabase.storage
+                .from("child-photos").upload(filePath, pr.photo, { upsert: true });
+              if (!upErr) {
+                const { data: signed } = await supabase.storage
+                  .from("child-photos").createSignedUrl(filePath, 60 * 60 * 24 * 365);
+                photoUrl = signed?.signedUrl || null;
+              }
+            }
+            const fallback = pr.role === "tatty"
+              ? (lang === "he" ? "אבא" : lang === "yi" ? "טאַטע" : "Tatty")
+              : (lang === "he" ? "אמא" : lang === "yi" ? "מאַמע" : "Mommy");
+            return { name: (pr.name || "").trim() || fallback, role: pr.role, description: pr.description || "", photoUrl };
+          })
+        );
+
         // The current wizard selections — written on both insert and re-sync so a
         // reused (adopted) book can never keep a stale portion/child/format.
         const fields = {
@@ -941,6 +990,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
             bookOptions: bookOptions,
             narrativeStyle: data.narrativeStyle,
             childDescriptions,
+            parents: parentDescriptions,
           },
         };
 
@@ -1915,24 +1965,72 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   ))}
                 </div>
 
-                {data.children.length < MAX_CHILDREN && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      const newChild = createChild();
-                      setData((prev) => ({
-                        ...prev,
-                        children: [...prev.children, newChild],
-                        activeChildIdx: prev.children.length,
-                      }));
-                      setDir(1);
-                      setStep(1);
-                    }}
-                    className="w-full border-dashed border-2 border-border/50 rounded-2xl h-12 text-foreground hover:border-accent/40 hover:bg-accent/5"
-                  >
-                    <Plus className="w-4 h-4" /> {t.wizard.addAnotherChild}
-                  </Button>
+                {/* Parents added so far — shown apart from the kids, because they
+                    are not stars of the book: they appear once, at the end. */}
+                {data.parents.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {data.parents.map((pr) => (
+                      <div key={pr.id} className="flex items-center gap-2 rounded-full border-2 border-border/40 bg-muted/40 px-3 py-2">
+                        {pr.photoPreview ? (
+                          <img src={pr.photoPreview} alt={pr.name} className="h-7 w-7 rounded-full object-cover" />
+                        ) : (
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                            {(pr.name || (pr.role === "tatty" ? t.wizard.parents.tatty : t.wizard.parents.mommy)).slice(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="text-sm font-medium text-foreground">
+                          {pr.name || (pr.role === "tatty" ? t.wizard.parents.tatty : t.wizard.parents.mommy)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setData((prev) => ({ ...prev, parents: prev.parents.filter((x) => x.id !== pr.id) }))}
+                          aria-label={t.common.delete}
+                          className="ms-0.5 flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
+
+                <div className="space-y-2">
+                  {data.children.length < MAX_CHILDREN && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const newChild = createChild();
+                        setData((prev) => ({
+                          ...prev,
+                          children: [...prev.children, newChild],
+                          activeChildIdx: prev.children.length,
+                        }));
+                        setDir(1);
+                        setStep(1);
+                      }}
+                      className="w-full border-dashed border-2 border-border/50 rounded-2xl h-12 text-foreground hover:border-accent/40 hover:bg-accent/5"
+                    >
+                      <Plus className="w-4 h-4" /> {t.wizard.addAnotherChild}
+                    </Button>
+                  )}
+
+                  {/* A separate door for parents. They do NOT join the children
+                      array and never become story stars. */}
+                  {data.parents.length < 2 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setAddingParent(createParent(
+                        data.parents.some((pr) => pr.role === "tatty") ? "mommy" : "tatty",
+                      ))}
+                      className="w-full border-dashed border-2 border-border/50 rounded-2xl h-12 text-foreground hover:border-accent/40 hover:bg-accent/5"
+                    >
+                      <Plus className="w-4 h-4" /> {t.wizard.parents.addParent}
+                    </Button>
+                  )}
+                  <p className="px-1 text-center text-[11px] leading-snug text-muted-foreground">
+                    {t.wizard.parents.hint}
+                  </p>
+                </div>
               </motion.div>
             )}
 
@@ -2844,6 +2942,109 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
         bookOptions.productType === "hardcover" ? t.bookOptions.hardcover :
         bookOptions.productType === "board" ? t.bookOptions.boardBook : ""}${bookOptions.coloringBook ? ` + ${t.bookOptions.coloringBookAddon}` : ""}`
       }
+    />
+
+    {/* ── Add a parent ─────────────────────────────────────────────────────
+     * Deliberately a small, separate sheet rather than a step in the child
+     * flow: a parent needs only a name and a face, no age or reading level,
+     * and must never be mistaken for one of the stars. */}
+    <Dialog open={!!addingParent} onOpenChange={(o) => { if (!o) { setAddingParent(null); setParentCrop(null); } }}>
+      <DialogContent className="max-w-md rounded-3xl border-border/50 bg-card p-6" dir={lang === "en" ? "ltr" : "rtl"}>
+        {addingParent && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/25 to-accent/5 text-accent ring-1 ring-accent/20">
+                <Users className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="font-heading text-2xl font-bold text-primary">{t.wizard.parents.addParent}</h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t.wizard.parents.hint}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {(["tatty", "mommy"] as const).map((r) => {
+                const taken = data.parents.some((pr) => pr.role === r);
+                const on = addingParent.role === r;
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    disabled={taken}
+                    onClick={() => setAddingParent({ ...addingParent, role: r })}
+                    className={`rounded-xl border-2 py-2.5 text-sm font-medium transition-all disabled:opacity-40 ${
+                      on ? "border-accent bg-accent/10 text-accent" : "border-border text-foreground hover:border-accent/40"
+                    }`}
+                  >
+                    {r === "tatty" ? t.wizard.parents.tatty : t.wizard.parents.mommy}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label className="relative h-24 w-24 shrink-0 cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-accent/30 bg-accent/5 transition hover:border-accent/60">
+                {addingParent.photoPreview ? (
+                  <img src={addingParent.photoPreview} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full w-full flex-col items-center justify-center gap-1 text-accent">
+                    <Camera className="h-6 w-6" />
+                    <span className="text-[10px] font-medium">{t.wizard.parents.photo}</span>
+                  </span>
+                )}
+                <input
+                  type="file" accept="image/*" className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]; e.target.value = "";
+                    if (!f) return;
+                    const rd = new FileReader();
+                    rd.onloadend = () => setParentCrop({ src: rd.result as string, fileName: f.name });
+                    rd.readAsDataURL(f);
+                  }}
+                />
+              </label>
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{t.wizard.parents.name}</Label>
+                <Input
+                  value={addingParent.name}
+                  onChange={(e) => setAddingParent({ ...addingParent, name: e.target.value })}
+                  placeholder={addingParent.role === "tatty" ? t.wizard.parents.tatty : t.wizard.parents.mommy}
+                  className="h-11 rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-1">
+              <Button
+                variant="gold"
+                className="h-11 w-full rounded-full"
+                disabled={!addingParent.photoPreview}
+                onClick={() => {
+                  setData((prev) => ({ ...prev, parents: [...prev.parents, addingParent] }));
+                  setAddingParent(null);
+                }}
+              >
+                {t.wizard.parents.save}
+              </Button>
+              <Button variant="outline" className="h-10 w-full rounded-full border-border/60" onClick={() => setAddingParent(null)}>
+                {t.common.cancel}
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+
+    <ImageCropDialog
+      open={!!parentCrop}
+      imageSrc={parentCrop?.src ?? null}
+      fileName={parentCrop?.fileName ?? "photo.jpg"}
+      aspect={1}
+      onCancel={() => setParentCrop(null)}
+      onCropped={(file, dataUrl) => {
+        setAddingParent((prev) => (prev ? { ...prev, photo: file, photoPreview: dataUrl, photoOriginalSrc: parentCrop?.src ?? null } : prev));
+        setParentCrop(null);
+      }}
     />
 
     <ImageCropDialog
