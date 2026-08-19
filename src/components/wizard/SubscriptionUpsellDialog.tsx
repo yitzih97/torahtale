@@ -34,7 +34,7 @@ const SHIP_PER_BOOK = 5.95;
 const DEFAULT_PLANS: PlanData[] = [
   { id: "weekly", priceUsd: 19.44, perWeekUsd: 19.44, savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
   { id: "monthly", priceUsd: 74.77, perWeekUsd: 18.69, savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
-  { id: "yearly", priceUsd: 932.98, perWeekUsd: 17.94, savings: "20% off", savingsPct: 0.20, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+  { id: "yearly", priceUsd: 932.98, perWeekUsd: 17.94, savings: "4% off", savingsPct: 0.04, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
 ];
 
 /* Round to 2 decimals. NOTE: these MUST equal the live Shopify subscription variant
@@ -51,7 +51,7 @@ function buildPlansForBook(bookPriceUsd: number): PlanData[] {
   return [
     { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
     { id: "monthly", priceUsd: monthly, perWeekUsd: round2(monthly / 4), savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
-    { id: "yearly", priceUsd: yearly, perWeekUsd: round2(yearly / 52), savings: "20% off", savingsPct: 0.20, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+    { id: "yearly", priceUsd: yearly, perWeekUsd: round2(yearly / 52), savings: "4% off", savingsPct: 0.04, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
   ];
 }
 
@@ -92,7 +92,7 @@ function canonicalPlans(format: BookFormat, isIls: boolean): PlanData[] {
   return [
     { id: "weekly", priceUsd: p("weekly"), perWeekUsd: p("weekly"), savings: "10% off", savingsPct: 0.10, booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
     { id: "monthly", priceUsd: p("monthly"), perWeekUsd: round2(p("monthly") / 4), savings: "15% off", savingsPct: 0.15, booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
-    { id: "yearly", priceUsd: p("yearly"), perWeekUsd: round2(p("yearly") / 52), savings: "20% off", savingsPct: 0.20, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
+    { id: "yearly", priceUsd: p("yearly"), perWeekUsd: round2(p("yearly") / 52), savings: "4% off", savingsPct: 0.04, booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
   ];
 }
 
