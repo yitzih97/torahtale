@@ -431,7 +431,7 @@ export const en = {
     missionP2: "By combining advanced AI illustration and storytelling with careful rabbinical guidance, we create one-of-a-kind books that make parsha learning an unforgettable experience for kinderlach of all ages.",
     howStartedTitle: "How We Started",
     howStartedP1: "Torah Tale began with a father's wish: he wanted his children to truly experience every week's parsha — not just hear it read at the table, but feel like they were part of it. To walk the road with Avraham, cross the sea with Moshe, stand at Har Sinai — so that each Shabbos, that week's parsha became personal, a story they were inside of, not just listening to.",
-    howStartedP2: "So he started making books where his own children were the heroes of the weekly parsha — and their faces lit up like never before. That little idea grew into Torah Tale: premium printed storybooks that place your child at the heart of each week's parsha, turning Torah learning into an adventure they look forward to, week after week.",
+    howStartedP2: "So he started making books where his own children were the main characters of the weekly parsha — and their faces lit up like never before. That little idea grew into Torah Tale: premium printed storybooks that place your child at the heart of each week's parsha, turning Torah learning into an adventure they look forward to, week after week.",
     valuesTitle: "Our Values",
     values: [
       { title: "Torah-Rooted Content", desc: "Every story is grounded in authentic Torah wisdom, reviewed for accuracy and tznius standards." },
