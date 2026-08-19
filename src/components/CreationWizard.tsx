@@ -198,6 +198,14 @@ const ageToBracketLabel = (age: string): string => {
  */
 const DEFAULT_PARSHA_PLAN = "monthly" as const;
 
+/**
+ * How many children one book can star. Above CAST_ALL_UPTO (4) the pages are
+ * cast individually — see supabase/functions/_shared/casting.ts — so a page
+ * never exceeds the image model's 4 reference attachments however big the
+ * family is. The limit here is a product choice, not a technical ceiling.
+ */
+const MAX_CHILDREN = 8;
+
 const TOTAL_STEPS = 16;
 
 /* New spring-based transition variants */
@@ -1907,7 +1915,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   ))}
                 </div>
 
-                {data.children.length < 4 && (
+                {data.children.length < MAX_CHILDREN && (
                   <Button
                     variant="outline"
                     onClick={() => {

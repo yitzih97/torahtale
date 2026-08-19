@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildCastingPlan, describeCastingPlan, CAST_ALL_UPTO } from "../_shared/casting.ts";
 
 // Server-side book generator. Mirrors the admin browser flow
 // (src/components/admin/AdminBookGenerationModal.tsx) so a paid book can be
@@ -169,10 +170,21 @@ function buildPendingTasks(
   const bookOpts = sdState.bookOptions || {};
   const bookFormat = mapBookFormat(bookOpts.productType || "softcover", bookOpts.hardcoverSize || "8x8");
   const childDescriptions: any[] = sdState.childDescriptions || [];
-  const childRefs = childDescriptions.map((c: any) => ({
+  const allChildRefs = childDescriptions.map((c: any) => ({
     name: c.name, age: c.age, gender: c.gender, description: c.description || "",
     photoUrl: c.photoUrl || null, characterSheet: sheets[c.name] || null,
   }));
+  /* Only the children cast on THIS page are sent as references. That is what
+     keeps a big family inside the 4-attachment budget and leaves room for the
+     scene's Torah characters. A page with no stored cast (every book made before
+     casting existed, and every small family) gets the whole cast, unchanged. */
+  const refsForPage = (pg: any) => {
+    const cast: string[] | null = Array.isArray(pg?.starChildren) ? pg.starChildren : null;
+    if (!cast || cast.length === 0) return allChildRefs;
+    const wanted = new Set(cast.map((n) => String(n).trim().toLowerCase()));
+    const picked = allChildRefs.filter((c: any) => wanted.has(String(c.name).trim().toLowerCase()));
+    return picked.length > 0 ? picked : allChildRefs;
+  };
   const primaryName = childDescriptions[0]?.name || book.child_name;
   const primarySheet = sheets[primaryName] || null;
   const primaryDesc = childDescriptions[0]?.description || "";
@@ -228,7 +240,9 @@ function buildPendingTasks(
         referenceImage: primaryPhoto,
         childDescription: primaryDesc,
         characterSheets: sheets,
-        childRefs,
+        // Only this page's cast — see refsForPage. Covers and preview pages keep
+        // the whole family (they are the group shot).
+        childRefs: (pg.type === "story") ? refsForPage(pg) : allChildRefs,
         storyCharacterRefs: isPreview ? [] : storyCharacterRefs,
         pageText: pg.text,
       },
@@ -372,9 +386,21 @@ async function generate(bookId: string) {
       // ends up over the slot count and Printify submit hard-fails ("22 vs 21").
       const pageCount = sdState.pageCount || 20;
       const storyPageCount = Math.max(1, pageCount - 1);
+      // Who appears on which page. Above CAST_ALL_UPTO children this splits the
+      // family across the pages; at or below it every child is on every page and
+      // the plan is a no-op, so existing books are unaffected.
+      const castNames: string[] = (sdState.childDescriptions || [])
+        .map((c: any) => String(c?.name || "").trim()).filter(Boolean);
+      const castingPlan = buildCastingPlan(castNames, storyPageCount);
+      const isCastRotated = castNames.length > CAST_ALL_UPTO;
+
       const story = await callFn("generate-story", {
         childName: book.child_name,
         childrenInfo: sdState.childrenInfo || book.child_name,
+        // Only sent when it actually constrains anything — generate-story
+        // ignores it for small families.
+        castingPlan: isCastRotated ? describeCastingPlan(castingPlan) : undefined,
+        castPerPage: isCastRotated ? castingPlan[0]?.length : undefined,
         // The OLDEST star sets the reading level — see generate-story.
         age: String((sdState.childDescriptions || []).reduce(
           (m: number, c: any) => Math.max(m, Number(c?.age) || 0), 0,
@@ -393,7 +419,17 @@ async function generate(bookId: string) {
       let pageId = 0;
       pages = [];
       pages.push({ id: pageId++, text: cover.title, image: null, type: "cover", coverTitle: cover.title, coverSubtitle: cover.subtitle });
-      for (const p of (story.pages || []).slice(0, storyPageCount)) pages.push({ id: pageId++, text: p.text, image: null, type: "story", characters: Array.isArray(p.characters) ? p.characters : [] });
+      let storyIdx = 0;
+      for (const p of (story.pages || []).slice(0, storyPageCount)) {
+        pages.push({
+          id: pageId++, text: p.text, image: null, type: "story",
+          characters: Array.isArray(p.characters) ? p.characters : [],
+          // The authoritative cast for this page. Persisted with pages_data, so
+          // re-invocations and admin regenerations illustrate the same children.
+          starChildren: castingPlan[storyIdx] || null,
+        });
+        storyIdx++;
+      }
       if (questions.length > 0) {
         const qText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
         pages.push({ id: pageId++, text: qText, image: null, type: "questions", questions });

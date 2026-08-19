@@ -41,7 +41,7 @@ serve(async (req) => {
 
   const t0 = Date.now();
   try {
-    const { childName, childrenInfo, age, gender, torahPortion, torahPortionLabel, artStyle, language, pageCount } = await req.json();
+    const { childName, childrenInfo, age, gender, torahPortion, torahPortionLabel, artStyle, language, pageCount, castingPlan, castPerPage } = await req.json();
 
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -261,6 +261,17 @@ CRITICAL RULE: The MAJORITY of story pages (at least 70%) MUST depict the ACTUAL
       templateGuidance = lines.join("\n");
     }
 
+    /* Big families are cast page by page: the illustration for a page attaches
+       only that page's children (the image model takes 4 references, shared with
+       the Torah characters). The story must therefore name the SAME children on
+       that page — otherwise the text says one thing and the picture shows
+       another. Absent for small families, where every child is on every page. */
+    const castingBlock = castingPlan
+      ? `\n\nPER-PAGE CAST — MANDATORY, THIS OVERRIDES ANY OTHER INSTRUCTION ABOUT WHO APPEARS:
+This family has more children than can share one illustration, so each page stars only SOME of them (${castPerPage || 3} per page). The list below is FIXED. For each page, the ONLY star children you may name, describe, or give dialogue to are the ones listed for THAT page. Never mention a star child on a page they are not cast in — not in the narration, not in dialogue, not in passing. Every child gets their turn across the book; do not apologise for or explain their absence, and never write that a child "stayed behind", "was missing" or "wasn't there" — simply tell that page's moment through the children who are in it.
+${castingPlan}`
+      : "";
+
     const userPrompt = `Write a personalized children's book with a front cover, ${pages} story pages, a back cover, and 10 discussion questions.
 
 Details:
@@ -293,6 +304,7 @@ Requirements:
 - Maintain the SAME narrative voice and tone across every page — warm, gentle, enchanting like a Yiddishe bubbe telling a maaseh
 - ${languageInstruction}
 ${templateGuidance}
+${castingBlock}
 
 You MUST respond with ONLY a valid JSON object with this exact structure:
 {
