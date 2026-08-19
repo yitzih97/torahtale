@@ -44,6 +44,13 @@ export const SUB_PRICE: Record<SubPlan, Record<BookFormat, Money>> = {
   },
 };
 
+/**
+ * Books that one successful charge of each plan entitles — mirrors
+ * BOOKS_PER_PERIOD in supabase/functions/_shared/subscription.ts, which is what
+ * the release job actually drips.
+ */
+export const BOOKS_PER_PERIOD: Record<SubPlan, number> = { weekly: 1, monthly: 4, yearly: 52 };
+
 const asFormat = (f: string): BookFormat =>
   f === "hardcover" || f === "board" || f === "coloring" ? f : "softcover";
 
@@ -58,3 +65,12 @@ export const subPrice = (plan: SubPlan, format: string, isIls: boolean): number 
   const m = SUB_PRICE[plan][asFormat(format)];
   return isIls ? m.ils : m.usd;
 };
+
+/**
+ * What the year bundle's 52 books would cost on the monthly plan. Monthly bills
+ * per 4 books, so that is THIRTEEN charges, not twelve — comparing a year of
+ * monthly billing (48 books) against the bundle (52 books) prices two different
+ * baskets and makes the bundle look more expensive than it is.
+ */
+export const yearlyEquivalentMonthlyCost = (format: string, isIls: boolean): number =>
+  subPrice("monthly", format, isIls) * (BOOKS_PER_PERIOD.yearly / BOOKS_PER_PERIOD.monthly);

@@ -31,7 +31,7 @@ import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionL
 import { ParshaCountdown } from "./wizard/ParshaCountdown";
 import { PortionIcon } from "./wizard/portionIcons";
 import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
-import { subPrice, singlePrice } from "@/lib/pricing";
+import { subPrice, singlePrice, yearlyEquivalentMonthlyCost } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyContactTicket } from "@/lib/contactTickets";
 import { toast } from "sonner";
@@ -2548,12 +2548,11 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   const yearlyTotal = subPrice("yearly", fmtType, isIls);
                   const sym = t.currency.symbol;
                   const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
-                  // The year bundle was priced to beat the WEEKLY plan, which is
-                  // no longer offered. Against monthly it currently costs more, so
-                  // the saving is computed rather than asserted — it appears only
-                  // if yearly is genuinely cheaper, and returns on its own if the
-                  // yearly price is ever lowered.
-                  const saving = monthlyTotal * 12 - yearlyTotal;
+                  // Like for like: the bundle's 52 books cost thirteen monthly
+                  // charges (4 books each), not twelve. The saving is computed,
+                  // never asserted, so it disappears by itself if the prices ever
+                  // stop favouring the bundle.
+                  const saving = yearlyEquivalentMonthlyCost(fmtType, isIls) - yearlyTotal;
                   const periods: Array<{ id: "monthly" | "yearly"; label: string }> = [
                     { id: "monthly", label: t.wizard.planMonthly },
                     { id: "yearly",  label: t.wizard.planYearly },
@@ -2580,7 +2579,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                       </div>
                       {saving > 0 && (
                         <p className="mt-1.5 text-center text-[10px] text-accent">
-                          {t.checkout.saveAmount(fmt(saving))} · {t.checkout.payYearlySave}
+                          {t.checkout.saveAmount(fmt(saving))}
                         </p>
                       )}
                     </div>

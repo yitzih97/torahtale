@@ -750,7 +750,7 @@ export const he: typeof en = {
     freeShipNote: "🚚 משלוח חינם בכל מנוי · אפשר לבטל בכל רגע",
     subDripNote: "הספר הזה עכשיו, ואז פרשת השבוע מדי שבוע.",
     fourBooksMonth: "4 ספרים בחודש — ספר חדש בכל שבוע",
-    saveAmount: (amount: string) => `חיסכון ${amount}`,
+    saveAmount: (amount: string) => `חיסכון של ${amount} בשנה לעומת תשלום חודשי`,
     secureCheckout: "תשלום מאובטח · הצפנת 256 ביט · פרטי התשלום שלכם שמורים בבטחה",
     volumeDiscount: (pct: number) => `הנחת כמות ${pct}% −`,
     disclaimer: "כל סיפור נוצר על פי התיאור והתמונות שהעליתם. אנחנו עושים כל מאמץ להגשים את החזון שלכם, אך לא נוכל להתחייב שהתוצאה הסופית תצא בדיוק כפי שדמיינתם.",
