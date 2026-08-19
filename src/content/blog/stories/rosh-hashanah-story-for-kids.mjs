@@ -39,7 +39,7 @@ export default {
     { q: "What is the lesson of Rosh Hashanah for children?", a: "The lesson is that a person can start again. Rosh Hashanah teaches that Hashem is King, that everything we do matters, and that teshuvah, tefillah and tzedakah change what the coming year looks like. For a child that translates into something very practical: choosing one small thing to fix and actually beginning it before Yom Tov." },
     { q: "Why do we blow the shofar on Rosh Hashanah?", a: "The Torah calls the day Yom Teruah, and hearing the shofar is the mitzvah of the day. The Rambam explains that the shofar is a wake-up call, telling a person to look at his deeds and return to Hashem. Chazal also teach that we blow a ram's horn so that Hashem remembers the ram of the Akeidah and the mesirus nefesh of Avraham Avinu and Yitzchak." },
     { q: "Is there a personalized Rosh Hashanah book where my child is in the story?", a: "Yes. Torah Tale's Rosh Hashanah book is part of the Yamim Tovim collection, and your child appears as the hero on every page — their name in the text and their likeness illustrated in 3D Pixar style from one uploaded photo. Up to four siblings can appear in the same book, and it can be ordered in English, Hebrew or Yiddish." },
-    { q: "Which format should I choose for a Rosh Hashanah book?", a: "For ages 2-4 choose the 6\"x6\" board book with rounded safety corners, since it will be handled at the Yom Tov table. For ages 4-8 the 8\"x8\" softcover works well, and for ages 5-12 the 8\"x8\" hardcover in square or landscape holds up to years of rereading each Elul. Many families add the matching 8.5\"x11\" coloring book for the long afternoons of Yom Tov." },
+    { q: "Which format should I choose for a Rosh Hashanah book?", a: "For ages 2-4 choose the 6\"x6\" board book with rounded safety corners, since it will be handled at the Yom Tov table. For ages 4-8 the 8\"x8\" softcover works well, and for ages 5-12 the 8\"x8\" hardcover in square or landscape holds up to years of rereading each Elul. Many families add the matching 8.5\"x11\" coloring book for the weekday afternoons of Elul, in the run-up to Yom Tov." },
   ],
   bodyHtml: expandImages(`<p>Rosh Hashanah is the two-day Yom Tov at the beginning of Tishrei when Hashem is crowned King of the world and every person is judged for the coming year. Chazal teach that it is the day Adam HaRishon was created — which is why the birthday of the world is also its day of judgment. Children take to this story quickly, because it arrives with a sound they wait for all year and a taste they can hold in their hand: the shofar, and an apple dipped in honey.</p>
 
@@ -65,7 +65,7 @@ export default {
 <p>If you want a single sentence that works at any age, use this one: <strong>"Rosh Hashanah is the world's birthday and the day we crown Hashem as our King — and the shofar both announces the King and wakes us up to try again."</strong></p>
 
 <h2>What is a personalized Torah Tale Rosh Hashanah book like?</h2>
-<p>Torah Tale's Rosh Hashanah book is part of the Yamim Tovim collection, and the difference between it and any other Yom Tov book on your shelf is simple: your child is the one in it. Their name is in the text, and their likeness — illustrated in high-resolution 3D Pixar style from one photo you upload — appears on every page. Up to four siblings can be in the same book, which is why it tends to become the book that comes out every Elul rather than the one that gets read once.</p>
+<p>Torah Tale's Rosh Hashanah book is part of the Yamim Tovim collection, and the difference between it and any other Yom Tov book on your shelf is simple: your child is the one in it. Their name is in the text, and their likeness — illustrated in high-resolution 3D Pixar style from one photo you upload — appears on every page. Up to four siblings can be in the same book, which is why it tends to become the book that comes out every Elul rather than the one that gets read once. Every book ends with a discussion page of ten questions, mixing what happened with what it asks of us — which on Rosh Hashanah is most of the point.</p>
 <p>Every book is written with careful rabbinical guidance and strict tznius, and reviewed by our team before it goes to print. You can order it in English, Hebrew or Yiddish — and more than one language, if there are grandparents who would rather hear it in Yiddish.</p>
 <p>The book creator asks eight short questions and takes about five minutes: name, boy or girl, age, one photo, siblings, story, language, format. The creator suggests next week's parsha with a countdown to the order deadline, but you can pick Rosh Hashanah straight from the story list instead.</p>
 
@@ -74,7 +74,7 @@ export default {
 <p>If it is your first time, the <a href="/blog/how-to-create-a-personalized-torah-storybook">step-by-step walkthrough</a> covers the whole flow, including what makes a good photo. Choosing between a Yom Tov story and the weekly parsha is covered in <a href="/blog/how-to-choose-the-weekly-parsha-for-your-childs-book">this guide</a>.</p>
 
 <h3>Which format fits which child</h3>
-<ul><li><strong>Board book 6"x6"</strong>, rounded safety corners — ages 2-4, for the child who will bring it to the Yom Tov table.</li><li><strong>Softcover 8"x8"</strong> — ages 4-8.</li><li><strong>Hardcover 8"x8"</strong>, square or landscape — ages 5-12, and the one that survives being reread every Elul.</li><li><strong>Matching coloring book 8.5"x11"</strong> in black-and-white line art — a good answer for a long Yom Tov afternoon.</li></ul>
+<ul><li><strong>Board book 6"x6"</strong>, rounded safety corners — ages 2-4, for the child who will bring it to the Yom Tov table.</li><li><strong>Softcover 8"x8"</strong> — ages 4-8.</li><li><strong>Hardcover 8"x8"</strong>, square or landscape — ages 5-12, and the one that survives being reread every Elul.</li><li><strong>Matching coloring book 8.5"x11"</strong> in black-and-white line art — for the weekday afternoons of Elul, before Yom Tov begins.</li></ul>
 
 [[IMAGE:products]]
 
@@ -148,7 +148,7 @@ export default {
 
 [[IMAGE:photo]]
 
-<p>הסיפור עצמו הוא ראש השנה כפי שמלמדים בבית ובחיידר, כתוב בליווי רבני קפדני ובצניעות מלאה, והצוות עובר על כל ספר לפני ההדפסה. בוחרים שפה — עברית, אנגלית או יידיש — ופורמט: ספר קרטון 6"x6" עם פינות מעוגלות לגילאי 2–4, כריכה רכה 8"x8" לגילאי 4–8, או כריכה קשה מרובעת או לרוחב לגילאי 5–12. אפשר להוסיף חוברת צביעה תואמת בשחור־לבן, מה שמאוד עוזר בימים הארוכים של בין כסה לעשור.</p>
+<p>הסיפור עצמו הוא ראש השנה כפי שמלמדים בבית ובחיידר, כתוב בליווי רבני קפדני ובצניעות מלאה, והצוות עובר על כל ספר לפני ההדפסה. בוחרים שפה — עברית, אנגלית או יידיש — ופורמט: ספר קרטון 6"x6" עם פינות מעוגלות לגילאי 2–4, כריכה רכה 8"x8" לגילאי 4–8, או כריכה קשה מרובעת או לרוחב לגילאי 5–12. אפשר להוסיף חוברת צביעה תואמת בשחור־לבן, מה שמאוד עוזר בימים הארוכים של בין כסה לעשור. כל ספר נגמר בעמוד דיון עם עשר שאלות, שמשלבות את מה שקרה עם מה שזה מבקש מאיתנו — ובראש השנה זה כמעט כל העניין.</p>
 
 [[IMAGE:products]]
 

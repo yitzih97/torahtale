@@ -84,7 +84,7 @@ export default {
 
 <table><thead><tr><th>Age</th><th>Say it like this</th></tr></thead><tbody><tr><td>2-4</td><td>"Moshe Rabbeinu taught the Yidden a song so they would remember that Hashem loves them. Hashem carries us like a big bird carries its babies on its wings."</td></tr><tr><td>5-7</td><td>"Moshe was very old and wanted to give the Yidden something they would never lose, so he gave them a song. In it he tells them: don't forget Hashem when everything is going well."</td></tr><tr><td>8-10</td><td>Add the witnesses. Why heaven and earth? Because they are still here in every generation. Ask: who are the witnesses to the way our family keeps Torah?</td></tr><tr><td>10-12</td><td>Work through <em>Vayishman Yeshurun</em> and <em>Hatzur tamim pa'alo</em> together. Comfort can make a person forget; emunah means trusting that everything Hashem does is complete even when we cannot see how.</td></tr></tbody></table>
 
-<p>For the youngest listeners, a board book with rounded corners survives the way a two-year-old handles a book. For a child who is learning the pesukim in cheder, a hardcover in Hebrew alongside the English gives them the actual words they are hearing at the amud.</p>
+<p>For the youngest listeners, a board book with rounded corners survives the way a two-year-old handles a book. For a child who is learning the pesukim in cheder, a hardcover in Hebrew alongside the English gives them the actual words they are hearing at the amud. Every book closes on a discussion page of ten questions — some about what happened, some about what it asks of the child — which for a parsha that is itself a song about listening is a fitting way to end.</p>
 
 [[IMAGE:products]]
 
@@ -164,7 +164,7 @@ export default {
 <p>בטורה־טייל הילד שלכם הוא הגיבור של הסיפור. אתם מעלים תמונה אחת, ומתוכה נוצרת דמות מאוירת בתלת־ממד ברזולוציה גבוהה בסגנון פיקסאר, שמופיעה בכל עמוד יחד עם השם שלו. במקום לשמוע על העם שעמד ולמד את השירה, הוא עומד שם בעצמו.</p>
 [[IMAGE:storypicker]]
 <p>אפשר להכניס עד ארבעה אחים לאותו ספר, ולבחור את השפה — עברית, אנגלית או יידיש. יוצר הספרים מציע את פרשת השבוע הבא, עם ספירה לאחור עד מועד ההזמנה האחרון למשלוח לפני אותה שבת, ובשבוע של פרשה כפולה נוצר ספר אחד שמכסה את שתיהן. אם אתם מתלבטים איזו פרשה לבחור, יש לנו מאמר על <a href="/blog/how-to-choose-the-weekly-parsha-for-your-childs-book">איך בוחרים את פרשת השבוע לספר של הילד</a>.</p>
-<p>הפורמטים: כריכה רכה 8"x8" לגילאי 4–8, כריכה קשה 8"x8" מרובעת או לרוחב לגילאי 5–12, ספר קרטון 6"x6" עם פינות מעוגלות ובטוחות לגילאי 2–4, ואפשר להוסיף חוברת צביעה תואמת 8.5"x11" בקווי מתאר בשחור־לבן.</p>
+<p>הפורמטים: כריכה רכה 8"x8" לגילאי 4–8, כריכה קשה 8"x8" מרובעת או לרוחב לגילאי 5–12, ספר קרטון 6"x6" עם פינות מעוגלות ובטוחות לגילאי 2–4, ואפשר להוסיף חוברת צביעה תואמת 8.5"x11" בקווי מתאר בשחור־לבן. כל ספר נחתם בעמוד דיון עם עשר שאלות — חלקן על מה שקרה, חלקן על מה שזה מבקש מהילד — וזו סגירה מתאימה לפרשה שכולה שירה על הקשבה.</p>
 [[IMAGE:products]]
 <h2>שאלות ופעילות לשולחן שבת</h2>
 <ul><li>איזה שיר אתה יודע בעל פה בלי להסתכל? מי לימד אותך אותו?</li><li>אם היית צריך להשאיר לחברים שלך משפט אחד שלא ישכחו, מה היית אומר?</li><li>למה משה רבנו קרא לשמים ולארץ, ולא לאנשים, להיות עדים?</li><li>מה למדנו מהנשר שנושא את הגוזלים על הכנפיים?</li></ul>

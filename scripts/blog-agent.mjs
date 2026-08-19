@@ -62,9 +62,14 @@ Torah Tale (torahtale.com) makes personalized Torah storybooks for Jewish childr
 - Languages: English, Hebrew and Yiddish (a book can be ordered in more than one).
 - Formats: softcover photo book 8"x8" (ages 4-8), hardcover photo book 8"x8" in square or landscape (ages 5-12), board book 6"x6" with rounded safety corners (ages 2-4), and an optional matching coloring book 8.5"x11" in black-and-white line art.
 - Ordering: a single book, or a Weekly / Monthly (4 books) / Year Bundle subscription. Standard shipping is free (5-7 business days); express is 2-3 business days; we ship worldwide.
+- Every book ends with a dedicated discussion page carrying 10 questions about the story, mixing comprehension with middos — what happened, and what it asks of the child. This is what turns the book from something read to a child into something talked about at the table, and it is worth mentioning.
 - Every book is written with careful rabbinical guidance and strict tznius, and reviewed by our team before it goes to print.
 - The whole creation flow takes about five minutes and starts at torahtale.com/create.
 Do NOT state prices, discounts, page counts, delivery guarantees, review counts, or any statistic that is not in this list.
+
+HALACHA — this is not a style preference, it is a correctness rule:
+- Coloring, drawing and writing are melacha. NEVER present the coloring book as something to do on Shabbos or on Yom Tov, and never as a way to occupy children during either. It is a WEEKDAY activity — erev Shabbos, a weekday afternoon, the days before a Yom Tov, or Chol HaMoed (which is permitted).
+- The STORYBOOKS are the opposite: reading is entirely appropriate on Shabbos and Yom Tov, and saying so is good — a book to read at the Shabbos table, or on a long Yom Tov afternoon, is exactly right.
 `.trim();
 
 // The same sheet in Hebrew, so the Hebrew writer isn't reading English facts and
@@ -79,9 +84,14 @@ const PRODUCT_FACTS_HE = `
 - שפות: עברית, אנגלית ויידיש (אפשר להזמין ספר ביותר משפה אחת).
 - פורמטים: כריכה רכה 8"x8" (גילאי 4–8), כריכה קשה 8"x8" מרובע או לרוחב (גילאי 5–12), ספר קרטון 6"x6" עם פינות מעוגלות ובטוחות (גילאי 2–4), וחוברת צביעה תואמת 8.5"x11" בקווי מתאר בשחור־לבן כתוספת.
 - הזמנה: ספר בודד, או מנוי שבועי / חודשי (4 ספרים) / חבילה שנתית. משלוח רגיל חינם (5–7 ימי עסקים), משלוח מהיר 2–3 ימי עסקים, ואנחנו שולחים לכל העולם.
+- בסוף כל ספר יש עמוד דיון ייעודי עם 10 שאלות על הסיפור, שמשלבות שאלות הבנה עם שאלות במידות — מה קרה, ומה זה מבקש מהילד. זה מה שהופך את הספר ממשהו שקוראים לילד למשהו שמדברים עליו סביב השולחן, וכדאי להזכיר את זה.
 - כל ספר נכתב בליווי רבני קפדני ובצניעות מלאה, והצוות עובר עליו לפני ההדפסה.
 - כל התהליך אורך כחמש דקות ומתחיל ב־torahtale.com/create.
 אסור לציין מחירים, הנחות, מספר עמודים, התחייבות לזמן אספקה, מספר ביקורות או כל נתון שלא מופיע ברשימה הזו.
+
+הלכה — זה לא עניין של סגנון אלא של נכונות:
+- צביעה, ציור וכתיבה הם מלאכה. לעולם אל תציג את חוברת הצביעה כפעילות לשבת או ליום טוב, וגם לא כדרך להעסיק ילדים בשבת או בחג. זו פעילות של יום חול — ערב שבת, אחר צהריים של יום חול, הימים שלפני החג, או חול המועד (שמותר).
+- הספרים עצמם הם ההפך: קריאה מתאימה לגמרי לשבת וליום טוב, וכדאי לומר את זה — ספר לקרוא בשולחן שבת או באחר צהריים ארוך של יום טוב זה בדיוק הרעיון.
 `.trim();
 
 const STYLE_RULES = `
@@ -359,6 +369,32 @@ const ALLOWED_TAGS = new Set([
   "table", "thead", "tbody", "tr", "th", "td", "br",
 ]);
 
+/**
+ * Coloring, drawing and writing are melacha, so the coloring book must never be
+ * offered as something to do on Shabbos or Yom Tov. Five of the first six story
+ * articles shipped with exactly that ("a good answer for a long Yom Tov
+ * afternoon"), because nothing had told the model otherwise.
+ *
+ * A sentence is only a problem when it puts the two together with no weekday
+ * framing — saying the coloring book is for the days *before* Yom Tov, or for
+ * Chol HaMoed, is correct and must stay allowed.
+ */
+const COLORING = /coloring|colouring|צביעה|לצבוע|לצייר/i;
+const HOLY_DAY = /shabbos|shabbat|shabbat|yom tov|yontif|yom kippur|rosh hashanah|the chag|שבת|יום טוב|יום כיפור|ראש השנה|בחג/i;
+const WEEKDAY_FRAMING = /weekday|week day|during the week|before|run-?up|erev|lead-?up|chol hamoed|יום חול|ימי החול|לפני|ערב שבת|חול המועד|באמצע השבוע/i;
+
+const halachicProblems = (body, label) => {
+  const problems = [];
+  for (const sentence of stripHtml(body).split(/(?<=[.!?])\s+|\n/)) {
+    if (!COLORING.test(sentence) || !HOLY_DAY.test(sentence)) continue;
+    if (WEEKDAY_FRAMING.test(sentence)) continue;
+    problems.push(
+      `${label} offers the coloring book on Shabbos or Yom Tov, which is melacha: "${sentence.trim().slice(0, 120)}". Coloring is a weekday activity — erev Shabbos, a weekday afternoon, the days before Yom Tov, or Chol HaMoed. The storybooks themselves are fine to read on Shabbos and Yom Tov.`
+    );
+  }
+  return problems;
+};
+
 /** Checks one language's body: structure, tags, image tokens and links. */
 const validateBody = (body, label, { minWords }) => {
   const problems = [];
@@ -388,7 +424,7 @@ const validateBody = (body, label, { minWords }) => {
       (href.startsWith("/blog/") && publishedSlugs.has(href.slice("/blog/".length)));
     if (!ok) problems.push(`${label} links to ${href}, which is not an allowed or existing page`);
   }
-  return problems;
+  return [...problems, ...halachicProblems(body, label)];
 };
 
 export const validateEnglish = (art, { plannedSlugs = new Set() } = {}) => {
@@ -404,6 +440,9 @@ export const validateEnglish = (art, { plannedSlugs = new Set() } = {}) => {
   req(Array.isArray(art.keyFacts) && art.keyFacts.length >= 3 && art.keyFacts.length <= 5, "keyFacts must have 3 to 5 entries");
   req(Array.isArray(art.faq) && art.faq.length >= 4 && art.faq.length <= 6, "faq must have 4 to 6 entries");
 
+  for (const [i, f] of (art.faq || []).entries()) {
+    problems.push(...halachicProblems(f.a, `faq[${i}] answer`));
+  }
   return [...problems, ...validateBody(art.bodyHtml, "bodyHtml", { minWords: 700 })];
 };
 
@@ -444,6 +483,9 @@ export const validateHebrew = (he, { publishedTitles = ARTICLES.map((a) => a.he?
   }
   req(!latinRun(he.bodyHtml), "he.bodyHtml contains a run of English prose — write the article in Hebrew, do not translate");
 
+  for (const [i, f] of (he.faq || []).entries()) {
+    problems.push(...halachicProblems(f.a, `he.faq[${i}] answer`));
+  }
   // Hebrew says the same thing in fewer words than English, so the floor is lower.
   return [...problems, ...validateBody(he.bodyHtml, "he.bodyHtml", { minWords: 450 })];
 };

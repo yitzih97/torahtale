@@ -78,7 +78,7 @@ export default {
 [[IMAGE:storypicker]]
 
 <p>Every book is written with careful rabbinical guidance and strict tznius, and reviewed by our team before printing — which matters for a parsha like this one, where the Tochacha has to be handled gently and honestly for a child. Books come in English, Hebrew or Yiddish, and you can order the same story in more than one language.</p>
-<p>Formats follow the age: a 6"x6" board book with rounded safety corners for ages 2-4, an 8"x8" softcover for ages 4-8, and an 8"x8" hardcover in square or landscape for ages 5-12. There is also a matching 8.5"x11" black-and-white coloring book, which is a good Shabbos-afternoon companion for the bikkurim basket.</p>
+<p>Formats follow the age: a 6"x6" board book with rounded safety corners for ages 2-4, an 8"x8" softcover for ages 4-8, and an 8"x8" hardcover in square or landscape for ages 5-12. There is also a matching 8.5"x11" black-and-white coloring book for weekday afternoons, so a child can color their own bikkurim basket. At the back there is a discussion page with ten questions about the story, half comprehension and half middos — the natural place to ask a child what they are grateful for, in a parsha about saying thank you out loud.</p>
 
 [[IMAGE:products]]
 
@@ -145,7 +145,7 @@ export default {
 <p>יצירת הספר דורשת חשבון חינם ולוקחת שמונה שאלות קצרות: שם, בן או בת, גיל, תמונה אחת, אחים, בחירת הסיפור, שפה ופורמט. הספר זמין בעברית, באנגלית וביידיש, ואפשר להזמין אותו ביותר משפה אחת. כל ספר נכתב בליווי רבני קפדני ובצניעות מלאה, והצוות עובר עליו לפני ההדפסה.</p>
 <p>יוצר הספרים מציע תמיד את פרשת השבוע הבא, עם ספירה לאחור עד מועד ההזמנה האחרון למשלוח לפני אותה שבת — כך שאם אתם רוצים את כי תבוא על השולחן, כדאי להזמין שבוע מראש. הרחבנו על זה במדריך <a href="/blog/how-to-choose-the-weekly-parsha-for-your-childs-book">איך בוחרים את פרשת השבוע לספר של הילד</a>.</p>
 <h2>אילו פורמטים מתאימים לאיזה גיל?</h2>
-<p>יש ארבעה פורמטים: ספר קרטון 6"x6" עם פינות מעוגלות ובטוחות לגילאי 2–4, כריכה רכה 8"x8" לגילאי 4–8, וכריכה קשה 8"x8" מרובעת או לרוחב לגילאי 5–12. אפשר להוסיף חוברת צביעה תואמת 8.5"x11" בקווי מתאר בשחור־לבן.</p>
+<p>יש ארבעה פורמטים: ספר קרטון 6"x6" עם פינות מעוגלות ובטוחות לגילאי 2–4, כריכה רכה 8"x8" לגילאי 4–8, וכריכה קשה 8"x8" מרובעת או לרוחב לגילאי 5–12. אפשר להוסיף חוברת צביעה תואמת 8.5"x11" בקווי מתאר בשחור־לבן. בסוף יש עמוד דיון עם עשר שאלות על הסיפור, חציין שאלות הבנה וחציין שאלות במידות — המקום הטבעי לשאול ילד על מה הוא אומר תודה, בפרשה שכולה הכרת הטוב.</p>
 [[IMAGE:products]]
 <p>אפשר להזמין ספר בודד, או מנוי שבועי, חודשי או חבילה שנתית. המשלוח הרגיל חינם, יש גם משלוח מהיר, ואנחנו שולחים לכל העולם. שלב אחרי שלב זה מוסבר כאן: <a href="/blog/how-to-create-a-personalized-torah-storybook">איך יוצרים ספר תורה מותאם אישית</a>.</p>
 <h2>שאלות לשולחן שבת ופעילות קטנה</h2>

@@ -113,6 +113,53 @@ describe("blog agent English validation", () => {
   });
 });
 
+describe("blog agent halachic checks", () => {
+  // Five of the first six story articles shipped offering the coloring book as
+  // something to do on Shabbos or Yom Tov. Coloring is melacha.
+  it("rejects the coloring book offered on Yom Tov", () => {
+    const bad = article({
+      bodyHtml: body("<p>The matching coloring book is a good answer for a long Yom Tov afternoon.</p>"),
+    });
+    expect(validateEnglish(bad).join(" ")).toMatch(/melacha/);
+  });
+
+  it("rejects it in an FAQ answer too", () => {
+    const bad = article({
+      faq: [
+        { q: "Which format?", a: "Many families add the coloring book for the long afternoons of Yom Tov." },
+        { q: "Q2?", a: "A2." },
+        { q: "Q3?", a: "A3." },
+        { q: "Q4?", a: "A4." },
+      ],
+    });
+    expect(validateEnglish(bad).join(" ")).toMatch(/melacha/);
+  });
+
+  it("allows the coloring book on a weekday, before Yom Tov, or on Chol HaMoed", () => {
+    for (const line of [
+      "<p>The coloring book is for the weekday afternoons of Elul, before Yom Tov begins.</p>",
+      "<p>The coloring book is one for Chol HaMoed afternoons in the sukkah.</p>",
+      "<p>Keep the coloring book for erev Shabbos, while the cooking is happening.</p>",
+    ]) {
+      expect(validateEnglish(article({ bodyHtml: body(line) }))).toEqual([]);
+    }
+  });
+
+  it("leaves reading a storybook on Shabbos alone", () => {
+    const fine = article({
+      bodyHtml: body("<p>It is a book to read at the Shabbos table, or on a long Yom Tov afternoon.</p>"),
+    });
+    expect(validateEnglish(fine)).toEqual([]);
+  });
+
+  it("catches it in Hebrew", () => {
+    const bad = hebrew({
+      bodyHtml: hebrewBody + "<p>חוברת הצביעה מעסיקה יפה בשבת אחר הצהריים.</p>",
+    });
+    expect(validateHebrew(bad).join(" ")).toMatch(/melacha/);
+  });
+});
+
 describe("blog agent Hebrew validation", () => {
   it("accepts a well-formed Hebrew article", () => {
     expect(validateHebrew(hebrew())).toEqual([]);

@@ -87,8 +87,8 @@ export default {
 <p>Books come in English, Hebrew or Yiddish, and you can order the same story in more than one language — a practical option if a child learns in Yiddish in cheder and reads English at home.</p>
 
 <h2>Which format fits your child?</h2>
-<p>The board book is 6"x6" with rounded safety corners, made for ages 2-4 — the right choice when the goal is simply "Hashem forgives" said many times before Yom Tov. The softcover photo book, 8"x8", suits ages 4-8. The hardcover 8"x8", in square or landscape, holds up for ages 5-12 and is the one that stays on the Yom Tov shelf year after year.</p>
-<p>There is also an optional matching coloring book, 8.5"x11" in black-and-white line art, which is genuinely useful on Yom Kippur itself when children are home for stretches of the day and you want something connected to the Yom Tov in their hands.</p>
+<p>The board book is 6"x6" with rounded safety corners, made for ages 2-4 — the right choice when the goal is simply "Hashem forgives" said many times before Yom Tov. The softcover photo book, 8"x8", suits ages 4-8. The hardcover 8"x8", in square or landscape, holds up for ages 5-12 and is the one that stays on the Yom Tov shelf year after year. The book ends with a discussion page of ten questions, half about the story and half about the child — which is how a book about asking mechilah becomes a conversation about it.</p>
+<p>There is also an optional matching coloring book, 8.5"x11" in black-and-white line art, for the weekdays of the Aseres Yemei Teshuvah — something connected to these days that a child can sit with in the week before Yom Kippur.</p>
 [[IMAGE:products]]
 <p>If you are also building books around the weekly parsha, the creator suggests <em>next</em> week's parsha with a live countdown to the order deadline for delivery before that Shabbos — more on how that works in <a href="/blog/how-to-choose-the-weekly-parsha-for-your-childs-book">choosing the parsha for your child's book</a>. Single books, Weekly, Monthly and Year Bundle subscriptions are all available, and standard shipping is free.</p>
 
@@ -171,7 +171,7 @@ export default {
 
 [[IMAGE:photo]]
 
-<p>הספרים יוצאים בעברית, באנגלית וביידיש, וגם בכמה שפות במקביל. יש כריכה רכה 8"x8" לגילאי 4–8, כריכה קשה 8"x8" מרובעת או לרוחב לגילאי 5–12, ספר קרטון 6"x6" עם פינות מעוגלות ובטוחות לגילאי 2–4, וחוברת צביעה תואמת 8.5"x11" בקווי מתאר שחור־לבן כתוספת.</p>
+<p>הספרים יוצאים בעברית, באנגלית וביידיש, וגם בכמה שפות במקביל. יש כריכה רכה 8"x8" לגילאי 4–8, כריכה קשה 8"x8" מרובעת או לרוחב לגילאי 5–12, ספר קרטון 6"x6" עם פינות מעוגלות ובטוחות לגילאי 2–4, וחוברת צביעה תואמת 8.5"x11" בקווי מתאר שחור־לבן כתוספת. הספר נגמר בעמוד דיון עם עשר שאלות, חציין על הסיפור וחציין על הילד — וכך ספר על בקשת מחילה הופך לשיחה עליה.</p>
 
 [[IMAGE:products]]
 
