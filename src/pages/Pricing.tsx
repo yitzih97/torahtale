@@ -62,103 +62,65 @@ const Pricing = () => {
           </h1>
         </section>
 
-        {/* PRICING CARDS */}
-        <section className="container pb-16 lg:pb-24">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto items-stretch">
-            {/* CARD 1 — Single */}
-            <div
-              onClick={() => setSelected("single")}
-              className={`order-2 lg:order-1 relative rounded-2xl border-2 p-8 flex flex-col shadow-sm hover:shadow-md transition-all cursor-pointer ${
-                selected === "single"
-                  ? "border-accent bg-gradient-to-br from-primary to-primary/90 shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.6)]"
-                  : "border-border bg-card"
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-6">
-                <BookOpen className={`w-5 h-5 ${selected === "single" ? "text-accent" : "text-muted-foreground"}`} />
-                <h3 className={`font-display text-xl font-semibold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>
-                  {t.pricing.singleTitle}
-                </h3>
-              </div>
-              <div className="mb-8">
-                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "single" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
-                <div className={`text-5xl font-bold ${selected === "single" ? "text-primary-foreground" : "text-foreground"}`}>{money(singlePrice("softcover", isIls))}</div>
-                <p className={`text-sm mt-1 ${selected === "single" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{t.pricing.singleSubtitle}</p>
-              </div>
-              <ul className="space-y-3 mb-10 flex-1"></ul>
-              <Button variant={selected === "single" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate(); }} className="w-full">
-                {t.pricing.singleCta}
-              </Button>
-            </div>
-
-            {/* CARD 2 — Torah Series */}
-            <div
-              onClick={() => setSelected("torah")}
-              className={`order-1 lg:order-2 relative rounded-2xl border-2 p-8 flex flex-col transition-all cursor-pointer lg:scale-105 lg:-my-2 ${
-                selected === "torah"
-                  ? "border-accent bg-gradient-to-br from-primary to-primary/90 shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.6)]"
-                  : "border-border bg-card shadow-sm hover:shadow-md"
-              }`}
-            >
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground border-0 px-4 py-1 text-xs font-bold tracking-wide shadow-lg">
-                <Crown className="w-3 h-3 me-1" /> {t.pricing.mostPopular}
-              </Badge>
-              <div className="flex items-center gap-2 mb-6">
-                <Sparkles className="w-5 h-5 text-accent" />
-                <h3 className={`font-display text-xl font-semibold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>
-                  {t.pricing.torahTitle}
-                </h3>
-              </div>
-              <div className="mb-8">
-                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "torah" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "torah" ? "text-primary-foreground" : "text-foreground"}`}>{money(subPrice("monthly", "softcover", isIls))}</span>
-                  <span className={selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}>{t.pricing.perMonth}</span>
-                </div>
-                <p className={`text-sm mt-1 ${selected === "torah" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  {t.pricing.torahSubtitle}
-                </p>
-              </div>
-              <ul className="space-y-3 mb-10 flex-1"></ul>
-              <Button variant={selected === "torah" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate(); }} className="w-full">
-                {t.pricing.torahCta}
-              </Button>
-            </div>
-
-            {/* CARD 3 — Tanach Series */}
-            <div
-              onClick={() => setSelected("tanach")}
-              className={`order-3 relative rounded-2xl border-2 p-8 flex flex-col transition-all cursor-pointer ${
-                selected === "tanach"
-                  ? "border-accent bg-gradient-to-br from-primary to-primary/90 shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.6)]"
-                  : "border-border bg-card shadow-sm hover:shadow-md"
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-6">
-                <Crown className="w-5 h-5 text-accent" />
-                <h3 className={`font-display text-xl font-semibold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>
-                  {t.pricing.tanachTitle}
-                </h3>
-              </div>
-              <div className="mb-8">
-                <p className={`text-xs uppercase tracking-wider mb-1 ${selected === "tanach" ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{t.pricing.startingAt}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-5xl font-bold ${selected === "tanach" ? "text-primary-foreground" : "text-foreground"}`}>{money(subPrice("yearly", "softcover", isIls))}</span>
-                  <span className={selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}>{t.pricing.perYear}</span>
-                </div>
-                <p className={`text-sm mt-1 ${selected === "tanach" ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  {t.pricing.tanachSubtitle}
-                </p>
-              </div>
-              <ul className="space-y-3 mb-10 flex-1"></ul>
-              <Button variant={selected === "tanach" ? "gold" : "outline"} size="lg" onClick={(e) => { e.stopPropagation(); goCreate(); }} className="w-full">
-                {t.pricing.tanachCta}
-              </Button>
-            </div>
+        {/* ── ONE UNIT: how you buy ────────────────────────────────────────
+         * Subscriptions and collections were two pages bolted together — a
+         * dark card wall, then a differently-coloured band. They are now one
+         * section with one rhythm: pick a plan, or build a bundle, same card
+         * language throughout.
+         */}
+        <section className="container pb-4">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-accent">{t.pricing.plansEyebrow}</p>
+            <h2 className="font-display text-3xl font-bold text-primary md:text-4xl">{t.pricing.plansTitle}</h2>
+            <p className="mt-3 text-base text-muted-foreground">{t.pricing.plansSubtitle}</p>
           </div>
+
+          <div className="mx-auto mt-10 grid max-w-5xl gap-5 md:grid-cols-3 items-stretch">
+            {([
+              { key: "single", popular: false,  title: t.pricing.singleTitle, sub: t.pricing.singleSubtitle, price: money(singlePrice("softcover", isIls)), per: "", cta: t.pricing.singleCta },
+              { key: "torah", popular: true, title: t.pricing.torahTitle,  sub: t.pricing.torahSubtitle,  price: money(subPrice("monthly", "softcover", isIls)), per: t.pricing.perMonth, cta: t.pricing.torahCta },
+              { key: "tanach", popular: false, title: t.pricing.tanachTitle, sub: t.pricing.tanachSubtitle, price: money(subPrice("yearly", "softcover", isIls)), per: t.pricing.perYear, cta: t.pricing.tanachCta },
+            ] as const).map((p) => {
+              const on = selected === p.key;
+              return (
+                <div
+                  key={p.key}
+                  onClick={() => setSelected(p.key)}
+                  className={`relative flex cursor-pointer flex-col rounded-3xl border-2 p-6 transition-all duration-300 ${
+                    on
+                      ? "border-accent bg-accent/5 shadow-soft-lg ring-1 ring-accent/25"
+                      : "border-border bg-card shadow-soft-sm hover:-translate-y-1 hover:shadow-soft-lg"
+                  }`}
+                >
+                  {p.popular && (
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 border-0 bg-accent px-4 py-1 text-[10px] font-bold tracking-wide text-accent-foreground shadow-soft-sm">
+                      <Crown className="me-1 h-3 w-3" /> {t.pricing.mostPopular}
+                    </Badge>
+                  )}
+                  <h3 className="font-display text-xl font-bold text-primary">{p.title}</h3>
+                  <div className="mt-4 flex items-baseline gap-1.5">
+                    <span className="font-display text-4xl font-bold text-primary">{p.price}</span>
+                    {p.per && <span className="text-sm text-muted-foreground">{p.per}</span>}
+                  </div>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{p.sub}</p>
+                  <Button
+                    variant={on ? "gold" : "outline"}
+                    size="lg"
+                    onClick={(e) => { e.stopPropagation(); goCreate(); }}
+                    className="mt-6 w-full rounded-full"
+                  >
+                    {p.cta}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="mx-auto mt-5 max-w-2xl text-center text-xs text-muted-foreground">
+            {t.pricing.plansNote}
+          </p>
         </section>
 
-        {/* COLLECTIONS — curated bundles, moved here from the homepage */}
         <CollectionsSection />
 
         {/* FAQ */}

@@ -23,6 +23,30 @@ export interface Collection {
   featured?: boolean;
 }
 
+/**
+ * Collections become directly buyable as soon as each one has a Shopify product
+ * variant to sell. Until a key appears here the bundle builder still works and
+ * still totals correctly — it just sends the selection to the admin inbox as a
+ * request instead of to Shopify's checkout. Paste the variant GIDs in and the
+ * same button starts taking payment; nothing else needs to change.
+ */
+export const COLLECTION_VARIANT_IDS: Record<string, string | null> = {
+  chumash: null,
+  neviim: null,
+  kesuvim: null,
+  megillos: null,
+  "yamim-tovim": null,
+  middos: null,
+  complete: null,
+};
+
+export const collectionVariantId = (key: string): string | null =>
+  COLLECTION_VARIANT_IDS[key] ?? null;
+
+/** True when every selected collection can actually be charged for. */
+export const canCheckoutCollections = (keys: string[]): boolean =>
+  keys.length > 0 && keys.every((k) => !!collectionVariantId(k));
+
 // Bundle catalog — front-end only for now (no live checkout). Requests flow
 // through the creation wizard in "collection request" mode and land in the
 // admin inbox as contact tickets; invoicing + generation are handled by hand.
@@ -39,3 +63,26 @@ export const COLLECTIONS: Collection[] = [
 
 export const getCollection = (key: string | null | undefined): Collection | undefined =>
   COLLECTIONS.find((c) => c.key === key);
+
+/** Every collection except the all-in-one, i.e. what "Complete" is made of. */
+export const PART_COLLECTIONS = COLLECTIONS.filter((c) => c.key !== "complete");
+
+export const collectionsTotal = (keys: string[], isIls: boolean): number =>
+  keys.reduce((sum, k) => {
+    const c = getCollection(k);
+    return sum + (c ? (isIls ? c.priceIls : c.priceUsd) : 0);
+  }, 0);
+
+export const collectionsBookCount = (keys: string[]): number =>
+  keys.reduce((sum, k) => sum + (parseInt(getCollection(k)?.books || "0", 10) || 0), 0);
+
+/**
+ * What the all-in-one saves against buying its parts separately — a real number
+ * from the price table, not a claimed discount.
+ */
+export const completeSaving = (isIls: boolean): number => {
+  const parts = collectionsTotal(PART_COLLECTIONS.map((c) => c.key), isIls);
+  const complete = getCollection("complete");
+  const whole = complete ? (isIls ? complete.priceIls : complete.priceUsd) : 0;
+  return Math.max(0, parts - whole);
+};

@@ -27,7 +27,12 @@ const Create = () => {
 
   // Collection-request mode: /create?collection=<key> runs the wizard without
   // story selection or payment and sends the request to the admin inbox.
-  const collection = getCollection(searchParams.get("collection"));
+  // The bundle builder can send several keys at once (?collection=a,b,c). The
+  // wizard is driven by the first, and every one is listed in the request.
+  const collectionKeys = (searchParams.get("collection") || "")
+    .split(",").map((k) => k.trim()).filter(Boolean);
+  const collections = collectionKeys.map(getCollection).filter(Boolean) as NonNullable<ReturnType<typeof getCollection>>[];
+  const collection = collections[0];
 
   // Dev-only escape hatch for scripts/capture-wizard-shots.mjs, which walks the
   // wizard to refresh the screenshots in the blog's step-by-step guide. Gated on
@@ -40,7 +45,7 @@ const Create = () => {
   useEffect(() => {
     if (screenshotMode) return;
     if (authLoading || user) return;
-    const target = collection ? `/create?collection=${collection.key}` : "/create";
+    const target = collectionKeys.length ? `/create?collection=${collectionKeys.join(",")}` : "/create";
     navigate(`/auth?next=${encodeURIComponent(target)}`, { replace: true });
   }, [screenshotMode, collection, authLoading, user, navigate]);
 
@@ -70,7 +75,7 @@ const Create = () => {
         description="Start the personalization wizard. Add your child's name, photo, and details to generate a one-of-a-kind Torah storybook."
         path="/create"
       />
-      <CreationWizard onClose={handleClose} collection={collection} />
+      <CreationWizard onClose={handleClose} collection={collection} collections={collections} />
       {/* Branded to match the wizard it interrupts: the same accent tile, the
           Torah Tale display face on the question, and a clear primary action.
           The two ways of leaving are separated from the way back — "Discard"

@@ -862,6 +862,10 @@ export const he: typeof en = {
 
   // Pricing page
   pricing: {
+    plansEyebrow: "מסלולים",
+    plansTitle: "בחרו איך הספרייה שלהם תגדל",
+    plansSubtitle: "ספר אחד להתחלה, או מסלול שמביא את פרשת השבוע עד הבית.",
+    plansNote: "המחירים לכריכה רכה 8″×8″. כריכה קשה וספר קשיח מתומחרים בנפרד בתשלום. אפשר לבטל מסלול בכל רגע מהאזור האישי.",
     heroTitle: "צרו סיפורי תורה אישיים",
     heroAccent: "שהילדים שלכם פשוט יאהבו",
     startingAt: "החל מ-",
@@ -872,10 +876,10 @@ export const he: typeof en = {
     singleSubtitle: "רכישה חד-פעמית",
     singleCta: "ליצירת סיפור",
     torahTitle: "סדרת התורה",
-    torahSubtitle: "4 סיפורים בחודש • פרשת השבוע + חגים",
+    torahSubtitle: "4 ספרים בחודש — ספר פרשת שבוע חדש בכל שבוע",
     torahCta: "מתחילים עכשיו",
-    tanachTitle: "סדרת התנ״ך",
-    tanachSubtitle: "כל התורה, הנביאים והכתובים",
+    tanachTitle: "חבילה שנתית",
+    tanachSubtitle: "שנה שלמה של ספרי פרשת שבוע, בתשלום אחד",
     tanachCta: "מתחילים עכשיו",
     collectionTitle: "בנו ספרייה שגדלה יחד איתם",
     collectionDesc: "מדי חודש מצטרף ספר חדש לאוסף התורה האישי שלהם.",

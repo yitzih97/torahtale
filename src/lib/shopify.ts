@@ -356,3 +356,42 @@ export async function createOrderCheckout(params: {
     return null;
   }
 }
+
+/**
+ * Checkout for one or more collection bundles. Mirrors createOrderCheckout: the
+ * edge function turns the lines into a Shopify cart and hands back its hosted
+ * checkout URL. Returns null when any selected collection has no variant yet, so
+ * the caller can fall back to the request flow instead of failing silently.
+ */
+export async function createCollectionCheckout(params: {
+  keys: string[];
+  childId?: string | null;
+}): Promise<{ checkoutUrl: string } | null> {
+  try {
+    const { collectionVariantId } = await import("@/data/collections");
+    const lines = params.keys.map((k) => ({ merchandiseId: collectionVariantId(k), quantity: 1 }));
+    if (lines.some((l) => !l.merchandiseId)) return null;
+
+    const { supabase } = await import("@/integrations/supabase/client");
+    const attributes: Array<{ key: string; value: string }> = [
+      { key: "collections", value: params.keys.join(",") },
+    ];
+    if (params.childId) attributes.push({ key: "child_id", value: params.childId });
+
+    const { data, error } = await supabase.functions.invoke("shopify-create-checkout", {
+      body: { lines, attributes },
+    });
+    if (error) {
+      console.error("createCollectionCheckout invoke error:", error);
+      return null;
+    }
+    if (!data?.checkoutUrl) {
+      console.error("createCollectionCheckout returned no checkoutUrl:", data);
+      return null;
+    }
+    return { checkoutUrl: data.checkoutUrl as string };
+  } catch (err) {
+    console.error("createCollectionCheckout failed:", err);
+    return null;
+  }
+}

@@ -255,9 +255,11 @@ interface Props {
   /** Collection-request mode: skips story selection + payment; the request is
       sent to the admin inbox and invoicing/generation are handled manually. */
   collection?: CollectionBundle;
+  /** The full bundle when several collections were selected together. */
+  collections?: CollectionBundle[];
 }
 
-export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
+export const CreationWizard = ({ open = true, onClose, collection, collections }: Props) => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { t, lang } = useLanguage();
@@ -979,7 +981,9 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
       const requesterName =
         (user.user_metadata?.full_name as string | undefined) || user.email || "Torah Tale user";
       const message =
-        `Collection purchase request: ${collection.name} (${collection.books}, ~$${collection.priceUsd} / ₪${collection.priceIls}).\n` +
+        `Collection purchase request:\n${(collections?.length ? collections : [collection])
+          .map((c) => `- ${c.name} (${c.books}, ~$${c.priceUsd} / ₪${c.priceIls})`).join("\n")}\n` +
+        `Bundle total: ~$${(collections?.length ? collections : [collection]).reduce((n, c) => n + c.priceUsd, 0)} / ₪${(collections?.length ? collections : [collection]).reduce((n, c) => n + c.priceIls, 0)}\n` +
         `Language: ${data.language}\n` +
         `Children:\n${childLines.join("\n")}\n\n` +
         `Submitted from the creation wizard (collection mode). Send the customer an invoice; books are generated manually after payment is received.`;

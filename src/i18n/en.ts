@@ -870,6 +870,10 @@ export const en = {
 
   // Pricing page
   pricing: {
+    plansEyebrow: "Plans",
+    plansTitle: "Choose how their library grows",
+    plansSubtitle: "One book to start, or a plan that brings the weekly parsha to your door.",
+    plansNote: "Prices shown for the 8″×8″ softcover. Hardcover and board book are priced separately at checkout. Cancel a plan any time from your dashboard.",
     heroTitle: "Create Personalized Torah Books",
     heroAccent: "Your Kids Will Love",
     startingAt: "starting at",
@@ -880,17 +884,17 @@ export const en = {
     singleSubtitle: "One-time purchase",
     singleCta: "Create Book",
     torahTitle: "Torah Series",
-    torahSubtitle: "4 books per month • Weekly Parsha + Holidays",
+    torahSubtitle: "4 books a month — a new parsha book every week",
     torahCta: "Start Now",
-    tanachTitle: "Tanach Series",
-    tanachSubtitle: "All of Torah, Neviim, Kesuvim",
+    tanachTitle: "Year Bundle",
+    tanachSubtitle: "A full year of weekly parsha books, paid once",
     tanachCta: "Start Now",
     collectionTitle: "Build a Library That Grows With Them",
     collectionDesc: "Every month, a new book joins their personal Torah collection.",
     faqTitle: "Questions? We've got answers.",
     faqs: [
       { q: "Can I cancel anytime?", a: "Yes — your subscription is fully flexible. Cancel from your dashboard at any time, no questions asked." },
-      { q: "How often do I receive books?", a: "That depends on your plan — Weekly delivers a new parsha book every week, Monthly delivers 4 books a month, and the Year Bundle covers the whole year of parsha and holiday books (with two months free)." },
+      { q: "How often do I receive books?", a: "One book every week, on any plan — the plan only changes how often you are billed. Monthly is billed each month (4 books), and the Year Bundle is billed once for the year." },
       { q: "Can I choose specific stories?", a: "Yes. With a single book purchase you pick any Parsha or story from the full Tanach. Subscribers get the weekly Parsha automatically." },
       { q: "Is this physical or digital?", a: "Every book is a physical, premium-printed hardcover, softcover, or board book, shipped directly to your door." },
     ],
