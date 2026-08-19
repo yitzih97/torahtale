@@ -274,161 +274,95 @@ export const CheckoutStep = ({
   );
 
   return (
-    <div className="space-y-2">
-      {/* The book itself */}
-      <div className="rounded-2xl border border-border bg-card overflow-hidden">
-        {/* Wraps rather than squeezing: on a narrow phone the cover, the title
-            and the price cannot share one line — without a floor on the title
-            column it collapsed to a few pixels wide and wrapped one letter per
-            line, several hundred pixels tall. */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-3 sm:p-5">
-          {/* The customer's OWN cover once it exists — the point of the moment
-              before paying is seeing the actual book, not a stock product shot.
-              It is shown flat, not printed onto a mock-up: the format they chose
-              doesn't change the artwork. Falls back to the product photo while
-              it generates or if it could not be made. */}
-          <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-muted/30 border border-border/50 shrink-0">
-            {coverPreview?.url ? (
-              <img src={coverPreview.url} alt={storyLabel} decoding="async" className="w-full h-full object-cover" />
-            ) : (
-              <img
-                src={FORMAT_THUMB[bookOptions.productType]}
-                alt={formatLabel}
-                width={320}
-                height={320}
-                decoding="async"
-                className="w-full h-full object-cover"
-                style={lang === "en" ? undefined : { transform: "scaleX(-1)" }}
-              />
-            )}
-            {coverPreview?.loading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
-                <Loader2 className="w-5 h-5 animate-spin text-accent" />
-              </div>
-            )}
-          </div>
-          <div className="min-w-[8rem] flex-1">
-            <p className="font-display text-lg sm:text-xl font-bold text-primary leading-tight truncate">{storyLabel}</p>
-            <p className="text-xs text-muted-foreground mt-0.5 truncate">{t.checkout.bookFor(childName)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1.5">
-              {formatLabel} · {t.checkout.pagesCount(pageCount)}
-              {quantity > 1 ? ` · ×${quantity}` : ""}
-            </p>
-            {coverPreview && (coverPreview.url || coverPreview.loading) && (
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span className="text-[11px] text-accent font-medium">
-                  {coverPreview.loading ? t.checkout.coverPreparing : t.checkout.coverYours}
-                </span>
-                {coverPreview.canRegenerate && (
-                  <button
-                    type="button"
-                    onClick={coverPreview.regenerate}
-                    className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-accent underline underline-offset-2"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                    {t.checkout.coverTryAnother(coverPreview.regensLeft)}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="shrink-0 w-full flex items-baseline gap-2 sm:w-auto sm:block sm:text-end">
-            <p className="text-xl sm:text-2xl font-bold text-accent leading-none">{fmt(total)}</p>
-            <p className="text-[11px] text-muted-foreground sm:mt-1">
-              {isSubscription && activePlan ? `/${periodLabel(activePlan.id)}` : t.checkout.oneTimePurchase}
-            </p>
-          </div>
-        </div>
-
-        {/* Details — collapsed by default, so the panel stays clean */}
-        <button
-          type="button"
-          onClick={() => setDetailsOpen((v) => !v)}
-          aria-expanded={detailsOpen}
-          className="w-full flex items-center justify-between gap-2 px-4 sm:px-5 py-3 border-t border-border text-sm text-muted-foreground hover:bg-muted/40 transition-colors"
-        >
-          <span className="font-medium">{t.checkout.orderDetails}</span>
-          <ChevronDown className={`w-4 h-4 transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
-        </button>
-
-        {detailsOpen && (
-          <div className="px-4 sm:px-5 pb-4 space-y-2.5 text-sm border-t border-border pt-3.5">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                {t.checkout.bookFor(childName)}{quantity > 1 ? ` × ${quantity}` : ""}
-              </span>
-              <span className="font-medium text-primary">
-                {isSubscription ? t.checkout.included : fmt(baseBookPrice)}
-              </span>
-            </div>
-            {bookOptions.coloringBook && (
-              <div className="flex justify-between text-accent">
-                <span>{t.bookOptions.coloringBookAddon}{quantity > 1 ? ` × ${quantity}` : ""}</span>
-                <span className="font-medium">{isSubscription ? t.checkout.included : fmt(coloringAddonTotal)}</span>
-              </div>
-            )}
-            {!isSubscription && volumeDiscount > 0 && (
-              <div className="flex justify-between text-accent">
-                <span>{t.checkout.volumeDiscount(Math.round(volumeDiscount * 100))}</span>
-                <span className="font-medium">−{fmt(discountAmount)}</span>
-              </div>
-            )}
-            {!isSubscription && <Row label={t.wizard.story} value={storyLabel} target="story" />}
-            <Row label={t.wizard.artStyle} value={<span className="capitalize">{artLabel}</span>} />
-            <Row
-              label={t.checkout.format}
-              value={`${formatLabel}${bookOptions.coloringBook ? ` + ${t.bookOptions.coloringBookAddon}` : ""}`}
-              target="format"
-            />
-            {shippingCost > 0 && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
-                <span className="font-medium text-primary">{fmt(shippingCost)}</span>
-              </div>
-            )}
-            {isSubscription && activePlan && (
-              <div className="flex justify-between text-accent">
-                <span>{t.checkout.planNamed(planLabels[activePlan.id])}</span>
-                <span className="font-medium">{fmt(subscriptionPrice)}/{periodLabel(activePlan.id)}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex justify-between items-baseline px-4 sm:px-5 py-3.5 border-t border-border bg-muted/25 font-bold">
-          <span className="text-primary">{t.checkout.totalToday}</span>
-          <span className="text-accent text-lg">{fmt(total)}</span>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-2 text-[11px] text-muted-foreground bg-muted/50 rounded-xl px-3 py-1.5">
-        <ShieldCheck className="w-3.5 h-3.5 text-accent shrink-0 mt-px" />
-        <span>{t.checkout.secureCheckout}</span>
-      </div>
-
-      <p className="text-[10px] text-muted-foreground leading-tight px-1">
-        {t.checkout.disclaimer}
-      </p>
-
-      {!hideCta && (
-        <Button
-          variant="gold"
-          size="lg"
-          className="w-full rounded-xl h-12 text-base"
-          onClick={handlePlaceOrder}
-          disabled={placingOrder}
-        >
-          {placingOrder ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+    <>
+      {/* One card, no chrome of its own — the wizard wraps the plan chooser and
+          this together so the whole summary reads as a single object. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border p-3 sm:p-4">
+        {/* The customer's OWN cover once it exists — the point of the moment
+            before paying is seeing the actual book, not a stock product shot.
+            It is shown flat, not printed onto a mock-up: the format they chose
+            doesn't change the artwork. Falls back to the product photo while
+            it generates or if it could not be made. */}
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-muted/30 border border-border/50 shrink-0">
+          {coverPreview?.url ? (
+            <img src={coverPreview.url} alt={storyLabel} decoding="async" className="w-full h-full object-cover" />
           ) : (
-            <>
-              {ctaIcon === null ? null : (ctaIcon ?? <Sparkles className="w-4 h-4" />)}
-              {ctaLabel ?? t.wizard.generateBook}
-            </>
+            <img
+              src={FORMAT_THUMB[bookOptions.productType]}
+              alt={formatLabel}
+              width={320}
+              height={320}
+              decoding="async"
+              className="w-full h-full object-cover"
+              style={lang === "en" ? undefined : { transform: "scaleX(-1)" }}
+            />
           )}
-        </Button>
+          {coverPreview?.loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+              <Loader2 className="w-5 h-5 animate-spin text-accent" />
+            </div>
+          )}
+        </div>
+        {/* The book, named once. No price here — it is on the plan card above
+            and on the total below, and repeating it three more times was the
+            main thing making this panel feel busy. */}
+        <div className="min-w-[8rem] flex-1">
+          <p className="font-display text-lg sm:text-xl font-bold text-primary leading-tight truncate">{storyLabel}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+            {t.checkout.bookFor(childName)} · {formatLabel}
+            {quantity > 1 ? ` · ×${quantity}` : ""}
+          </p>
+          {coverPreview && (coverPreview.url || coverPreview.loading) && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="text-[11px] text-accent font-medium">
+                {coverPreview.loading ? t.checkout.coverPreparing : t.checkout.coverYours}
+              </span>
+              {coverPreview.canRegenerate && (
+                <button
+                  type="button"
+                  onClick={coverPreview.regenerate}
+                  className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-accent underline underline-offset-2"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  {t.checkout.coverTryAnother(coverPreview.regensLeft)}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* The expandable details are gone: every row in them repeated something
+          already on screen. What did NOT appear elsewhere — an add-on, a volume
+          discount, shipping — still shows, and only when it actually applies, so
+          the ordinary order stays a clean card. */}
+      {(bookOptions.coloringBook || (!isSubscription && volumeDiscount > 0) || shippingCost > 0) && (
+        <div className="space-y-1.5 border-t border-border px-4 sm:px-5 py-2.5 text-xs">
+          {bookOptions.coloringBook && (
+            <div className="flex justify-between text-accent">
+              <span>{t.bookOptions.coloringBookAddon}{quantity > 1 ? ` × ${quantity}` : ""}</span>
+              <span className="font-medium">{isSubscription ? t.checkout.included : fmt(coloringAddonTotal)}</span>
+            </div>
+          )}
+          {!isSubscription && volumeDiscount > 0 && (
+            <div className="flex justify-between text-accent">
+              <span>{t.checkout.volumeDiscount(Math.round(volumeDiscount * 100))}</span>
+              <span className="font-medium">−{fmt(discountAmount)}</span>
+            </div>
+          )}
+          {shippingCost > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
+              <span className="font-medium text-primary">{fmt(shippingCost)}</span>
+            </div>
+          )}
+        </div>
       )}
-    </div>
+
+      <div className="flex justify-between items-baseline border-t border-border bg-muted/25 px-4 sm:px-5 py-3 font-bold">
+        <span className="text-primary">{t.checkout.totalToday}</span>
+        <span className="text-accent text-lg">{fmt(total)}</span>
+      </div>
+    </>
   );
 };
-

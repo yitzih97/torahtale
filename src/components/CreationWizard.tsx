@@ -5,7 +5,7 @@ import {
   ArrowLeft, ArrowRight, Loader2, Sparkles, Plus, Minus,
   Users, BookOpen, Package, Check,
   Camera, Sun, User, Type, Calendar, Heart, Image, PenLine,
-  Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw,
+  ShieldCheck, Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw,
   ChevronLeft, ChevronRight, Search, Smile, UserRound
 } from "lucide-react";
 import photoGoodImg from "@/assets/wizard/photo-good.jpg";
@@ -2452,6 +2452,10 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     {t.checkout.orderSummary}
                   </h2>
                 </div>
+                {/* ONE card: how you pay, the billing period, the book, the
+                    total. They were separate panels stacked together, which read
+                    as four things to check rather than one order. */}
+                <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 {(() => {
                   const isIls = t.currency.code === "ILS";
                   const unit = calculateBookPriceForCurrency(bookOptions, t.currency.code) * quantity;
@@ -2480,7 +2484,7 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     },
                   ];
                   return (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2 p-3">
                       {opts.map((o) => {
                         const active = o.id === "once" ? planType === "single" : planType === "subscription";
                         return (
@@ -2530,65 +2534,54 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                     <span>{t.checkout.subDripNote}</span>
                   </p>
                 )}
+                {/* Billing period — a segmented control in the brand's own
+                    shapes (pill, accent fill, display face) rather than an OS
+                    switch, and only once the customer is on a plan. */}
                 {planType === "subscription" && (() => {
                   const isIls = t.currency.code === "ILS";
                   const fmtType = bookOptions.productType;
                   const monthlyTotal = subPrice("monthly", fmtType, isIls);
                   const yearlyTotal = subPrice("yearly", fmtType, isIls);
-                  const monthlyAnnual = monthlyTotal * 12; // what a year on the monthly plan costs
-                  // The year bundle was priced to beat the WEEKLY plan, which is no
-                  // longer offered. Against monthly it currently costs more, so the
-                  // saving is computed rather than asserted: the strikethrough and
-                  // the "save" line appear only if yearly is genuinely cheaper, and
-                  // come back on their own if the yearly price is ever lowered.
-                  const yearlySaves = yearlyTotal < monthlyAnnual;
                   const sym = t.currency.symbol;
                   const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
-                  if (selectedPlan === "monthly") {
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => { planTouchedRef.current = true; setSelectedPlan("yearly"); }}
-                        className="w-full rounded-xl border border-accent/40 bg-accent/5 px-3 py-2 flex items-center justify-between gap-3 hover:border-accent transition-all active:scale-[0.99]"
-                      >
-                        <span className="text-start text-[11px] leading-snug text-primary flex flex-wrap items-baseline gap-x-1.5">
-                          <span className="font-semibold">{t.checkout.switchToYearly}</span>
-                          {yearlySaves && (
-                            <span className="text-muted-foreground line-through">{fmt(monthlyAnnual)}{t.checkout.perYear}</span>
-                          )}
-                          <span className="font-bold text-accent">{fmt(yearlyTotal)}{t.checkout.perYear}</span>
-                          {yearlySaves && (
-                            <span className="text-accent/80">{t.checkout.saveAmount(fmt(monthlyAnnual - yearlyTotal))}</span>
-                          )}
-                        </span>
-                        <span className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-input">
-                          <span className="inline-block h-4 w-4 transform rounded-full bg-background shadow translate-x-0.5" />
-                        </span>
-                      </button>
-                    );
-                  }
-                  if (selectedPlan === "yearly") {
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => { planTouchedRef.current = true; setSelectedPlan("monthly"); }}
-                        className="w-full rounded-xl border border-accent bg-accent/10 px-3 py-2 flex items-center justify-between gap-3 transition-all active:scale-[0.99]"
-                      >
-                        <span className="text-start text-[11px] leading-snug text-primary flex flex-wrap items-baseline gap-x-1.5">
-                          <span className="font-semibold">{t.checkout.yearlyPlan} · {fmt(yearlyTotal)}{t.checkout.perYear}</span>
-                          <span className="text-muted-foreground">{t.checkout.tapSwitchMonthly(`${fmt(monthlyTotal)}${t.checkout.perMonth}`)}</span>
-                        </span>
-                        <span className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-accent">
-                          <span className="inline-block h-4 w-4 transform rounded-full bg-background shadow translate-x-[1.125rem]" />
-                        </span>
-                      </button>
-                    );
-                  }
-                  return null;
+                  // The year bundle was priced to beat the WEEKLY plan, which is
+                  // no longer offered. Against monthly it currently costs more, so
+                  // the saving is computed rather than asserted — it appears only
+                  // if yearly is genuinely cheaper, and returns on its own if the
+                  // yearly price is ever lowered.
+                  const saving = monthlyTotal * 12 - yearlyTotal;
+                  const periods: Array<{ id: "monthly" | "yearly"; label: string }> = [
+                    { id: "monthly", label: t.wizard.planMonthly },
+                    { id: "yearly",  label: t.wizard.planYearly },
+                  ];
+                  return (
+                    <div className="border-t border-border px-3 pb-3 pt-2.5">
+                      <div className="flex items-center gap-1 rounded-full bg-muted/60 p-1">
+                        {periods.map((p) => {
+                          const on = selectedPlan === p.id;
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => { planTouchedRef.current = true; setSelectedPlan(p.id); }}
+                              aria-pressed={on}
+                              className={`flex-1 rounded-full px-3 py-1.5 text-center transition-all ${
+                                on ? "bg-accent text-accent-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              <span className="font-display text-xs font-bold">{p.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {saving > 0 && (
+                        <p className="mt-1.5 text-center text-[10px] text-accent">
+                          {t.checkout.saveAmount(fmt(saving))} · {t.checkout.payYearlySave}
+                        </p>
+                      )}
+                    </div>
+                  );
                 })()}
-                {/* No website card/address forms — Shopify's hosted checkout
-                    collects payment + shipping, and the orders/paid webhook
-                    captures the real address. Go straight to checkout. */}
                 <CheckoutStep
                   mode="summary"
                   childName={childNames}
@@ -2599,19 +2592,21 @@ export const CreationWizard = ({ open = true, onClose, collection }: Props) => {
                   selectedPlan={selectedPlan}
                   onSelectPlan={setSelectedPlan}
                   onPlaceOrder={(plan) => { void handlePlaceOrder(plan); }}
-                  ctaLabel={planType === "subscription" ? t.checkout.subscribeOrderShort : t.checkout.placeOrderShort}
-                  // Editing a summary line jumps to the step that owns it, instead
-                  // of making the customer back out through the whole flow.
+                  quantity={quantity}
                   coverPreview={coverPreview}
-                  // The pay button belongs in the sticky action bar, not at the
-                  // bottom of a summary the customer has to scroll to reach.
                   hideCta
-                  onEdit={(target) => {
-                    setDir(-1);
-                    if (target === "story") { setPortionView("mode"); setStep(5); }
-                    else setStep(10);
-                  }}
                 />
+                </div>
+
+                <div className="flex items-start gap-2 rounded-xl bg-muted/50 px-3 py-1.5 text-[11px] text-muted-foreground">
+                  <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-accent" />
+                  <span>{t.checkout.secureCheckout}</span>
+                </div>
+
+                <p className="px-1 text-[10px] leading-tight text-muted-foreground">
+                  {t.checkout.disclaimer}
+                </p>
+
               </motion.div>
             )}
 
