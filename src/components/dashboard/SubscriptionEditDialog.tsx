@@ -23,7 +23,7 @@ interface Props {
 export function SubscriptionEditDialog({ open, onClose, subscription, children, onSave, isSaving }: Props) {
   const { t } = useLanguage();
   const [childId, setChildId] = useState<string>("");
-  const [frequency, setFrequency] = useState<string>("weekly");
+  const [frequency, setFrequency] = useState<string>("monthly");
   const [shipping, setShipping] = useState({
     fullName: "",
     street: "",
@@ -35,7 +35,7 @@ export function SubscriptionEditDialog({ open, onClose, subscription, children, 
   useEffect(() => {
     if (!subscription) return;
     setChildId(subscription.child_id || "");
-    setFrequency(subscription.frequency || "weekly");
+    setFrequency(subscription.frequency || "monthly");
     const s = (subscription.shipping_data as any) || {};
     setShipping({
       fullName: s.fullName || subscription.child_name || "",
@@ -103,7 +103,13 @@ export function SubscriptionEditDialog({ open, onClose, subscription, children, 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="weekly">{t.dash.subEdit.weekly}</SelectItem>
+                {/* Weekly is retired, but a subscription still ON it has to be
+                    able to open this dialog and change its address without the
+                    Select silently blanking its own value — so the option is
+                    listed only when that is what this subscription already is. */}
+                {frequency === "weekly" && (
+                  <SelectItem value="weekly">{t.dash.subEdit.weekly}</SelectItem>
+                )}
                 <SelectItem value="monthly">{t.dash.subEdit.monthly}</SelectItem>
                 <SelectItem value="yearly">{t.dash.subEdit.yearly}</SelectItem>
               </SelectContent>

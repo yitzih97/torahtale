@@ -61,8 +61,10 @@ const savingsBadge = (perBookPrice: number, bookPrice: number, isIls = false): {
 /* Default fallback pricing (used when no bookPriceUsd is provided) — softcover base,
    shipping included. */
 const DEFAULT_BOOK_USD = 14.99; // softcover, the base this fallback assumes
+/* No weekly plan: a subscription is 4 books a month in one delivery. "weekly"
+   survives in the types and in SUB_PRICE only so live subscriptions sold under
+   it keep rendering — it is never offered. */
 const DEFAULT_PLANS: PlanData[] = [
-  { id: "weekly", priceUsd: 19.44, perWeekUsd: 19.44, ...savingsBadge(19.44, DEFAULT_BOOK_USD), booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
   { id: "monthly", priceUsd: 74.77, perWeekUsd: 18.69, ...savingsBadge(18.69, DEFAULT_BOOK_USD), booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
   { id: "yearly", priceUsd: 932.98, perWeekUsd: 17.94, ...savingsBadge(17.94, DEFAULT_BOOK_USD), booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
 ];
@@ -74,12 +76,10 @@ const DEFAULT_PLANS: PlanData[] = [
 const perBook = (bookPriceUsd: number, disc: number) => bookPriceUsd * (1 - disc) + SHIP_PER_BOOK;
 
 function buildPlansForBook(bookPriceUsd: number): PlanData[] {
-  const weekly = round2(perBook(bookPriceUsd, 0.10) * 1);
   const monthly = round2(perBook(bookPriceUsd, 0.15) * 4);
   const yearly = round2(perBook(bookPriceUsd, 0.20) * 52);
 
   return [
-    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, ...savingsBadge(weekly, bookPriceUsd), booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
     { id: "monthly", priceUsd: monthly, perWeekUsd: round2(monthly / 4), ...savingsBadge(round2(monthly / 4), bookPriceUsd), booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
     { id: "yearly", priceUsd: yearly, perWeekUsd: round2(yearly / 52), ...savingsBadge(round2(yearly / 52), bookPriceUsd), booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
   ];
@@ -121,11 +121,9 @@ function canonicalPlans(format: BookFormat, isIls: boolean): PlanData[] {
   const p = (plan: "weekly" | "monthly" | "yearly") => subPrice(plan, format, isIls);
   // Compared against a single book of the SAME format and currency.
   const book = singlePrice(format, isIls);
-  const perWeek = p("weekly");
   const perMonthBook = round2(p("monthly") / 4);
   const perYearBook = round2(p("yearly") / 52);
   return [
-    { id: "weekly", priceUsd: p("weekly"), perWeekUsd: perWeek, ...savingsBadge(perWeek, book, isIls), booksPerPeriod: 1, icon: Zap, frequency: "weekly" },
     { id: "monthly", priceUsd: p("monthly"), perWeekUsd: perMonthBook, ...savingsBadge(perMonthBook, book, isIls), booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
     { id: "yearly", priceUsd: p("yearly"), perWeekUsd: perYearBook, ...savingsBadge(perYearBook, book, isIls), booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
   ];

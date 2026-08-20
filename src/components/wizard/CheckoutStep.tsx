@@ -33,12 +33,14 @@ interface Plan {
 /* Round to a friendly .99 price */
 const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
 
+/* The weekly plan is retired — a subscription is 4 books a month in ONE
+ * delivery, which is what the monthly plan is. "weekly" stays in the types and
+ * in SUB_PRICE because subscriptions sold under it are still live and still
+ * render in the dashboard; it is simply no longer offered. */
 function buildPlansForBook(bookPriceUsd: number): Plan[] {
-  const weekly = friendly(bookPriceUsd * 1 * (1 - 0.10));
   const monthly = friendly(bookPriceUsd * 4 * (1 - 0.20));
   const yearly = friendly(bookPriceUsd * 52 * (1 - 0.30));
   return [
-    { id: "weekly", priceUsd: weekly, perWeekUsd: weekly, savings: "10% off", icon: Zap },
     { id: "monthly", priceUsd: monthly, perWeekUsd: monthly / 4, savings: "20% off", icon: Crown, badge: true },
     { id: "yearly", priceUsd: yearly, perWeekUsd: yearly / 52, savings: "30% off", icon: CalendarDays },
   ];

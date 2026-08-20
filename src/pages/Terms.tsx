@@ -113,8 +113,7 @@ const EnContent = () => (
         <table className="w-full text-sm">
           <thead><tr className="bg-background/50"><th className="text-left p-4 font-semibold text-foreground">Plan</th><th className="text-left p-4 font-semibold text-foreground">Price</th><th className="text-left p-4 font-semibold text-foreground">Includes</th></tr></thead>
           <tbody className="divide-y divide-border/30">
-            <tr><td className="p-4 font-medium text-foreground">Weekly</td><td className="p-4">from $19.44/week</td><td className="p-4">One personalized sefer each week</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">Parsha Series (monthly)</td><td className="p-4">from $74.77/month</td><td className="p-4">4 personalized seforim per month (Weekly Parsha + Yomim Tovim)</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Parsha Series (monthly)</td><td className="p-4">from $74.77/month</td><td className="p-4">4 personalized seforim per month (Weekly Parsha + Yomim Tovim), shipped together in one delivery</td></tr>
             <tr><td className="p-4 font-medium text-foreground">Year Bundle</td><td className="p-4">from $932.98/year</td><td className="p-4">52 personalized seforim across the year — best value</td></tr>
           </tbody>
         </table>
@@ -339,8 +338,7 @@ const HeContent = () => (
         <table className="w-full text-sm">
           <thead><tr className="bg-background/50"><th className="text-right p-4 font-semibold text-foreground">תוכנית</th><th className="text-right p-4 font-semibold text-foreground">מחיר</th><th className="text-right p-4 font-semibold text-foreground">כולל</th></tr></thead>
           <tbody className="divide-y divide-border/30">
-            <tr><td className="p-4 font-medium text-foreground">שבועי</td><td className="p-4">₪61/שבוע</td><td className="p-4">ספר מודפס אחד בשבוע</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">חודשי</td><td className="p-4">₪233/חודש</td><td className="p-4">4 ספרים בחודש</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">חודשי</td><td className="p-4">₪233/חודש</td><td className="p-4">4 ספרים בחודש, נשלחים יחד במשלוח אחד</td></tr>
             <tr><td className="p-4 font-medium text-foreground">שנתי</td><td className="p-4">₪2,898/שנה</td><td className="p-4">52 ספרים בשנה (הערך הטוב ביותר)</td></tr>
           </tbody>
         </table>

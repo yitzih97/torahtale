@@ -106,7 +106,7 @@ export default {
 
 [[IMAGE:storypicker]]
 
-<p>The book creator opens on <em>next</em> week's parsha with a live countdown to the order deadline for delivery before that Shabbos, so families on a Weekly or Year Bundle subscription always stay a step ahead of the laining. If you want Ha'azinu specifically — or you are working ahead through <a href="/blog/parshas-nitzavim-vayeilech-for-kids">Nitzavim-Vayeilech</a> and the Yamim Noraim — you can pick it straight from the story list instead. Our guide to <a href="/blog/how-to-choose-the-weekly-parsha-for-your-childs-book">choosing the weekly parsha</a> walks through the timing.</p>
+<p>The book creator opens on <em>next</em> week's parsha with a live countdown to the order deadline for delivery before that Shabbos, so families on a Parsha Series or Year Bundle subscription always stay a step ahead of the laining. If you want Ha'azinu specifically — or you are working ahead through <a href="/blog/parshas-nitzavim-vayeilech-for-kids">Nitzavim-Vayeilech</a> and the Yamim Noraim — you can pick it straight from the story list instead. Our guide to <a href="/blog/how-to-choose-the-weekly-parsha-for-your-childs-book">choosing the weekly parsha</a> walks through the timing.</p>
 
 <p>Ha'azinu asks children to remember, and a book with their own face in it is a strong way to make a parsha stick. We ship worldwide, with shipping rates shown at checkout. <a href="/create">Create the book</a> — eight short questions, about five minutes.</p>`, { portion, category }),
   he: {

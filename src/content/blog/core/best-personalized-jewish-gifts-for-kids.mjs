@@ -40,7 +40,7 @@ export default {
     },
     {
       q: "Can I give a subscription instead of a single book?",
-      a: "Yes. Weekly, monthly and yearly plans deliver a new parsha book on a schedule, which builds the child a personal Torah library over the year.",
+      a: "Yes. The Parsha Series delivers 4 books a month in one delivery, and the Year Bundle covers a full year — either way the child builds a personal Torah library over the year.",
     },
   ],
   bodyHtml: `
