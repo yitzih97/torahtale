@@ -41,7 +41,15 @@ import { useChildren, type ChildRecord } from "@/hooks/useChildren";
 import { ImageCropDialog } from "./ImageCropDialog";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { FamilyPhotoDialog, type ReviewedPerson } from "./wizard/FamilyPhotoDialog";
-import { type Collection as CollectionBundle } from "@/data/collections";
+import {
+  type Collection as CollectionBundle,
+  type CollectionFormat,
+  COLLECTION_FORMATS,
+  collectionsBookCount,
+  collectionsTotal,
+  collectionsTotalForFormat,
+  formatUpcharge,
+} from "@/data/collections";
 import { GlassIconTile } from "@/components/ui/glass-icon-tile";
 import { generateId } from "@/lib/utils";
 
@@ -313,6 +321,11 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   const [savedBookId, setSavedBookId] = useState<string | null>(null);
   const [collectionSubmitting, setCollectionSubmitting] = useState(false);
   const [collectionSent, setCollectionSent] = useState(false);
+  /* Which cover the collection gets printed in. Listed collection prices are the
+     softcover ones, so the request step has to let this be chosen and re-price
+     before anything is sent — otherwise we quote softcover and hand-invoice
+     something else. */
+  const [collectionFormat, setCollectionFormat] = useState<CollectionFormat>("softcover");
 
   // Keep story pageCount in sync with the chosen book format
   // (board=10, softcover=20, hardcover=24, coloring=24)
@@ -1074,10 +1087,19 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
       );
       const requesterName =
         (user.user_metadata?.full_name as string | undefined) || user.email || "Torah Tale user";
+      // Quote the invoice off the SAME numbers the customer was shown on the
+      // request step — listed prices are softcover, so the chosen cover's
+      // per-book upcharge has to travel with the request.
+      const bundle = collections?.length ? collections : [collection];
+      const bundleKeys = bundle.map((c) => c.key);
+      const bundleBooks = collectionsBookCount(bundleKeys);
+      const upUsd = formatUpcharge(collectionFormat, false);
+      const upIls = formatUpcharge(collectionFormat, true);
       const message =
-        `Collection purchase request:\n${(collections?.length ? collections : [collection])
-          .map((c) => `- ${c.name} (${c.books}, ~$${c.priceUsd} / ₪${c.priceIls})`).join("\n")}\n` +
-        `Bundle total: ~$${(collections?.length ? collections : [collection]).reduce((n, c) => n + c.priceUsd, 0)} / ₪${(collections?.length ? collections : [collection]).reduce((n, c) => n + c.priceIls, 0)}\n` +
+        `Collection purchase request:\n${bundle
+          .map((c) => `- ${c.name} (${c.books}, ~$${c.priceUsd} / ₪${c.priceIls} softcover)`).join("\n")}\n` +
+        `Cover: ${collectionFormat}${upUsd ? ` (+$${upUsd} / ₪${upIls} per book × ${bundleBooks} books = +$${upUsd * bundleBooks} / ₪${upIls * bundleBooks})` : " (listed price)"}\n` +
+        `Bundle total as quoted: ~$${collectionsTotalForFormat(bundleKeys, false, collectionFormat)} / ₪${collectionsTotalForFormat(bundleKeys, true, collectionFormat)}\n` +
         `Language: ${data.language}\n` +
         `Children:\n${childLines.join("\n")}\n\n` +
         `Submitted from the creation wizard (collection mode). Send the customer an invoice; books are generated manually after payment is received.`;
@@ -2454,6 +2476,84 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                     <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{collection ? "Collection request" : planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
                   </li>
                 </motion.ul>
+
+                {/* Cover + price. The collection prices quoted on /pricing are the
+                    SOFTCOVER ones, so the request cannot be sent until a cover is
+                    chosen and the bundle re-priced — otherwise the customer agrees
+                    to one number and the hand-written invoice says another. */}
+                {collection && (() => {
+                  const isIls = t.currency.code === "ILS";
+                  const sym = t.currency.symbol;
+                  const bundle = collections?.length ? collections : [collection];
+                  const keys = bundle.map((c) => c.key);
+                  const books = collectionsBookCount(keys);
+                  const base = collectionsTotal(keys, isIls);
+                  const perBook = formatUpcharge(collectionFormat, isIls);
+                  const upcharge = perBook * books;
+                  const total = collectionsTotalForFormat(keys, isIls, collectionFormat);
+                  const money = (n: number) => `${sym}${Math.round(n).toLocaleString()}`;
+                  const LABEL: Record<CollectionFormat, string> = {
+                    softcover: t.bookOptions.softcover,
+                    hardcover: t.bookOptions.hardcover,
+                    board: t.bookOptions.boardBook,
+                  };
+                  const TAGLINE: Record<CollectionFormat, string> = {
+                    softcover: t.bookOptions.softcoverTagline,
+                    hardcover: t.bookOptions.hardcoverTagline,
+                    board: t.bookOptions.boardTagline,
+                  };
+                  return (
+                    <motion.div
+                      variants={staggerChild}
+                      className="mx-auto max-w-md space-y-4 rounded-2xl border border-border/60 bg-card/60 p-4 sm:p-5"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Choose your cover</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">Every book in the collection is printed this way.</p>
+                        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                          {COLLECTION_FORMATS.map((f) => {
+                            const on = collectionFormat === f;
+                            const extra = formatUpcharge(f, isIls);
+                            return (
+                              <button
+                                key={f}
+                                type="button"
+                                onClick={() => setCollectionFormat(f)}
+                                aria-pressed={on}
+                                className={`rounded-xl border-2 p-3 text-start transition-colors ${
+                                  on ? "border-accent bg-accent/10" : "border-border/60 hover:border-accent/50"
+                                }`}
+                              >
+                                <span className="block text-xs font-semibold text-foreground">{LABEL[f]}</span>
+                                <span className="mt-0.5 block text-[11px] leading-tight text-muted-foreground">{TAGLINE[f]}</span>
+                                <span className="mt-1.5 block text-[11px] font-semibold text-accent">
+                                  {extra ? `+${money(extra)} / book` : "Included"}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 border-t border-border/60 pt-3 text-sm">
+                        <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
+                          <span>{bundle.length === 1 ? "1 collection" : `${bundle.length} collections`} · {books} books</span>
+                          <span>{money(base)}</span>
+                        </div>
+                        {upcharge > 0 && (
+                          <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
+                            <span>{LABEL[collectionFormat]} · {books} × {money(perBook)}</span>
+                            <span>+{money(upcharge)}</span>
+                          </div>
+                        )}
+                        <div className="flex items-baseline justify-between gap-3 pt-1.5 text-foreground">
+                          <span className="font-semibold">Estimated total</span>
+                          <span className="font-heading text-2xl font-bold">{money(total)}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })()}
 
                 {collection && (
                   <motion.p variants={staggerChild} className="text-sm text-muted-foreground text-center leading-relaxed">

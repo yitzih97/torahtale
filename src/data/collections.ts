@@ -86,6 +86,39 @@ export const collectionsTotal = (keys: string[], isIls: boolean): number =>
 export const collectionsBookCount = (keys: string[]): number =>
   keys.reduce((sum, k) => sum + (parseInt(getCollection(k)?.books || "0", 10) || 0), 0);
 
+/* ─────────────────────────── Cover format ───────────────────────────
+ * Listed collection prices are for the 8″×8″ softcover. A different cover is a
+ * flat per-BOOK upcharge on top, which is how the rest of the catalogue already
+ * prices format: SUB_PRICE in lib/pricing.ts charges the same delta per book on
+ * every plan, and the delta narrows as the commitment grows (+$9.00/book on the
+ * weekly plan, +$8.50 monthly, +$8.00 yearly for hardcover). A collection is the
+ * largest commitment we sell, so it takes the yearly-plan delta.
+ *
+ * Every combination clears production cost — the thinnest is the Complete
+ * Collection in board book at ~42% gross margin (see lib/bookCosts.ts). Keep it
+ * that way: these deltas are per book, so a wrong one is wrong 131 times over. */
+export type CollectionFormat = "softcover" | "hardcover" | "board";
+
+/** The cover choices offered on a collection, in display order. */
+export const COLLECTION_FORMATS: CollectionFormat[] = ["softcover", "hardcover", "board"];
+
+export const COLLECTION_FORMAT_UPCHARGE: Record<CollectionFormat, { usd: number; ils: number }> = {
+  softcover: { usd: 0, ils: 0 },
+  hardcover: { usd: 8, ils: 25 },
+  board: { usd: 12, ils: 37 },
+};
+
+export const formatUpcharge = (format: CollectionFormat, isIls: boolean): number => {
+  const u = COLLECTION_FORMAT_UPCHARGE[format] ?? COLLECTION_FORMAT_UPCHARGE.softcover;
+  return isIls ? u.ils : u.usd;
+};
+
+/** What the whole selection costs in a given cover format. */
+export const collectionsTotalForFormat = (
+  keys: string[], isIls: boolean, format: CollectionFormat,
+): number =>
+  collectionsTotal(keys, isIls) + formatUpcharge(format, isIls) * collectionsBookCount(keys);
+
 /**
  * What the all-in-one saves against buying its parts separately — a real number
  * from the price table, not a claimed discount.

@@ -239,7 +239,9 @@ export const CollectionsSection = () => {
         </motion.div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Every book in a collection stars your child. We'll confirm the details and delivery with you before anything is printed.
+          Prices shown are for the 8″×8″ softcover — you'll choose hardcover or board book, and see the
+          updated total, before you send your request. Every book in a collection stars your child, and
+          we'll confirm the details and delivery with you before anything is printed.
         </p>
       </div>
     </section>
