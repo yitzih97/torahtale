@@ -890,7 +890,7 @@ export const he: typeof en = {
   terms: {
     label: "משפטי",
     title: "תנאי שימוש",
-    effectiveDate: "תאריך תחולה: 27 במרץ 2026",
+    effectiveDate: "תאריך תחולה: 20 באוגוסט 2026",
     crossLink: "← מדיניות פרטיות",
     crossLinkPath: "/privacy",
     tocLabel: "בעמוד זה",

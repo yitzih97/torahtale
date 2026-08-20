@@ -898,7 +898,7 @@ export const en = {
   terms: {
     label: "Legal",
     title: "Terms of Service",
-    effectiveDate: "Effective Date: March 27, 2026",
+    effectiveDate: "Effective Date: August 20, 2026",
     crossLink: "Privacy Policy →",
     crossLinkPath: "/privacy",
     tocLabel: "On this page",

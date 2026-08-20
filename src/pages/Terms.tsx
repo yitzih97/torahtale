@@ -113,12 +113,13 @@ const EnContent = () => (
         <table className="w-full text-sm">
           <thead><tr className="bg-background/50"><th className="text-left p-4 font-semibold text-foreground">Plan</th><th className="text-left p-4 font-semibold text-foreground">Price</th><th className="text-left p-4 font-semibold text-foreground">Includes</th></tr></thead>
           <tbody className="divide-y divide-border/30">
-            <tr><td className="p-4 font-medium text-foreground">Torah Series</td><td className="p-4">starting at $22.99/month</td><td className="p-4">4 personalized seforim per month (Weekly Parsha + Yomim Tovim)</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">Tanach Series</td><td className="p-4">starting at $34.99/month</td><td className="p-4">Full access — Torah, Neviim, Kesuvim</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Weekly</td><td className="p-4">from $19.44/week</td><td className="p-4">One personalized sefer each week</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Torah Series (monthly)</td><td className="p-4">from $74.77/month</td><td className="p-4">4 personalized seforim per month (Weekly Parsha + Yomim Tovim)</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Year Bundle</td><td className="p-4">from $932.98/year</td><td className="p-4">52 personalized seforim across the year — best value</td></tr>
           </tbody>
         </table>
       </div>
-      <p className="mt-3">One-time book purchases are also available starting at $7.05 depending on the book format selected. All prices are in USD and subject to change with prior notice.</p>
+      <p className="mt-3">Plan prices shown are for the 8″ × 8″ softcover; hardcover and board book are priced higher, per the table below. One-time book purchases are also available starting at $14.99 depending on the book format selected. All prices are in USD and subject to change with prior notice.</p>
     </section>
 
     <section id="pricing">
@@ -128,13 +129,14 @@ const EnContent = () => (
         <table className="w-full text-sm">
           <thead><tr className="bg-background/50"><th className="text-left p-4 font-semibold text-foreground">Format</th><th className="text-left p-4 font-semibold text-foreground">Size</th><th className="text-left p-4 font-semibold text-foreground">Price</th></tr></thead>
           <tbody className="divide-y divide-border/30">
-            <tr><td className="p-4 font-medium text-foreground">Softcover Photo Book</td><td className="p-4">8″ × 8″</td><td className="p-4">$7.05</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">Hardcover Photo Book</td><td className="p-4">8″ × 8″ or 11″ × 8.5″</td><td className="p-4">$9.95</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">Board Book</td><td className="p-4">6″ × 6″ (rounded corners)</td><td className="p-4">$18.28</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Softcover Photo Book</td><td className="p-4">8″ × 8″</td><td className="p-4">$14.99</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Hardcover Photo Book</td><td className="p-4">8″ × 8″ or 11″ × 8.5″</td><td className="p-4">$24.99</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Board Book</td><td className="p-4">6″ × 6″ (rounded corners)</td><td className="p-4">$29.99</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Coloring Book</td><td className="p-4">8.5″ × 11″</td><td className="p-4">$16.99</td></tr>
           </tbody>
         </table>
       </div>
-      <p className="mt-3">All books contain 10 pages of AI-generated, personalized content. Each book includes a custom cover, story pages, and back cover. Shipping costs are calculated at checkout based on your location.</p>
+      <p className="mt-3">Page count varies by format: 20 pages for the softcover, 24 for the hardcover and the coloring book, and 10 for the board book. Each book includes a custom cover, story pages, and back cover. Standard shipping is free; express shipping is calculated at checkout based on your location.</p>
     </section>
 
     <section id="payments">
@@ -337,13 +339,13 @@ const HeContent = () => (
         <table className="w-full text-sm">
           <thead><tr className="bg-background/50"><th className="text-right p-4 font-semibold text-foreground">תוכנית</th><th className="text-right p-4 font-semibold text-foreground">מחיר</th><th className="text-right p-4 font-semibold text-foreground">כולל</th></tr></thead>
           <tbody className="divide-y divide-border/30">
-            <tr><td className="p-4 font-medium text-foreground">שבועי</td><td className="p-4">₪88.99/שבוע</td><td className="p-4">ספר מודפס אחד בשבוע</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">חודשי</td><td className="p-4">₪295.99/חודש</td><td className="p-4">4 ספרים בחודש</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">שנתי</td><td className="p-4">₪2,959.99/שנה</td><td className="p-4">52 ספרים בשנה (הערך הטוב ביותר)</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">שבועי</td><td className="p-4">₪61/שבוע</td><td className="p-4">ספר מודפס אחד בשבוע</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">חודשי</td><td className="p-4">₪233/חודש</td><td className="p-4">4 ספרים בחודש</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">שנתי</td><td className="p-4">₪2,898/שנה</td><td className="p-4">52 ספרים בשנה (הערך הטוב ביותר)</td></tr>
           </tbody>
         </table>
       </div>
-      <p className="mt-3">רכישות ספר חד-פעמיות זמינות גם החל מ-₪92.49 בהתאם לפורמט הספר שנבחר. כל המחירים בש"ח וכפופים לשינוי בהודעה מראש.</p>
+      <p className="mt-3">מחירי המסלולים הם לספר בכריכה רכה 8″ × 8״; כריכה קשה וספר קרטון מתומחרים גבוה יותר, כמפורט בטבלה למטה. רכישות ספר חד-פעמיות זמינות גם החל מ-₪47 בהתאם לפורמט הספר שנבחר. כל המחירים בש"ח וכפופים לשינוי בהודעה מראש.</p>
     </section>
 
     <section id="pricing">
@@ -353,13 +355,14 @@ const HeContent = () => (
         <table className="w-full text-sm">
           <thead><tr className="bg-background/50"><th className="text-right p-4 font-semibold text-foreground">פורמט</th><th className="text-right p-4 font-semibold text-foreground">גודל</th><th className="text-right p-4 font-semibold text-foreground">מחיר</th></tr></thead>
           <tbody className="divide-y divide-border/30">
-            <tr><td className="p-4 font-medium text-foreground">ספר כריכה רכה</td><td className="p-4">8″ × 8″</td><td className="p-4">₪92.49</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">ספר כריכה קשה</td><td className="p-4">8″ × 8″ או 11″ × 8.5″</td><td className="p-4">₪147.99</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">ספר קרטון</td><td className="p-4">6″ × 6″ (פינות מעוגלות)</td><td className="p-4">₪166.49</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">ספר כריכה רכה</td><td className="p-4">8″ × 8″</td><td className="p-4">₪47</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">ספר כריכה קשה</td><td className="p-4">8″ × 8″ או 11″ × 8.5″</td><td className="p-4">₪78</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">ספר קרטון</td><td className="p-4">6″ × 6″ (פינות מעוגלות)</td><td className="p-4">₪94</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">ספר צביעה</td><td className="p-4">8.5″ × 11″</td><td className="p-4">₪53</td></tr>
           </tbody>
         </table>
       </div>
-      <p className="mt-3">כל הספרים מכילים 10 עמודים של תוכן מותאם אישית שנוצר בAI. כל ספר כולל כריכה מותאמת, עמודי סיפור וכריכה אחורית. עלויות משלוח מחושבות בתשלום בהתאם למיקומכם.</p>
+      <p className="mt-3">מספר העמודים משתנה לפי הפורמט: 20 עמודים בכריכה רכה, 24 בכריכה קשה ובספר הצביעה, ו-10 בספר הקרטון. כל ספר כולל כריכה מותאמת, עמודי סיפור וכריכה אחורית. משלוח רגיל חינם; משלוח מהיר מחושב בתשלום בהתאם למיקומכם.</p>
     </section>
 
     <section id="payments">
