@@ -113,19 +113,35 @@ serve(async (req) => {
     const narrativeStyle = NARRATIVE_STYLE[band];
     const rhymes = band === "toddler";
 
+    /* Hebrew and Yiddish verse needs craft rules English does not: the model
+       reaches for the lazy rhyme of a shared grammatical suffix (…ִים/…וֹת) and
+       rhymes on spelling rather than on the stressed syllable. This guidance
+       used to live ONLY in the bilingual branch, so a Hebrew-ONLY book got the
+       generic "make it rhyme" line and the verse came out weak. */
+    const hasSemitic = selectedLangs.some((l: string) => l === "hebrew" || l === "yiddish");
+    const semiticVerseCraft = `
+  · HEBREW / YIDDISH VERSE — this is where rhyme most often goes wrong, so follow it exactly:
+    – Rhyme on the FINAL STRESSED SYLLABLE (the מִלְּרַע/מִלְּעֵיל stress), not on spelling. Two words that merely end in the same letters do NOT rhyme unless the stressed vowel matches too.
+    – NEVER rhyme by grammatical suffix alone: pairs like שָׂמֵחַ/פּוֹרֵחַ are fine, but הוֹלְכִים/רוֹאִים, יְלָדוֹת/בָּנוֹת or any two plurals sharing ־ִים / ־וֹת is a LAZY rhyme — reject it and find a real one from a different root.
+    – Never rhyme a word with itself, with its own inflection, or with the same root twice.
+    – Keep a steady beat: aim for a similar syllable count on the paired lines (roughly 7–9), so it scans when chanted aloud to a small child.
+    – Natural word order and correct gender/number agreement come FIRST. If a rhyme forces unnatural syntax, change the LINE, not the grammar.
+    – Full nikud on every Hebrew word.
+    – SELF-CHECK: for each page, say the two line-endings aloud in your head. If the stressed vowels differ, or the rhyme rests on a shared suffix, rewrite that page.`;
+
     const languageInstruction = isMultiLang
       ? `LANGUAGES — this is a BILINGUAL book. Write EVERYTHING in BOTH ${selectedLangs.map((l) => langNames[l]).join(" AND ")}: every page's text, the cover title and subtitle, the synopsis, the dedication, and every question. For each of those fields return a JSON OBJECT with one key per language — e.g. "text": { ${selectedLangs.map((l) => `"${l}": "..."`).join(", ")} }.
   · Each language conveys the SAME story beat, but is COMPOSED INDEPENDENTLY in that language — NEVER a word-for-word translation. Natural, idiomatic writing in each language comes FIRST: reword freely, keeping the meaning but sacrificing literalness so it reads beautifully in that language.
 ${rhymes
   ? `  · EVERY language must GENUINELY RHYME ON ITS OWN — English AND ${otherLangs} alike, with EQUAL care. On every page, in EACH language, the lines must end in real matching rhyming sounds, be grammatically correct and natural, and scan smoothly (a steady beat) when read aloud like a real children's rhyme in that language. A line that does not rhyme in ANY language is WRONG — rewrite it until it does.
-  · HEBREW / YIDDISH specifically: correct grammar with gender/number agreement, natural word order, full nikud (Hebrew), and line-endings whose final stressed syllables actually rhyme (e.g. ...רַךְ / ...רָךְ, ...לוּשׁ / ...חוּשׁ) — never an off or slant rhyme.
+${hasSemitic ? semiticVerseCraft : ""}
   · SELF-CHECK before you finish: read every page's verse aloud in your head in EACH language separately. If any language's lines on any page don't clearly rhyme and flow, rewrite THAT language's verse for THAT page until they do.`
   : `  · Do NOT rhyme in ANY language. Every language gets real, flowing narrative prose at the reading level below — the same story beat, each told naturally in its own language.
   · HEBREW / YIDDISH specifically: correct grammar with gender/number agreement, natural word order, and full nikud (Hebrew). It must read like a book written IN that language, not translated into it.
   · SELF-CHECK before you finish: read each page aloud in your head in EACH language. If any reads as stilted, translated, or as a summary rather than a told story, rewrite it.`}`
       : rhymes
-        ? `Write everything in ${langNames[selectedLangs[0]]}. Every page is a short verse that GENUINELY RHYMES in ${langNames[selectedLangs[0]]} — real matching end-sounds, a steady beat, grammatically correct and natural, never a forced, slant, or non-rhyming line. Before finishing, read each page aloud in your head; rewrite any page whose lines don't clearly rhyme and flow.`
-        : `Write everything in ${langNames[selectedLangs[0]]}, as real narrative prose at the reading level below — NOT verse and NOT rhyme. It must read like a story written in ${langNames[selectedLangs[0]]}, natural and idiomatic, never translated-sounding. Before finishing, read each page aloud in your head; rewrite any page that reads as a summary rather than a told story.`;
+        ? `Write everything in ${langNames[selectedLangs[0]]}. Every page is a short verse that GENUINELY RHYMES in ${langNames[selectedLangs[0]]} — real matching end-sounds, a steady beat, grammatically correct and natural, never a forced, slant, or non-rhyming line. Before finishing, read each page aloud in your head; rewrite any page whose lines don't clearly rhyme and flow.${hasSemitic ? `\n${semiticVerseCraft}` : ""}`
+        : `Write everything in ${langNames[selectedLangs[0]]}, as real narrative prose at the reading level below — NOT verse and NOT rhyme. It must read like a story written in ${langNames[selectedLangs[0]]}, natural and idiomatic, never translated-sounding.${hasSemitic ? " Correct gender/number agreement, natural word order, and full nikud on every Hebrew word." : ""} Before finishing, read each page aloud in your head; rewrite any page that reads as a summary rather than a told story.`;
 
     // Page count is driven by book type (board=10, soft/hardcover=20). Validate to a sane range.
     const requestedPages = Number(pageCount);
