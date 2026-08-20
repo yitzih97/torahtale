@@ -20,7 +20,7 @@ export const BACK_COVER_SERIES: { key: string; featured: string; category: strin
 
 /** Series name per portion category, per book language. */
 const SERIES_NAME: Record<string, Record<Lang, string>> = {
-  torah: { en: "The Torah Series", he: "סדרת התורה", yi: "די תורה סעריע" },
+  torah: { en: "The Parsha Series", he: "סדרת הפרשה", yi: "די פּרשה סעריע" },
   neviim: { en: "Nevi'im & Kesuvim", he: "נביאים וכתובים", yi: "נביאים און כתובים" },
   ketuvim: { en: "Nevi'im & Kesuvim", he: "נביאים וכתובים", yi: "נביאים און כתובים" },
   megillot: { en: "The Megillos", he: "המגילות", yi: "די מגילות" },
