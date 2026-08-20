@@ -354,7 +354,13 @@ export const CheckoutStep = ({
           )}
           {shippingCost > 0 && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">{t.checkout.shippingLabel}</span>
+              {/* A subscription's books for the period ship TOGETHER — the
+                  monthly plan is 4 books in one box — so shipping is charged
+                  once per delivery, not once per book. Say so, or the single
+                  line looks like it under-counts. */}
+              <span className="text-muted-foreground">
+                {isSubscription ? t.checkout.shippingOneDelivery : t.checkout.shippingLabel}
+              </span>
               <span className="font-medium text-primary">{fmt(shippingCost)}</span>
             </div>
           )}

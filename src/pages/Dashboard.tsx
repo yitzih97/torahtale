@@ -34,6 +34,7 @@ import { useBooks, type BookRecord } from "@/hooks/useBooks";
 import { useChildren, childDisplayName, type ChildRecord } from "@/hooks/useChildren";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { toast } from "sonner";
+import { startReorder } from "@/lib/reorder";
 
 const ease = [0.22, 1, 0.36, 1];
 
@@ -93,6 +94,24 @@ export default function Dashboard() {
   const removableBookCount = books.filter((b) => removeIds.has(b.child_id ?? "")).length;
 
   const closeRemove = () => { setRemoveOpen(false); setRemoveTarget(null); };
+
+  /* "Order again" drops the customer on the checkout summary with this book and
+     these kids already filled in — see startReorder, which copies the book row
+     rather than re-opening the delivered one. */
+  const [reordering, setReordering] = useState<string | null>(null);
+  const handleReorder = async (book: any) => {
+    if (!user || reordering) return;
+    setReordering(book.id);
+    try {
+      const ok = await startReorder(book, user.id);
+      if (!ok) { toast.error(t.dash.book.reorderFailed); return; }
+      setOpenBook(null);
+      setViewingBook(null);
+      navigate("/?start=1");
+    } finally {
+      setReordering(null);
+    }
+  };
 
   const confirmRemove = async () => {
     if (!kidsToRemove.length || blockedBySub.length) return;
@@ -435,7 +454,7 @@ export default function Dashboard() {
                           onOpen={() => setOpenBook(book)}
                           onView={() => setViewingBook(book)}
                           onDownload={() => handleDownloadBook(book)}
-                          onReorder={() => navigate("/?start=1")}
+                          onReorder={() => { void handleReorder(book); }}
                           onReview={() => setReviewingBook(book)}
                           hasReview={reviewedBookIds?.has(book.id)}
                           downloading={downloadingId === book.id}
@@ -677,10 +696,7 @@ export default function Dashboard() {
             const pt = (viewingBook.shipping_data as any)?.bookOptions?.productType;
             return pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : pt === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
           })()}
-          onReorder={() => {
-            setViewingBook(null);
-            navigate("/?start=1");
-          }}
+          onReorder={() => { void handleReorder(viewingBook); }}
         />
       )}
 
@@ -712,7 +728,7 @@ export default function Dashboard() {
         onClose={() => setOpenBook(null)}
         onView={() => { if (openBook) { setViewingBook(openBook); setOpenBook(null); } }}
         onDownload={() => openBook && handleDownloadBook(openBook)}
-        onReorder={() => navigate("/?start=1")}
+        onReorder={() => { void (openBook && handleReorder(openBook)); }}
         downloading={!!openBook && downloadingId === openBook.id}
       />
 

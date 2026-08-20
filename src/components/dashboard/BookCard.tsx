@@ -47,6 +47,13 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
   const pageCount = hasPages ? (book.pages_data as any[]).length : 0;
   const Icon = meta.Icon;
   const canReview = !!onReview && (book.status === "shipped" || book.status === "delivered");
+  /* The book is only readable once the customer has the printed copy in hand.
+     Before that the pages exist (they're generated well ahead of printing) but
+     showing them spoils the thing they paid to be surprised by — and a book
+     still in printing can still change. Details stay open throughout so the
+     order itself is never hidden. */
+  const delivered = book.status === "delivered";
+  const canRead = hasPages && delivered;
   const portionDisplay = book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "";
 
 
@@ -135,9 +142,15 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
 
       {/* Action grid */}
       <div className="relative grid grid-cols-2 gap-2">
-        <ActionTile Icon={Eye} label={hasPages ? t.dash.book.viewPages : t.dash.book.open} onClick={hasPages ? onView : onOpen} primary={hasPages} />
+        <ActionTile
+          Icon={Eye}
+          label={canRead ? t.dash.book.viewPages : hasPages ? t.dash.book.afterDelivery : t.dash.book.open}
+          onClick={canRead ? onView : onOpen}
+          primary={canRead}
+          disabled={hasPages && !delivered}
+        />
         <ActionTile Icon={BookOpen} label={t.dash.book.details} onClick={onOpen} />
-        <ActionTile Icon={Download} label={downloading ? t.dash.book.saving : t.dash.book.download} onClick={onDownload} disabled={!hasPages || downloading} />
+        <ActionTile Icon={Download} label={downloading ? t.dash.book.saving : t.dash.book.download} onClick={onDownload} disabled={!canRead || downloading} />
         {canReview ? (
           <ActionTile
             Icon={Star}

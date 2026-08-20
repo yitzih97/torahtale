@@ -7,6 +7,7 @@ import { GlassIconTile } from "@/components/ui/glass-icon-tile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { dfFormat } from "@/lib/dateLocale";
 import { getUpcomingParsha, getPortionDisplay } from "@/components/wizard/TorahPortions";
+import { storyCover } from "@/lib/storyCovers";
 import type { SubscriptionRecord } from "@/hooks/useSubscriptions";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -58,12 +59,12 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
   // cover thumbnails so it's clear at a glance what's coming for this child.
   const upcoming = (() => {
     const start = sub.next_delivery_date ? new Date(sub.next_delivery_date) : new Date();
-    const items: { portion: string; label: string }[] = [];
+    const items: { portion: string; label: string; cover?: string }[] = [];
     let d = new Date(start);
     for (let guard = 0; items.length < 3 && guard < 80; guard++) {
       const portion = getUpcomingParsha(d, 0);
       if (!items.some((it) => it.portion === portion)) {
-        items.push({ portion, label: getPortionDisplay(portion, lang) });
+        items.push({ portion, label: getPortionDisplay(portion, lang), cover: storyCover(portion) });
       }
       d = new Date(d);
       d.setDate(d.getDate() + 7);
@@ -163,10 +164,31 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
                 className="relative aspect-[3/4] rounded-xl overflow-hidden border border-black/5 ring-1 ring-black/5
                   bg-[hsl(42_50%_94%)] shadow-[0_8px_18px_-12px_rgba(15,23,42,0.35)] flex flex-col items-center justify-center p-2 text-center"
               >
-                <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_25%,hsl(42_78%_70%/0.55),transparent_60%)]" />
-                <BookOpen className="w-3.5 h-3.5 text-gold/70 mb-1 relative" strokeWidth={1.75} />
-                <p className="relative font-display font-bold text-primary leading-[1.05] text-[11px] line-clamp-2">{it.label}</p>
-                <p className="relative mt-0.5 font-body italic text-gold text-[9px] line-clamp-1">{sub.child_name || t.dash.yourChild}</p>
+                {it.cover ? (
+                  <>
+                    {/* The story's own cover art — these are the same 138 covers
+                        the wizard shows when picking a parsha, so a subscriber
+                        sees the actual book coming rather than a blank card. */}
+                    <img
+                      src={it.cover}
+                      alt={it.label}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/75 via-black/35 to-transparent" />
+                    <div className="relative mt-auto w-full">
+                      <p className="font-display font-bold leading-[1.05] text-[11px] text-white line-clamp-2 drop-shadow">{it.label}</p>
+                      <p className="mt-0.5 font-body italic text-[9px] text-white/85 line-clamp-1 drop-shadow">{sub.child_name || t.dash.yourChild}</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_25%,hsl(42_78%_70%/0.55),transparent_60%)]" />
+                    <BookOpen className="w-3.5 h-3.5 text-gold/70 mb-1 relative" strokeWidth={1.75} />
+                    <p className="relative font-display font-bold text-primary leading-[1.05] text-[11px] line-clamp-2">{it.label}</p>
+                    <p className="relative mt-0.5 font-body italic text-gold text-[9px] line-clamp-1">{sub.child_name || t.dash.yourChild}</p>
+                  </>
+                )}
               </div>
             ))}
           </div>
