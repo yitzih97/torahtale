@@ -17,7 +17,7 @@ const FORMAT_THUMB: Record<BookOptions["productType"], string> = {
   board: boardThumb,
   coloring: coloringThumb,
 };
-import { subPrice } from "@/lib/pricing";
+import { shippingPrice, subPrice } from "@/lib/pricing";
 
 export type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
@@ -117,9 +117,11 @@ export const CheckoutStep = ({
   const coloringAddonTotal = unitColoringAddonPrice * quantity;
   const discountAmount = bookPrice * volumeDiscount;
   const bookPriceAfterDiscount = bookPrice - discountAmount;
-  const shippingCost = isIls
-    ? (shipping.shippingMethod === "express" ? 35 : 0)
-    : (shipping.shippingMethod === "express" ? 9.99 : 0);
+  // Standard shipping used to be free; both methods are charged now, per the
+  // Shopify zones. See SHIPPING_PRICE in lib/pricing.ts.
+  const shippingCost = shippingPrice(
+    shipping.shippingMethod === "express" ? "express" : "standard", isIls,
+  );
 
   const PLANS = buildPlansForBook(bookPrice);
 

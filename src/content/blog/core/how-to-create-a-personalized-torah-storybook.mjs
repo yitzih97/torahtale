@@ -107,7 +107,7 @@ export default {
       ${PRODUCT_GRID}
 
       <h2>Step 9 — Checkout, once or by subscription</h2>
-      <p>At checkout you choose how you'd like to receive books: a <strong>single custom book</strong>, or a subscription — <strong>Weekly</strong> (a new parsha book every Shabbos), <strong>Monthly</strong> (4 books a month, the most popular), or a <strong>Year Bundle</strong>. Standard shipping is free (5–7 business days), express (2–3 business days) is available, and we ship worldwide. See <a href="/pricing">pricing and subscription options</a> for the current plans.</p>
+      <p>At checkout you choose how you'd like to receive books: a <strong>single custom book</strong>, or a subscription — <strong>Weekly</strong> (a new parsha book every Shabbos), <strong>Monthly</strong> (4 books a month, the most popular), or a <strong>Year Bundle</strong>. US standard shipping is $3.00 (5–8 business days) and express is $6.00 (3 business days); we ship worldwide, with rates shown at checkout. See <a href="/pricing">pricing and subscription options</a> for the current plans.</p>
 
       <h2>What happens after you order</h2>
       <p>Your book is written and illustrated in our signature high-resolution 3D Pixar style, with the actual events of the story unfolding page by page and a clear middos lesson woven through. Every book is created with careful rabbinical guidance and strict tznius, and <strong>our team personally reviews it before it goes to print</strong> — so you can hand it to your child with confidence. You'll get an email when it ships, with tracking.</p>

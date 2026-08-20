@@ -136,7 +136,7 @@ const EnContent = () => (
           </tbody>
         </table>
       </div>
-      <p className="mt-3">Page count varies by format: 20 pages for the softcover, 24 for the hardcover and the coloring book, and 10 for the board book. Each book includes a custom cover, story pages, and back cover. Standard shipping is free; express shipping is calculated at checkout based on your location.</p>
+      <p className="mt-3">Page count varies by format: 20 pages for the softcover, 24 for the hardcover and the coloring book, and 10 for the board book. Each book includes a custom cover, story pages, and back cover. Shipping is charged per order and varies by destination: in the United States standard is $3.00 (5–8 business days) and express $6.00 (3 business days); to Israel standard is $5.95 (9–14 business days) and express $10.00 (5–8 business days). The exact amount is shown at checkout.</p>
     </section>
 
     <section id="payments">
@@ -362,7 +362,7 @@ const HeContent = () => (
           </tbody>
         </table>
       </div>
-      <p className="mt-3">מספר העמודים משתנה לפי הפורמט: 20 עמודים בכריכה רכה, 24 בכריכה קשה ובספר הצביעה, ו-10 בספר הקרטון. כל ספר כולל כריכה מותאמת, עמודי סיפור וכריכה אחורית. משלוח רגיל חינם; משלוח מהיר מחושב בתשלום בהתאם למיקומכם.</p>
+      <p className="mt-3">מספר העמודים משתנה לפי הפורמט: 20 עמודים בכריכה רכה, 24 בכריכה קשה ובספר הצביעה, ו-10 בספר הקרטון. כל ספר כולל כריכה מותאמת, עמודי סיפור וכריכה אחורית. דמי המשלוח נגבים לכל הזמנה ומשתנים לפי היעד: בישראל משלוח רגיל ₪19 (9–14 ימי עסקים) ומשלוח מהיר ₪31 (5–8 ימי עסקים); בארצות הברית משלוח רגיל $3.00 (5–8 ימי עסקים) ומשלוח מהיר $6.00 (3 ימי עסקים). הסכום המדויק מוצג בתשלום.</p>
     </section>
 
     <section id="payments">

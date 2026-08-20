@@ -36,7 +36,7 @@ export default {
     },
     {
       q: "How long does it take to make a personalized book as a gift?",
-      a: "Creating the book takes about five minutes online. Standard shipping is free and arrives in 5–7 business days; express shipping (2–3 business days) is available, and we ship worldwide.",
+      a: "Creating the book takes about five minutes online. Standard shipping is $3.00 in the US and arrives in 5–8 business days; express is $6.00 and takes 3 business days. We ship worldwide — rates and times to Israel and elsewhere are shown at checkout.",
     },
     {
       q: "Can I give a subscription instead of a single book?",

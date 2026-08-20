@@ -44,6 +44,41 @@ export const SUB_PRICE: Record<SubPlan, Record<BookFormat, Money>> = {
   },
 };
 
+/* ───────────────────────────── Shipping ─────────────────────────────
+ * Mirrors the Shopify shipping zones, which is what the customer is actually
+ * charged. The site has one zone signal — the display currency — so USD is read
+ * as the United States zone and ILS as the Israel zone.
+ *
+ * Standard shipping is NOT free. It was, and the claim survived in a lot of
+ * copy after the rates changed; if these numbers move again, grep for
+ * "business days" as well as for the prices.
+ *
+ * VERIFY the ILS figures against the Israel market's presentment price before
+ * trusting them: Shopify shows the Israel zone in the shop currency ($5.95 /
+ * $10.00) and the shekel amounts here are that converted at the catalogue's
+ * ~3.12 rate, not values read back from the Storefront API the way
+ * SINGLE_PRICE/SUB_PRICE were.
+ */
+export type ShippingMethod = "standard" | "express";
+
+/** Price per order. `usd` is the US zone, `ils` the Israel zone. */
+export const SHIPPING_PRICE: Record<ShippingMethod, Money> = {
+  standard: { usd: 3, ils: 19 },
+  express: { usd: 6, ils: 31 },
+};
+
+/** Quoted transit time, as a bare range — the "business days" wording is i18n. */
+export const SHIPPING_DAYS: Record<ShippingMethod, { us: string; il: string }> = {
+  standard: { us: "5–8", il: "9–14" },
+  express: { us: "3", il: "5–8" },
+};
+
+export const shippingPrice = (method: ShippingMethod, isIls: boolean): number =>
+  isIls ? SHIPPING_PRICE[method].ils : SHIPPING_PRICE[method].usd;
+
+export const shippingDays = (method: ShippingMethod, isIls: boolean): string =>
+  isIls ? SHIPPING_DAYS[method].il : SHIPPING_DAYS[method].us;
+
 /**
  * Books that one successful charge of each plan entitles — mirrors
  * BOOKS_PER_PERIOD in supabase/functions/_shared/subscription.ts, which is what

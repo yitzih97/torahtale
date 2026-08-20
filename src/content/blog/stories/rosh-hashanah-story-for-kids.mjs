@@ -31,7 +31,7 @@ export default {
     "The central mitzvah of the day is <strong>hearing the shofar</strong> — the Torah calls Rosh Hashanah <em>Yom Teruah</em>, and Chazal explain that a ram's horn recalls the ram of the Akeidah of Yitzchak.",
     "For children the simplest one-sentence answer is: <strong>Rosh Hashanah is the world's birthday and the day we make Hashem our King</strong> — the shofar is the sound of a coronation, and it also wakes us up to say sorry and try again.",
     "Torah Tale prints a personalized <strong>Rosh Hashanah storybook from the Yamim Tovim collection</strong> in which your own child is the hero, with their name and likeness on every page, in English, Hebrew or Yiddish.",
-    "Board books (ages 2-4), softcover (4-8) and hardcover (5-12) all cover this story, and standard shipping is free and takes 5-7 business days, so families order well before Yom Tov.",
+    "Board books (ages 2-4), softcover (4-8) and hardcover (5-12) all cover this story, and US standard shipping is $3.00 and takes 5-8 business days, so families order well before Yom Tov.",
   ],
   faq: [
     { q: "What is the story of Rosh Hashanah for kids?", a: "Rosh Hashanah is the anniversary of creation. Chazal teach that it is the day Adam HaRishon was created, judged and forgiven, and that day became the day of judgment for every year afterward. On Rosh Hashanah we crown Hashem as King of the world, hear the shofar, daven in shul, and eat sweet foods like apple dipped in honey to ask for a sweet new year." },
@@ -84,7 +84,7 @@ export default {
 
 <h2>One thing you can do today, in Elul</h2>
 <p>Elul is already here, and the most useful preparation for a child is small and concrete. Try a <strong>"one thing" note</strong>: each child writes or dictates a single specific thing they want to do better this year — answering Mommy the first time, saying Modeh Ani before getting out of bed, giving tzedakah every morning — and puts it in the honey jar's box, or tapes it inside the cover of their Rosh Hashanah book. On Rosh Hashanah night, read them out loud before the simanim.</p>
-<p>Two more that work with young children: bring them to shul during Elul to hear the shofar after davening, and let them make Shanah Tovah cards for grandparents and rebbeim. A child who has spent Elul preparing walks into Yom Tov as a participant instead of a spectator. If a personalized book is going to be part of that, order early — standard shipping is free and takes 5-7 business days, and express is 2-3. A Rosh Hashanah book also makes a natural <a href="/blog/best-personalized-jewish-gifts-for-kids">Yom Tov gift</a> for a niece, nephew or grandchild.</p>
+<p>Two more that work with young children: bring them to shul during Elul to hear the shofar after davening, and let them make Shanah Tovah cards for grandparents and rebbeim. A child who has spent Elul preparing walks into Yom Tov as a participant instead of a spectator. If a personalized book is going to be part of that, order early — US standard shipping is $3.00 and takes 5-8 business days, and express is $6.00 in 3. A Rosh Hashanah book also makes a natural <a href="/blog/best-personalized-jewish-gifts-for-kids">Yom Tov gift</a> for a niece, nephew or grandchild.</p>
 
 <p>Rosh Hashanah is the story every Jewish child is standing inside of, whether or not anyone tells it to them. Telling it well, in a book where they are the hero, is a good way to make sure they know it. <a href="/create">Create the book</a> — eight questions, about five minutes.</p>`, { portion, category }),
   he: {

@@ -86,7 +86,7 @@ export default {
 
 <h2>Say it in one sentence</h2>
 <p>If you have thirty seconds in the car on the way to cheder: "Ki Seitzei has more mitzvos than any other parsha, and almost all of them are small — a bird, a fence, a lost coat, a tired animal — because Hashem cares about the small things, and one small mitzvah pulls the next one after it."</p>
-<p>Ki Seitzei is also a natural first parsha book for a family that has never ordered one, because a child can finish it and immediately go do something in it. Books ship worldwide with free standard shipping, and if you are thinking ahead to an upsherin, birthday or Yom Tov, our list of <a href="/blog/best-personalized-jewish-gifts-for-kids">personalized Jewish gifts for kids</a> covers the timing. When you are ready, <a href="/create">create the book</a> and put your child inside the parsha of mitzvos.</p>`, { portion, category }),
+<p>Ki Seitzei is also a natural first parsha book for a family that has never ordered one, because a child can finish it and immediately go do something in it. Books ship worldwide, with US standard shipping at $3.00 in 5–8 business days, and if you are thinking ahead to an upsherin, birthday or Yom Tov, our list of <a href="/blog/best-personalized-jewish-gifts-for-kids">personalized Jewish gifts for kids</a> covers the timing. When you are ready, <a href="/create">create the book</a> and put your child inside the parsha of mitzvos.</p>`, { portion, category }),
   he: {
     title: "פרשת כי תצא לילדים: המצוות הקטנות שעושות אדם גדול",
     description: "פרשת כי תצא מוסברת לילדים: שילוח הקן, השבת אבידה, מעקה וזכירת עמלק. הסבר לפי גיל, שאלות לשולחן שבת קודש ורעיון לספר מותאם אישית שבו הילד הוא הגיבור.",

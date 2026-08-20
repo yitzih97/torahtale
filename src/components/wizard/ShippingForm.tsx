@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Package, Zap } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { shippingDays, shippingPrice } from "@/lib/pricing";
 
 export interface ShippingData {
   fullName: string;
@@ -46,6 +47,10 @@ interface Props {
 
 export const ShippingForm = ({ data, onChange, isSubscription = false, section = "all" }: Props) => {
   const { t } = useLanguage();
+  // Standard shipping is charged now, so both options show a price.
+  const isIls = t.currency.code === "ILS";
+  const shipLabel = (m: "standard" | "express") =>
+    `${t.currency.symbol}${shippingPrice(m, isIls).toFixed(2)}`;
   const sameAsBilling = data.sameAsBilling ?? true;
 
   const update = (partial: Partial<ShippingData>) => onChange({ ...data, ...partial });
@@ -208,8 +213,8 @@ export const ShippingForm = ({ data, onChange, isSubscription = false, section =
               <Label className="text-sm font-medium">{t.shipping.shippingSpeed}</Label>
               <div className="grid grid-cols-2 gap-3">
                 {([
-                  { key: "standard" as const, label: t.shipping.standard, sub: t.shipping.standardTime, price: t.shipping.free, icon: Package },
-                  { key: "express" as const, label: t.shipping.express, sub: t.shipping.expressTime, price: t.shipping.expressCost, icon: Zap },
+                  { key: "standard" as const, label: t.shipping.standard, sub: t.shipping.businessDays(shippingDays("standard", isIls)), price: shipLabel("standard"), icon: Package },
+                  { key: "express" as const, label: t.shipping.express, sub: t.shipping.businessDays(shippingDays("express", isIls)), price: shipLabel("express"), icon: Zap },
                 ]).map((m) => (
                   <button
                     key={m.key}

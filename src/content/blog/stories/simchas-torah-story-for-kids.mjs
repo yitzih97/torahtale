@@ -96,7 +96,7 @@ export default {
 <p>A practical activity for Chol HaMoed: sit with your child on one of the weekday afternoons and make a flag together. Have them decorate one side with something from a parsha they learned this year. It gives the hakafos a personal handle, and it fills an afternoon.</p>
 
 <h2>When is Simchas Torah this year?</h2>
-<p>In 2026, Shemini Atzeres falls on Shabbos, October 3. In chutz la'aretz Simchas Torah is the following day, Sunday, October 4. In Eretz Yisrael the two are one day, so Simchas Torah is Shabbos, October 3. Order early enough for the book to arrive before Yom Tov — standard shipping is free and takes 5–7 business days, express is 2–3, and we ship worldwide. If you are building a whole Tishrei set, the <a href="/blog/best-personalized-jewish-gifts-for-kids">personalized Jewish gifts guide</a> covers how families usually space them out.</p>
+<p>In 2026, Shemini Atzeres falls on Shabbos, October 3. In chutz la'aretz Simchas Torah is the following day, Sunday, October 4. In Eretz Yisrael the two are one day, so Simchas Torah is Shabbos, October 3. Order early enough for the book to arrive before Yom Tov — US standard shipping is $3.00 and takes 5–8 business days, express is $6.00 in 3, and we ship worldwide. If you are building a whole Tishrei set, the <a href="/blog/best-personalized-jewish-gifts-for-kids">personalized Jewish gifts guide</a> covers how families usually space them out.</p>
 
 <p>A child who sees himself on the page holding the sefer Torah walks into shul that night looking for the thing he already knows. Eight short questions, one photo, about five minutes — <a href="/create">create the book</a> and have it in the house before hakafos.</p>`, { portion, category }),
   he: {

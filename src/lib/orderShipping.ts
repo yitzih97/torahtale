@@ -92,8 +92,10 @@ export function formatAddressLine(ship: any): string {
  * supabase/functions/printify-submit/index.ts.
  */
 export const SHIPPING_SPEEDS = [
-  { value: "standard", label: "Standard", sub: "5–7 business days", code: 1 },
-  { value: "express", label: "Express / Priority", sub: "2–3 business days", code: 2 },
+  // Transit time depends on the zone (US 5–8 / 3 days, Israel 9–14 / 5–8), so
+  // the admin picker names the service and leaves the days to SHIPPING_DAYS.
+  { value: "standard", label: "Standard", sub: "Ground", code: 1 },
+  { value: "express", label: "Express / Priority", sub: "Expedited", code: 2 },
   { value: "printify_express", label: "Printify Express", sub: "1–3 days, only where the provider offers it", code: 3 },
   { value: "economy", label: "Economy", sub: "cheapest, slowest", code: 4 },
 ] as const;
