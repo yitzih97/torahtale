@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   COLLECTIONS,
+  collectionBlurb,
+  collectionBooksLabel,
+  collectionName,
   COLLECTION_FORMATS,
   PART_COLLECTIONS,
   collectionsBookCount,
@@ -86,6 +89,24 @@ describe("collection pricing", () => {
       const rate = c.priceIls / c.priceUsd;
       expect(rate, c.key).toBeGreaterThan(3.0);
       expect(rate, c.key).toBeLessThan(3.25);
+    }
+  });
+
+  it("has a real translation for every collection, not an English fallback", () => {
+    for (const c of COLLECTIONS) {
+      for (const lang of ["he", "yi"] as const) {
+        expect(collectionName(c, lang), `${c.key} name/${lang}`).not.toBe(c.name);
+        expect(collectionBlurb(c, lang), `${c.key} blurb/${lang}`).not.toBe(c.blurb);
+        expect(collectionName(c, lang).trim().length, `${c.key} name/${lang}`).toBeGreaterThan(0);
+        expect(collectionBlurb(c, lang).trim().length, `${c.key} blurb/${lang}`).toBeGreaterThan(0);
+      }
+      expect(collectionName(c, "en")).toBe(c.name);
+      // The book count still has to survive translation — the number is parsed
+      // out of the English string, so a broken label would show "0 ספרים".
+      for (const lang of ["en", "he", "yi"] as const) {
+        expect(collectionBooksLabel(c, lang), `${c.key} books/${lang}`)
+          .toContain(String(collectionsBookCount([c.key])));
+      }
     }
   });
 

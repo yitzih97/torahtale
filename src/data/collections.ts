@@ -15,8 +15,18 @@ export interface Collection {
   key: string;
   icon: LucideIcon;
   image: string;
+  /** English name/blurb. `nameHe`/`nameYi` and `blurbHe`/`blurbYi` carry the
+   *  translations — read them through collectionName()/collectionBlurb(), which
+   *  fall back to English. The English `name` stays the one the ADMIN sees on a
+   *  request ticket, whatever language the customer was browsing in. */
   name: string;
+  nameHe: string;
+  nameYi: string;
   blurb: string;
+  blurbHe: string;
+  blurbYi: string;
+  /** "54 books" — English, and the string collectionsBookCount() parses. Use
+   *  collectionBooksLabel() to show it. */
   books: string;
   priceUsd: number;
   priceIls: number;
@@ -62,17 +72,34 @@ export const canCheckoutCollections = (keys: string[]): boolean =>
 // BELOW what printing them costs. ILS is the Israel presentment price at the
 // catalog's ~3.12 rate (matching SINGLE_PRICE/SUB_PRICE), not an FX conversion.
 export const COLLECTIONS: Collection[] = [
-  { key: "chumash", icon: BookOpen, image: imgChumash, name: "The Chumash Collection", blurb: "Every weekly parsha across all five Chumashim — Bereishis through Devarim — a full year of personalized parsha storybooks.", books: "54 books", priceUsd: 599, priceIls: 1869 },
-  { key: "neviim", icon: Landmark, image: imgNeviim, name: "The Nevi'im Collection", blurb: "The heroes and prophets of Tanach — Yehoshua, Shoftim, Shmuel, Melachim and more brought to life for your kinderlach.", books: "25 books", priceUsd: 289, priceIls: 899 },
-  { key: "kesuvim", icon: ScrollText, image: imgKesuvim, name: "The Kesuvim Collection", blurb: "Timeless stories and lessons from the Writings — Tehillim, Mishlei, Daniel, Divrei HaYamim and beyond.", books: "21 books", priceUsd: 249, priceIls: 779 },
-  { key: "megillos", icon: Scroll, image: imgMegillos, name: "The Megillos Collection", blurb: "All five Megillos — Esther, Rus, Shir HaShirim, Eicha and Koheles — one keepsake set.", books: "5 books", priceUsd: 65, priceIls: 199 },
-  { key: "yamim-tovim", icon: Sparkles, image: imgYamimTovim, name: "The Yamim Tovim Collection", blurb: "A story for every Yom Tov — Shabbos, Rosh Hashanah, Yom Kippur, Sukkos, Chanukah, Purim, Pesach, Shavuos and more.", books: "16 books", priceUsd: 189, priceIls: 589 },
-  { key: "middos", icon: HeartHandshake, image: imgMiddos, name: "The Middos Collection", blurb: "Character-building adventures — chesed, emes, kibud av va'em, savlanus and more middos tovos.", books: "10 books", priceUsd: 125, priceIls: 389 },
-  { key: "complete", icon: Library, image: imgComplete, name: "The Complete Collection", blurb: "The ultimate library — every Chumash, Nevi'im, Kesuvim, Megillos, Yamim Tovim and Middos book, all starring your child. Our very best value.", books: "131 books", priceUsd: 1299, priceIls: 4049, featured: true },
+  { key: "chumash", icon: BookOpen, image: imgChumash, name: "The Chumash Collection", nameHe: "אוסף החומש", nameYi: "די חומש זאַמלונג", blurb: "Every weekly parsha across all five Chumashim — Bereishis through Devarim — a full year of personalized parsha storybooks.", blurbHe: "כל פרשות השבוע בחמישה חומשי תורה — מבראשית ועד דברים — שנה שלמה של ספרי פרשה מותאמים אישית.", blurbYi: "אַלע וואָכעדיקע פּרשיות פֿון אַלע פֿינף חומשים — פֿון בראשית ביז דברים — אַ גאַנץ יאָר פּערזענלעכע פּרשה־ביכער.", books: "54 books", priceUsd: 599, priceIls: 1869 },
+  { key: "neviim", icon: Landmark, image: imgNeviim, name: "The Nevi'im Collection", nameHe: "אוסף הנביאים", nameYi: "די נביאים זאַמלונג", blurb: "The heroes and prophets of Tanach — Yehoshua, Shoftim, Shmuel, Melachim and more brought to life for your kinderlach.", blurbHe: "הגיבורים והנביאים של התנ״ך — יהושע, שופטים, שמואל, מלכים ועוד — מתעוררים לחיים בשביל הילדים שלכם.", blurbYi: "די העלדן און נביאים פֿון תנ״ך — יהושע, שופטים, שמואל, מלכים און נאָך — לעבעדיק געמאַכט פֿאַר אײַערע קינדערלעך.", books: "25 books", priceUsd: 289, priceIls: 899 },
+  { key: "kesuvim", icon: ScrollText, image: imgKesuvim, name: "The Kesuvim Collection", nameHe: "אוסף הכתובים", nameYi: "די כתובים זאַמלונג", blurb: "Timeless stories and lessons from the Writings — Tehillim, Mishlei, Daniel, Divrei HaYamim and beyond.", blurbHe: "סיפורים ולקחים נצחיים מן הכתובים — תהלים, משלי, דניאל, דברי הימים ועוד.", blurbYi: "אייביקע מעשיות און לימודים פֿון די כתובים — תהלים, משלי, דניאל, דברי הימים און נאָך.", books: "21 books", priceUsd: 249, priceIls: 779 },
+  { key: "megillos", icon: Scroll, image: imgMegillos, name: "The Megillos Collection", nameHe: "אוסף המגילות", nameYi: "די מגילות זאַמלונג", blurb: "All five Megillos — Esther, Rus, Shir HaShirim, Eicha and Koheles — one keepsake set.", blurbHe: "כל חמש המגילות — אסתר, רות, שיר השירים, איכה וקהלת — סט אחד לשמירה לדורות.", blurbYi: "אַלע פֿינף מגילות — אסתר, רות, שיר השירים, איכה און קהלת — איין סעט צום אָפּהיטן.", books: "5 books", priceUsd: 65, priceIls: 199 },
+  { key: "yamim-tovim", icon: Sparkles, image: imgYamimTovim, name: "The Yamim Tovim Collection", nameHe: "אוסף הימים הטובים", nameYi: "די ימים־טובים זאַמלונג", blurb: "A story for every Yom Tov — Shabbos, Rosh Hashanah, Yom Kippur, Sukkos, Chanukah, Purim, Pesach, Shavuos and more.", blurbHe: "סיפור לכל חג — שבת, ראש השנה, יום כיפור, סוכות, חנוכה, פורים, פסח, שבועות ועוד.", blurbYi: "אַ מעשה פֿאַר יעדן יום־טוב — שבת, ראש השנה, יום כיפור, סוכות, חנוכה, פורים, פּסח, שבועות און נאָך.", books: "16 books", priceUsd: 189, priceIls: 589 },
+  { key: "middos", icon: HeartHandshake, image: imgMiddos, name: "The Middos Collection", nameHe: "אוסף המידות", nameYi: "די מידות זאַמלונג", blurb: "Character-building adventures — chesed, emes, kibud av va'em, savlanus and more middos tovos.", blurbHe: "הרפתקאות שבונות אופי — חסד, אמת, כיבוד אב ואם, סבלנות ועוד מידות טובות.", blurbYi: "אַוואַנטורעס וואָס בויען דעם כאַראַקטער — חסד, אמת, כיבוד אב ואם, סבלנות און נאָך מידות טובות.", books: "10 books", priceUsd: 125, priceIls: 389 },
+  { key: "complete", icon: Library, image: imgComplete, name: "The Complete Collection", nameHe: "האוסף המלא", nameYi: "די גאַנצע זאַמלונג", blurb: "The ultimate library — every Chumash, Nevi'im, Kesuvim, Megillos, Yamim Tovim and Middos book, all starring your child. Our very best value.", blurbHe: "הספרייה השלמה — כל ספרי החומש, הנביאים, הכתובים, המגילות, הימים הטובים והמידות, וכולם עם הילד שלכם בכיכובם. הערך הטוב ביותר שלנו.", blurbYi: "די פֿולע ביבליאָטעק — אַלע חומש, נביאים, כתובים, מגילות, ימים־טובים און מידות ביכער, מיט אײַער קינד אַלס העלד. אונדזער סאַמע בעסטער ווערט.", books: "131 books", priceUsd: 1299, priceIls: 4049, featured: true },
 ];
 
 export const getCollection = (key: string | null | undefined): Collection | undefined =>
   COLLECTIONS.find((c) => c.key === key);
+
+type Lang = "en" | "he" | "yi";
+
+/** The collection's name in the reader's language (English is the fallback). */
+export const collectionName = (c: Collection, lang: Lang): string =>
+  (lang === "he" ? c.nameHe : lang === "yi" ? c.nameYi : c.name) || c.name;
+
+/** The collection's blurb in the reader's language (English is the fallback). */
+export const collectionBlurb = (c: Collection, lang: Lang): string =>
+  (lang === "he" ? c.blurbHe : lang === "yi" ? c.blurbYi : c.blurb) || c.blurb;
+
+/** "54 books" / "54 ספרים" / "54 ביכער". The stored `books` string stays English
+ *  because collectionsBookCount() parses its number out. */
+export const collectionBooksLabel = (c: Collection, lang: Lang): string => {
+  const n = parseInt(c.books, 10) || 0;
+  return lang === "he" ? `${n} ספרים` : lang === "yi" ? `${n} ביכער` : c.books;
+};
 
 /** Every collection except the all-in-one, i.e. what "Complete" is made of. */
 export const PART_COLLECTIONS = COLLECTIONS.filter((c) => c.key !== "complete");

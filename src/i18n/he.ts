@@ -927,6 +927,19 @@ export const he: typeof en = {
   pricing: {
     plansEyebrow: "המסלולים שלנו",
     collectionsEyebrow: "האוספים שלנו",
+    collBestValue: "הכי משתלם",
+    collAdd: "הוספה לחבילה",
+    collAdded: "נוסף",
+    collEmpty: "בחרו אוסף אחד או יותר למעלה כדי לבנות את החבילה שלכם.",
+    collSwapTitle: "האוסף המלא כולל את כל אלה במחיר נמוך יותר.",
+    collSwapSave: (amount: string) => `החליפו וחסכו ${amount}.`,
+    collSummary: (count: number, books: number) =>
+      `${count === 1 ? "אוסף אחד" : `${count} אוספים`} · ${books} ספרים`,
+    collCheckout: "לתשלום",
+    collRequest: "שליחת בקשה לחבילה",
+    collFootnote:
+      "המחירים המוצגים הם לכריכה רכה 8″×8″ — תוכלו לבחור כריכה קשה או ספר קרטון, ולראות את הסכום המעודכן, לפני שליחת הבקשה. בכל ספר באוסף הילד שלכם הוא הגיבור, ונאשר איתכם את הפרטים והמשלוח לפני שמדפיסים.",
+    collRemove: (name: string) => `הסרת ${name}`,
     plansNote: "המחירים לכריכה רכה 8″×8″. כריכה קשה וספר קשיח מתומחרים בנפרד בתשלום. אפשר לבטל מסלול בכל רגע מהאזור האישי.",
     heroTitle: "צרו סיפורי תורה אישיים",
     heroAccent: "שהילדים שלכם פשוט יאהבו",

@@ -8,6 +8,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   COLLECTIONS,
+  collectionBlurb,
+  collectionBooksLabel,
+  collectionName,
   PART_COLLECTIONS,
   canCheckoutCollections,
   collectionsBookCount,
@@ -30,7 +33,7 @@ const orderedCollections: Collection[] = (() => {
 const PART_KEYS = PART_COLLECTIONS.map((c) => c.key);
 
 export const CollectionsSection = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [picked, setPicked] = useState<string[]>([]);
@@ -130,7 +133,7 @@ export const CollectionsSection = () => {
               >
                 {c.featured && !on && (
                   <span className="absolute top-3 end-3 z-10 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-foreground shadow-soft-sm">
-                    Best value
+                    {t.pricing.collBestValue}
                   </span>
                 )}
                 <span
@@ -143,7 +146,7 @@ export const CollectionsSection = () => {
                 </span>
 
                 <div className="relative overflow-hidden">
-                  <img src={c.image} alt={c.name} loading="lazy" className="h-40 w-full object-cover" />
+                  <img src={c.image} alt={collectionName(c, lang)} loading="lazy" className="h-40 w-full object-cover" />
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
                   <div className="absolute bottom-2.5 end-3 flex h-9 w-9 items-center justify-center rounded-xl bg-card/95 text-accent shadow-soft-sm backdrop-blur">
                     <Icon className="h-5 w-5" />
@@ -151,13 +154,13 @@ export const CollectionsSection = () => {
                 </div>
 
                 <div className="flex flex-1 flex-col p-5">
-                  <h3 className="font-display text-lg font-bold text-primary">{c.name}</h3>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-accent">{c.books}</p>
-                  <p className="mt-2.5 flex-1 text-sm leading-relaxed text-muted-foreground">{c.blurb}</p>
+                  <h3 className="font-display text-lg font-bold text-primary">{collectionName(c, lang)}</h3>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-accent">{collectionBooksLabel(c, lang)}</p>
+                  <p className="mt-2.5 flex-1 text-sm leading-relaxed text-muted-foreground">{collectionBlurb(c, lang)}</p>
                   <div className="mt-4 flex items-end justify-between gap-3">
                     <p className="font-display text-2xl font-bold leading-none text-primary">{fmt(price(c))}</p>
                     <span className={`text-xs font-semibold ${on ? "text-accent" : "text-muted-foreground"}`}>
-                      {on ? "Added" : "Add to bundle"}
+                      {on ? t.pricing.collAdded : t.pricing.collAdd}
                     </span>
                   </div>
                 </div>
@@ -175,7 +178,7 @@ export const CollectionsSection = () => {
         >
           {picked.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground">
-              Choose one or more collections above to build your bundle.
+              {t.pricing.collEmpty}
             </p>
           ) : (
             <>
@@ -188,11 +191,11 @@ export const CollectionsSection = () => {
                       key={k}
                       className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 py-1 ps-3 pe-1.5 text-xs font-medium text-primary"
                     >
-                      {c.name}
+                      {collectionName(c, lang)}
                       <button
                         type="button"
                         onClick={() => toggle(k)}
-                        aria-label={`Remove ${c.name}`}
+                        aria-label={t.pricing.collRemove(collectionName(c, lang))}
                         className="flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground hover:bg-accent/20 hover:text-primary"
                       >
                         <X className="h-3 w-3" />
@@ -209,8 +212,8 @@ export const CollectionsSection = () => {
                   className="mt-4 flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-accent/40 bg-accent/5 px-4 py-3 text-start transition-colors hover:border-accent"
                 >
                   <span className="text-sm text-primary">
-                    <span className="font-semibold">The Complete Collection has all of these for less.</span>{" "}
-                    <span className="text-muted-foreground">Switch and save {fmt(saving)}.</span>
+                    <span className="font-semibold">{t.pricing.collSwapTitle}</span>{" "}
+                    <span className="text-muted-foreground">{t.pricing.collSwapSave(fmt(saving))}</span>
                   </span>
                   <ArrowRight className="h-4 w-4 shrink-0 text-accent" />
                 </button>
@@ -219,7 +222,7 @@ export const CollectionsSection = () => {
               <div className="mt-5 flex flex-wrap items-end justify-between gap-4 border-t border-border pt-4">
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    {picked.length} {picked.length === 1 ? "collection" : "collections"} · {books} books
+                    {t.pricing.collSummary(picked.length, books)}
                   </p>
                   <p className="font-display text-3xl font-bold leading-none text-primary">{fmt(total)}</p>
                 </div>
@@ -231,7 +234,7 @@ export const CollectionsSection = () => {
                   disabled={busy}
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingBag className="h-4 w-4" />}
-                  {canCheckoutCollections(picked) ? "Checkout" : "Request this bundle"}
+                  {canCheckoutCollections(picked) ? t.pricing.collCheckout : t.pricing.collRequest}
                 </Button>
               </div>
             </>
@@ -239,9 +242,7 @@ export const CollectionsSection = () => {
         </motion.div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Prices shown are for the 8″×8″ softcover — you'll choose hardcover or board book, and see the
-          updated total, before you send your request. Every book in a collection stars your child, and
-          we'll confirm the details and delivery with you before anything is printed.
+          {t.pricing.collFootnote}
         </p>
       </div>
     </section>

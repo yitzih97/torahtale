@@ -45,6 +45,8 @@ import {
   type Collection as CollectionBundle,
   type CollectionFormat,
   COLLECTION_FORMATS,
+  collectionBooksLabel,
+  collectionName,
   collectionsBookCount,
   collectionsTotal,
   collectionsTotalForFormat,
@@ -2459,7 +2461,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   {collection ? (
                     <li className="flex items-start gap-3 text-base">
                       <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground"><span className="text-muted-foreground">{t.collectionRequest.collectionLabel}:</span> <span className="font-semibold">{collection.name} ({collection.books})</span></span>
+                      <span className="text-foreground"><span className="text-muted-foreground">{t.collectionRequest.collectionLabel}:</span> <span className="font-semibold">{collectionName(collection, lang)} ({collectionBooksLabel(collection, lang)})</span></span>
                     </li>
                   ) : planType !== "subscription" && (
                     <li className="flex items-start gap-3 text-base">
@@ -2913,7 +2915,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
             </div>
             <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{t.collectionRequest.sentTitle}</h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              {t.collectionRequest.sentBody(collection.name, user?.email || "")}
+              {t.collectionRequest.sentBody(collectionName(collection, lang), user?.email || "")}
             </p>
             <div className="flex justify-center gap-3 pt-2">
               <Button variant="outline" className="rounded-xl" onClick={() => navigate("/")}>{t.collectionRequest.backHome}</Button>
