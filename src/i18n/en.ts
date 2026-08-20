@@ -907,8 +907,6 @@ export const en = {
   // Pricing page
   pricing: {
     plansEyebrow: "Plans",
-    plansTitle: "Choose how their library grows",
-    plansSubtitle: "One book to start, or a plan that brings the weekly parsha to your door.",
     plansNote: "Prices shown for the 8″×8″ softcover. Hardcover and board book are priced separately at checkout. Cancel a plan any time from your dashboard.",
     heroTitle: "Create Personalized Torah Books",
     heroAccent: "Your Kids Will Love",

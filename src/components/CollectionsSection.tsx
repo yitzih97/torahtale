@@ -103,13 +103,7 @@ export const CollectionsSection = () => {
           transition={{ duration: 0.7, ease }}
           className="text-center max-w-2xl mx-auto mb-10"
         >
-          <p className="text-accent font-semibold tracking-[0.15em] uppercase text-xs mb-3">Collections</p>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-3">
-            Or build the whole library at once
-          </h2>
-          <p className="text-muted-foreground text-base">
-            Pick as many collections as you like — every book personalized for your child, printed and delivered together.
-          </p>
+          <p className="font-display text-3xl md:text-4xl font-bold uppercase tracking-[0.12em] text-accent">Collections</p>
         </motion.div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

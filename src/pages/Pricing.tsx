@@ -70,9 +70,7 @@ const Pricing = () => {
          */}
         <section className="container pb-4">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-accent">{t.pricing.plansEyebrow}</p>
-            <h2 className="font-display text-3xl font-bold text-primary md:text-4xl">{t.pricing.plansTitle}</h2>
-            <p className="mt-3 text-base text-muted-foreground">{t.pricing.plansSubtitle}</p>
+            <p className="font-display text-3xl font-bold uppercase tracking-[0.12em] text-accent md:text-4xl">{t.pricing.plansEyebrow}</p>
           </div>
 
           <div className="mx-auto mt-10 grid max-w-5xl gap-5 md:grid-cols-3 items-stretch">
