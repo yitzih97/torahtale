@@ -22,7 +22,11 @@ const BOOK_LIST_COLS =
   // Books minted by the Monday release job stamp their subscription id into
   // story_data — projecting just that key is what lets the subs tab count and
   // open the books a subscription has actually produced.
-  "subscription_id:story_data->>subscriptionId";
+  "subscription_id:story_data->>subscriptionId," +
+  // The month's books share one shipmentBatchId and are sold as a single
+  // delivery, so approving any one of them has to be able to find its siblings
+  // and send the set as ONE Printify order — see approveBatchAndSubmit.
+  "shipment_batch_id:story_data->>shipmentBatchId";
 
 // Fetch the complete book row (including the heavy image columns) for one book —
 // used when opening the generation modal or exporting a ZIP.

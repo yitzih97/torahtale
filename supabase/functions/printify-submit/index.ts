@@ -137,6 +137,11 @@ serve(async (req) => {
 
       const { bookId } = body;
       if (!bookId) throw new Error("bookId is required");
+      // The batch path needs the PRODUCT built without an order placed, so that
+      // one order can then carry every book in the batch as its own line item.
+      // Everything above this point is identical either way — the product is the
+      // expensive part and it is per book regardless.
+      const prepareOnly = body.prepareOnly === true;
       // Pre-uploaded, print-ready image ids (cover-wrap first, then page_1…N), in
       // placeholder order — produced by the client via renderPrintImages + the
       // upload-image action above. When present we use them directly and skip the
@@ -450,6 +455,17 @@ serve(async (req) => {
         productId = String(product.id);
       }
 
+      if (prepareOnly) {
+        await supabase.from("books").update({
+          printify_product_id: productId,
+          updated_at: new Date().toISOString(),
+        } as any).eq("id", bookId);
+        return new Response(
+          JSON.stringify({ success: true, prepared: true, productId, variantId, quantity }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
       // Place the actual print order, shipping to the address captured from Shopify.
       const orderRes = await fetch(`${PRINTIFY_BASE}/shops/${shopId}/orders.json`, {
         method: "POST",
@@ -509,6 +525,123 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, productId, orderId: printifyOrderId }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // ── submit-batch: ONE Printify order for a whole month's books ──
+    // A Parsha Series charge mints four books that are sold as a single delivery
+    // (see release-subscription-books). Submitting them one at a time produced
+    // four orders and four parcels. The caller prepares each book's product with
+    // prepareOnly, then hands the line items here; this places a single order and
+    // stamps every book in the batch with its id, so printify-webhook tracks them
+    // together and the customer gets one box.
+    if (action === "submit-batch") {
+      if (!PRINTIFY_API_KEY) throw new Error("PRINTIFY_API_KEY not configured");
+      if (!shopId) throw new Error("Printify Shop ID not configured");
+
+      const lines: Array<{ bookId: string; productId: string; variantId: number; quantity?: number }> =
+        Array.isArray(body.lines) ? body.lines : [];
+      if (!lines.length) throw new Error("lines is required");
+      if (lines.some((l) => !l?.bookId || !l?.productId || !l?.variantId)) {
+        throw new Error("every line needs bookId, productId and variantId");
+      }
+
+      const { data: books, error: booksErr } = await supabase
+        .from("books")
+        .select("*")
+        .in("id", lines.map((l) => l.bookId));
+      if (booksErr) throw booksErr;
+      if (!books || books.length !== lines.length) {
+        throw new Error(`Expected ${lines.length} books, found ${books?.length ?? 0}`);
+      }
+
+      // Same guards as the single path, applied to every book — an unpaid book
+      // must never print, and a book already on an order must never be printed
+      // twice just because it was swept into a batch.
+      for (const b of books as any[]) {
+        if (!b.shopify_order_id && !b.paid_at) {
+          throw new Error(`Book ${b.id} is not paid — refusing to submit the batch.`);
+        }
+        if (b.printify_order_id) {
+          throw new Error(`Book ${b.id} already has Printify order ${b.printify_order_id} — refusing to duplicate.`);
+        }
+      }
+
+      // One order means one address. These come from one subscription so they
+      // should already agree; refuse rather than silently ship the batch to
+      // whichever address happened to sort first.
+      const addrOf = (b: any) => {
+        const s = (b.shipping_data as any) || {};
+        return JSON.stringify([s.address1, s.address2, s.city, s.zip, s.countryCode || s.country].map((x) => String(x || "").trim().toLowerCase()));
+      };
+      const first = books[0] as any;
+      const mismatch = (books as any[]).find((b) => addrOf(b) !== addrOf(first));
+      if (mismatch) {
+        throw new Error(`Books in this batch ship to different addresses (${first.id} vs ${mismatch.id}) — submit them separately.`);
+      }
+
+      const shipping = (first.shipping_data as any) || {};
+      const rawSpeed = String(shipping.shippingMethod ?? "").toLowerCase().replace(/[\s-]+/g, "_");
+      const shippingMethodCode = rawSpeed === "express" || rawSpeed === "express_priority" ? 2 : 1;
+
+      const orderRes = await fetch(`${PRINTIFY_BASE}/shops/${shopId}/orders.json`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${PRINTIFY_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          // Same reasoning as the single path: Printify never frees an
+          // external_id, so give every attempt a fresh one.
+          external_id: `batch-${first.shopify_order_id || first.id}-${Date.now().toString(36)}`,
+          label: first.shopify_order_name || `Torah Tale batch ${lines.length} books`,
+          line_items: lines.map((l) => ({
+            product_id: l.productId,
+            variant_id: l.variantId,
+            quantity: Math.max(1, Number(l.quantity) || 1),
+          })),
+          shipping_method: shippingMethodCode,
+          send_shipping_notification: false,
+          address_to: {
+            first_name: shipping.firstName || first.child_name || "Customer",
+            last_name: shipping.lastName || "",
+            email: shipping.email || "",
+            phone: shipping.phone || "",
+            country: shipping.countryCode || shipping.country || "US",
+            region: shipping.provinceCode || shipping.province || shipping.state || "",
+            address1: shipping.address1 || "",
+            address2: shipping.address2 || "",
+            city: shipping.city || "",
+            zip: shipping.zip || "",
+          },
+        }),
+      });
+      if (!orderRes.ok) {
+        const errText = await orderRes.text();
+        throw new Error(`Printify create batch order error [${orderRes.status}]: ${errText}`);
+      }
+      const order = await orderRes.json();
+      const printifyOrderId = String(order.id);
+
+      // Every book in the batch carries the SAME order id, which is what
+      // printify-webhook matches on — so one shipping event updates all of them.
+      const { error: stampErr } = await supabase.from("books").update({
+        status: "printing",
+        printify_order_id: printifyOrderId,
+        order_number: printifyOrderId,
+        updated_at: new Date().toISOString(),
+      } as any).in("id", lines.map((l) => l.bookId));
+      if (stampErr) {
+        // The order IS placed; failing to record it would let a retry duplicate
+        // it, so make the id loud in the logs.
+        console.error(`Printify batch order ${printifyOrderId} placed but books not stamped:`, stampErr);
+        throw new Error(`Order ${printifyOrderId} was placed but could not be recorded — do NOT retry; fix the book rows by hand.`);
+      }
+
+      console.log(`printify-submit: batch order ${printifyOrderId} for ${lines.length} books`);
+      return new Response(
+        JSON.stringify({ success: true, orderId: printifyOrderId, books: lines.length }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     throw new Error(`Unknown action: ${action}`);

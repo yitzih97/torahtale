@@ -18,7 +18,7 @@ import { AdminOrderEditDialog } from "@/components/admin/AdminOrderEditDialog";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminData, fetchBookFull } from "@/hooks/useAdminData";
-import { submitBookToPrintify } from "@/lib/submitToPrintify";
+import { submitBatchToPrintify, submitBookToPrintify } from "@/lib/submitToPrintify";
 import { bookLanguageCode, isBookRtl } from "@/components/wizard/TorahPortions";
 import { generateBookZip } from "@/lib/generateBookZip";
 import { toast } from "sonner";
@@ -130,8 +130,80 @@ export default function Admin() {
     book.status === "paid" || book.status === "generating" || book.status === "draft" ||
     ((book.status === "ordered" || book.status === "pending_review") && !book.has_pages);
 
+  /* Build the render input for one book — the same shape whether it goes out on
+     its own or as part of a batch. Returns null when the book has no pages yet. */
+  const printInputFor = async (book: any) => {
+    const full = await fetchBookFull(book.id);
+    const pages = (full?.pages_data as any[]) || [];
+    if (!pages.length) return null;
+    const pt = (full as any)?.shipping_data?.bookOptions?.productType || (book as any)?.shipping_data?.bookOptions?.productType;
+    const bookFormat = pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : pt === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
+    // The book's OWN language drives the print layout, not the admin's UI.
+    const bookLang = (full as any)?.language || (book as any)?.language;
+    return {
+      bookId: book.id,
+      pages: pages as any,
+      childName: book.child_name || (full?.child_name as string) || "",
+      coverChildName: ((full as any)?.story_data || (book as any)?.story_data)?.coverChildName,
+      torahPortion: book.torah_portion || (full?.torah_portion as string) || "",
+      bookFormat,
+      lang: bookLanguageCode(bookLang),
+      rtl: isBookRtl(bookLang),
+      story: (full as any)?.story_data || (book as any)?.story_data,
+    };
+  };
+
+  /**
+   * Approve a whole subscription batch and send it as ONE Printify order.
+   *
+   * A Parsha Series charge mints four books sharing a shipmentBatchId, sold as a
+   * single monthly delivery. Approving them one at a time produced four orders
+   * and four parcels, so when a book belongs to a batch this gathers its
+   * siblings and submits the set together. Every book must be renderable — a
+   * partial batch would ship part of the month and quietly drop the rest.
+   */
+  const approveBatchAndSubmit = async (book: any, batchId: string) => {
+    const siblings = (books || []).filter(
+      (b: any) => String(b?.shipment_batch_id ?? "") === batchId && !b.printify_order_id,
+    );
+    const ordered = siblings.length ? siblings : [book];
+    const toastId = toast.loading(`Rendering ${ordered.length} books for print…`);
+    try {
+      const inputs = [];
+      for (const b of ordered) {
+        const input = await printInputFor(b);
+        if (!input) {
+          toast.error(`${b.child_name || "A book"} in this batch has no pages yet — nothing was sent.`, { id: toastId, duration: 10000 });
+          return;
+        }
+        inputs.push(input);
+      }
+      const result = await submitBatchToPrintify({
+        books: inputs,
+        onProgress: (i, n, done, total) =>
+          toast.loading(`Book ${i + 1}/${n} — uploading print images ${done}/${total}`, { id: toastId }),
+      });
+      if (!result.success) {
+        toast.error(`Printify submit failed: ${result.error}`, { id: toastId, duration: 12000 });
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["admin-books"] });
+      toast.success(`Sent ${result.books ?? ordered.length} books to Printify as one order.`, { id: toastId });
+    } catch (e: any) {
+      console.error("Printify batch error:", e);
+      toast.error(`Printify submit failed: ${e?.message || "unexpected error"}`, { id: toastId, duration: 12000 });
+    }
+  };
+
   // Approve a reviewed book and auto-submit it to Printify.
   const approveAndSubmit = async (book: any) => {
+    // A book minted as part of a subscription batch ships with its siblings —
+    // one order, one parcel — so hand it to the batch path instead.
+    // `shipment_batch_id` is the admin list's JSON-path projection of
+    // story_data->>shipmentBatchId (the full story_data is far too heavy to
+    // select for a list) — see BOOK_LIST_COLS.
+    const batchId = (book as any)?.shipment_batch_id;
+    if (batchId) return approveBatchAndSubmit(book, String(batchId));
     // Do NOT optimistically flip the status to "approved". Printify submission is
     // what actually matters — the edge function itself sets the book to "printing"
     // on success. Marking "approved" before that made failed submissions look done
