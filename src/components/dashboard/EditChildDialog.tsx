@@ -38,6 +38,9 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSubmit: (child: EditChildResult) => Promise<void> | void;
+  /** Remove this child from the account. Opens the caller's confirm step —
+   *  nothing is deleted from here. Omit to hide the delete button. */
+  onDelete?: () => void;
   isPending?: boolean;
   initialData: {
     name: string;
@@ -58,7 +61,7 @@ const NAME_LANGS: { key: "en" | "he" | "yi"; label: string; rtl?: boolean }[] = 
   { key: "yi", label: "ייִדיש", rtl: true },
 ];
 
-export function EditChildDialog({ open, onClose, onSubmit, isPending, initialData }: Props) {
+export function EditChildDialog({ open, onClose, onSubmit, onDelete, isPending, initialData }: Props) {
   const { user } = useAuth();
   const { t, dir, lang } = useLanguage();
   const [name, setName] = useState("");
@@ -310,6 +313,17 @@ export function EditChildDialog({ open, onClose, onSubmit, isPending, initialDat
           </div>
 
           <footer className="mt-8 flex flex-col-reverse gap-2 border-t border-border/50 pt-5 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+            {onDelete && (
+              <Button
+                variant="ghost"
+                onClick={onDelete}
+                disabled={isPending || uploading}
+                className="h-11 gap-2 rounded-full px-4 text-destructive hover:bg-destructive/10 hover:text-destructive sm:me-auto"
+              >
+                <Trash2 className="w-4 h-4" />
+                {t.dash.remove.deleteProfile}
+              </Button>
+            )}
             <Button variant="outline" onClick={onClose} className="h-11 rounded-full border-border/60 sm:min-w-[7rem]">
               {t.dash.cancel}
             </Button>

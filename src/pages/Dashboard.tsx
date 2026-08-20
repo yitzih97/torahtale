@@ -80,11 +80,19 @@ export default function Dashboard() {
      So an active subscription blocks the delete rather than breaking quietly. */
   const [removeOpen, setRemoveOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
+  /* Set when the delete came from one child's edit dialog rather than from the
+     multi-select bar — that child alone is then the subject of the confirm. */
+  const [removeTarget, setRemoveTarget] = useState<ChildRecord | null>(null);
 
-  const kidsToRemove = children.filter((c) => selectedKidIds.has(c.id));
+  const kidsToRemove = removeTarget
+    ? [removeTarget]
+    : children.filter((c) => selectedKidIds.has(c.id));
+  const removeIds = new Set(kidsToRemove.map((c) => c.id));
   const blockedBySub = kidsToRemove.filter((c) =>
     subscriptions.some((s) => s.child_id === c.id && s.status !== "canceled"));
-  const removableBookCount = books.filter((b) => selectedKidIds.has(b.child_id ?? "")).length;
+  const removableBookCount = books.filter((b) => removeIds.has(b.child_id ?? "")).length;
+
+  const closeRemove = () => { setRemoveOpen(false); setRemoveTarget(null); };
 
   const confirmRemove = async () => {
     if (!kidsToRemove.length || blockedBySub.length) return;
@@ -93,7 +101,7 @@ export default function Dashboard() {
       for (const kid of kidsToRemove) await deleteChild.mutateAsync(kid.id);
       toast.success(t.dash.remove.done(kidsToRemove.length));
       setSelectedKidIds(new Set());
-      setRemoveOpen(false);
+      closeRemove();
     } catch {
       toast.error(t.dash.remove.failed);
     } finally {
@@ -527,7 +535,7 @@ export default function Dashboard() {
       {/* Remove kids — destructive, so it names exactly what happens and what
           does NOT happen (their books stay), and refuses while a subscription
           is still live rather than silently orphaning its weekly releases. */}
-      <Dialog open={removeOpen} onOpenChange={(o) => { if (!o && !removing) setRemoveOpen(false); }}>
+      <Dialog open={removeOpen} onOpenChange={(o) => { if (!o && !removing) closeRemove(); }}>
         <DialogContent className="max-w-md rounded-3xl" dir={dir}>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
@@ -569,7 +577,7 @@ export default function Dashboard() {
                 variant="outline"
                 className="h-10 w-full rounded-full border-border/60"
                 disabled={removing}
-                onClick={() => setRemoveOpen(false)}
+                onClick={closeRemove}
               >
                 {t.common.cancel}
               </Button>
@@ -634,6 +642,12 @@ export default function Dashboard() {
         open={!!editingChild}
         onClose={() => setEditingChild(null)}
         onSubmit={handleEditChild}
+        onDelete={() => {
+          if (!editingChild) return;
+          setRemoveTarget(editingChild);
+          setEditingChild(null);
+          setRemoveOpen(true);
+        }}
         isPending={updateChild.isPending}
         initialData={editingChild ? {
           name: editingChild.name,
