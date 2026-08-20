@@ -477,7 +477,8 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
           <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="h-4 w-4 text-muted-foreground" /></div>
         )}
         {/* Mini front-cover, styled like the real branded cover: clean to the
-            edge (no frame), gold parsha title, gold child line. */}
+            edge (no frame), gold parsha title. No child line — see drawMiniCover
+            in generateBookPdf; the series name under the stack carries it. */}
         <div className="pointer-events-none absolute inset-0" dir={dir}>
           <div className="absolute inset-x-0 top-0 h-2/3 bg-gradient-to-b from-[rgba(8,14,30,0.78)] via-[rgba(8,14,30,0.24)] to-transparent" />
           <div className="absolute inset-x-0 top-[8%] px-1 text-center">
@@ -491,18 +492,6 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
             >
               {pvLabel}
             </p>
-            {childName && (
-              <p
-                className="italic font-semibold leading-tight text-[6px] sm:text-[7px]"
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  backgroundImage: "linear-gradient(180deg,#fff6d5,#e7be5c 55%,#a9791f)",
-                  WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
-                }}
-              >
-                {getCoverChildLine(childName, lang, coverChildName)}
-              </p>
-            )}
           </div>
         </div>
         {regenning && (
@@ -858,9 +847,6 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
           <h1 className="font-extrabold text-white leading-[1.05] text-2xl sm:text-4xl tracking-tight" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>
             {label}
           </h1>
-          {childName && (
-            <p className="mt-1.5 text-white/90 text-sm sm:text-lg" style={{ fontFamily: COVER_FONT, textShadow: COVER_TEXT_SHADOW }}>{childName}</p>
-          )}
         </div>
         <div className="absolute inset-x-0 bottom-0 flex justify-center p-2">
           <span className="rounded-full bg-black/55 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur">

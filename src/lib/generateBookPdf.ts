@@ -679,17 +679,15 @@ function drawCoverFurniture(
 }
 
 /** Draw one "coming next" teaser thumbnail styled like the real branded front
- *  cover — navy keyline frame, engraved gold parsha title, magenta child line —
- *  instead of a plain white text band. Shared by the bound-book back cover and
- *  the coloring-book back matter so both match the front cover. */
+ *  cover — engraved gold parsha title over the art, no child line — instead of a
+ *  plain white text band. Shared by the bound-book back cover and the
+ *  coloring-book back matter so both match the front cover. */
 function drawMiniCover(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement | null,
   label: string,
-  childName: string,
   x: number, y: number, size: number,
   rtl: boolean,
-  lang: "en" | "he" | "yi" = "en",
 ) {
   const r = Math.max(8, size * 0.06);
   ctx.fillStyle = "#efe7d3";
@@ -733,10 +731,8 @@ function drawCollectionStack(
   img: HTMLImageElement | null,
   title: string,
   series: string,
-  childName: string,
   x: number, y: number, size: number,
   rtl: boolean,
-  lang: "en" | "he" | "yi" = "en",
 ) {
   const r = Math.max(8, size * 0.06);
   // Two receding "books" behind the cover, offset AWAY from the reading
@@ -781,7 +777,7 @@ function drawCollectionStack(
   ctx.fillStyle = "#efe7d3";
   roundedRect(ctx, x, y, size, size, r); ctx.fill();
   ctx.restore();
-  drawMiniCover(ctx, img, title, childName, x, y, size, rtl, lang);
+  drawMiniCover(ctx, img, title, x, y, size, rtl);
 
   // Series name beneath the stack.
   if (series) {
@@ -882,7 +878,7 @@ async function renderCoverSpread(
     const tx = rowX + i * (thumb + tgap);
     drawCollectionStack(
       ctx, previewImgs[i], previews[i]?.label || "", previews[i]?.series || "",
-      coverChild, tx, rowY, thumb, rtl, lang,
+      tx, rowY, thumb, rtl,
     );
   }
 
@@ -1002,7 +998,6 @@ async function renderColoringBackMatter(
 ): Promise<string> {
   const W = COLOR_W, H = COLOR_H;
   const rtl = lang !== "en";
-  const coverChild = localizedCoverName(childName, lang, localizedChildName);
   // The branded teaser thumbnails use canvas-only fonts (Cinzel/Cormorant), so
   // make sure they're loaded before drawing or the canvas silently falls back.
   await ensureBookFonts();
@@ -1118,7 +1113,7 @@ async function renderColoringBackMatter(
     const tx = rowX + i * (thumb + tgap);
     drawCollectionStack(
       ctx, previewImgs[i], previews[i]?.label || "", previews[i]?.series || "",
-      coverChild, tx, teasersTop, thumb, rtl, lang,
+      tx, teasersTop, thumb, rtl,
     );
   }
 
