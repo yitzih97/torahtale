@@ -13,11 +13,13 @@ import {
   Search, X, SlidersHorizontal, Table2, LayoutGrid, Columns3, ArrowUp, ArrowDown,
   ChevronsUpDown, MoreHorizontal, Eye, User, Copy, ExternalLink, CalendarHeart,
   Gift, AlertCircle, BookOpen, Clock, MapPin,
-  CreditCard, Package,
+  CreditCard, Package, ArrowRightLeft, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatAddressLine } from "@/lib/orderShipping";
 import { orderStatusColor, STATUS_LABEL } from "@/lib/orderStatus";
+import { supabase } from "@/integrations/supabase/client";
+import { SHOPIFY_SELLING_PLAN_IDS } from "@/lib/shopify";
 import { SUB_STATUSES, SUB_LABEL, subStatusColor, subStatusIcon } from "@/lib/subStatus";
 
 const LANG_LABEL: Record<string, string> = { en: "English", he: "Hebrew", yi: "Yiddish" };
@@ -76,6 +78,35 @@ export function AdminSubsTab({
   updateSubscriptionStatus, onSelectUser, onOpenOrderDetail, onOpenBookEditor,
 }: Props) {
   const [view, setView] = useState<"table" | "cards" | "board">("table");
+
+  /* Move a retired weekly contract onto the Parsha Series. This changes what a
+     real customer is billed, so it confirms first, and it is SHOPIFY that sets
+     the new price — the edge function commits a subscription draft against the
+     monthly selling plan and only mirrors `frequency` locally once that lands. */
+  const [migrating, setMigrating] = useState<string | null>(null);
+  const migrateToParshaSeries = async (sub: any) => {
+    const planId = SHOPIFY_SELLING_PLAN_IDS.monthly;
+    if (!planId) { toast.error("No monthly selling plan id is configured."); return; }
+    const who = sub.child_name ? `${sub.child_name}'s` : "this";
+    if (!window.confirm(
+      `Move ${who} subscription from weekly to the Parsha Series?\n\n` +
+      `Shopify will re-price the contract to the monthly plan and bill it monthly ` +
+      `from the next billing date. Tell the customer before you do this.`
+    )) return;
+    setMigrating(sub.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("shopify-admin-data", {
+        body: { action: "subscription-migrate", subscriptionId: sub.id, sellingPlanId: planId },
+      });
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || error?.message || "Migration failed");
+        return;
+      }
+      toast.success(`Moved to the Parsha Series — billing ${String((data as any)?.billingPolicy?.interval || "monthly").toLowerCase()}.`);
+    } finally {
+      setMigrating(null);
+    }
+  };
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // all | needs_action | due | <status>
   const [freqFilter, setFreqFilter] = useState("all");
@@ -655,6 +686,23 @@ export function AdminSubsTab({
                 </div>
 
                 <div className="flex flex-wrap gap-1"><Flags r={r} /></div>
+
+                {/* Weekly is retired — offer the move to the Parsha Series right
+                    where the remaining ones are visible. */}
+                {/week/i.test(String(sub.frequency || "")) && sub.status !== "canceled" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={migrating === sub.id}
+                    onClick={() => { void migrateToParshaSeries(sub); }}
+                    className="w-full gap-1.5 rounded-xl text-[11px] h-8"
+                  >
+                    {migrating === sub.id
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      : <ArrowRightLeft className="w-3.5 h-3.5" />}
+                    Move to Parsha Series
+                  </Button>
+                )}
 
                 <div className="flex items-center justify-between border-t border-border pt-2.5">
                   <div className="min-w-0">

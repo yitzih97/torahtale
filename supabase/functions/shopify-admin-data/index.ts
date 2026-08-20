@@ -157,7 +157,7 @@ serve(async (req) => {
       .from("user_roles").select("role").eq("user_id", callerId).eq("role", "admin").maybeSingle();
     const isAdmin = !!roleRow;
 
-    const { action, bookId, userId, subscriptionId, address } = await req.json();
+    const { action, bookId, userId, subscriptionId, address, sellingPlanId } = await req.json();
 
     // Load a LOCAL subscription (past RLS) and verify the caller owns it, then
     // return its Shopify contract gid. Every subscription-management action goes
@@ -411,6 +411,97 @@ serve(async (req) => {
         .update({ status, ...(status === "canceled" ? { canceled_at: new Date().toISOString() } : {}), updated_at: new Date().toISOString() } as any)
         .eq("id", subscriptionId);
       return json({ ok: true, status });
+    }
+
+    // ── subscription-migrate: move a retired weekly contract onto the Parsha
+    // ── Series (monthly). ADMIN ONLY — it changes what a real customer is
+    // ── charged, so it is never reachable by the subscriber themselves.
+    //
+    // A contract's selling plan cannot be swapped in place. The edit is made
+    // through a DRAFT: open one on the live contract, repoint its line at the
+    // target selling plan, and commit. Shopify recalculates the billing policy
+    // and price from the plan, so we do NOT set an amount here — sending our own
+    // would risk billing something the plan does not agree with.
+    //
+    // The local `frequency` is only mirrored AFTER Shopify commits. If the draft
+    // fails we leave the row alone: a database that says "monthly" while Shopify
+    // still bills weekly is worse than one that is merely out of date.
+    if (action === "subscription-migrate") {
+      if (!isAdmin) return json({ error: "Forbidden" }, 403);
+      const targetPlanId: string | undefined = sellingPlanId;
+      if (!targetPlanId) return json({ error: "sellingPlanId required" }, 400);
+      const { err, cid, sub } = await loadOwnedContract();
+      if (err) return err;
+
+      // What is on the contract now — we need the line id to repoint it.
+      const detail = await shopifyGraphQL(
+        `query($id: ID!) {
+          subscriptionContract(id: $id) {
+            id
+            status
+            billingPolicy { interval intervalCount }
+            lines(first: 10) { edges { node { id quantity } } }
+          }
+        }`,
+        { id: cid },
+      );
+      const contract = detail.subscriptionContract;
+      if (!contract) return json({ error: "Contract not found in Shopify" }, 404);
+      if (contract.status !== "ACTIVE" && contract.status !== "PAUSED") {
+        return json({ error: `Contract is ${contract.status} — only an active or paused one can be migrated` }, 400);
+      }
+      const lines = (contract.lines?.edges || []).map((e: any) => e.node);
+      if (lines.length !== 1) {
+        // Multi-line contracts need a human decision about which line moves.
+        return json({ error: `Contract has ${lines.length} lines — migrate this one by hand in Shopify` }, 400);
+      }
+
+      const draftRes = await shopifyGraphQL(
+        `mutation($id: ID!) { subscriptionContractUpdate(contractId: $id) { draft { id } userErrors { message } } }`,
+        { id: cid },
+      );
+      const draftErr = firstUserError(draftRes.subscriptionContractUpdate);
+      if (draftErr) return json({ error: draftErr }, 400);
+      const draftId = draftRes.subscriptionContractUpdate?.draft?.id;
+      if (!draftId) return json({ error: "Shopify did not return a draft" }, 500);
+
+      const lineRes = await shopifyGraphQL(
+        `mutation($draftId: ID!, $lineId: ID!, $input: SubscriptionLineUpdateInput!) {
+          subscriptionDraftLineUpdate(draftId: $draftId, lineId: $lineId, input: $input) {
+            lineUpdated { id }
+            userErrors { message }
+          }
+        }`,
+        { draftId, lineId: lines[0].id, input: { sellingPlanId: targetPlanId } },
+      );
+      const lineErr = firstUserError(lineRes.subscriptionDraftLineUpdate);
+      if (lineErr) return json({ error: lineErr }, 400);
+
+      const commitRes = await shopifyGraphQL(
+        `mutation($draftId: ID!) {
+          subscriptionDraftCommit(draftId: $draftId) {
+            contract { id status billingPolicy { interval intervalCount } }
+            userErrors { message }
+          }
+        }`,
+        { draftId },
+      );
+      const commitErr = firstUserError(commitRes.subscriptionDraftCommit);
+      if (commitErr) return json({ error: commitErr }, 400);
+      const updated = commitRes.subscriptionDraftCommit?.contract;
+
+      // Shopify has committed — only now does the local row follow.
+      await admin.from("subscriptions")
+        .update({ frequency: "monthly", updated_at: new Date().toISOString() } as any)
+        .eq("id", subscriptionId);
+
+      console.log(`subscription-migrate: ${subscriptionId} (${sub?.id}) -> monthly, contract ${cid}`);
+      return json({
+        ok: true,
+        frequency: "monthly",
+        billingPolicy: updated?.billingPolicy ?? null,
+        was: contract.billingPolicy ?? null,
+      });
     }
 
     // ── subscription-card-url: Shopify's SECURE hosted card-update URL ──
