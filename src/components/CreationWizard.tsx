@@ -1062,7 +1062,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   const submitCollectionRequest = async () => {
     if (!collection || collectionSubmitting || collectionSent) return;
     if (!user) {
-      toast.info("Please sign in to request a collection.");
+      toast.info(t.collectionRequest.signInToRequest);
       return;
     }
     setCollectionSubmitting(true);
@@ -1114,10 +1114,10 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
       if (ticket?.id) notifyContactTicket(ticket.id);
       try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
       setCollectionSent(true);
-      toast.success("Request sent! We'll be in touch shortly.");
+      toast.success(t.collectionRequest.sentToast);
     } catch (err) {
       console.error("Failed to send collection request:", err);
-      toast.error("Something went wrong — please try again or use the contact page.");
+      toast.error(t.collectionRequest.errorToast);
     } finally {
       setCollectionSubmitting(false);
     }
@@ -2443,7 +2443,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   >
                     <Sparkles className="w-7 h-7 text-accent" />
                   </motion.div>
-                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{collection ? "Ready to send your request" : t.wizard.readyToCreate}</h2>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{collection ? t.collectionRequest.readyTitle : t.wizard.readyToCreate}</h2>
                 </motion.div>
 
                 {/* Bullet-style summary */}
@@ -2459,7 +2459,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   {collection ? (
                     <li className="flex items-start gap-3 text-base">
                       <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground"><span className="text-muted-foreground">Collection:</span> <span className="font-semibold">{collection.name} ({collection.books})</span></span>
+                      <span className="text-foreground"><span className="text-muted-foreground">{t.collectionRequest.collectionLabel}:</span> <span className="font-semibold">{collection.name} ({collection.books})</span></span>
                     </li>
                   ) : planType !== "subscription" && (
                     <li className="flex items-start gap-3 text-base">
@@ -2473,7 +2473,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   </li>
                   <li className="flex items-start gap-3 text-base">
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{collection ? "Collection request" : planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{collection ? t.collectionRequest.planLabel : planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
                   </li>
                 </motion.ul>
 
@@ -2508,8 +2508,8 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                       className="mx-auto max-w-md space-y-4 rounded-2xl border border-border/60 bg-card/60 p-4 sm:p-5"
                     >
                       <div>
-                        <p className="text-sm font-semibold text-foreground">Choose your cover</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">Every book in the collection is printed this way.</p>
+                        <p className="text-sm font-semibold text-foreground">{t.collectionRequest.chooseCover}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{t.collectionRequest.chooseCoverNote}</p>
                         <div className="mt-3 grid gap-2 sm:grid-cols-3">
                           {COLLECTION_FORMATS.map((f) => {
                             const on = collectionFormat === f;
@@ -2527,7 +2527,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                                 <span className="block text-xs font-semibold text-foreground">{LABEL[f]}</span>
                                 <span className="mt-0.5 block text-[11px] leading-tight text-muted-foreground">{TAGLINE[f]}</span>
                                 <span className="mt-1.5 block text-[11px] font-semibold text-accent">
-                                  {extra ? `+${money(extra)} / book` : "Included"}
+                                  {extra ? t.collectionRequest.perBook(money(extra)) : t.collectionRequest.included}
                                 </span>
                               </button>
                             );
@@ -2537,17 +2537,17 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
 
                       <div className="space-y-1.5 border-t border-border/60 pt-3 text-sm">
                         <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
-                          <span>{bundle.length === 1 ? "1 collection" : `${bundle.length} collections`} · {books} books</span>
+                          <span>{t.collectionRequest.bundleLine(bundle.length, books)}</span>
                           <span>{money(base)}</span>
                         </div>
                         {upcharge > 0 && (
                           <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
-                            <span>{LABEL[collectionFormat]} · {books} × {money(perBook)}</span>
+                            <span>{t.collectionRequest.upchargeLine(LABEL[collectionFormat], books, money(perBook))}</span>
                             <span>+{money(upcharge)}</span>
                           </div>
                         )}
                         <div className="flex items-baseline justify-between gap-3 pt-1.5 text-foreground">
-                          <span className="font-semibold">Estimated total</span>
+                          <span className="font-semibold">{t.collectionRequest.estimatedTotal}</span>
                           <span className="font-heading text-2xl font-bold">{money(total)}</span>
                         </div>
                       </div>
@@ -2557,8 +2557,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
 
                 {collection && (
                   <motion.p variants={staggerChild} className="text-sm text-muted-foreground text-center leading-relaxed">
-                    No payment now. Our team reviews your request, emails you an invoice, and your
-                    books are generated personally once payment is received.
+                    {t.collectionRequest.noPaymentNow}
                   </motion.p>
                 )}
 
@@ -2912,16 +2911,13 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400">
               <Check className="h-8 w-8" />
             </div>
-            <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">Request received!</h2>
+            <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{t.collectionRequest.sentTitle}</h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              Thanks for your interest in <span className="font-medium text-foreground">{collection.name}</span>.
-              Our team will review your request and reach out to{" "}
-              <span className="font-medium text-foreground">{user?.email}</span> with an invoice.
-              Once payment is received, we'll personally generate the whole collection starring your child.
+              {t.collectionRequest.sentBody(collection.name, user?.email || "")}
             </p>
             <div className="flex justify-center gap-3 pt-2">
-              <Button variant="outline" className="rounded-xl" onClick={() => navigate("/")}>Back home</Button>
-              <Button variant="gold" className="rounded-xl" onClick={() => navigate("/dashboard")}>Go to dashboard</Button>
+              <Button variant="outline" className="rounded-xl" onClick={() => navigate("/")}>{t.collectionRequest.backHome}</Button>
+              <Button variant="gold" className="rounded-xl" onClick={() => navigate("/dashboard")}>{t.collectionRequest.goToDashboard}</Button>
             </div>
           </motion.div>
         </div>
@@ -2963,7 +2959,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                       disabled={collectionSubmitting}
                       className={baseBtn}
                     >
-                      {collectionSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit request"}
+                      {collectionSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t.collectionRequest.submit}
                     </motion.button>
                   );
                 }

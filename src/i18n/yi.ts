@@ -505,13 +505,13 @@ export const yi: typeof en = {
     planMonthlyDesc: "4 ספרים א חודש + יום-טובים",
     planYearly: "יאר פעקל",
     planYearlyDesc: "פרשה + יום-טובים",
-    planChoiceSubscriptionTitle: "תורה סעריע",
+    planChoiceSubscriptionTitle: "פּרשה סעריע",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [
       "וועכנטליכע פרשה + יום-טובים",
     ] as string[],
     planChoiceSubscriptionMicro: "רוב משפחות וועלן דאס",
-    planChoiceSubscriptionCta: "אנהויבן תורה סעריע",
+    planChoiceSubscriptionCta: "אנהויבן פּרשה סעריע",
     planChoiceSingleTitle: "איין פערזענליכע ספר",
     planChoiceSingleSubtitle: "",
     planChoiceSingleBullets: [] as string[],
@@ -896,9 +896,37 @@ export const yi: typeof en = {
     tocLabel: "בעמוד זה",
   },
 
+  // Collection request (the wizard in collection mode)
+  collectionRequest: {
+    readyTitle: "אַלץ איז גרייט צו שיקן די בקשה",
+    collectionLabel: "זאַמלונג",
+    planLabel: "זאַמלונג־בקשה",
+    chooseCover: "קלייבט אויס דעם אײַנבונד",
+    chooseCoverNote: "אַלע ביכער אין דער זאַמלונג ווערן געדרוקט מיטן אויסגעקליבענעם אײַנבונד.",
+    included: "אַרייַנגערעכנט",
+    perBook: (amount: string) => `${amount}+ פֿאַר אַ בוך`,
+    bundleLine: (count: number, books: number) =>
+      `${count === 1 ? "איין זאַמלונג" : `${count} זאַמלונגען`} · ${books} ביכער`,
+    upchargeLine: (label: string, books: number, amount: string) => `${label} · ${books} × ${amount}`,
+    estimatedTotal: "סך הכל בעערך",
+    noPaymentNow:
+      "קיין צאָלונג איצט נישט. אונדזער מאַנשאַפֿט קוקט איבער די בקשה, שיקט אײַך אַ חשבון אויף מייל, און די ביכער ווערן פּערזענלעך געשאַפֿן נאָך דעם ווי די צאָלונג קומט אָן.",
+    submit: "שיקן די בקשה",
+    signInToRequest: "זײַט אַזוי גוט אײַנלאָגירן זיך כדי צו בעטן אַ זאַמלונג.",
+    signInToBuy: "זײַט אַזוי גוט אײַנלאָגירן זיך כדי צו קויפֿן אַ זאַמלונג.",
+    sentToast: "די בקשה איז געשיקט! מיר וועלן זיך באַלד פֿאַרבינדן.",
+    errorToast: "עפּעס איז געגאַנגען נישט ריכטיק — פּרוּווט נאָך אַ מאָל אָדער נוצט די פֿאַרבינדונג־בלאַט.",
+    sentTitle: "די בקשה איז אָנגעקומען!",
+    sentBody: (name: string, email: string) =>
+      `אַ דאַנק פֿאַר אײַער אינטערעס אין ${name}. אונדזער מאַנשאַפֿט וועט איבערקוקן די בקשה און זיך פֿאַרבינדן מיט אײַך אויף ${email} מיט אַ חשבון. נאָך דער צאָלונג וועלן מיר פּערזענלעך שאַפֿן די גאַנצע זאַמלונג, מיט אײַער קינד אַלס העלד.`,
+    backHome: "צוריק צום היים־בלאַט",
+    goToDashboard: "צום פּערזענלעכן אָפּטייל",
+  },
+
   // Pricing page
   pricing: {
-    plansEyebrow: "פּלענער",
+    plansEyebrow: "אונדזערע פּלענער",
+    collectionsEyebrow: "אונדזערע זאַמלונגען",
     plansNote: "פּרײַזן פֿאַר ווייכן קאָווער 8″×8″. האַרטער קאָווער און ברעט־ספר ווערן באַזונדער גערעכנט בײַם באַצאָלן. מען קען אַ פּלאַן אָפּזאָגן ווען עס איז.",
     heroTitle: "שאַפֿט פּערזענלעכע תּורה ביכער",
     heroAccent: "וואָס אייערע קינדער וועלן ליב האָבן",
@@ -909,7 +937,7 @@ export const yi: typeof en = {
     singleTitle: "איין בוך",
     singleSubtitle: "איין־מאָליקע קויף",
     singleCta: "שאַפֿן אַ בוך",
-    torahTitle: "תּורה סעריע",
+    torahTitle: "פּרשה סעריע",
     torahSubtitle: "4 ספרים אַ חודש — אַ נײַער פרשה־ספר יעדע וואָך",
     torahCta: "הייבט אָן יעצט",
     tanachTitle: "יערלעכע פּעקל",

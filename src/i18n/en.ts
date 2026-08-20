@@ -516,13 +516,13 @@ export const en = {
     planMonthlyDesc: "4 books a month + holidays",
     planYearly: "Year Bundle",
     planYearlyDesc: "Parsha + holidays",
-    planChoiceSubscriptionTitle: "Torah Series",
+    planChoiceSubscriptionTitle: "Parsha Series",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [
       "Weekly Parsha + Holidays",
     ] as string[],
     planChoiceSubscriptionMicro: "Most families choose this",
-    planChoiceSubscriptionCta: "Start Torah Series",
+    planChoiceSubscriptionCta: "Start Parsha Series",
     planChoiceSingleTitle: "Single Custom Book",
     planChoiceSingleSubtitle: "",
     planChoiceSingleBullets: [] as string[],
@@ -904,9 +904,38 @@ export const en = {
     tocLabel: "On this page",
   },
 
+  // Collection request (the wizard in collection mode — no checkout, the
+  // request is filed as a ticket and invoiced by hand).
+  collectionRequest: {
+    readyTitle: "Ready to send your request",
+    collectionLabel: "Collection",
+    planLabel: "Collection request",
+    chooseCover: "Choose your cover",
+    chooseCoverNote: "Every book in the collection is printed this way.",
+    included: "Included",
+    perBook: (amount: string) => `+${amount} / book`,
+    bundleLine: (count: number, books: number) =>
+      `${count === 1 ? "1 collection" : `${count} collections`} · ${books} books`,
+    upchargeLine: (label: string, books: number, amount: string) => `${label} · ${books} × ${amount}`,
+    estimatedTotal: "Estimated total",
+    noPaymentNow:
+      "No payment now. Our team reviews your request, emails you an invoice, and your books are generated personally once payment is received.",
+    submit: "Submit request",
+    signInToRequest: "Please sign in to request a collection.",
+    signInToBuy: "Please sign in to buy a collection.",
+    sentToast: "Request sent! We'll be in touch shortly.",
+    errorToast: "Something went wrong — please try again or use the contact page.",
+    sentTitle: "Request received!",
+    sentBody: (name: string, email: string) =>
+      `Thanks for your interest in ${name}. Our team will review your request and reach out to ${email} with an invoice. Once payment is received, we'll personally generate the whole collection starring your child.`,
+    backHome: "Back home",
+    goToDashboard: "Go to dashboard",
+  },
+
   // Pricing page
   pricing: {
-    plansEyebrow: "Plans",
+    plansEyebrow: "Our Plans",
+    collectionsEyebrow: "Our Collections",
     plansNote: "Prices shown for the 8″×8″ softcover. Hardcover and board book are priced separately at checkout. Cancel a plan any time from your dashboard.",
     heroTitle: "Create Personalized Torah Books",
     heroAccent: "Your Kids Will Love",
@@ -917,7 +946,7 @@ export const en = {
     singleTitle: "Single Book",
     singleSubtitle: "One-time purchase",
     singleCta: "Create Book",
-    torahTitle: "Torah Series",
+    torahTitle: "Parsha Series",
     torahSubtitle: "4 books a month — a new parsha book every week",
     torahCta: "Start Now",
     tanachTitle: "Year Bundle",

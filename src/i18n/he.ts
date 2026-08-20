@@ -505,13 +505,13 @@ export const he: typeof en = {
     planMonthlyDesc: "4 סיפורים בחודש + חגים",
     planYearly: "חבילה שנתית",
     planYearlyDesc: "פרשה + חגים",
-    planChoiceSubscriptionTitle: "סדרת התורה",
+    planChoiceSubscriptionTitle: "סדרת הפרשה",
     planChoiceSubscriptionSubtitle: "",
     planChoiceSubscriptionBullets: [
       "פרשת השבוע + חגים",
     ] as string[],
     planChoiceSubscriptionMicro: "הבחירה של רוב המשפחות",
-    planChoiceSubscriptionCta: "מתחילים את סדרת התורה",
+    planChoiceSubscriptionCta: "מתחילים את סדרת הפרשה",
     planChoiceSingleTitle: "סיפור אישי בודד",
     planChoiceSingleSubtitle: "",
     planChoiceSingleBullets: [] as string[],
@@ -896,9 +896,37 @@ export const he: typeof en = {
     tocLabel: "בעמוד זה",
   },
 
+  // Collection request (the wizard in collection mode)
+  collectionRequest: {
+    readyTitle: "הכל מוכן לשליחת הבקשה",
+    collectionLabel: "אוסף",
+    planLabel: "בקשת אוסף",
+    chooseCover: "בחרו את סוג הכריכה",
+    chooseCoverNote: "כל ספרי האוסף יודפסו בכריכה שתבחרו.",
+    included: "כלול",
+    perBook: (amount: string) => `${amount}+ לספר`,
+    bundleLine: (count: number, books: number) =>
+      `${count === 1 ? "אוסף אחד" : `${count} אוספים`} · ${books} ספרים`,
+    upchargeLine: (label: string, books: number, amount: string) => `${label} · ${books} × ${amount}`,
+    estimatedTotal: "סך הכל משוער",
+    noPaymentNow:
+      "אין תשלום עכשיו. הצוות שלנו בודק את הבקשה, שולח לכם חשבונית במייל, והספרים נוצרים אישית לאחר קבלת התשלום.",
+    submit: "שליחת הבקשה",
+    signInToRequest: "יש להתחבר כדי לבקש אוסף.",
+    signInToBuy: "יש להתחבר כדי לרכוש אוסף.",
+    sentToast: "הבקשה נשלחה! נחזור אליכם בהקדם.",
+    errorToast: "משהו השתבש — נסו שוב או פנו אלינו דרך עמוד יצירת הקשר.",
+    sentTitle: "הבקשה התקבלה!",
+    sentBody: (name: string, email: string) =>
+      `תודה על העניין ב${name}. הצוות שלנו יבדוק את הבקשה ויחזור אליכם לכתובת ${email} עם חשבונית. לאחר קבלת התשלום ניצור עבורכם אישית את כל האוסף, כשהילד שלכם הוא הגיבור.`,
+    backHome: "חזרה לדף הבית",
+    goToDashboard: "לאזור האישי",
+  },
+
   // Pricing page
   pricing: {
-    plansEyebrow: "מסלולים",
+    plansEyebrow: "המסלולים שלנו",
+    collectionsEyebrow: "האוספים שלנו",
     plansNote: "המחירים לכריכה רכה 8″×8″. כריכה קשה וספר קשיח מתומחרים בנפרד בתשלום. אפשר לבטל מסלול בכל רגע מהאזור האישי.",
     heroTitle: "צרו סיפורי תורה אישיים",
     heroAccent: "שהילדים שלכם פשוט יאהבו",
@@ -909,7 +937,7 @@ export const he: typeof en = {
     singleTitle: "סיפור בודד",
     singleSubtitle: "רכישה חד-פעמית",
     singleCta: "ליצירת סיפור",
-    torahTitle: "סדרת התורה",
+    torahTitle: "סדרת הפרשה",
     torahSubtitle: "4 ספרים בחודש — ספר פרשת שבוע חדש בכל שבוע",
     torahCta: "מתחילים עכשיו",
     tanachTitle: "חבילה שנתית",

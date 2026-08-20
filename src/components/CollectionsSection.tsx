@@ -63,7 +63,7 @@ export const CollectionsSection = () => {
     const target = `/create?collection=${keys.join(",")}`;
     try { localStorage.removeItem("torahtale_wizard_state"); } catch { /* ignore */ }
     if (!user) {
-      toast.info("Please sign in to request a collection.");
+      toast.info(t.collectionRequest.signInToRequest);
       navigate(`/auth?next=${encodeURIComponent(target)}`);
       return;
     }
@@ -79,7 +79,7 @@ export const CollectionsSection = () => {
     if (!picked.length || busy) return;
     if (!canCheckoutCollections(picked)) { requestSelection(picked); return; }
     if (!user) {
-      toast.info("Please sign in to buy a collection.");
+      toast.info(t.collectionRequest.signInToBuy);
       navigate(`/auth?next=${encodeURIComponent("/pricing#collections")}`);
       return;
     }
@@ -103,7 +103,7 @@ export const CollectionsSection = () => {
           transition={{ duration: 0.7, ease }}
           className="text-center max-w-2xl mx-auto mb-10"
         >
-          <p className="font-display text-3xl md:text-4xl font-bold uppercase tracking-[0.12em] text-accent">Collections</p>
+          <p className="font-display text-3xl md:text-4xl font-bold uppercase tracking-[0.12em] text-accent">{t.pricing.collectionsEyebrow}</p>
         </motion.div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
