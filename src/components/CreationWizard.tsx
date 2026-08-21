@@ -1545,10 +1545,10 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                 <button
                   key={c.id}
                   onClick={() => update({ activeChildIdx: idx })}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-200 flex-shrink-0 text-xs font-medium ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-200 flex-shrink-0 text-xs font-medium border-accent text-accent ${
                     idx === data.activeChildIdx
-                      ? "border-accent bg-accent/10 text-accent shadow-sm"
-                      : "border-border/50 bg-card/60 text-muted-foreground hover:border-accent/30"
+                      ? "bg-accent/15 ring-2 ring-accent/35 shadow-sm"
+                      : "bg-accent/5 hover:bg-accent/10"
                   }`}
                 >
                   {c.photoPreview ? (
@@ -2031,7 +2031,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                 {/* Children added so far */}
                 <div className="flex flex-wrap justify-center gap-2">
                   {data.children.filter((c) => c.name.trim()).map((c) => (
-                    <div key={c.id} className="flex items-center gap-2 px-3 py-2 rounded-full border-2 border-accent/30 bg-accent/5">
+                    <div key={c.id} className="flex items-center gap-2 px-3 py-2 rounded-full border-2 border-accent bg-accent/10 text-accent">
                       {c.photoPreview ? (
                         <img src={c.photoPreview} alt={c.name} className="w-7 h-7 rounded-full object-cover" />
                       ) : (
@@ -2492,14 +2492,6 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                 className="space-y-6 max-w-md mx-auto"
               >
                 <motion.div variants={staggerChild} className="text-center">
-                  <motion.div
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ ...springTransition, delay: 0.1 }}
-                    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mx-auto mb-4"
-                  >
-                    <Sparkles className="w-7 h-7 text-accent" />
-                  </motion.div>
                   <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{collection ? t.collectionRequest.readyTitle : t.wizard.readyToCreate}</h2>
                 </motion.div>
 
@@ -2565,7 +2557,6 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                         <div className="mt-3 grid gap-2.5">
                           {COLLECTION_FORMATS.map((f) => {
                             const on = collectionFormat === f;
-                            const extra = formatUpcharge(f, isIls);
                             return (
                               <button
                                 key={f}
@@ -2588,12 +2579,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                                   />
                                 </span>
                                 <span className="min-w-0 flex-1">
-                                  <span className="flex items-baseline justify-between gap-3">
-                                    <span className="font-display text-base font-bold text-primary">{LABEL[f]}</span>
-                                    <span className="shrink-0 text-sm font-semibold text-accent">
-                                      {extra ? t.collectionRequest.perBook(money(extra)) : t.collectionRequest.included}
-                                    </span>
-                                  </span>
+                                  <span className="block font-display text-base font-bold text-primary">{LABEL[f]}</span>
                                   <span className="mt-0.5 block text-xs leading-tight text-muted-foreground">{TAGLINE[f]}</span>
                                   <span className="mt-0.5 block text-[11px] text-muted-foreground">{COLLECTION_FORMAT_DIMS[f]}</span>
                                 </span>
