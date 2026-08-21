@@ -78,7 +78,7 @@ const Pricing = () => {
               <SectionHeading>{t.pricing.plansEyebrow}</SectionHeading>
             </div>
 
-            <div className="mx-auto mt-6 grid max-w-5xl gap-5 md:grid-cols-3 items-stretch [@media(max-height:820px)]:mt-4">
+            <div className="mx-auto mt-6 grid max-w-6xl gap-6 md:grid-cols-3 items-stretch [@media(max-height:820px)]:mt-5">
               {([
                 { key: "single", icon: BookOpen, popular: false, title: t.pricing.singleTitle, sub: t.pricing.singleSubtitle, price: money(singlePrice("softcover", isIls)), per: "", cta: t.pricing.singleCta },
                 { key: "torah", icon: Sparkles, popular: true, title: t.pricing.torahTitle, sub: t.pricing.torahSubtitle, price: money(subPrice("monthly", "softcover", isIls)), per: t.pricing.perMonth, cta: t.pricing.torahCta },
@@ -90,7 +90,7 @@ const Pricing = () => {
                   <div
                     key={p.key}
                     onClick={() => setSelected(p.key)}
-                    className={`relative flex cursor-pointer flex-col rounded-3xl border p-5 transition-all duration-300 [@media(max-height:820px)]:p-4 ${
+                    className={`relative flex cursor-pointer flex-col rounded-3xl border p-6 transition-all duration-300 [@media(max-height:820px)]:p-5 ${
                       on
                         ? "border-accent/60 bg-card shadow-soft-lg ring-2 ring-accent/25"
                         : "border-border/70 bg-card/85 shadow-soft-sm backdrop-blur-sm hover:-translate-y-1 hover:border-accent/40 hover:shadow-soft-md"
@@ -102,21 +102,21 @@ const Pricing = () => {
                       </Badge>
                     )}
                     <div className="flex items-center gap-3">
-                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl transition-colors ${on ? "bg-accent text-accent-foreground" : "bg-gold/12 text-gold"}`}>
-                        <Icon className="h-4 w-4" />
+                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors ${on ? "bg-accent text-accent-foreground" : "bg-gold/12 text-gold"}`}>
+                        <Icon className="h-5 w-5" />
                       </span>
-                      <h3 className="font-display text-xl font-bold leading-tight text-primary">{p.title}</h3>
+                      <h3 className="font-display text-2xl font-bold leading-tight text-primary">{p.title}</h3>
                     </div>
                     <div className="mt-3.5 flex items-baseline gap-1.5">
-                      <span className="font-display text-4xl font-bold leading-none text-primary">{p.price}</span>
-                      {p.per && <span className="text-sm text-muted-foreground">{p.per}</span>}
+                      <span className="font-display text-[2.75rem] font-bold leading-none text-primary">{p.price}</span>
+                      {p.per && <span className="text-base text-muted-foreground">{p.per}</span>}
                     </div>
-                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{p.sub}</p>
+                    <p className="mt-2.5 flex-1 text-[15px] leading-relaxed text-muted-foreground">{p.sub}</p>
                     <Button
                       variant={on ? "gold" : "outline"}
-                      size="default"
+                      size="lg"
                       onClick={(e) => { e.stopPropagation(); goCreate(); }}
-                      className="mt-4 w-full rounded-full"
+                      className="mt-5 w-full rounded-full"
                     >
                       {p.cta}
                     </Button>

@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, Loader2, Plus, ShoppingBag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -39,12 +39,29 @@ export const CollectionsSection = () => {
   const navigate = useNavigate();
   const [picked, setPicked] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  // Name of the collection just added — the floating bar leads with it for a
+  // few seconds so the click has an unmistakable answer, then settles back to
+  // the running total.
+  const [justAdded, setJustAdded] = useState<string | null>(null);
+  const justAddedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (justAddedTimer.current) clearTimeout(justAddedTimer.current); }, []);
+
+  const flagAdded = (name: string) => {
+    setJustAdded(name);
+    if (justAddedTimer.current) clearTimeout(justAddedTimer.current);
+    justAddedTimer.current = setTimeout(() => setJustAdded(null), 4000);
+  };
   const { symbol, code } = t.currency;
   const isIls = code === "ILS";
   const fmt = (n: number) => `${symbol}${Math.round(n).toLocaleString()}`;
   const price = (c: Collection) => (isIls ? c.priceIls : c.priceUsd);
 
-  const toggle = (key: string) =>
+  const toggle = (key: string) => {
+    const added = !picked.includes(key);
+    const c = getCollection(key);
+    if (added && c) flagAdded(collectionName(c, lang));
+    else setJustAdded(null);
     setPicked((prev) => {
       // "Complete" contains every other collection, so the two can never be in
       // the same basket — choosing one clears the other rather than quietly
@@ -53,6 +70,7 @@ export const CollectionsSection = () => {
       const without = prev.filter((k) => k !== "complete");
       return without.includes(key) ? without.filter((k) => k !== key) : [...without, key];
     });
+  };
 
   const total = useMemo(() => collectionsTotal(picked, isIls), [picked, isIls]);
   const books = useMemo(() => collectionsBookCount(picked), [picked]);
@@ -261,6 +279,51 @@ export const CollectionsSection = () => {
           {t.pricing.collFootnote}
         </p>
       </div>
+
+      {/* Floating cart bar — the tiles sit high on the page and the running
+          basket sits below them, so without this an "Add to cart" click could
+          look like nothing happened. It rides the bottom of the viewport for as
+          long as anything is in the cart, and carries the same checkout action
+          as the summary card. */}
+      <AnimatePresence>
+        {picked.length > 0 && (
+          <motion.div
+            initial={{ y: 96, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 96, opacity: 0 }}
+            transition={{ duration: 0.35, ease }}
+            className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-5"
+          >
+            <div className="mx-auto flex w-full max-w-3xl items-center gap-3 rounded-2xl border border-accent/30 bg-card/95 p-3 shadow-soft-lg backdrop-blur sm:gap-4 sm:rounded-full sm:ps-6 sm:pe-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                <Check className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-primary">
+                  {justAdded ? `${justAdded} — ${t.pricing.collAdded}` : t.pricing.collSummary(picked.length, books)}
+                </p>
+                {justAdded && (
+                  <p className="truncate text-xs text-muted-foreground">
+                    {t.pricing.collSummary(picked.length, books)}
+                  </p>
+                )}
+              </div>
+              <p className="hidden font-display text-2xl font-bold leading-none text-primary sm:block">{fmt(total)}</p>
+              <Button
+                variant="gold"
+                size="lg"
+                className="shrink-0 gap-2 rounded-full px-5 sm:px-7"
+                onClick={() => void checkout()}
+                disabled={busy}
+              >
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingBag className="h-4 w-4" />}
+                <span className="hidden sm:inline">{canCheckoutCollections(picked) ? t.pricing.collCheckout : t.pricing.collRequest}</span>
+                <span className="sm:hidden">{fmt(total)}</span>
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };

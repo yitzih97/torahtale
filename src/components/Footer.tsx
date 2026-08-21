@@ -17,7 +17,7 @@ export const Footer = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-10 sm:gap-8">
           <div className="space-y-4">
             <div className="space-y-4">
-              <BrandMark iconClassName="h-12 w-12" wordmarkClassName="h-10 w-auto" />
+              <BrandMark full className="h-24 w-auto" />
               <span className="sr-only">{brandName}</span>
             </div>
             {t.footer.tagline && <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{t.footer.tagline}</p>}
