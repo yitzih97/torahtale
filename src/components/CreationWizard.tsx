@@ -1669,23 +1669,46 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
 
                 <motion.div variants={staggerChild}>
                   {(() => {
-                    // The name field always edits the child currently being added.
-                    // Adding a second child happens later on its own dedicated
-                    // step — never mixed into this first "add a child" screen.
-                    const activeIsSaved = !!child.savedChildId;
+                    // The field only ever holds a name being TYPED. Picking saved
+                    // kids above adds them as their own entries and leaves this
+                    // box empty — mirroring the last pick in here read as "this
+                    // is the child" when several were selected.
+                    const typedIdx = data.children.findIndex((c) => !c.savedChildId);
+                    const typedName = typedIdx >= 0 ? data.children[typedIdx].name : "";
+
+                    const setTypedName = (value: string) => {
+                      setData((prev) => {
+                        const idx = prev.children.findIndex((c) => !c.savedChildId);
+                        if (idx >= 0) {
+                          // Clearing the box drops the empty entry, so saved kids
+                          // are not followed by a nameless "Child 2" later on.
+                          if (!value.trim() && prev.children.length > 1) {
+                            const children = prev.children.filter((_, i) => i !== idx);
+                            return { ...prev, children, activeChildIdx: children.length - 1 };
+                          }
+                          const children = prev.children.map((c, i) =>
+                            i === idx ? { ...c, name: value, savedChildId: null, existingPhotoUrl: null } : c);
+                          return { ...prev, children, activeChildIdx: idx };
+                        }
+                        if (!value.trim()) return prev;
+                        const children = [...prev.children, { ...createChild(), name: value }];
+                        return { ...prev, children, activeChildIdx: children.length - 1 };
+                      });
+                    };
+
                     return (
                       <Input
                         placeholder={t.wizard.enterChildName}
-                        value={child.name}
-                        onChange={(e) => updateChild(child.id, { name: e.target.value, savedChildId: null, existingPhotoUrl: null })}
+                        value={typedName}
+                        onChange={(e) => setTypedName(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" && child.name.trim().length >= 1) {
+                          if (e.key === "Enter" && typedName.trim().length >= 1) {
                             e.preventDefault();
                             autoAdvance();
                           }
                         }}
                         onBlur={() => {
-                          if (!activeIsSaved && child.name.trim().length >= 1 && step === 1) autoAdvance();
+                          if (typedName.trim().length >= 1 && step === 1) autoAdvance();
                         }}
                         className="rounded-2xl h-14 text-lg text-center border-2 border-border/40 bg-card/60 backdrop-blur-sm focus:border-accent/50 focus:ring-accent/20 placeholder:text-muted-foreground/40 font-medium"
                         autoFocus

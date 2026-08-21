@@ -110,9 +110,9 @@ export const CollectionsSection = () => {
           <SectionHeading>{t.pricing.collectionsEyebrow}</SectionHeading>
         </motion.div>
 
-        {/* Image-forward tiles: the artwork is the sell, so it fills the card and
-            the name sits on top of it. The blurb rides in on hover at desktop
-            sizes, and stays printed under the tile on touch screens. */}
+        {/* Image-forward tiles: the artwork is the sell, so it fills a fixed
+            1:1 card — same square on a phone as on a desktop — and everything
+            else is set over it. */}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {orderedCollections.map((c, i) => {
             const Icon = c.icon;
@@ -127,74 +127,58 @@ export const CollectionsSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.5, ease, delay: i * 0.05 }}
-                className={`group relative flex flex-col overflow-hidden rounded-3xl border text-start shadow-soft-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-soft-lg ${
+                className={`group relative aspect-square overflow-hidden rounded-3xl border text-start shadow-soft-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-soft-lg ${
                   on
-                    ? "border-accent bg-card ring-2 ring-accent/30"
+                    ? "border-accent ring-2 ring-accent/30"
                     : c.featured
-                      ? "border-accent/40 bg-card"
-                      : "border-border/70 bg-card"
+                      ? "border-accent/40"
+                      : "border-border/70"
                 }`}
               >
-                <div className="relative overflow-hidden">
-                  <img
-                    src={c.image}
-                    alt={collectionName(c, lang)}
-                    loading="lazy"
-                    className="h-36 w-full object-cover transition-transform duration-700 group-hover:scale-105 [@media(max-height:820px)]:h-[7.5rem]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-midnight/90 via-midnight/20 to-transparent" />
+                <img
+                  src={c.image}
+                  alt={collectionName(c, lang)}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-midnight/95 via-midnight/55 to-transparent" />
 
-                  {/* Blurb, desktop only — the tile stays quiet until you look at
-                      it, then the name gives way to what is actually inside. */}
-                  <div className="pointer-events-none absolute inset-0 z-10 hidden items-center bg-midnight/85 p-4 pt-12 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100 lg:flex">
-                    <p className="line-clamp-3 text-[13px] leading-relaxed text-parchment">{collectionBlurb(c, lang)}</p>
-                  </div>
-
-                  {c.featured && !on && (
-                    <span className="absolute top-3 end-3 z-20 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-foreground shadow-soft-sm">
-                      {t.pricing.collBestValue}
-                    </span>
-                  )}
-                  <span
-                    className={`absolute top-3 start-3 z-20 flex h-8 w-8 items-center justify-center rounded-full shadow-soft-sm transition-colors ${
-                      on ? "bg-accent text-accent-foreground" : "bg-card/90 text-primary backdrop-blur"
-                    }`}
-                    aria-hidden
-                  >
-                    {on ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                {c.featured && !on && (
+                  <span className="absolute top-3 end-3 z-20 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-foreground shadow-soft-sm">
+                    {t.pricing.collBestValue}
                   </span>
-
-                  <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-3 p-4 transition-opacity duration-300 lg:group-hover:opacity-0">
-                    <div className="min-w-0">
-                      <h3 className="font-display text-lg font-bold leading-tight text-white drop-shadow-sm">
-                        {collectionName(c, lang)}
-                      </h3>
-                      <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-light">
-                        {collectionBooksLabel(c, lang)}
-                      </p>
-                    </div>
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-card/95 text-accent shadow-soft-sm backdrop-blur">
-                      <Icon className="h-5 w-5" />
+                )}
+                <span
+                  className={`absolute top-3 start-3 z-20 flex h-9 w-9 items-center justify-center rounded-full shadow-soft-sm transition-colors ${
+                    on ? "bg-accent text-accent-foreground" : "bg-card/90 text-primary backdrop-blur"
+                  }`}
+                  aria-hidden
+                >
+                  {on ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                </span>
+                <div className="absolute inset-x-0 bottom-0 z-10 p-5">
+                  <h3 className="font-display text-xl font-bold leading-tight text-white drop-shadow-sm">
+                    {collectionName(c, lang)}
+                  </h3>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-light">
+                    <Icon className="h-3.5 w-3.5" aria-hidden />
+                    {collectionBooksLabel(c, lang)}
+                  </p>
+                  <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-parchment/85">
+                    {collectionBlurb(c, lang)}
+                  </p>
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="font-display text-2xl font-bold leading-none text-white">{fmt(price(c))}</p>
+                    <span
+                      className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold backdrop-blur transition-colors ${
+                        on
+                          ? "border-accent bg-accent text-accent-foreground"
+                          : "border-white/40 bg-white/10 text-white group-hover:border-accent group-hover:bg-accent group-hover:text-accent-foreground"
+                      }`}
+                    >
+                      {on ? t.pricing.collAdded : t.pricing.collAdd}
                     </span>
                   </div>
-                </div>
-
-                {/* Touch screens never get the hover blurb, so keep it in the card. */}
-                <p className="px-4 pt-3 text-[13px] leading-relaxed text-muted-foreground lg:hidden">
-                  {collectionBlurb(c, lang)}
-                </p>
-
-                <div className="flex items-center justify-between gap-3 px-4 py-3.5 [@media(max-height:820px)]:py-2.5">
-                  <p className="font-display text-2xl font-bold leading-none text-primary">{fmt(price(c))}</p>
-                  <span
-                    className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-                      on
-                        ? "border-accent bg-accent text-accent-foreground"
-                        : "border-border text-muted-foreground group-hover:border-accent group-hover:text-accent"
-                    }`}
-                  >
-                    {on ? t.pricing.collAdded : t.pricing.collAdd}
-                  </span>
                 </div>
               </motion.button>
             );
