@@ -8,7 +8,7 @@ interface BrandMarkProps {
   iconClassName?: string;
   wordmarkClassName?: string;
   stacked?: boolean;
-  /** Use the single original logo file — book above, wordmark beneath —
+  /** Use the single original logo file - book above, wordmark beneath -
    *  instead of composing the icon and the wordmark as two images. */
   full?: boolean;
 }

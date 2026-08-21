@@ -88,7 +88,7 @@ serve(async (req) => {
         ? isUnder3Boy
           ? mentionsFrumGarb
             ? "a real 2-year-old toddler in modest clothing with true toddler proportions; include ONLY the specific religious items explicitly requested in the description and keep them consistent"
-            : "a real 2-year-old toddler in simple modest clothing with true pre-upsherin toddler proportions — NO yarmulke/kippah, NO peyos, NO tzitzis unless those exact items are clearly visible in the attached reference photo"
+            : "a real 2-year-old toddler in simple modest clothing with true pre-upsherin toddler proportions - NO yarmulke/kippah, NO peyos, NO tzitzis unless those exact items are clearly visible in the attached reference photo"
           : "wearing a yarmulke/kippah with visible peyos (sidelocks), tzitzis, and modest clothing"
         : "modest dress with long sleeves and long skirt below the knee, no head covering, tznius appearance";
 
@@ -179,7 +179,7 @@ serve(async (req) => {
         const t = await oResp.text();
         console.error(`OpenAI ${customImageModel} error:`, oResp.status, t);
         if (oResp.status === 429) {
-          return new Response(JSON.stringify({ error: "OpenAI rate limit — please try again." }), {
+          return new Response(JSON.stringify({ error: "OpenAI rate limit - please try again." }), {
             status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
@@ -238,7 +238,7 @@ serve(async (req) => {
 
       if (attempt.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limited — please try again in a moment." }),
+          JSON.stringify({ error: "Rate limited - please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }

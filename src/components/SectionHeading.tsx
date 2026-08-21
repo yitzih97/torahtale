@@ -1,5 +1,5 @@
 /**
- * The label that opens a section — a small, wide-tracked sans caps line
+ * The label that opens a section - a small, wide-tracked sans caps line
  * between two fading hairlines. Deliberately quieter than the display serif
  * used for headlines, so it reads as a signpost rather than as a title
  * competing with the page's own h1.

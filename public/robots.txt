@@ -11,7 +11,7 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-# Answer engines / AI crawlers — explicitly welcome. See /llms.txt for a map of
+# Answer engines / AI crawlers - explicitly welcome. See /llms.txt for a map of
 # the site and /llms-full.txt for the full blog text in plain text.
 User-agent: GPTBot
 Allow: /

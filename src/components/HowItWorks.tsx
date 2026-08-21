@@ -20,7 +20,7 @@ export const HowItWorks = () => {
   const sectionRef = useRef<HTMLElement>(null);
 
   // Step 1 (the "Add your children" mockup) has baked-in UI text, so Hebrew/
-  // Yiddish books show a localized RTL version; steps 2–3 are text-free.
+  // Yiddish books show a localized RTL version; steps 2-3 are text-free.
   const isHe = lang === "he" || lang === "yi";
   const images = [isHe ? step1ImgHe : step1Img, step2Img, step3Img];
 

@@ -31,7 +31,7 @@ const hebrewBody = `
 const hebrew = (overrides: Record<string, unknown> = {}) => ({
   title: "פרשת נח לילדים: התיבה, החיות והקשת",
   description:
-    "איך מספרים לילדים את פרשת נח — מה קורה בסיפור, איזו מידה הוא מלמד, ואיך מסבירים את המבול לילד בן ארבע בלי להפחיד אותו.",
+    "איך מספרים לילדים את פרשת נח - מה קורה בסיפור, איזו מידה הוא מלמד, ואיך מסבירים את המבול לילד בן ארבע בלי להפחיד אותו.",
   excerpt: "התיבה, החיות שנכנסו שניים שניים, והקשת בענן שבסוף.",
   keywords: ["פרשת נח לילדים", "סיפור נח לילדים", "התיבה של נח"],
   keyFacts: ["עובדה ראשונה על הפרשה.", "עובדה שנייה על הפרשה.", "עובדה שלישית על הפרשה."],
@@ -49,9 +49,9 @@ const article = (overrides: Record<string, unknown> = {}) => ({
   slug: "parshas-noach-for-kids",
   title: "Parshas Noach for Kids: The Teivah, the Animals and the Keshet",
   description:
-    "How to tell Parshas Noach to children — what happens, the middah it teaches, and how to explain the mabul to a four-year-old without frightening them.",
+    "How to tell Parshas Noach to children - what happens, the middah it teaches, and how to explain the mabul to a four-year-old without frightening them.",
   excerpt:
-    "The teivah, the animals two by two, and the rainbow at the end — here is how to bring Parshas Noach alive for a young child.",
+    "The teivah, the animals two by two, and the rainbow at the end - here is how to bring Parshas Noach alive for a young child.",
   keywords: ["parshas noach for kids", "noach story children", "teivah"],
   keyFacts: ["A fact.", "Another fact.", "A third fact."],
   faq: [

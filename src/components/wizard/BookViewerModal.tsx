@@ -16,10 +16,10 @@ interface Props {
   coverChildName?: string;
   torahPortion: string;
   artStyle: string;
-  /** The BOOK's language — cover + captions render in it, not the UI language. */
+  /** The BOOK's language - cover + captions render in it, not the UI language. */
   language?: string;
   pages: BookPage[];
-  /** "board-6x6" | "softcover-8x8" | "hardcover-8x8" — drives spread vs page layout. */
+  /** "board-6x6" | "softcover-8x8" | "hardcover-8x8" - drives spread vs page layout. */
   bookFormat?: string;
   onEdit?: () => void;
   onReorder?: () => void;

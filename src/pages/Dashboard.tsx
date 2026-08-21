@@ -76,13 +76,13 @@ export default function Dashboard() {
 
   /* Removing kids selected on the cards. Deliberately guarded: children.id is
      ON DELETE SET NULL on books and subscriptions, so a delete does not remove
-     their books — it orphans them — and a live subscription would keep minting
+     their books - it orphans them - and a live subscription would keep minting
      weekly books with no child record behind them, losing the photo likeness.
      So an active subscription blocks the delete rather than breaking quietly. */
   const [removeOpen, setRemoveOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
   /* Set when the delete came from one child's edit dialog rather than from the
-     multi-select bar — that child alone is then the subject of the confirm. */
+     multi-select bar - that child alone is then the subject of the confirm. */
   const [removeTarget, setRemoveTarget] = useState<ChildRecord | null>(null);
 
   const kidsToRemove = removeTarget
@@ -96,7 +96,7 @@ export default function Dashboard() {
   const closeRemove = () => { setRemoveOpen(false); setRemoveTarget(null); };
 
   /* "Order again" drops the customer on the checkout summary with this book and
-     these kids already filled in — see startReorder, which copies the book row
+     these kids already filled in - see startReorder, which copies the book row
      rather than re-opening the delivered one. */
   const [reordering, setReordering] = useState<string | null>(null);
   const handleReorder = async (book: any) => {
@@ -551,7 +551,7 @@ export default function Dashboard() {
 
       {/* Merge kids dialog: choose which child to keep, then pick what to do
           with the others' books & subscriptions. */}
-      {/* Remove kids — destructive, so it names exactly what happens and what
+      {/* Remove kids - destructive, so it names exactly what happens and what
           does NOT happen (their books stay), and refuses while a subscription
           is still live rather than silently orphaning its weekly releases. */}
       <Dialog open={removeOpen} onOpenChange={(o) => { if (!o && !removing) closeRemove(); }}>
@@ -713,7 +713,7 @@ export default function Dashboard() {
         isSaving={updateSubscription.isPending}
       />
 
-      {/* Manage subscription (billing) — local UI backed by Shopify Admin API. */}
+      {/* Manage subscription (billing) - local UI backed by Shopify Admin API. */}
       <ManageSubscriptionDialog
         open={!!managingSub}
         onClose={() => setManagingSub(null)}

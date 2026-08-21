@@ -24,20 +24,20 @@ export interface TextLayout {
   borderColor?: string;
   /** Drop a soft shadow behind the text for extra pop / readability. */
   shadow?: boolean;
-  /** Line spacing multiplier (defaults to 1.5). Higher = airier — used to make
+  /** Line spacing multiplier (defaults to 1.5). Higher = airier - used to make
    *  the discussion-questions page more readable and fill the page. */
   lineHeight?: number;
 }
 
 export const DEFAULT_FONT_FAMILY = "'Inter', system-ui, sans-serif";
 
-/** Book STORY-PAGE text font for the Latin (English) text: Fredoka — a rounded,
+/** Book STORY-PAGE text font for the Latin (English) text: Fredoka - a rounded,
  *  simple, friendly storybook face. Hebrew is rendered separately in
  *  {@link BOOK_HEBREW_FONT}, not this stack. */
 export const BOOK_TEXT_FONT =
   "'Fredoka', 'Baloo 2', system-ui, sans-serif";
 
-/** Hebrew story text uses Frank Ruhl Libre — a traditional Hebrew serif WITH full
+/** Hebrew story text uses Frank Ruhl Libre - a traditional Hebrew serif WITH full
  *  nikud (vowel points). Applied per-language so Hebrew always gets this face even
  *  when the English font happens to ship its own (rounder) Hebrew glyphs. */
 export const BOOK_HEBREW_FONT =
@@ -95,7 +95,7 @@ export const DEFAULT_TEXT_LAYOUT: TextLayout = {
   color: "#ffffff",
   align: "center",
   // Captions are WHITE with a soft drop shadow by default so they stay readable
-  // on any scene — no outline, no cream box. A regular (not heavy-bold) weight
+  // on any scene - no outline, no cream box. A regular (not heavy-bold) weight
   // reads more like a storybook. Outline/background/border/bold remain toggleable
   // from the toolbar for special cases.
   bold: false,
@@ -118,8 +118,8 @@ export function migrateLayout<T extends TextLayout | undefined>(layout: T): T {
   const isLegacyDefault = LEGACY_DEFAULT_FONTS.includes(layout.fontFamily);
   const fontFamily = isLegacyDefault ? BOOK_TEXT_FONT : layout.fontFamily;
   // Auto-placed captions were saved with a hardcoded heavy bold (weight 700).
-  // For any page still on a DEFAULT caption font — a legacy default OR the current
-  // Fredoka book font — drop bold so the whole book reads in ONE consistent
+  // For any page still on a DEFAULT caption font - a legacy default OR the current
+  // Fredoka book font - drop bold so the whole book reads in ONE consistent
   // regular weight. Only pages the user gave a genuinely custom (non-default)
   // font keep whatever weight they chose.
   const isDefaultFont = isLegacyDefault || fontFamily === BOOK_TEXT_FONT;
@@ -169,7 +169,7 @@ export function makeQuestionsLayout(rtl = false): TextLayout {
     width: 86,
     align: rtl ? "right" : "left",
     // The questions page is a clean cream parchment (no illustration), so the
-    // white caption default would be invisible — keep it dark with no shadow.
+    // white caption default would be invisible - keep it dark with no shadow.
     color: "#2b2418",
     shadow: false,
     // Actual spacing is set by fitQuestionsLayout (which shrinks to fit); this is
@@ -185,7 +185,7 @@ interface Props {
   onLayoutChange: (l: TextLayout) => void;
   onTextChange: (t: string) => void;
   onReset?: () => void;
-  /** Apply THIS box's styling (font, colours, outline, shadow, alignment — not
+  /** Apply THIS box's styling (font, colours, outline, shadow, alignment - not
    *  its position) to every page's caption. Shown as the "Apply to all" button. */
   onDuplicate?: (l: TextLayout) => void;
   /** The book's text direction. RTL (Hebrew/Yiddish) needs an explicit paragraph
@@ -323,7 +323,7 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
           boxShadow: layout.background ? "0 4px 14px rgba(0,0,0,0.12)" : undefined,
           // Drop shadow behind the letters for readability on any scene. A tight
           // dark halo (repeated) thickens the edge like a soft outline, plus a
-          // softer offset shadow for depth — keeps white captions crisp.
+          // softer offset shadow for depth - keeps white captions crisp.
           textShadow: layout.shadow
             ? "0 0 3px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.65)"
             : undefined,
@@ -360,7 +360,7 @@ export const EditableTextBox = ({ layout, text, containerRef, onLayoutChange, on
         ) : HEBREW_RE.test(text) ? (
           // Any Hebrew present: render each language block as its own paragraph so
           // Hebrew flows RTL (correct punctuation) in the Hebrew serif and English
-          // LTR in the body font — bilingual reads as two clean sections.
+          // LTR in the body font - bilingual reads as two clean sections.
           <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
             {text.split(/\n{2,}/).map((para, i) => {
               const heb = HEBREW_RE.test(para);

@@ -2,7 +2,7 @@
 // generate-image edge function, but ImageScript decoding + processing a 2K
 // image there blows the edge worker's CPU/memory budget (an uncatchable 546
 // kill), which forced coloring pages down to a soft-looking 1K. Running the
-// conversion in the browser instead — where there's no such limit — lets
+// conversion in the browser instead - where there's no such limit - lets
 // coloring pages be generated at full 2K for crisp lines and still come out as
 // clean black-on-white line art.
 
@@ -12,7 +12,7 @@
  *      keeps anti-aliased edges smooth; light/mid grays snap to white so soft
  *      shading doesn't print as ink-costing halftone).
  *   2. Hollow out large SOLID-BLACK fills (dark clothing the model insists on
- *      filling — boots, dark pants, hair) into outlines: a separable erosion by
+ *      filling - boots, dark pants, hair) into outlines: a separable erosion by
  *      radius R marks every pixel whose whole (2R+1)² neighborhood is black
  *      (i.e. deep inside a solid region, which a thin outline never has) and
  *      whitens those interiors, leaving each fill as an ~R-px rim.

@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { booksPerPeriod, nextMondayISO, todayET } from "../_shared/subscription.ts";
 
 // Record a billing event exactly once. Returns true if this order is new (proceed
-// to credit), false if already processed (Shopify retry — skip). Throws on an
+// to credit), false if already processed (Shopify retry - skip). Throws on an
 // unexpected DB error so the handler 500s and Shopify retries later.
 async function recordCharge(
   supabase: any, orderId: string, subscriptionId: string | null,
@@ -136,7 +136,7 @@ serve(async (req) => {
   try {
     const SHOPIFY_WEBHOOK_SECRET = Deno.env.get("SHOPIFY_WEBHOOK_SECRET");
     if (!SHOPIFY_WEBHOOK_SECRET) {
-      console.error("SHOPIFY_WEBHOOK_SECRET is not configured — rejecting webhook");
+      console.error("SHOPIFY_WEBHOOK_SECRET is not configured - rejecting webhook");
       return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -246,7 +246,7 @@ serve(async (req) => {
     }
 
     // ── orders/paid ──────────────────────────────────────────────────
-    // Only the paid topic confirms payment — orders/create can fire before capture.
+    // Only the paid topic confirms payment - orders/create can fire before capture.
     if (topic === "orders/paid") {
       const order = payload;
       const orderId = String(order?.id ?? "");
@@ -323,7 +323,7 @@ serve(async (req) => {
         });
       }
 
-      // No book_id: a recurring subscription charge. We DON'T mint a book here — that
+      // No book_id: a recurring subscription charge. We DON'T mint a book here - that
       // would dump a monthly subscriber's 4 books at once. Instead credit the
       // subscription; the Monday 9am-ET release job drips one book per week while
       // credit remains. "Only after billed" = credit only grows on this paid event.

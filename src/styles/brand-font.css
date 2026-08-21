@@ -1,21 +1,21 @@
-/* Brand display font — INLINED, and declared as plainly as possible.
+/* Brand display font - INLINED, and declared as plainly as possible.
  *
  * Two things used to keep this face from rendering on some devices:
  *
  * 1. It was fetched by URL from /fonts/TorahTale-Regular.woff2. A font URL in a
  *    stylesheet is only discovered after that stylesheet parses, so the fetch
- *    starts late and headings paint in the Playfair fallback until it lands —
+ *    starts late and headings paint in the Playfair fallback until it lands -
  *    and if that single request is slow, blocked or fails, they stay there. It
  *    is a data URI now, so there is no request left to fail.
  *
  * 2. The rule carried `font-weight: 100 900` (a variable-font weight RANGE on a
  *    static font) and `size-adjust: 108%`. Both are comparatively recent
  *    descriptors, and older mobile WebKit is the classic case where a rule
- *    containing a descriptor it cannot parse is dropped wholesale — taking the
+ *    containing a descriptor it cannot parse is dropped wholesale - taking the
  *    font with it and leaving exactly this symptom: correct markup, fallback
  *    glyphs, only on some devices. They are gone. Two plain rules, 400 and 700,
  *    both pointing at the same Regular file, which is what the weight range was
- *    emulating anyway — so bold headings still get the true Regular rather than
+ *    emulating anyway - so bold headings still get the true Regular rather than
  *    a synthetic faux-bold.
  *
  * WOFF2 only: every browser that can run this site has supported it since 2016,
@@ -34,7 +34,7 @@
   /* Scales every glyph up, so the display face sits at a weight of presence
      comparable to the sans around it. This was removed while hunting the
      font bug; the real cause turned out to be a `.wizard-glass h2` override,
-     so the descriptor was never at fault — and without it the headings read
+     so the descriptor was never at fault - and without it the headings read
      noticeably small. */
   size-adjust: 116%;
 }
@@ -47,7 +47,7 @@
   /* Scales every glyph up, so the display face sits at a weight of presence
      comparable to the sans around it. This was removed while hunting the
      font bug; the real cause turned out to be a `.wizard-glass h2` override,
-     so the descriptor was never at fault — and without it the headings read
+     so the descriptor was never at fault - and without it the headings read
      noticeably small. */
   size-adjust: 116%;
 }

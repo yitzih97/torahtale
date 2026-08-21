@@ -4,16 +4,16 @@ import { buildCastingPlan, describeCastingPlan, CAST_ALL_UPTO } from "../_shared
 
 // Server-side book generator. Mirrors the admin browser flow
 // (src/components/admin/AdminBookGenerationModal.tsx) so a paid book can be
-// generated automatically — no admin "Play" click. It orchestrates the existing
+// generated automatically - no admin "Play" click. It orchestrates the existing
 // generate-character-sheet / generate-story / generate-image functions (calling
 // them with the service-role key, which they accept as an internal call), then
 // writes books.pages_data and leaves the book at "pending_review".
 //
 // RESUMABLE: image models (esp. gpt-image-2) are slow, and a full ~22-image book
 // can exceed the edge wall-clock limit (Free 150s / Paid 400s). So instead of
-// doing everything in one invocation, each run does a TIME-BOUNDED slice —
+// doing everything in one invocation, each run does a TIME-BOUNDED slice -
 // character sheets, then the story, then as many image batches as fit in the
-// budget — PERSISTS progress to the book after every step, and if work remains
+// budget - PERSISTS progress to the book after every step, and if work remains
 // re-invokes itself (a fresh worker = a fresh wall-clock budget). This makes
 // generation reliable on any plan: no single invocation must finish the book.
 
@@ -33,7 +33,7 @@ const WALL_BUDGET_MS = parseInt(Deno.env.get("GEN_WALL_BUDGET_MS") || "100000");
 const CONCURRENCY = 6;
 const MAX_PASSES = 30; // hard cap on self-re-invocations (runaway guard)
 
-// Book has moved past generation — never touch it.
+// Book has moved past generation - never touch it.
 const TERMINAL = ["pending_review", "approved", "ordered", "printing", "shipped", "delivered"];
 
 const json = (body: unknown, status = 200) =>
@@ -62,7 +62,7 @@ async function callFn(name: string, body: unknown) {
 
 async function callImageWithRetry(body: unknown): Promise<string | null> {
   for (let attempt = 0; attempt < 3; attempt++) {
-    // Cool-off before the retry — an immediate re-fire against a rate-limited
+    // Cool-off before the retry - an immediate re-fire against a rate-limited
     // provider just burns the attempt and forces another full pass later.
     if (attempt > 0) await new Promise((r) => setTimeout(r, 6_000));
     try {
@@ -91,7 +91,7 @@ function mapBookFormat(productType: string, hardcoverSize = "8x8"): string {
 async function reinvoke(bookId: string): Promise<boolean> {
   const cronSecret = Deno.env.get("CRON_SECRET");
   if (!cronSecret) {
-    console.error("generate-book: CRON_SECRET missing — cannot chain resume for", bookId);
+    console.error("generate-book: CRON_SECRET missing - cannot chain resume for", bookId);
     return false;
   }
   try {
@@ -114,7 +114,7 @@ async function reinvoke(bookId: string): Promise<boolean> {
 
 // ── Back-cover "coming next" teasers ────────────────────────────────────────
 // The 4 upcoming stories to preview on the back cover (generated WITH the book,
-// so they show up in the preview — not lazily at print time). For a Megilla we
+// so they show up in the preview - not lazily at print time). For a Megilla we
 // show the OTHER Megillos; otherwise the next parshiyos in reading order.
 const MEGILLOT = ["esther", "ruth", "shir-hashirim", "kohelet", "eicha"];
 const TORAH_ORDER = [
@@ -130,10 +130,10 @@ const TORAH_ORDER = [
 // the "coming next" row looks varied and attractive instead of four identical
 // looks. Cycled by teaser index; generate-image enforces identity + tznius.
 const PREVIEW_OUTFITS = [
-  "festive Shabbos best — boys in a navy vest over a crisp white shirt, girls in an elegant navy-and-cream long-sleeved dress",
-  "warm autumn knits — boys in a rust-brown sweater, girls in a mustard-gold long-sleeved dress with a cozy cream cardigan",
-  "fresh spring colors — boys in a soft sage-green shirt, girls in a blush-pink long-sleeved floral dress",
-  "royal celebration — boys in a burgundy sweater-vest over a white shirt, girls in a deep burgundy velvet long-sleeved dress with delicate gold trim",
+  "festive Shabbos best - boys in a navy vest over a crisp white shirt, girls in an elegant navy-and-cream long-sleeved dress",
+  "warm autumn knits - boys in a rust-brown sweater, girls in a mustard-gold long-sleeved dress with a cozy cream cardigan",
+  "fresh spring colors - boys in a soft sage-green shirt, girls in a blush-pink long-sleeved floral dress",
+  "royal celebration - boys in a burgundy sweater-vest over a white shirt, girls in a deep burgundy velvet long-sleeved dress with delicate gold trim",
 ];
 
 /**
@@ -151,7 +151,7 @@ const SERIES_FEATURED: { featured: string; alt: string }[] = [
   { featured: "edu-kibud", alt: "edu-chesed" },            // Inspirational
 ];
 
-/** Never advertise the book the reader is already holding — swap in the series' alternate. */
+/** Never advertise the book the reader is already holding - swap in the series' alternate. */
 function upcomingPortions(current: string): string[] {
   return SERIES_FEATURED.map(({ featured, alt }) => (featured === current ? alt : featured));
 }
@@ -178,8 +178,8 @@ function buildPendingTasks(
      keeps a big family inside the 4-attachment budget and leaves room for the
      scene's Torah characters. A page with no stored cast (every book made before
      casting existed, and every small family) gets the whole cast, unchanged. */
-  /* Parent references, built once. They are appended ONLY to the family page —
-     never to a story page, a cover or a teaser — so a parent can never wander
+  /* Parent references, built once. They are appended ONLY to the family page -
+     never to a story page, a cover or a teaser - so a parent can never wander
      into a Torah scene. */
   const parentRefs = (sdState.parents || []).map((pr: any) => ({
     name: pr.name,
@@ -201,16 +201,16 @@ function buildPendingTasks(
   const primarySheet = sheets[primaryName] || null;
   const primaryDesc = childDescriptions[0]?.description || "";
   const primaryPhoto = childDescriptions[0]?.photoUrl || null;
-  const primaryAge = childDescriptions[0]?.age ?? null; // `??` not `||` — age 0 is valid
+  const primaryAge = childDescriptions[0]?.age ?? null; // `??` not `||` - age 0 is valid
 
   let storyPageNumber = 0;
   const tasks: { idx: number; body: any }[] = [];
   pages.forEach((pg, idx) => {
     if (pg.type === "story") storyPageNumber += 1;
     if (pg.type === "questions") return; // questions page has no image
-    if (pg.image) return; // already generated — skip
+    if (pg.image) return; // already generated - skip
 
-    // Recurring Torah-story characters in THIS page's scene — pass their fixed
+    // Recurring Torah-story characters in THIS page's scene - pass their fixed
     // descriptions (always) and reference sheets (when available) so they render
     // consistently. Prefer the explicit per-page `characters` list from the story
     // (which also captures characters referred to only by pronoun/title); fall
@@ -233,7 +233,7 @@ function buildPendingTasks(
     }));
 
     // A "preview" page is a cover-style teaser for a DIFFERENT (upcoming) parsha,
-    // still starring this child — so it uses that portion + a cover pageType, and
+    // still starring this child - so it uses that portion + a cover pageType, and
     // drops this story's recurring characters.
     const isPreview = pg.type === "preview";
     tasks.push({
@@ -252,12 +252,12 @@ function buildPendingTasks(
         referenceImage: primaryPhoto,
         childDescription: primaryDesc,
         characterSheets: sheets,
-        // Only this page's cast — see refsForPage. Covers and preview pages keep
+        // Only this page's cast - see refsForPage. Covers and preview pages keep
         // the whole family (they are the group shot). The family page adds the
-        // PARENTS on top of the children — the one page they appear on.
+        // PARENTS on top of the children - the one page they appear on.
         // Parents FIRST on the family page: they are the reason the page exists,
         // and generate-image still caps attachments at 4. With a big family the
-        // remaining children spill past that cap — the composite reference sheet
+        // remaining children spill past that cap - the composite reference sheet
         // is what removes the limit here.
         childRefs: pg.isFamilyPage ? [...parentRefs, ...allChildRefs]
           : pg.type === "story" ? refsForPage(pg)
@@ -316,7 +316,7 @@ async function generate(bookId: string) {
       status: "pending_review",
       updated_at: now(),
     }).eq("id", bookId);
-    console.log(`generate-book: COMPLETE ${bookId} — ${got} images, ${pass} pass(es)`);
+    console.log(`generate-book: COMPLETE ${bookId} - ${got} images, ${pass} pass(es)`);
   };
 
   try {
@@ -333,14 +333,14 @@ async function generate(bookId: string) {
 
     // Already fully generated (incl. teasers)? Just mark it for review and stop.
     // (Teasers ARE required here so an existing book flows into Phase C to fill
-    // them; a teaser that then fails to generate won't block finalize — see below.)
+    // them; a teaser that then fails to generate won't block finalize - see below.)
     if (pages && pages.filter((p) => p.type !== "questions" && !p.image).length === 0) {
       await finalize();
       return;
     }
 
     if (pass > MAX_PASSES) {
-      console.warn(`generate-book: pass cap reached for ${bookId} — finalizing with whatever exists`);
+      console.warn(`generate-book: pass cap reached for ${bookId} - finalizing with whatever exists`);
       if (pages) await finalize();
       else await admin.from("books").update({ status: "paid", updated_at: now() }).eq("id", bookId);
       return;
@@ -352,7 +352,7 @@ async function generate(bookId: string) {
       const sheets: Record<string, string> = sdState._characterSheets || {};
       await Promise.all(childDescriptions.map(async (child: any) => {
         if (sheets[child.name]) return; // already have this child's sheet
-        // Every child gets a character sheet — it locks ONE canonical outfit and
+        // Every child gets a character sheet - it locks ONE canonical outfit and
         // the stylized look, which is what keeps the child consistent across
         // pages. The real photo (when present) is passed as the likeness input.
         try {
@@ -383,7 +383,7 @@ async function generate(bookId: string) {
           console.error("generate-book: character sheet failed for", child?.name, e);
         }
       }));
-      // Parents need a sheet as well — they are drawn once, on the family page,
+      // Parents need a sheet as well - they are drawn once, on the family page,
       // and must still look like themselves.
       const parentList: any[] = sdState.parents || [];
       await Promise.all(parentList.map(async (pr: any) => {
@@ -395,7 +395,7 @@ async function generate(bookId: string) {
             age: pr.role === "tatty" ? "35" : "33",
             gender: pr.role === "tatty" ? "boy" : "girl",
             artStyle: book.art_style || "cartoon",
-            description: `${pr.description || ""} An adult ${pr.role === "tatty" ? "father" : "mother"}, drawn as a grown-up — never as a child.`.trim(),
+            description: `${pr.description || ""} An adult ${pr.role === "tatty" ? "father" : "mother"}, drawn as a grown-up - never as a child.`.trim(),
             referenceImage: pr.photoUrl || null,
             torahPortion: book.torah_portion,
           });
@@ -414,7 +414,7 @@ async function generate(bookId: string) {
 
     // ── Phase B: story text + page skeleton (once) ──
     // The Claude story call is bounded at ~110s inside generate-story, so it must
-    // START with most of the wall clock still available — otherwise a late start
+    // START with most of the wall clock still available - otherwise a late start
     // can blow past the edge runtime's hard kill. If the sheet phase already ate
     // a chunk of this pass, hand the story off to a fresh worker instead.
     if (!pages && Date.now() - start > 25_000) { await persist(); await reinvoke(bookId); return; }
@@ -422,7 +422,7 @@ async function generate(bookId: string) {
       // Reserve one interior print slot for the discussion-questions page: the
       // Printify blueprint has exactly `pageCount` interior slots (Cover +
       // pageCount PAGES), and the questions page takes one, so ask for one fewer
-      // story page — and hard-cap below in case the LLM overshoots — or the book
+      // story page - and hard-cap below in case the LLM overshoots - or the book
       // ends up over the slot count and Printify submit hard-fails ("22 vs 21").
       const pageCount = sdState.pageCount || 20;
       // The Printify blueprint has exactly `pageCount` interior slots. The
@@ -442,13 +442,13 @@ async function generate(bookId: string) {
       const story = await callFn("generate-story", {
         childName: book.child_name,
         childrenInfo: sdState.childrenInfo || book.child_name,
-        // Only sent when it actually constrains anything — generate-story
+        // Only sent when it actually constrains anything - generate-story
         // ignores it for small families.
         castingPlan: isCastRotated ? describeCastingPlan(castingPlan) : undefined,
         castPerPage: isCastRotated ? castingPlan[0]?.length : undefined,
-        // Lets the story write its closing family page — and ONLY that page.
+        // Lets the story write its closing family page - and ONLY that page.
         parents: (sdState.parents || []).map((pr: any) => ({ name: pr.name, role: pr.role })),
-        // The OLDEST star sets the reading level — see generate-story.
+        // The OLDEST star sets the reading level - see generate-story.
         age: String((sdState.childDescriptions || []).reduce(
           (m: number, c: any) => Math.max(m, Number(c?.age) || 0), 0,
         ) || 6),
@@ -477,7 +477,7 @@ async function generate(bookId: string) {
         });
         storyIdx++;
       }
-      /* The family page — the ONLY place a parent appears. It sits after the last
+      /* The family page - the ONLY place a parent appears. It sits after the last
          story page, so the story itself stays the children's. Skipped entirely
          when no parents were added. */
       const parentsForBook: any[] = sdState.parents || [];
@@ -487,7 +487,7 @@ async function generate(bookId: string) {
           text: story.familyPage || story.dedication || "",
           image: null,
           // A story page as far as every renderer, page count and print path is
-          // concerned — the marker is what tells generate-book to add the
+          // concerned - the marker is what tells generate-book to add the
           // parents and switch the scene to present-day.
           type: "story",
           isFamilyPage: true,
@@ -501,7 +501,7 @@ async function generate(bookId: string) {
         const qText = questions.map((q: any) => `${q.number}. ${q.question}`).join("\n");
         pages.push({ id: pageId++, text: qText, image: null, type: "questions", questions });
       }
-      // Back-cover teasers for the next 4 stories — generated now (with the book)
+      // Back-cover teasers for the next 4 stories - generated now (with the book)
       // so they appear in the preview. Best-effort: failures never block the book.
       const teaserPortions = upcomingPortions(book.torah_portion);
       for (let i = 0; i < teaserPortions.length; i++) {
@@ -516,7 +516,7 @@ async function generate(bookId: string) {
     // ── Phase B2: reference sheets for recurring Torah-story characters (once) ──
     // Each named non-star character (Moshe, Dovid, Golias, …) gets one fixed
     // reference so they look identical on every page they appear. Bounded +
-    // resumable; fully fail-open — a book still generates without them.
+    // resumable; fully fail-open - a book still generates without them.
     const storyChars: Array<{ name: string; description: string }> =
       Array.isArray(sdState.characters) ? sdState.characters : [];
     const storySheets: Record<string, string> = sdState._storyCharacterSheets || {};
@@ -553,9 +553,9 @@ async function generate(bookId: string) {
       if (overBudget()) {
         await persist();
         const ok = await reinvoke(bookId);
-        console.log(`generate-book: budget hit for ${bookId} — ${tasks.length - i} image(s) left, handed off (${ok})`);
+        console.log(`generate-book: budget hit for ${bookId} - ${tasks.length - i} image(s) left, handed off (${ok})`);
         if (ok) return; // a fresh worker will continue
-        // couldn't chain (no CRON_SECRET) — fall through and finalize partial
+        // couldn't chain (no CRON_SECRET) - fall through and finalize partial
         break;
       }
       const batch = tasks.slice(i, i + CONCURRENCY);
@@ -578,7 +578,7 @@ async function generate(bookId: string) {
     // page) so a transient burst of rate-limits/timeouts doesn't leave a
     // subscriber's book with blank pages that an admin has to fix by hand.
     if (noProgress >= 4 || pass >= MAX_PASSES) {
-      console.warn(`generate-book: ${remaining} image(s) still missing for ${bookId} after retries — finalizing partial (admin can regenerate)`);
+      console.warn(`generate-book: ${remaining} image(s) still missing for ${bookId} after retries - finalizing partial (admin can regenerate)`);
       await finalize();
       return;
     }

@@ -49,7 +49,7 @@ export function BookCard({ book, index, onOpen, onView, onDownload, onReorder, o
   const canReview = !!onReview && (book.status === "shipped" || book.status === "delivered");
   /* The book is only readable once the customer has the printed copy in hand.
      Before that the pages exist (they're generated well ahead of printing) but
-     showing them spoils the thing they paid to be surprised by — and a book
+     showing them spoils the thing they paid to be surprised by - and a book
      still in printing can still change. Details stay open throughout so the
      order itself is never hidden. */
   const delivered = book.status === "delivered";

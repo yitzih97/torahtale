@@ -5,14 +5,14 @@ import { wrapText } from "@/lib/wrapText";
 // almost never has to drag or resize a text box.
 //
 // Strategy:
-//  1. Downsample the image and build a "detail" (edge-density) map — a much
+//  1. Downsample the image and build a "detail" (edge-density) map - a much
 //     better proxy for "busy vs calm" than plain luminance variance, because it
 //     flags faces, foliage and fabric while ignoring smooth gradients (skies).
 //  2. Score a set of candidate caption boxes (top/bottom bands × left/right/full)
 //     by how calm they are, biased toward the bottom band (natural caption spot,
 //     and the band we now reserve at generation time).
 //  3. AUTO-FIT the font size so the wrapped caption fills its box without
-//     overflowing — this is what removes the manual resizing.
+//     overflowing - this is what removes the manual resizing.
 //  4. Guarantee readability: if the calmest box is still busy or low-contrast,
 //     drop a soft caption box (background) behind the text so it's always legible
 //     instead of hoping for a perfectly clean area.
@@ -120,8 +120,8 @@ export function computeAutoTextLayout(
       }
     }
 
-    // The TOP band (calm painted sky) is the reserved caption zone — see the
-    // COMPOSITION rule in generate-image — so it's the default preference,
+    // The TOP band (calm painted sky) is the reserved caption zone - see the
+    // COMPOSITION rule in generate-image - so it's the default preference,
     // with the bottom band as the alternative for scenes with busy skies.
     // Only full-width bands (top, then bottom). Narrow half-width side boxes were
     // dropped: they forced long phrases (e.g. "Moshe Rabbeinu", "Bnei Yisrael",

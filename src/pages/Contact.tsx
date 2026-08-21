@@ -65,7 +65,7 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
       <SEO
-        title="Contact Torah Tale — We'd Love to Hear From You"
+        title="Contact Torah Tale - We'd Love to Hear From You"
         description="Questions, feedback, or special requests? Reach the Torah Tale team. We typically reply within one business day."
         path="/contact"
       />

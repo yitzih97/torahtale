@@ -14,7 +14,7 @@ import { getCogs, getProductType } from "@/lib/bookCosts";
 import { useAdminRevenue } from "@/hooks/useAdminRevenue";
 import { PAGES_BY_TYPE } from "@/components/wizard/BookOptionsStep";
 
-/* ── Fixed monthly vendor costs — editable, stored in site_settings ('finance'). ── */
+/* ── Fixed monthly vendor costs - editable, stored in site_settings ('finance'). ── */
 const FIXED_VENDORS: { key: string; label: string; hint: string }[] = [
   { key: "monthly-supabase", label: "Supabase", hint: "database, auth & functions" },
   { key: "monthly-shopify", label: "Shopify", hint: "store plan" },
@@ -84,7 +84,7 @@ export const AdminDashboardTab = ({ books, profiles, children, subscriptions }: 
   const queryClient = useQueryClient();
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
-  /* ── Revenue (exact, from Shopify) — shared cache, see useAdminRevenue ── */
+  /* ── Revenue (exact, from Shopify) - shared cache, see useAdminRevenue ── */
   const revenueQuery = useAdminRevenue();
 
   /* ── Site views (first-party page_views table, last 30 days) ── */
@@ -128,7 +128,7 @@ export const AdminDashboardTab = ({ books, profiles, children, subscriptions }: 
   const paidOrders = orders.filter((o) => o.paid);
   const revenue = revenueQuery.data?.totalRevenue ?? 0;
 
-  /* ── Variable (per-order / per-book) vendor costs — estimates ── */
+  /* ── Variable (per-order / per-book) vendor costs - estimates ── */
   const costs = useMemo(() => {
     let printify = 0;
     let shopifyFees = 0;
@@ -137,7 +137,7 @@ export const AdminDashboardTab = ({ books, profiles, children, subscriptions }: 
       if (book) {
         const pt = getProductType(book);
         const ai = AI_COST_PER_PAGE_USD * ((PAGES_BY_TYPE as any)[pt] + 1);
-        printify += Math.max(0, getCogs(book) - ai); // production only — AI counted per generated book below
+        printify += Math.max(0, getCogs(book) - ai); // production only - AI counted per generated book below
       }
       if (o.totalUsd) shopifyFees += o.totalUsd * SHOPIFY_FEE_PCT + SHOPIFY_FEE_FIXED;
     }
@@ -228,8 +228,8 @@ export const AdminDashboardTab = ({ books, profiles, children, subscriptions }: 
     const boys = children.filter((c) => c.gender === "boy").length;
     const girls = children.filter((c) => c.gender === "girl").length;
     const brackets: [string, (a: number) => boolean][] = [
-      ["0–1", (a) => a <= 1], ["2–3", (a) => a >= 2 && a <= 3], ["4–5", (a) => a >= 4 && a <= 5],
-      ["6–8", (a) => a >= 6 && a <= 8], ["9–12", (a) => a >= 9 && a <= 12], ["13+", (a) => a >= 13],
+      ["0-1", (a) => a <= 1], ["2-3", (a) => a >= 2 && a <= 3], ["4-5", (a) => a >= 4 && a <= 5],
+      ["6-8", (a) => a >= 6 && a <= 8], ["9-12", (a) => a >= 9 && a <= 12], ["13+", (a) => a >= 13],
     ];
     const byAge = brackets.map(([label, test]) => ({
       label,
@@ -360,7 +360,7 @@ export const AdminDashboardTab = ({ books, profiles, children, subscriptions }: 
 
         <div className="rounded-2xl border border-border/50 bg-card p-4">
           <h3 className="text-sm font-semibold text-foreground mb-1">Fixed monthly vendors (editable)</h3>
-          <p className="text-[11px] text-muted-foreground mb-3">Set what you actually pay each vendor per month — saved to site settings and counted into expenses.</p>
+          <p className="text-[11px] text-muted-foreground mb-3">Set what you actually pay each vendor per month - saved to site settings and counted into expenses.</p>
           <div className="space-y-2">
             {FIXED_VENDORS.map((v) => (
               <div key={v.key} className="flex items-center gap-3">
@@ -444,10 +444,10 @@ export const AdminDashboardTab = ({ books, profiles, children, subscriptions }: 
       </div>
 
       {revenueQuery.isError && (
-        <p className="text-xs text-red-500">Couldn't load Shopify revenue — money tiles show $0 until it loads. Try refreshing.</p>
+        <p className="text-xs text-red-500">Couldn't load Shopify revenue - money tiles show $0 until it loads. Try refreshing.</p>
       )}
       <p className="text-[11px] text-muted-foreground">
-        Revenue is exact (Shopify). Expenses and profit are estimates: computed per-order/per-book costs plus your fixed monthly vendor amounts × {monthsActive} active month{monthsActive > 1 ? "s" : ""}. Site views are first-party (tracked since this dashboard shipped) — no cookies, one count per page per visit.
+        Revenue is exact (Shopify). Expenses and profit are estimates: computed per-order/per-book costs plus your fixed monthly vendor amounts × {monthsActive} active month{monthsActive > 1 ? "s" : ""}. Site views are first-party (tracked since this dashboard shipped) - no cookies, one count per page per visit.
       </p>
     </div>
   );

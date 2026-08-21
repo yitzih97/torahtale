@@ -49,7 +49,7 @@ export default function Admin() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [editingOrder, setEditingOrder] = useState<any>(null);
   // The full book row is fetched on demand (the list omits the image columns),
-  // so a row click has a real wait — surface it instead of looking dead.
+  // so a row click has a real wait - surface it instead of looking dead.
   const [openingBookId, setOpeningBookId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
 
@@ -87,7 +87,7 @@ export default function Admin() {
   const handleDownloadZip = async (book: any) => {
     setDownloadingZip(book.id);
     try {
-      // pages_data is excluded from the list payload (too heavy) — fetch it now.
+      // pages_data is excluded from the list payload (too heavy) - fetch it now.
       const full = await fetchBookFull(book.id);
       const pages = (full?.pages_data as any[]) || [];
       if (!pages.length) { toast.error("No pages to export"); return; }
@@ -115,7 +115,7 @@ export default function Admin() {
       // doesn't carry, so the modal and its actions behave the same either way.
       setGeneratingBook(full ? { ...book, ...full } : book);
     } catch {
-      toast.error("Couldn't load the book — please retry.");
+      toast.error("Couldn't load the book - please retry.");
     } finally {
       setOpeningBookId(null);
     }
@@ -130,7 +130,7 @@ export default function Admin() {
     book.status === "paid" || book.status === "generating" || book.status === "draft" ||
     ((book.status === "ordered" || book.status === "pending_review") && !book.has_pages);
 
-  /* Build the render input for one book — the same shape whether it goes out on
+  /* Build the render input for one book - the same shape whether it goes out on
      its own or as part of a batch. Returns null when the book has no pages yet. */
   const printInputFor = async (book: any) => {
     const full = await fetchBookFull(book.id);
@@ -159,7 +159,7 @@ export default function Admin() {
    * A Parsha Series charge mints four books sharing a shipmentBatchId, sold as a
    * single monthly delivery. Approving them one at a time produced four orders
    * and four parcels, so when a book belongs to a batch this gathers its
-   * siblings and submits the set together. Every book must be renderable — a
+   * siblings and submits the set together. Every book must be renderable - a
    * partial batch would ship part of the month and quietly drop the rest.
    */
   const approveBatchAndSubmit = async (book: any, batchId: string) => {
@@ -173,7 +173,7 @@ export default function Admin() {
       for (const b of ordered) {
         const input = await printInputFor(b);
         if (!input) {
-          toast.error(`${b.child_name || "A book"} in this batch has no pages yet — nothing was sent.`, { id: toastId, duration: 10000 });
+          toast.error(`${b.child_name || "A book"} in this batch has no pages yet - nothing was sent.`, { id: toastId, duration: 10000 });
           return;
         }
         inputs.push(input);
@@ -181,7 +181,7 @@ export default function Admin() {
       const result = await submitBatchToPrintify({
         books: inputs,
         onProgress: (i, n, done, total) =>
-          toast.loading(`Book ${i + 1}/${n} — uploading print images ${done}/${total}`, { id: toastId }),
+          toast.loading(`Book ${i + 1}/${n} - uploading print images ${done}/${total}`, { id: toastId }),
       });
       if (!result.success) {
         toast.error(`Printify submit failed: ${result.error}`, { id: toastId, duration: 12000 });
@@ -197,15 +197,15 @@ export default function Admin() {
 
   // Approve a reviewed book and auto-submit it to Printify.
   const approveAndSubmit = async (book: any) => {
-    // A book minted as part of a subscription batch ships with its siblings —
-    // one order, one parcel — so hand it to the batch path instead.
+    // A book minted as part of a subscription batch ships with its siblings -
+    // one order, one parcel - so hand it to the batch path instead.
     // `shipment_batch_id` is the admin list's JSON-path projection of
     // story_data->>shipmentBatchId (the full story_data is far too heavy to
-    // select for a list) — see BOOK_LIST_COLS.
+    // select for a list) - see BOOK_LIST_COLS.
     const batchId = (book as any)?.shipment_batch_id;
     if (batchId) return approveBatchAndSubmit(book, String(batchId));
     // Do NOT optimistically flip the status to "approved". Printify submission is
-    // what actually matters — the edge function itself sets the book to "printing"
+    // what actually matters - the edge function itself sets the book to "printing"
     // on success. Marking "approved" before that made failed submissions look done
     // (a book stuck at "approved" with no Printify order). Only commit on success;
     // on failure surface the REAL error and leave the status untouched.
@@ -219,7 +219,7 @@ export default function Admin() {
       }
       const pt = (full as any)?.shipping_data?.bookOptions?.productType || (book as any)?.shipping_data?.bookOptions?.productType;
       const bookFormat = pt === "board" ? "board-6x6" : pt === "hardcover" ? "hardcover-8x8" : pt === "coloring" ? "coloring-8.5x11" : "softcover-8x8";
-      // The book's OWN language drives the print layout (RTL + localized text) —
+      // The book's OWN language drives the print layout (RTL + localized text) -
       // NOT the admin's UI language. A Hebrew/Yiddish book must print RTL even
       // when an English-speaking admin approves it.
       const bookLang = (full as any)?.language || (book as any)?.language;
@@ -237,14 +237,14 @@ export default function Admin() {
         onProgress: (done, total) => toast.loading(`Uploading print images… ${done}/${total}`, { id: toastId }),
       });
       if (!result.success) {
-        // Not marked approved — the admin sees exactly why and can retry.
+        // Not marked approved - the admin sees exactly why and can retry.
         toast.error(`Printify submit failed: ${result.error}`, { id: toastId, duration: 12000 });
         return;
       }
       // Success: the function set status → "printing" + saved the Printify order id.
       queryClient.invalidateQueries({ queryKey: ["admin-books"] });
       toast.success(
-        result.duplicate ? "Already in Printify — order confirmed." : "Approved & sent to Printify!",
+        result.duplicate ? "Already in Printify - order confirmed." : "Approved & sent to Printify!",
         { id: toastId },
       );
     } catch (e: any) {
@@ -456,7 +456,7 @@ export default function Admin() {
           onClose={() => setGeneratingBook(null)}
           book={generatingBook}
           onBookUpdated={() => {
-            // Soft-refresh the list — a full window.location.reload() here wiped
+            // Soft-refresh the list - a full window.location.reload() here wiped
             // the Printify success/error toast before the admin could read it
             // (approve calls this on BOTH success and failure), making a failed
             // submit look like "nothing happened / no order".

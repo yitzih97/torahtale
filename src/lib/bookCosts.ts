@@ -1,12 +1,12 @@
 import { PAGES_BY_TYPE, type BookOptions } from "@/components/wizard/BookOptionsStep";
 
 /**
- * Estimated production cost of goods sold (COGS) per book — admin-only.
+ * Estimated production cost of goods sold (COGS) per book - admin-only.
  *
  * Printify production costs pulled live from the District Photo blueprints
  * (see project pricing work): the printed book plus an estimated AI image cost
  * (~$0.04 per generated page incl. cover via Gemini Flash Image). These are
- * ESTIMATES for margin insight — revenue and payment figures shown alongside
+ * ESTIMATES for margin insight - revenue and payment figures shown alongside
  * come from Shopify and are exact. Shipping is excluded (the customer pays it).
  */
 const PRODUCTION_COST_USD: Record<BookOptions["productType"], number> = {

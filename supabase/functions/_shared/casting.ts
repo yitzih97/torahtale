@@ -1,11 +1,11 @@
 /* ── Per-page casting ───────────────────────────────────────────────────────
  * The image model accepts only 4 reference attachments, and those slots are
- * SHARED with the recurring Torah characters — so putting every child on every
+ * SHARED with the recurring Torah characters - so putting every child on every
  * page starves Moshe and Dovid of a reference the moment a family has four kids.
  *
  * Above CAST_ALL_UPTO children we cast each page instead: a small subset of the
  * kids appears on any one page. That keeps every page inside the attachment
- * budget no matter how big the family is, and reads better besides — eight
+ * budget no matter how big the family is, and reads better besides - eight
  * children in every frame is a crowd, not a scene.
  *
  * The plan is computed HERE, in code, rather than left to the model, so the
@@ -20,7 +20,7 @@
 /** At or below this many children, everyone appears on every page (old behaviour). */
 export const CAST_ALL_UPTO = 4;
 
-/** Children per page once casting kicks in — leaves a slot for a story character. */
+/** Children per page once casting kicks in - leaves a slot for a story character. */
 export const CAST_PER_PAGE = 3;
 
 /**

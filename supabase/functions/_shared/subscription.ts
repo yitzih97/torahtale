@@ -1,7 +1,7 @@
 // Shared subscription scheduling helpers (used by shopify-webhook + release job).
 
 // How many weekly books one successful charge of each plan entitles.
-// Monthly = 4 (one per Monday), per product decision — NOT calendar-month length.
+// Monthly = 4 (one per Monday), per product decision - NOT calendar-month length.
 export const BOOKS_PER_PERIOD: Record<string, number> = {
   weekly: 1,
   monthly: 4,
@@ -13,14 +13,14 @@ export function booksPerPeriod(frequency: string | null | undefined): number {
 }
 
 /**
- * How many books one RELEASE mints — which is not the same as how many a charge
+ * How many books one RELEASE mints - which is not the same as how many a charge
  * buys (booksPerPeriod). A Parsha Series subscription is sold as "4 books a
  * month, shipped together in one delivery", so its four books have to be minted
  * as one batch and travel as one parcel; releasing them a week apart, as this
  * job used to for every plan, produced four separate parcels.
  *
  * The Year Bundle buys 52 books in one charge but is still delivered a month at
- * a time — nobody wants a year of books in one box, and the parsha they cover
+ * a time - nobody wants a year of books in one box, and the parsha they cover
  * has not happened yet.
  *
  * Weekly is retired but still live for existing subscribers: one book, one week,
@@ -50,7 +50,7 @@ export function todayET(now: Date = new Date()): string {
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
-/** Current hour (0–23) in America/New_York. */
+/** Current hour (0-23) in America/New_York. */
 export function hourET(now: Date = new Date()): number {
   return Number(
     new Intl.DateTimeFormat("en-US", { timeZone: ET, hour: "2-digit", hour12: false }).format(now),

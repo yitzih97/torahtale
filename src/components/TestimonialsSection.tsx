@@ -5,7 +5,7 @@ import { TESTIMONIALS } from "@/data/testimonials";
 
 const ease = [0.16, 1, 0.3, 1];
 
-// Every review shows initials in a coloured circle — no photo thumbnails.
+// Every review shows initials in a coloured circle - no photo thumbnails.
 const initialsOf = (name: string) =>
   name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 

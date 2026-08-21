@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 /**
  * Apple liquid-glass icon tile.
  * Used in the creation wizard, dashboard quick-actions, and edit-child popup
- * to give every icon a single unified look — frosted white surface, subtle
+ * to give every icon a single unified look - frosted white surface, subtle
  * inner highlight, graphite-ink icon. Replaces the old gold gradient tiles.
  *
  * Pass either:

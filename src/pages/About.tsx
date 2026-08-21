@@ -24,7 +24,7 @@ const About = () => {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
       <SEO
-        title="About Torah Tale — Our Story & Mission"
+        title="About Torah Tale - Our Story & Mission"
         description="Meet the team behind Torah Tale. Learn how we craft personalized Torah storybooks for Orthodox Jewish families with kedushah and care."
         path="/about"
       />

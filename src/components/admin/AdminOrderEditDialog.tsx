@@ -58,7 +58,7 @@ export function AdminOrderEditDialog({ book, open, onClose, saving, onSave }: Pr
   const [addr, setAddr] = useState<OrderAddress>(readOrderAddress(null));
   const [confirmedFormatChange, setConfirmedFormatChange] = useState(false);
 
-  // The book is already at the printer — the address it shipped to is frozen.
+  // The book is already at the printer - the address it shipped to is frozen.
   const sentToPrintify = !!book?.printify_order_id ||
     ["printing", "shipped", "delivered"].includes(book?.status);
   // Pages exist, so the format (and therefore the page count) is baked in.
@@ -74,7 +74,7 @@ export function AdminOrderEditDialog({ book, open, onClose, saving, onSave }: Pr
     setSpeed(readShippingSpeed(ship));
     setAddr(readOrderAddress(ship));
     setConfirmedFormatChange(false);
-    // Reset only when the dialog opens for a different order — re-running on
+    // Reset only when the dialog opens for a different order - re-running on
     // every `book` identity change would discard the admin's in-progress edits
     // each time the 30s books refetch lands.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -134,7 +134,7 @@ export function AdminOrderEditDialog({ book, open, onClose, saving, onSave }: Pr
             Edit order {book.shopify_order_name || book.order_number || book.id.slice(0, 8)}
           </DialogTitle>
           <DialogDescription>
-            Change what gets printed and where it ships. Saved to this book only — it does not
+            Change what gets printed and where it ships. Saved to this book only - it does not
             re-charge or refund the customer in Shopify.
           </DialogDescription>
         </DialogHeader>
@@ -270,7 +270,7 @@ export function AdminOrderEditDialog({ book, open, onClose, saving, onSave }: Pr
 
             {sentToPrintify ? (
               <p className="text-xs text-muted-foreground">
-                This order is already with Printify, so its address can't be changed here — cancel the
+                This order is already with Printify, so its address can't be changed here - cancel the
                 Printify order first if it has to move.
               </p>
             ) : (

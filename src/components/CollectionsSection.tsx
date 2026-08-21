@@ -39,7 +39,7 @@ export const CollectionsSection = () => {
   const navigate = useNavigate();
   const [picked, setPicked] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  // Name of the collection just added — the floating bar leads with it for a
+  // Name of the collection just added - the floating bar leads with it for a
   // few seconds so the click has an unmistakable answer, then settles back to
   // the running total.
   const [justAdded, setJustAdded] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export const CollectionsSection = () => {
     else setJustAdded(null);
     setPicked((prev) => {
       // "Complete" contains every other collection, so the two can never be in
-      // the same basket — choosing one clears the other rather than quietly
+      // the same basket - choosing one clears the other rather than quietly
       // charging twice for the same books.
       if (key === "complete") return prev.includes("complete") ? [] : ["complete"];
       const without = prev.filter((k) => k !== "complete");
@@ -95,7 +95,7 @@ export const CollectionsSection = () => {
   /**
    * Buy the selection outright when every collection in it has a Shopify variant
    * to charge for; otherwise hand it to the existing request flow, which reaches
-   * the admin inbox. Same button either way — see COLLECTION_VARIANT_IDS.
+   * the admin inbox. Same button either way - see COLLECTION_VARIANT_IDS.
    */
   const checkout = async () => {
     if (!picked.length || busy) return;
@@ -108,7 +108,7 @@ export const CollectionsSection = () => {
     setBusy(true);
     try {
       const res = await createCollectionCheckout({ keys: picked });
-      if (!res) { toast.error("Couldn't open checkout — please try again."); return; }
+      if (!res) { toast.error("Couldn't open checkout - please try again."); return; }
       window.location.href = res.checkoutUrl;
     } finally {
       setBusy(false);
@@ -129,7 +129,7 @@ export const CollectionsSection = () => {
         </motion.div>
 
         {/* Image-forward tiles: the artwork is the sell, so it fills a fixed
-            1:1 card — same square on a phone as on a desktop — and everything
+            1:1 card - same square on a phone as on a desktop - and everything
             else is set over it. */}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {orderedCollections.map((c, i) => {
@@ -203,7 +203,7 @@ export const CollectionsSection = () => {
           })}
         </div>
 
-        {/* Bundle summary — the running basket, in the same card language as the
+        {/* Bundle summary - the running basket, in the same card language as the
             plans above so the page reads as one purchase decision. */}
         <motion.div
           initial={false}
@@ -280,7 +280,7 @@ export const CollectionsSection = () => {
         </p>
       </div>
 
-      {/* Floating cart bar — the tiles sit high on the page and the running
+      {/* Floating cart bar - the tiles sit high on the page and the running
           basket sits below them, so without this an "Add to cart" click could
           look like nothing happened. It rides the bottom of the viewport for as
           long as anything is in the cart, and carries the same checkout action
@@ -300,7 +300,7 @@ export const CollectionsSection = () => {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-primary">
-                  {justAdded ? `${justAdded} — ${t.pricing.collAdded}` : t.pricing.collSummary(picked.length, books)}
+                  {justAdded ? `${justAdded} - ${t.pricing.collAdded}` : t.pricing.collSummary(picked.length, books)}
                 </p>
                 {justAdded && (
                   <p className="truncate text-xs text-muted-foreground">

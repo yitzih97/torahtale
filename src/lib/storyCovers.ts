@@ -141,7 +141,7 @@ import c_zechariah_menorah from "@/assets/story-covers/zechariah-menorah.jpg";
  * Cover art per story, shown on the story picker.
  *
  * Each is a children's-storybook front cover for that specific story, starring
- * the same two children as the homepage hero — so a customer browsing sees the
+ * the same two children as the homepage hero - so a customer browsing sees the
  * book they would actually receive rather than a generic icon.
  *
  * The art is deliberately TEXT-FREE. One image therefore serves English, Hebrew

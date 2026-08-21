@@ -23,7 +23,7 @@ async function requireUser(req: Request): Promise<Response | null> {
   }
   const token = authHeader.replace("Bearer ", "");
   // Internal server-to-server calls (the generate-book orchestrator) authenticate
-  // with the service-role key instead of a user JWT — accept it as authorized.
+  // with the service-role key instead of a user JWT - accept it as authorized.
   const svcKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (svcKey && token === svcKey) return null;
   const supabase = createClient(
@@ -102,7 +102,7 @@ serve(async (req) => {
     // responded within ~150s and returns a CORS-less gateway error the browser
     // can't even read. Every long operation below (model attempts, safety
     // escalations, QA re-rolls) draws from this one budget so we ALWAYS answer
-    // — with an image or a real error — before the gateway cuts us off.
+    // - with an image or a real error - before the gateway cuts us off.
     const requestStartedAt = Date.now();
     const REQUEST_BUDGET_MS = 130_000;
     const remainingMs = () => REQUEST_BUDGET_MS - (Date.now() - requestStartedAt);
@@ -125,9 +125,9 @@ serve(async (req) => {
     };
     const specs = bookFormat ? PRINT_SPECS[bookFormat] : null;
     const isCover = pageType === "cover" || pageType === "back-cover";
-    // Board books (6×6) are SPREAD-based — one wide illustration per open spread
+    // Board books (6×6) are SPREAD-based - one wide illustration per open spread
     // (board-6x6 page spec is already ~2:1). Softcover/Hardcover (8×8) are
-    // PAGE-based — one square illustration per single page. The front cover is a
+    // PAGE-based - one square illustration per single page. The front cover is a
     // square front-cover image either way (the back cover is composited
     // separately). So just use the format's own page/cover spec.
     const isSpreadFormat = (bookFormat || "").startsWith("board");
@@ -138,11 +138,11 @@ serve(async (req) => {
       ? (isCover ? (isColoringFmt ? specs.cover : [specs.cover[1], specs.cover[1]]) : specs.page)
       : null;
 
-    // ASPECT RATIO — request it from the model, not just as a text hint. Gemini
+    // ASPECT RATIO - request it from the model, not just as a text hint. Gemini
     // only accepts a fixed set of ratios, so snap the target dims to the nearest
     // one; the canvas crops the small remainder to the exact print size. Without
     // this the model returned whatever framing it liked (often square), so a
-    // regenerated board spread came back square while its siblings were wide —
+    // regenerated board spread came back square while its siblings were wide -
     // the "ratios don't match after regenerate" bug. A single source of truth
     // per format means EVERY page (first pass or retry) gets the same framing.
     const ASPECTS: [string, number][] = [
@@ -210,9 +210,9 @@ serve(async (req) => {
     } catch (e) { console.error("Failed to load site_settings:", e); }
 
     const styleMap: Record<string, string> = {
-      cartoon: "high-resolution cinematic cartoon illustration, rich hand-painted textures with soft watercolor washes, volumetric golden-hour lighting with warm amber highlights and cool blue shadows, depth-of-field bokeh background, intricate environmental details — foliage, fabric folds, atmospheric particles — studio-quality children's book art with painterly brushstrokes visible",
+      cartoon: "high-resolution cinematic cartoon illustration, rich hand-painted textures with soft watercolor washes, volumetric golden-hour lighting with warm amber highlights and cool blue shadows, depth-of-field bokeh background, intricate environmental details - foliage, fabric folds, atmospheric particles - studio-quality children's book art with painterly brushstrokes visible",
       "3d-pixar": "ultra high-resolution 3D Pixar/DreamWorks-quality CGI render, subsurface skin scattering, physically-based materials with fabric weave detail, cinematic volumetric lighting with dramatic rim-light and warm key light, shallow depth of field, film-grain texture, ray-traced reflections and ambient occlusion, expressive stylized characters with lifelike eyes and micro-expressions",
-      realistic: "a REAL photograph — photorealistic, indistinguishable from a real photo taken on a full-frame DSLR with an 85mm lens; true-to-life skin texture, pores and hair detail, natural soft lighting, realistic depth of field and bokeh, lifelike proportions and natural colors. NOT a painting, NOT an illustration, NOT cartoon, NOT 3D-rendered, NOT stylized — an actual photograph.",
+      realistic: "a REAL photograph - photorealistic, indistinguishable from a real photo taken on a full-frame DSLR with an 85mm lens; true-to-life skin texture, pores and hair detail, natural soft lighting, realistic depth of field and bokeh, lifelike proportions and natural colors. NOT a painting, NOT an illustration, NOT cartoon, NOT 3D-rendered, NOT stylized - an actual photograph.",
       "graphic-novel": "graphic novel illustration with bold confident ink linework, dramatic dynamic composition with cinematic camera angles, rich flat color palette with halftone textures and cross-hatching details, high contrast lighting with deep shadows, premium print-quality detail",
     };
 
@@ -221,7 +221,7 @@ serve(async (req) => {
     // line art the child colors in. So line art applies to non-cover pages only.
     const isColoring = (bookFormat || "").startsWith("coloring");
     const isColoringPage = isColoring && !isCover;
-    const coloringStyle = "clean, elegant black-and-white line-art coloring-book page, in the style of a professionally published children's coloring book. PURE BLACK outlines on a PURE WHITE background. This MUST be LOW-INK and genuinely easy to color: use clean, smooth, evenly-weighted OUTLINES only, with generous OPEN WHITE space inside every shape and across the page. Absolutely NO shading, NO cross-hatching, NO hatching, NO stippling, NO dotted or scribbled textures, NO gray tones, NO solid black fills, NO blacked-in or filled areas, NO dark, night, or heavily-detailed ink-heavy backgrounds — every region (hair, clothing, skin, sky, ground, objects) is left OPEN and WHITE inside for a child to color. Suggest form with a few confident contour lines rather than dense detail; the finished page should read as mostly white paper with tasteful, uncluttered black outlines. CRITICAL: draw EVERYTHING as open white outlines, INCLUDING items that are normally dark — boots, shoes, sandals, hats, belts, hair, and dark clothing (pants, coats) must be OUTLINED and left WHITE inside, NEVER filled in black or solid. There must be zero solid-black or filled-in areas anywhere on the page.";
+    const coloringStyle = "clean, elegant black-and-white line-art coloring-book page, in the style of a professionally published children's coloring book. PURE BLACK outlines on a PURE WHITE background. This MUST be LOW-INK and genuinely easy to color: use clean, smooth, evenly-weighted OUTLINES only, with generous OPEN WHITE space inside every shape and across the page. Absolutely NO shading, NO cross-hatching, NO hatching, NO stippling, NO dotted or scribbled textures, NO gray tones, NO solid black fills, NO blacked-in or filled areas, NO dark, night, or heavily-detailed ink-heavy backgrounds - every region (hair, clothing, skin, sky, ground, objects) is left OPEN and WHITE inside for a child to color. Suggest form with a few confident contour lines rather than dense detail; the finished page should read as mostly white paper with tasteful, uncluttered black outlines. CRITICAL: draw EVERYTHING as open white outlines, INCLUDING items that are normally dark - boots, shoes, sandals, hats, belts, hair, and dark clothing (pants, coats) must be OUTLINED and left WHITE inside, NEVER filled in black or solid. There must be zero solid-black or filled-in areas anywhere on the page.";
     const styleDesc = isColoringPage ? coloringStyle : (styleMap[artStyle] || styleMap.cartoon);
 
     // Short human-readable name for the chosen style, used in the style-lock
@@ -254,7 +254,7 @@ serve(async (req) => {
         .replace("{torahPortion}", torahPortion || "Torah")
         .replace("{styleDesc}", styleDesc);
     } else {
-      imagePrompt = `Create a breathtaking, high-resolution children's book illustration of a Jewish child named ${childName} immersed in a vivid scene from the Torah story "${torahPortion}". ${styleDesc}. IMPORTANT VISUAL QUALITY: Ultra-detailed environment with rich background elements — lush landscapes, dramatic skies, atmospheric lighting with golden sunbeams and volumetric rays, visible texture on every surface (stone, fabric, wood, foliage). Cinematic composition with dynamic camera angle. Every page should feel like a frame from an award-winning animated film. CHARACTER RULES (match the REAL child): every star child must be immediately recognizable as the child in their reference photo/character sheet — same face shape, same hair color and style, and the same EXACT skin tone (NEVER lighten or darken a child's complexion; a darker-skinned child stays exactly as dark as their photo shows). Do NOT add a yarmulke/kippah, peyos (sidelocks), or tzitzis to ANY star child unless those exact items are clearly visible in their reference photo/character sheet or explicitly requested in their description — a boy whose photo shows no peyos has NO peyos in the book, and a boy whose photo shows no kippah has NO kippah. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee — no head covering for unmarried girls. Orthodox Jewish setting — no modern secular elements, no crosses or church symbols, no text or words in the image. Safe for children, warm and magical atmosphere with vibrant saturated colors. NO text, NO letters, NO words anywhere in the image.`;
+      imagePrompt = `Create a breathtaking, high-resolution children's book illustration of a Jewish child named ${childName} immersed in a vivid scene from the Torah story "${torahPortion}". ${styleDesc}. IMPORTANT VISUAL QUALITY: Ultra-detailed environment with rich background elements - lush landscapes, dramatic skies, atmospheric lighting with golden sunbeams and volumetric rays, visible texture on every surface (stone, fabric, wood, foliage). Cinematic composition with dynamic camera angle. Every page should feel like a frame from an award-winning animated film. CHARACTER RULES (match the REAL child): every star child must be immediately recognizable as the child in their reference photo/character sheet - same face shape, same hair color and style, and the same EXACT skin tone (NEVER lighten or darken a child's complexion; a darker-skinned child stays exactly as dark as their photo shows). Do NOT add a yarmulke/kippah, peyos (sidelocks), or tzitzis to ANY star child unless those exact items are clearly visible in their reference photo/character sheet or explicitly requested in their description - a boy whose photo shows no peyos has NO peyos in the book, and a boy whose photo shows no kippah has NO kippah. Girls MUST wear long modest dresses with long sleeves and long skirts below the knee - no head covering for unmarried girls. Orthodox Jewish setting - no modern secular elements, no crosses or church symbols, no text or words in the image. Safe for children, warm and magical atmosphere with vibrant saturated colors. NO text, NO letters, NO words anywhere in the image.`;
     }
 
     // Append dimension instructions for Printify print-ready output
@@ -263,15 +263,15 @@ serve(async (req) => {
     }
 
     // Interior illustrations are full-bleed scenes. Story text is overlaid later
-    // in white with a drop shadow, so it stays readable on ANY background — the
+    // in white with a drop shadow, so it stays readable on ANY background - the
     // art no longer needs to reserve a calm sky/empty area for the caption.
     // Board books are wide 2:1 spreads; 8×8 books are single square pages.
     if (!isCover && !prompt) {
       imagePrompt += isColoringPage
-        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Draw the scene as CLEAN black OUTLINE line art on a mostly-white page — outlines only, with large OPEN white areas for a child to color. You may include a simple, uncluttered background (a few key setting elements), but keep it airy and light: NO shading, NO hatching, NO stippling, NO solid black fills, NO blacked-in shapes, NO dark or night skies, NO dense textures or busy patterns that would waste ink. Every shape — hair, clothing, skin, sky, ground, props — is an EMPTY white outline. Items that are normally dark (boots, shoes, hats, belts, hair, dark pants or coats) must ALSO be drawn as OUTLINES left WHITE inside — NEVER filled solid black. There must be zero filled-in or solid-black areas. Favor fewer, cleaner lines over heavy detail. Absolutely NO text, letters, or words in the image.`
+        ? ` COMPOSITION: This is a single 8.5×11 PORTRAIT coloring-book page. Draw the scene as CLEAN black OUTLINE line art on a mostly-white page - outlines only, with large OPEN white areas for a child to color. You may include a simple, uncluttered background (a few key setting elements), but keep it airy and light: NO shading, NO hatching, NO stippling, NO solid black fills, NO blacked-in shapes, NO dark or night skies, NO dense textures or busy patterns that would waste ink. Every shape - hair, clothing, skin, sky, ground, props - is an EMPTY white outline. Items that are normally dark (boots, shoes, hats, belts, hair, dark pants or coats) must ALSO be drawn as OUTLINES left WHITE inside - NEVER filled solid black. There must be zero filled-in or solid-black areas. Favor fewer, cleaner lines over heavy detail. Absolutely NO text, letters, or words in the image.`
         : isSpreadFormat
-        ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration painted as ONE SINGLE CONTINUOUS SCENE with one consistent lighting direction from edge to edge. Compose it cinematically and fill the whole frame with a rich, immersive setting that best fits the moment — indoors or outdoors, day or night. The scene does NOT need to include a sky or any reserved calm/empty area; paint whatever setting serves the story. It must read as ONE seamless painting — never an empty strip, solid bar, blank panel, or a second region pasted along an edge, and there must be NO horizontal seam or visible line where two images appear joined; light, color, and detail flow continuously across the whole spread. Absolutely NO text, letters, or words in the image.`
-        : ` COMPOSITION: This is a single SQUARE page illustration and it must be FULL-BLEED: ONE SINGLE CONTINUOUS painted scene filling the entire square edge-to-edge, composed in one pass with one consistent lighting direction. Fill the frame with a rich, immersive setting that best fits the moment — indoors or outdoors, day or night. The scene does NOT need to include a sky or any reserved calm/empty area; paint whatever setting serves the story. NEVER paint a separate strip, solid-color bar, blank panel, frame, border, or a pasted-on region — there must be NO horizontal seam, edge, or visible line where one part of the image looks attached onto another; color, light, and detail flow continuously and seamlessly across the whole scene. Keep the main characters and action clearly composed within the frame. Absolutely NO text, letters, or words in the image.`;
+        ? ` COMPOSITION: This is a wide 2:1 two-page spread illustration painted as ONE SINGLE CONTINUOUS SCENE with one consistent lighting direction from edge to edge. Compose it cinematically and fill the whole frame with a rich, immersive setting that best fits the moment - indoors or outdoors, day or night. The scene does NOT need to include a sky or any reserved calm/empty area; paint whatever setting serves the story. It must read as ONE seamless painting - never an empty strip, solid bar, blank panel, or a second region pasted along an edge, and there must be NO horizontal seam or visible line where two images appear joined; light, color, and detail flow continuously across the whole spread. Absolutely NO text, letters, or words in the image.`
+        : ` COMPOSITION: This is a single SQUARE page illustration and it must be FULL-BLEED: ONE SINGLE CONTINUOUS painted scene filling the entire square edge-to-edge, composed in one pass with one consistent lighting direction. Fill the frame with a rich, immersive setting that best fits the moment - indoors or outdoors, day or night. The scene does NOT need to include a sky or any reserved calm/empty area; paint whatever setting serves the story. NEVER paint a separate strip, solid-color bar, blank panel, frame, border, or a pasted-on region - there must be NO horizontal seam, edge, or visible line where one part of the image looks attached onto another; color, light, and detail flow continuously and seamlessly across the whole scene. Keep the main characters and action clearly composed within the frame. Absolutely NO text, letters, or words in the image.`;
     }
 
     // Inject scene text (story page narrative) so the illustration depicts the right moment
@@ -280,10 +280,10 @@ serve(async (req) => {
     }
 
     /* The family page: the one page the parents appear on. It is present-day and
-       domestic — NOT a Torah scene — and the two adults must read unmistakably
+       domestic - NOT a Torah scene - and the two adults must read unmistakably
        as grown-ups beside their children, not as older kids. */
     if (pageType === "family" && !prompt) {
-      imagePrompt += ` THIS IS THE CLOSING FAMILY PAGE — a warm PRESENT-DAY scene at home with the whole family together (around the Shabbos table, in the living room, or by the front door), NOT a biblical or Torah scene, no desert, no ancient dress. ${pageText ? `The moment: "${pageText}".` : ""} The ADULTS in the references are the children's parents: draw them clearly as grown adults — full adult height and proportions, standing head and shoulders above the children — never as older children. The father wears a kippah; the mother's hair is covered with a tichel or snood and she wears a modest long-sleeved top with a skirt below the knee. Everyone is together in one affectionate group.`;
+      imagePrompt += ` THIS IS THE CLOSING FAMILY PAGE - a warm PRESENT-DAY scene at home with the whole family together (around the Shabbos table, in the living room, or by the front door), NOT a biblical or Torah scene, no desert, no ancient dress. ${pageText ? `The moment: "${pageText}".` : ""} The ADULTS in the references are the children's parents: draw them clearly as grown adults - full adult height and proportions, standing head and shoulders above the children - never as older children. The father wears a kippah; the mother's hair is covered with a tichel or snood and she wears a modest long-sleeved top with a skirt below the knee. Everyone is together in one affectionate group.`;
     }
 
     // Inject child description into prompt if available
@@ -291,10 +291,10 @@ serve(async (req) => {
       imagePrompt += ` The child character has these features: ${childDescription}.`;
     }
 
-    // Forceful age accuracy — image models tend to render children too young, and
+    // Forceful age accuracy - image models tend to render children too young, and
     // the base prompt states no age at all, so state the EXACT age explicitly.
     if (!prompt) {
-      // age 0 (infant) is a real value — don't let truthiness checks drop it.
+      // age 0 (infant) is a real value - don't let truthiness checks drop it.
       const agedRefs = childRefsList.filter((c: any) => c?.name && c?.age != null && c?.age !== "");
       const primaryAge = age ?? childRefsList[0]?.age ?? inferredAge;
       const hasPrimaryAge = primaryAge != null && primaryAge !== "";
@@ -302,20 +302,20 @@ serve(async (req) => {
         ? agedRefs.map((c: any) => `${c.name} is EXACTLY ${c.age} years old`).join("; ")
         : (hasPrimaryAge ? `${childName || "The child"} is EXACTLY ${primaryAge} years old` : "");
       if (ageStatement) {
-        imagePrompt += ` CRITICAL AGE ACCURACY (do NOT ignore): ${ageStatement}. Render each child with the facial maturity, facial structure, head-to-body proportions, and height of their EXACT stated age — a 12–14 year old must look like a young teenager, a 7–9 year old like a child, a 3–5 year old like a small child. Do NOT default to a generic young child. The apparent age MUST match the stated age on every page.`;
+        imagePrompt += ` CRITICAL AGE ACCURACY (do NOT ignore): ${ageStatement}. Render each child with the facial maturity, facial structure, head-to-body proportions, and height of their EXACT stated age - a 12-14 year old must look like a young teenager, a 7-9 year old like a child, a 3-5 year old like a small child. Do NOT default to a generic young child. The apparent age MUST match the stated age on every page.`;
       }
     }
 
     // Front-cover composition: every child centered, full-bodied, never cropped.
     if (pageType === "cover" && !prompt) {
-      imagePrompt += ` COVER COMPOSITION (CRITICAL): This is the FRONT COVER — compose a ${isColoringFmt ? "TALL 8.5×11 PORTRAIT" : "SQUARE"} full-color image. Feature ALL of the book's child characters together as the central subject, posed close together and CENTERED in the frame, each child's FULL body visible (head, hands, and feet all inside the frame). Leave generous empty margin/padding on all four sides around the whole group so that NO character and no part of any character is cropped, cut off, or touching any edge of the image. If there are multiple children, balance them symmetrically around the center — do not push any child to the edge. COVER AGE ACCURACY (CRITICAL): render every child at their EXACT stated age with true proportions and height — the SAME ages and relative sizes as the interior pages. A 1-year-old is a small baby/toddler, clearly smaller than a 3-year-old. NEVER draw the children older, taller, or more mature on the cover than their stated ages. MAJESTIC ESSENCE (this is the COVER — make it unforgettable): capture the whole heart and wonder of "${torahPortion}" in ONE breathtaking, poetic, reverent image, like the cover of a treasured classic storybook. Weave the parsha's own iconic imagery — its signature landmark, setting, objects, and symbols — beautifully AROUND the children so a glance instantly says which parsha this is (e.g. Noach → the great wooden teivah, a radiant rainbow, pairs of animals, a returning dove; Bereishis → a glowing new world; Yetzias Mitzrayim → the split sea). Fill it with cinematic golden light, volumetric sunbeams, atmospheric depth, soft magical particles, and a sense of grandeur, awe, and kedushah — richly detailed, warm, and emotionally moving, never flat or generic. OVERLAY SPACE (composition): keep the TOP THIRD of the frame calm and open — its own luminous sky, soft clouds, gentle light, distant scenery, NO faces or busy detail there — and keep the very BOTTOM edge of the scene calm and simple as well; printed wording is added over those areas LATER by software, entirely outside this image. Place the children and main action in the middle-to-lower portion. Do NOT put anything important in the outer ~6% margin on any side (a decorative frame will sit there). ABSOLUTELY NO TEXT (CRITICAL): this image must be completely WORDLESS — do NOT paint any title, name, tagline, caption, letters, words, numbers, or writing of any kind anywhere in the image; no banners, ribbons, or signs bearing text.`;
+      imagePrompt += ` COVER COMPOSITION (CRITICAL): This is the FRONT COVER - compose a ${isColoringFmt ? "TALL 8.5×11 PORTRAIT" : "SQUARE"} full-color image. Feature ALL of the book's child characters together as the central subject, posed close together and CENTERED in the frame, each child's FULL body visible (head, hands, and feet all inside the frame). Leave generous empty margin/padding on all four sides around the whole group so that NO character and no part of any character is cropped, cut off, or touching any edge of the image. If there are multiple children, balance them symmetrically around the center - do not push any child to the edge. COVER AGE ACCURACY (CRITICAL): render every child at their EXACT stated age with true proportions and height - the SAME ages and relative sizes as the interior pages. A 1-year-old is a small baby/toddler, clearly smaller than a 3-year-old. NEVER draw the children older, taller, or more mature on the cover than their stated ages. MAJESTIC ESSENCE (this is the COVER - make it unforgettable): capture the whole heart and wonder of "${torahPortion}" in ONE breathtaking, poetic, reverent image, like the cover of a treasured classic storybook. Weave the parsha's own iconic imagery - its signature landmark, setting, objects, and symbols - beautifully AROUND the children so a glance instantly says which parsha this is (e.g. Noach → the great wooden teivah, a radiant rainbow, pairs of animals, a returning dove; Bereishis → a glowing new world; Yetzias Mitzrayim → the split sea). Fill it with cinematic golden light, volumetric sunbeams, atmospheric depth, soft magical particles, and a sense of grandeur, awe, and kedushah - richly detailed, warm, and emotionally moving, never flat or generic. OVERLAY SPACE (composition): keep the TOP THIRD of the frame calm and open - its own luminous sky, soft clouds, gentle light, distant scenery, NO faces or busy detail there - and keep the very BOTTOM edge of the scene calm and simple as well; printed wording is added over those areas LATER by software, entirely outside this image. Place the children and main action in the middle-to-lower portion. Do NOT put anything important in the outer ~6% margin on any side (a decorative frame will sit there). ABSOLUTELY NO TEXT (CRITICAL): this image must be completely WORDLESS - do NOT paint any title, name, tagline, caption, letters, words, numbers, or writing of any kind anywhere in the image; no banners, ribbons, or signs bearing text.`;
     }
 
     // Intentional per-cover outfit change (back-cover "coming next" teasers cycle
     // through fresh outfits so the row looks varied and attractive). Identity is
     // preserved; ONLY the clothing changes, and it must stay modest.
     if (outfitVariant && !prompt) {
-      imagePrompt += ` WARDROBE FOR THIS COVER (INTENTIONAL OUTFIT CHANGE): for THIS image only, dress the children in a fresh outfit instead of their usual one: ${outfitVariant}. Keep every child's face, hair color and style, eye color, skin tone, age, height, and identity EXACTLY as in their reference images — ONLY the clothing changes. All clothing must remain modest (tznius): long sleeves, high necklines, girls in long dresses or skirts (never pants), and NEVER a kippah or head covering on a girl.`;
+      imagePrompt += ` WARDROBE FOR THIS COVER (INTENTIONAL OUTFIT CHANGE): for THIS image only, dress the children in a fresh outfit instead of their usual one: ${outfitVariant}. Keep every child's face, hair color and style, eye color, skin tone, age, height, and identity EXACTLY as in their reference images - ONLY the clothing changes. All clothing must remain modest (tznius): long sleeves, high necklines, girls in long dresses or skirts (never pants), and NEVER a kippah or head covering on a girl.`;
     }
 
     // Inject per-child descriptions for multi-child books
@@ -327,7 +327,7 @@ serve(async (req) => {
           return `- ${c.name}${bits ? `: ${bits}` : ""}`;
         });
       if (descLines.length > 0) {
-        imagePrompt += ` CHARACTERS IN THIS BOOK — each child below is a DISTINCT individual who must look like the SAME person on EVERY page (same face, hair, eyes, skin tone and outfit colours across pages), reproduced from their own reference image. CRITICAL RELATIVE SIZING: show the children at realistic sizes FOR THEIR AGES — a younger child is clearly SHORTER and SMALLER than an older child (a 1-year-old is much smaller than a 3-year-old; a toddler is much smaller than a 10-year-old). NEVER make a younger child the same size as, or bigger than, an older sibling. Match each child's facial maturity to their exact age:\n${descLines.join("\n")}`;
+        imagePrompt += ` CHARACTERS IN THIS BOOK - each child below is a DISTINCT individual who must look like the SAME person on EVERY page (same face, hair, eyes, skin tone and outfit colours across pages), reproduced from their own reference image. CRITICAL RELATIVE SIZING: show the children at realistic sizes FOR THEIR AGES - a younger child is clearly SHORTER and SMALLER than an older child (a 1-year-old is much smaller than a 3-year-old; a toddler is much smaller than a 10-year-old). NEVER make a younger child the same size as, or bigger than, an older sibling. Match each child's facial maturity to their exact age:\n${descLines.join("\n")}`;
       }
     }
 
@@ -342,15 +342,15 @@ serve(async (req) => {
           const under3 = Number(c?.age) < 3;
           return cMentionsFrumGarb
             ? `- ${c.name}: include ONLY the specific religious items explicitly requested in his description, and do not add any others.${under3 ? " Keep him clearly under age 3 with real toddler proportions." : ""}`
-            : `- ${c.name}: DO NOT add a yarmulke/kippah, peyos, or tzitzis — none of these appear in his reference; draw him exactly as his photo/sheet shows.${under3 ? " Keep him clearly under age 3 with real toddler proportions." : ""}`;
+            : `- ${c.name}: DO NOT add a yarmulke/kippah, peyos, or tzitzis - none of these appear in his reference; draw him exactly as his photo/sheet shows.${under3 ? " Keep him clearly under age 3 with real toddler proportions." : ""}`;
         });
       if (boyGarbRules.length > 0) {
         imagePrompt += ` CHILD-SPECIFIC APPEARANCE RULES:\n${boyGarbRules.join("\n")}`;
       }
     } else if (!prompt && inferredGender === "boy") {
       imagePrompt += mentionsFrumGarb
-        ? ` PRIMARY CHILD RULE: include ONLY the specific religious items explicitly requested in the description, and do not add any others.${isPrimaryToddlerBoy ? " He is under age 3 — keep true toddler proportions." : ""}`
-        : ` PRIMARY CHILD RULE: DO NOT add a yarmulke/kippah, peyos, or tzitzis to this boy unless those exact items are clearly visible in the attached photo or reference sheet.${isPrimaryToddlerBoy ? " He is under age 3 — keep true toddler proportions." : ""}`;
+        ? ` PRIMARY CHILD RULE: include ONLY the specific religious items explicitly requested in the description, and do not add any others.${isPrimaryToddlerBoy ? " He is under age 3 - keep true toddler proportions." : ""}`
+        : ` PRIMARY CHILD RULE: DO NOT add a yarmulke/kippah, peyos, or tzitzis to this boy unless those exact items are clearly visible in the attached photo or reference sheet.${isPrimaryToddlerBoy ? " He is under age 3 - keep true toddler proportions." : ""}`;
     }
 
     // Inject MASTER BOOK RULES (apply to every page of every book)
@@ -368,29 +368,29 @@ serve(async (req) => {
       imagePrompt += ` ADDITIONAL REGEN INSTRUCTIONS: ${promptAdditions.trim()}`;
     }
 
-    // NON-NEGOTIABLE MODESTY & TZNIUS MASTER RULES — always applied, even on explicit prompt, regen, or admin edit.
+    // NON-NEGOTIABLE MODESTY & TZNIUS MASTER RULES - always applied, even on explicit prompt, regen, or admin edit.
     imagePrompt += ` \n\nNON-NEGOTIABLE MODESTY & TZNIUS MASTER RULES (apply to EVERY character in EVERY illustration without exception, including background, crowd, and incidental figures):
-- ALL Jewish male characters FROM THE TORAH NARRATIVE (Avraham/Abraham, Yitzchak/Isaac, Yaakov/Jacob, Moshe/Moses, Aharon/Aaron, Yosef/Joseph, the Shevatim/tribes, kohanim, talmidim, and any other Torah-story Jewish men or boys age 3+) MUST have their heads fully covered at all times — with a kippah/yarmulke, turban, head wrap, hat, or tallis over the head as appropriate to the biblical era. NEVER show a Torah-narrative Jewish man or boy (age 3+) bareheaded. EXCEPTION — the modern STAR CHILDREN (the named kids rendered from reference photos/character sheets) are NOT covered by this bullet: each star child wears ONLY what their own photo/sheet shows; NEVER add a kippah, head covering, peyos, or tzitzis to a star child who does not have them in their reference.
-- ALL female characters (main, secondary, and background — Jewish or not) MUST be dressed with full tznius/modesty: long sleeves past the elbow, necklines fully covering the collarbone, skirts/dresses fully covering the knees, no tight or form-fitting clothing, no cleavage, no bare shoulders, no bare midriff, no bare legs. Married women MUST have hair fully covered (tichel, snood, or sheitel).
-- ABSOLUTELY NO nudity, partial nudity, half-dressed figures, undergarments, swimwear, or revealing clothing on ANY character anywhere in the image — not on main characters, not on background figures, not on crowds, not on infants beyond a simple modest wrap, not on statues or art within the scene.
-- ALL male characters in the scene (even non-Jewish background figures) must be modestly clothed with covered torso, shoulders, and legs to at least the knee. This includes giants, warriors, kings, and villains (Og, Golias, Paroh, soldiers, guards): ALWAYS fully dressed with a shirt/tunic covering the chest and torso — NEVER bare-chested, NEVER shirtless, NEVER open-robed.
-- CLEAR BNEI YISRAEL / NON-JEW DISTINCTION: Jewish/Bnei Yisrael men and boys (age 3+) always have covered heads (yarmulke, turban, head wrap, or tallis). NON-Jewish characters (Mitzrim/Egyptians, Edomim, Moavim, Amalek, Romans, and all other nations) must NOT wear a yarmulke, tallis, tzitzis, or peyos — give them clearly different, era-appropriate foreign dress (still fully modest) with uncovered or distinctly foreign head coverings, so a child can tell at a glance who is from Bnei Yisrael and who is not.
-- FOOTWEAR — NOBODY IS EVER BAREFOOT: every person in every illustration wears sandals or shoes appropriate to the era and setting. This includes the star children, main characters, and every background, crowd and incidental figure — shepherds, workers, servants, soldiers, kings, children at play, people indoors or at the water's edge. NEVER bare feet, never bare toes, not on anyone, anywhere.
+- ALL Jewish male characters FROM THE TORAH NARRATIVE (Avraham/Abraham, Yitzchak/Isaac, Yaakov/Jacob, Moshe/Moses, Aharon/Aaron, Yosef/Joseph, the Shevatim/tribes, kohanim, talmidim, and any other Torah-story Jewish men or boys age 3+) MUST have their heads fully covered at all times - with a kippah/yarmulke, turban, head wrap, hat, or tallis over the head as appropriate to the biblical era. NEVER show a Torah-narrative Jewish man or boy (age 3+) bareheaded. EXCEPTION - the modern STAR CHILDREN (the named kids rendered from reference photos/character sheets) are NOT covered by this bullet: each star child wears ONLY what their own photo/sheet shows; NEVER add a kippah, head covering, peyos, or tzitzis to a star child who does not have them in their reference.
+- ALL female characters (main, secondary, and background - Jewish or not) MUST be dressed with full tznius/modesty: long sleeves past the elbow, necklines fully covering the collarbone, skirts/dresses fully covering the knees, no tight or form-fitting clothing, no cleavage, no bare shoulders, no bare midriff, no bare legs. Married women MUST have hair fully covered (tichel, snood, or sheitel).
+- ABSOLUTELY NO nudity, partial nudity, half-dressed figures, undergarments, swimwear, or revealing clothing on ANY character anywhere in the image - not on main characters, not on background figures, not on crowds, not on infants beyond a simple modest wrap, not on statues or art within the scene.
+- ALL male characters in the scene (even non-Jewish background figures) must be modestly clothed with covered torso, shoulders, and legs to at least the knee. This includes giants, warriors, kings, and villains (Og, Golias, Paroh, soldiers, guards): ALWAYS fully dressed with a shirt/tunic covering the chest and torso - NEVER bare-chested, NEVER shirtless, NEVER open-robed.
+- CLEAR BNEI YISRAEL / NON-JEW DISTINCTION: Jewish/Bnei Yisrael men and boys (age 3+) always have covered heads (yarmulke, turban, head wrap, or tallis). NON-Jewish characters (Mitzrim/Egyptians, Edomim, Moavim, Amalek, Romans, and all other nations) must NOT wear a yarmulke, tallis, tzitzis, or peyos - give them clearly different, era-appropriate foreign dress (still fully modest) with uncovered or distinctly foreign head coverings, so a child can tell at a glance who is from Bnei Yisrael and who is not.
+- FOOTWEAR - NOBODY IS EVER BAREFOOT: every person in every illustration wears sandals or shoes appropriate to the era and setting. This includes the star children, main characters, and every background, crowd and incidental figure - shepherds, workers, servants, soldiers, kings, children at play, people indoors or at the water's edge. NEVER bare feet, never bare toes, not on anyone, anywhere.
 - BACKGROUND PEOPLE MUST LOOK LIKE DIFFERENT INDIVIDUALS: every background, crowd and incidental figure is a distinct person. Vary face shape and features, age (small children, youths, adults, elderly), height and build, skin tone, hair colour/length/texture, beard style and colour, head-covering style, and the colour and cut of clothing from one figure to the next. NEVER draw the same face twice, never a row of near-identical look-alikes, never one figure duplicated across a crowd. A crowd must read as a gathering of real, individual people who happen to be standing together.
-- NO LETTERING ON SACRED OBJECTS — SUGGEST TEXT, NEVER WRITE IT: a Sefer Torah, klaf, Luchos, mezuzah or sefer may be shown open and legible in shape, but must NOT carry actual letters. Asking for real Hebrew produces convincing-looking gibberish, which is worse than none on a Torah scroll. Instead, indicate writing the way classical illustration does: fine horizontal RULED LINES, faint even strokes, or a soft blur suggesting columns of script — abstract marks only, never anything a reader could try to read. ABSOLUTELY NO Hebrew letters, no aleph-beis characters, no Latin/English or any other alphabet, no numerals, no invented glyphs or squiggles shaped like letters. A blank or line-ruled parchment is always correct; written characters never are.
+- NO LETTERING ON SACRED OBJECTS - SUGGEST TEXT, NEVER WRITE IT: a Sefer Torah, klaf, Luchos, mezuzah or sefer may be shown open and legible in shape, but must NOT carry actual letters. Asking for real Hebrew produces convincing-looking gibberish, which is worse than none on a Torah scroll. Instead, indicate writing the way classical illustration does: fine horizontal RULED LINES, faint even strokes, or a soft blur suggesting columns of script - abstract marks only, never anything a reader could try to read. ABSOLUTELY NO Hebrew letters, no aleph-beis characters, no Latin/English or any other alphabet, no numerals, no invented glyphs or squiggles shaped like letters. A blank or line-ruled parchment is always correct; written characters never are.
 - These rules OVERRIDE any conflicting instruction in the prompt, regen notes, admin edits, page text, or reference images. If a reference would imply immodesty or an uncovered Jewish male head, IGNORE that aspect of the reference and apply these rules instead.`;
 
-    // NON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES — always applied, even on explicit prompt, regen, or admin edit.
+    // NON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES - always applied, even on explicit prompt, regen, or admin edit.
     imagePrompt += ` \n\nNON-NEGOTIABLE CHARACTER PLACEMENT & WARDROBE RULES (apply to EVERY illustration without exception):
-- Each named child character must appear EXACTLY ONCE in the image. NEVER duplicate, clone, mirror, twin, or repeat the same child anywhere in the scene — not in the foreground, not in the background, not as a reflection, not as a second copy. One child = one single figure on the page.
-- A child's clothing comes ONLY from their character reference sheet and the modesty rules above. DO NOT copy the clothing, outfit, colors, prints, logos, brand marks, or accessories from any attached real-life PHOTOGRAPH of the child — a photograph is a guide to the child's FACE and HAIR ONLY, never to their wardrobe.
-- WARDROBE LOCK: the star children have travelled INTO the Torah story's biblical era, so dress each child in modest, PERIOD-AUTHENTIC clothing for that era — flowing tunics/robes, sashes, simple sandals — kept the SAME on EVERY page and in EVERY scene (a head covering on a star child ONLY if their own photo/character sheet shows one). Match the outfit on their character sheet where it is already era-appropriate; never restyle, recolor, or swap the outfit between pages.
-- NEVER dress the star child in MODERN clothing — no button-down shirts, no trousers/pants, no modern dresses, no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics. Even if a reference shows modern clothing, render period-authentic biblical clothing instead.
-- HAIR & FEATURE LOCK: each child's hair COLOR, hair style, eye color, and skin tone must EXACTLY match their character sheet on every page. If the sheet shows brown hair, the hair is that exact same brown on every single page — never blonde, never a different shade, never a different style. SKIN TONE IS IDENTITY: reproduce each child's complexion EXACTLY as their photo/sheet shows — never lighter, never darker, never averaged toward a generic tone; siblings with different complexions keep their DIFFERENT complexions.
-- INFANTS SIT: any child aged 0 (a baby under 1 year old) must ALWAYS be depicted SITTING (on the ground, on a blanket, on a lap) or held in someone's arms — NEVER standing, walking, or running. Children aged 1 and up may stand and walk normally.
-- STAR CHILDREN ONLY — NO PARENTS: the star child(ren) experience the story ON THEIR OWN. NEVER add their parents, Tatty, Mommy, bubby, zeidy, siblings not named in this book, teachers, or any other modern-day family adults to the scene — not holding them, not reading to them, not standing behind them. The ONLY adults allowed are figures from the Torah narrative itself (Moshe, Avraham, the meraglim, Paroh, soldiers, etc.) when the scene depicts them. If the page text mentions Tatty/Mommy, still show ONLY the star child(ren) in the illustration.
-- KAVOD HASEFORIM — NEVER place a sefer, book, chumash, or siddur on the floor or ground. Books are ALWAYS held respectfully in hands, or resting on a table, shtender, bookshelf, or bimah — never lying on a rug, floor, or the ground, never scattered, never stepped over.
-- ONE SEAMLESS IMAGE: the illustration must be one single continuous scene with one sky and one lighting scheme — never two skies, never a horizontal seam, and never a strip that looks pasted on at the top or bottom.`;
+- Each named child character must appear EXACTLY ONCE in the image. NEVER duplicate, clone, mirror, twin, or repeat the same child anywhere in the scene - not in the foreground, not in the background, not as a reflection, not as a second copy. One child = one single figure on the page.
+- A child's clothing comes ONLY from their character reference sheet and the modesty rules above. DO NOT copy the clothing, outfit, colors, prints, logos, brand marks, or accessories from any attached real-life PHOTOGRAPH of the child - a photograph is a guide to the child's FACE and HAIR ONLY, never to their wardrobe.
+- WARDROBE LOCK: the star children have travelled INTO the Torah story's biblical era, so dress each child in modest, PERIOD-AUTHENTIC clothing for that era - flowing tunics/robes, sashes, simple sandals - kept the SAME on EVERY page and in EVERY scene (a head covering on a star child ONLY if their own photo/character sheet shows one). Match the outfit on their character sheet where it is already era-appropriate; never restyle, recolor, or swap the outfit between pages.
+- NEVER dress the star child in MODERN clothing - no button-down shirts, no trousers/pants, no modern dresses, no t-shirts, no jeans, no hoodies, no sneakers, no logos or printed graphics. Even if a reference shows modern clothing, render period-authentic biblical clothing instead.
+- HAIR & FEATURE LOCK: each child's hair COLOR, hair style, eye color, and skin tone must EXACTLY match their character sheet on every page. If the sheet shows brown hair, the hair is that exact same brown on every single page - never blonde, never a different shade, never a different style. SKIN TONE IS IDENTITY: reproduce each child's complexion EXACTLY as their photo/sheet shows - never lighter, never darker, never averaged toward a generic tone; siblings with different complexions keep their DIFFERENT complexions.
+- INFANTS SIT: any child aged 0 (a baby under 1 year old) must ALWAYS be depicted SITTING (on the ground, on a blanket, on a lap) or held in someone's arms - NEVER standing, walking, or running. Children aged 1 and up may stand and walk normally.
+- STAR CHILDREN ONLY - NO PARENTS: the star child(ren) experience the story ON THEIR OWN. NEVER add their parents, Tatty, Mommy, bubby, zeidy, siblings not named in this book, teachers, or any other modern-day family adults to the scene - not holding them, not reading to them, not standing behind them. The ONLY adults allowed are figures from the Torah narrative itself (Moshe, Avraham, the meraglim, Paroh, soldiers, etc.) when the scene depicts them. If the page text mentions Tatty/Mommy, still show ONLY the star child(ren) in the illustration.
+- KAVOD HASEFORIM - NEVER place a sefer, book, chumash, or siddur on the floor or ground. Books are ALWAYS held respectfully in hands, or resting on a table, shtender, bookshelf, or bimah - never lying on a rug, floor, or the ground, never scattered, never stepped over.
+- ONE SEAMLESS IMAGE: the illustration must be one single continuous scene with one sky and one lighting scheme - never two skies, never a horizontal seam, and never a strip that looks pasted on at the top or bottom.`;
 
 
     const parts: any[] = [];
@@ -414,7 +414,7 @@ serve(async (req) => {
 
     // ── Attach ONE reference image PER CHILD. Prefer the child's REAL PHOTO (the
     // best likeness anchor); fall back to their character sheet. Attaching each
-    // child's OWN photo — not just the primary's — keeps every sibling on-model
+    // child's OWN photo - not just the primary's - keeps every sibling on-model
     // (previously only the primary photo was sent, so secondary children drifted).
     // The character sheet is a lossy gpt-image reinterpretation, so the real photo
     // takes priority whenever both exist.
@@ -422,7 +422,7 @@ serve(async (req) => {
       ? (characterSheets as Record<string, string>) : {};
     // Prefer the explicit per-child refs from the client. If none were sent but we
     // DO have character sheets, rebuild the refs from the sheet names so the saved
-    // likenesses still anchor every page — otherwise the single fallback below
+    // likenesses still anchor every page - otherwise the single fallback below
     // keys the sheet on the combined childName ("Adina & Ari") and finds nothing,
     // printing generic kids. Last resort: a single nameless child.
     const sheetNames = Object.keys(sheetMap);
@@ -437,10 +437,10 @@ serve(async (req) => {
       const photo = c?.photoUrl || (isSingle && typeof referenceImage === "string" ? referenceImage : null);
       const sheet = c?.characterSheet || sheetMap[c?.name] || (isSingle ? characterSheet : null);
       const nm = c?.name || childName || "the child";
-      // The character SHEET is the one canonical anchor — it was generated from
+      // The character SHEET is the one canonical anchor - it was generated from
       // the child's photo and locks the face, hair color, and outfit in-style.
       // Anchoring pages on the sheet ONLY (never sheet+photo together) removes
-      // conflicting references — mixed anchors made hair color flip between pages.
+      // conflicting references - mixed anchors made hair color flip between pages.
       const src = (typeof sheet === "string" && sheet) ? sheet : ((typeof photo === "string" && photo) ? photo : null);
       if (src) refItems.push({ name: nm, src, isPhoto: src === photo });
     }
@@ -452,11 +452,11 @@ serve(async (req) => {
     }
     // NOTE: coloring INTERIOR pages KEEP the character-sheet refs (so the kids
     // stay consistent page-to-page). The sheets are full-color, which can bleed
-    // colour into the line art — that's scrubbed out on the client, which
+    // colour into the line art - that's scrubbed out on the client, which
     // thresholds the finished coloring page to pure black-and-white.
     if (cappedRefs.length > 0) {
       const legend = cappedRefs
-        .map((r, i) => `Image ${i + 1} = ${r.name}${r.isPhoto ? " (a REAL PHOTO of this child — match their exact face shape, eye colour and shape, eyebrows, skin tone, and hair from it. FACE AND HAIR ONLY — never copy the clothing in this photo)" : " (this child's OFFICIAL CHARACTER SHEET — it defines their permanent look INCLUDING the exact outfit: reproduce the SAME clothing, colors, head covering and styling shown on the sheet)"}`)
+        .map((r, i) => `Image ${i + 1} = ${r.name}${r.isPhoto ? " (a REAL PHOTO of this child - match their exact face shape, eye colour and shape, eyebrows, skin tone, and hair from it. FACE AND HAIR ONLY - never copy the clothing in this photo)" : " (this child's OFFICIAL CHARACTER SHEET - it defines their permanent look INCLUDING the exact outfit: reproduce the SAME clothing, colors, head covering and styling shown on the sheet)"}`)
         .join("; ");
       /* The cast has to be stated as a COUNT and a closed list. Without it the
          model treats a reference as "a character it may use", and happily draws
@@ -464,8 +464,8 @@ serve(async (req) => {
       const castNames = cappedRefs.map((r) => r.name);
       const castLine = castNames.length === 1
         ? `There is EXACTLY ONE star child in this illustration: ${castNames[0]}. Draw ${castNames[0]} exactly once.`
-        : `There are EXACTLY ${castNames.length} star children in this illustration: ${castNames.join(" and ")}. Draw EACH of them EXACTLY ONCE — never draw the same child twice, never show a child's twin or double, and never add any extra child who is not on this list. If the scene needs more people, use adults or background figures who are clearly NOT these children.`;
-      imagePrompt = `CRITICAL CHILD LIKENESS & CONSISTENCY (do NOT ignore): The attached image(s) are references for the child character(s) in this book. ${legend}. ${castLine} HAIR IS PART OF THE LIKENESS: reproduce each child's hairstyle from THEIR OWN reference exactly — the same length, the same parting, the same texture, and the same way it is worn (loose, tied back, ponytail, braids, pigtails, tucked behind the ears) with the same hair accessories. A child's hairstyle must be IDENTICAL on the cover and on every single page; never restyle, lengthen, shorten or re-tie a child's hair between pages. You MUST reproduce EACH child's face, hair, eye colour and skin tone faithfully from THEIR OWN reference, translated into the chosen art style, so each child is IMMEDIATELY and unmistakably recognizable as that same real child on EVERY page. NEVER invent a generic face and NEVER swap features between children. When a reference is a real photograph, use it for the child's FACE and HAIR ONLY — do NOT copy the clothing, outfit, colours, prints, logos or accessories from the photo (dress each child per the story scene and the modesty rules below). Keep each child's look identical across all pages. ${imagePrompt}`;
+        : `There are EXACTLY ${castNames.length} star children in this illustration: ${castNames.join(" and ")}. Draw EACH of them EXACTLY ONCE - never draw the same child twice, never show a child's twin or double, and never add any extra child who is not on this list. If the scene needs more people, use adults or background figures who are clearly NOT these children.`;
+      imagePrompt = `CRITICAL CHILD LIKENESS & CONSISTENCY (do NOT ignore): The attached image(s) are references for the child character(s) in this book. ${legend}. ${castLine} HAIR IS PART OF THE LIKENESS: reproduce each child's hairstyle from THEIR OWN reference exactly - the same length, the same parting, the same texture, and the same way it is worn (loose, tied back, ponytail, braids, pigtails, tucked behind the ears) with the same hair accessories. A child's hairstyle must be IDENTICAL on the cover and on every single page; never restyle, lengthen, shorten or re-tie a child's hair between pages. You MUST reproduce EACH child's face, hair, eye colour and skin tone faithfully from THEIR OWN reference, translated into the chosen art style, so each child is IMMEDIATELY and unmistakably recognizable as that same real child on EVERY page. NEVER invent a generic face and NEVER swap features between children. When a reference is a real photograph, use it for the child's FACE and HAIR ONLY - do NOT copy the clothing, outfit, colours, prints, logos or accessories from the photo (dress each child per the story scene and the modesty rules below). Keep each child's look identical across all pages. ${imagePrompt}`;
       for (const r of cappedRefs) await pushImagePart(r.src);
     }
 
@@ -479,7 +479,7 @@ serve(async (req) => {
         .filter((s) => s?.name && s?.description)
         .map((s) => `- ${s.name}: ${s.description}`);
       if (descLines.length > 0) {
-        imagePrompt += ` \n\nRECURRING STORY CHARACTERS — every character below must look EXACTLY the same each time they appear in the book. Render each one precisely matching this fixed description (face, hair, facial hair, build, exact clothing and colours, headwear). Do NOT restyle or recolour them between pages:\n${descLines.join("\n")}`;
+        imagePrompt += ` \n\nRECURRING STORY CHARACTERS - every character below must look EXACTLY the same each time they appear in the book. Render each one precisely matching this fixed description (face, hair, facial hair, build, exact clothing and colours, headwear). Do NOT restyle or recolour them between pages:\n${descLines.join("\n")}`;
       }
       const remaining = Math.max(0, 4 - cappedRefs.length);
       const storySheetRefs = storyRefsList
@@ -488,7 +488,7 @@ serve(async (req) => {
       if (storySheetRefs.length > 0) {
         const startIdx = cappedRefs.length;
         const legend2 = storySheetRefs
-          .map((s, i) => `Image ${startIdx + i + 1} = ${s.name} (this Torah character's OFFICIAL CHARACTER SHEET — reproduce them looking exactly as shown here)`)
+          .map((s, i) => `Image ${startIdx + i + 1} = ${s.name} (this Torah character's OFFICIAL CHARACTER SHEET - reproduce them looking exactly as shown here)`)
           .join("; ");
         imagePrompt += ` ADDITIONAL CHARACTER REFERENCE SHEETS attached: ${legend2}.`;
         for (const s of storySheetRefs) await pushImagePart(s.sheet);
@@ -497,7 +497,7 @@ serve(async (req) => {
 
     // Inject scene reference image for visual consistency across books
     if (sceneReferenceImageUrl) {
-      imagePrompt += ` SCENE COMPOSITION GUIDE: The attached SCENE REFERENCE IMAGE shows the exact scene layout, background elements, and overall composition you MUST reproduce. Match the same environment, camera angle, lighting, and background details. However, adapt the child character to match the specified name, age, gender, and character sheet. The scene should look nearly identical to the reference — only the child character changes.`;
+      imagePrompt += ` SCENE COMPOSITION GUIDE: The attached SCENE REFERENCE IMAGE shows the exact scene layout, background elements, and overall composition you MUST reproduce. Match the same environment, camera angle, lighting, and background details. However, adapt the child character to match the specified name, age, gender, and character sheet. The scene should look nearly identical to the reference - only the child character changes.`;
       try {
         const sceneResp = await fetchWithTimeout(sceneReferenceImageUrl, undefined, 10_000);
         if (sceneResp.ok) {
@@ -512,37 +512,37 @@ serve(async (req) => {
     // ── ART-STYLE LOCK ──────────────────────────────────────────────────────
     // When a real child PHOTO is attached as a likeness reference, gpt-image
     // (via images/edits) and the Gemini fallback both tend to carry the photo's
-    // PHOTOGRAPHIC realism into the output — so within a single "3D Pixar" book
+    // PHOTOGRAPHIC realism into the output - so within a single "3D Pixar" book
     // roughly half the pages came back looking like real photos instead of the
     // chosen style. The style was stated only once, buried mid-prompt, while the
     // likeness preamble strongly pushes faithful photo reproduction. Re-assert
     // the target style LAST (most salient position) and explicitly forbid a
-    // photographic result — unless the chosen style genuinely IS "realistic".
+    // photographic result - unless the chosen style genuinely IS "realistic".
     const hasPhotoRef = cappedRefs.some((r) => r.isPhoto);
     if (hasPhotoRef && !isColoring && artStyle !== "realistic") {
-      imagePrompt += ` ⚠️ ART-STYLE LOCK (HIGHEST PRIORITY — overrides the visual look of any attached photo): The FINAL image MUST be a ${styleName}, rendered ENTIRELY in this style: ${styleDesc}. The attached photo is ONLY a likeness reference for the child's face and hair — do NOT reproduce its photographic look, lighting or texture. The output must NOT be a real photograph, NOT photorealistic, and NOT a lightly-edited photo. Fully re-render the child and the entire scene from scratch as a ${styleName}. EVERY page of this book must share this exact same ${styleName} art style — never mix in a realistic/photographic page.`;
+      imagePrompt += ` ⚠️ ART-STYLE LOCK (HIGHEST PRIORITY - overrides the visual look of any attached photo): The FINAL image MUST be a ${styleName}, rendered ENTIRELY in this style: ${styleDesc}. The attached photo is ONLY a likeness reference for the child's face and hair - do NOT reproduce its photographic look, lighting or texture. The output must NOT be a real photograph, NOT photorealistic, and NOT a lightly-edited photo. Fully re-render the child and the entire scene from scratch as a ${styleName}. EVERY page of this book must share this exact same ${styleName} art style - never mix in a realistic/photographic page.`;
     }
 
     // ── MALACHIM ────────────────────────────────────────────────────────────
-    // Angels appear all over Tanach — Yaakov's ladder, Bilaam's donkey, the
-    // malach at Yeshayahu's coal — and image models default to drawing them as
+    // Angels appear all over Tanach - Yaakov's ladder, Bilaam's donkey, the
+    // malach at Yeshayahu's coal - and image models default to drawing them as
     // winged human figures with faces. A depicted face on a malach is not what
     // this product should be putting in front of frum children, so wherever one
     // belongs in the scene it is rendered as light rather than as a person.
-    imagePrompt += ` ⚠️ MALACHIM / ANGELS — ABSOLUTE RULE: NEVER draw a face on a malach (angel). If the scene calls for a malach, depict it ONLY as radiant light: a glowing presence, a column or beam of light, a luminous silhouette, or wings of light — with NO face, NO facial features, NO eyes, mouth or nose, and NO human head. Do not render angels as people. This applies to every angel, seraph, cherub or heavenly messenger, in the foreground or the background, no matter how small.`;
+    imagePrompt += ` ⚠️ MALACHIM / ANGELS - ABSOLUTE RULE: NEVER draw a face on a malach (angel). If the scene calls for a malach, depict it ONLY as radiant light: a glowing presence, a column or beam of light, a luminous silhouette, or wings of light - with NO face, NO facial features, NO eyes, mouth or nose, and NO human head. Do not render angels as people. This applies to every angel, seraph, cherub or heavenly messenger, in the foreground or the background, no matter how small.`;
 
     // ── CAPTION SPACE ───────────────────────────────────────────────────────
     // Reserve a calm band along the bottom of story-page illustrations so the app
     // can auto-place the story text there without overlapping faces or action.
-    // This is what lets caption placement/sizing run almost fully autonomously —
+    // This is what lets caption placement/sizing run almost fully autonomously -
     // there is always a clean, low-detail zone waiting for the text.
 
-    // Final, most-salient reminder — image models weight the end of the prompt heavily.
+    // Final, most-salient reminder - image models weight the end of the prompt heavily.
     if (cappedRefs.length > 0) {
       const hasSheet = cappedRefs.some((r) => !r.isPhoto);
-      imagePrompt += ` \n\nFINAL CHECK BEFORE RENDERING (highest priority, overrides everything else): (1) each named child appears EXACTLY ONCE in the image — no duplicates, no twins, no reflections, no second copy in the background; (2) each child's hair color and hair style EXACTLY match their character sheet.`;
+      imagePrompt += ` \n\nFINAL CHECK BEFORE RENDERING (highest priority, overrides everything else): (1) each named child appears EXACTLY ONCE in the image - no duplicates, no twins, no reflections, no second copy in the background; (2) each child's hair color and hair style EXACTLY match their character sheet.`;
       if (hasSheet) {
-        imagePrompt += ` (3) OUTFIT — the children have travelled INTO this Torah story's biblical era, so dress each child in modest, PERIOD-AUTHENTIC clothing for that era: flowing ankle-length tunics/robes, era-appropriate cloth head coverings, sashes, simple sandals — NEVER modern clothing (no button-down shirts, trousers, modern dresses, t-shirts, jeans, or sneakers). Keep each child in the SAME era-appropriate outfit on EVERY page — match the outfit on their character sheet, and do NOT let the scene change what they wear. (Boys age 3+ keep peyos, a covered head, and tzitzis in era-appropriate form; girls stay fully tznius.)`;
+        imagePrompt += ` (3) OUTFIT - the children have travelled INTO this Torah story's biblical era, so dress each child in modest, PERIOD-AUTHENTIC clothing for that era: flowing ankle-length tunics/robes, era-appropriate cloth head coverings, sashes, simple sandals - NEVER modern clothing (no button-down shirts, trousers, modern dresses, t-shirts, jeans, or sneakers). Keep each child in the SAME era-appropriate outfit on EVERY page - match the outfit on their character sheet, and do NOT let the scene change what they wear. (Boys age 3+ keep peyos, a covered head, and tzitzis in era-appropriate form; girls stay fully tznius.)`;
       }
     }
 
@@ -572,7 +572,7 @@ serve(async (req) => {
     // the (full-color) character sheet attached for consistency, the model can
     // leave colour/tints inside the outlines. A luminance threshold keeps the
     // dark OUTLINES black and whitens everything else (fills, tints, stray light
-    // rays) — leaving clean empty shapes for a child to color. Fail-open.
+    // rays) - leaving clean empty shapes for a child to color. Fail-open.
     // NOTE: coloring pages are converted to clean black-and-white line art on
     // the CLIENT now (src/lib/lineArt.ts), not here. Doing the ImageScript
     // decode + threshold + fill-hollowing + re-encode on the edge blew the
@@ -585,13 +585,13 @@ serve(async (req) => {
     const generateOnce = async (): Promise<string> => {
     // ============= MODEL DISPATCH =============
     // Nano Banana 2 (Gemini 3.1 Flash Image) is the primary generator. An admin
-    // can still route to OpenAI by selecting a gpt-image model in the CMS — that
+    // can still route to OpenAI by selecting a gpt-image model in the CMS - that
     // path goes through images/edits for likeness and falls back to Gemini on
     // error or when OpenAI is unavailable.
     const requestedImageModel = customImageModel || "gemini-3.1-flash-image-preview";
     // The front cover always carries the MOST reference images of any page in
     // the book (every recurring Torah character is attached, not just the ones
-    // mentioned on a given page, capped at 4) plus a title-safe-area scene —
+    // mentioned on a given page, capped at 4) plus a title-safe-area scene -
     // the single most complex generation in the book. That combination is what
     // was failing against OpenAI's images/edits endpoint while ordinary pages
     // (fewer/no side-character refs) succeeded. Keep the cover on the same
@@ -614,7 +614,7 @@ serve(async (req) => {
           // square and then heavily cropped: coloring is portrait (8.5×11), board
           // is a wide spread (~2:1), everything else is a square page.
           const size = isColoring ? "1024x1536" : isSpreadFormat ? "1536x1024" : "1024x1024";
-          // Coloring pages are the ones reported as low quality — request the
+          // Coloring pages are the ones reported as low quality - request the
           // top quality tier for them specifically (other formats stay at the
           // existing "medium" tier rather than doubling cost/latency broadly).
           const quality = isColoring ? "high" : "medium";
@@ -625,7 +625,7 @@ serve(async (req) => {
             fd.append("prompt", imagePrompt);
             fd.append("size", size);
             fd.append("quality", quality);
-            fd.append("output_format", "jpeg"); // small JPEG straight from the model — no in-edge re-encoding
+            fd.append("output_format", "jpeg"); // small JPEG straight from the model - no in-edge re-encoding
             fd.append("output_compression", "80");
             fd.append("n", "1");
             for (const ib of imageBlobs) fd.append("image[]", ib.blob, ib.name);
@@ -649,27 +649,27 @@ serve(async (req) => {
               // Return the model image as-is. Do NOT upscale in-edge: decoding +
               // resizing the image with ImageScript exceeds the edge CPU/memory
               // budget on gpt-image-2's larger output, and the runtime kills the
-              // worker with a 546 WORKER_RESOURCE_LIMIT (not a catchable error) —
+              // worker with a 546 WORKER_RESOURCE_LIMIT (not a catchable error) -
               // which is what was leaving pages blank. Any print-resolution
               // upscaling must happen off-edge (client-side / at submit time).
               return `data:image/jpeg;base64,${b64}`;
             }
-            console.error("OpenAI returned no image — falling back to Gemini.");
+            console.error("OpenAI returned no image - falling back to Gemini.");
           } else {
             const errTxt = await openaiResp.text();
-            console.error(`OpenAI ${requestedImageModel} error ${openaiResp.status}: ${errTxt.slice(0, 200)} — falling back to Gemini.`);
+            console.error(`OpenAI ${requestedImageModel} error ${openaiResp.status}: ${errTxt.slice(0, 200)} - falling back to Gemini.`);
           }
         } catch (e) {
-          console.error("OpenAI image generation threw — falling back to Gemini:", e);
+          console.error("OpenAI image generation threw - falling back to Gemini:", e);
         }
       } else {
-        console.warn("OPENAI_API_KEY not configured — falling back to Gemini.");
+        console.warn("OPENAI_API_KEY not configured - falling back to Gemini.");
       }
     }
     // ============= END OPENAI; fall through to Gemini fallback =============
 
     // Only seed the Gemini list with customImageModel when it's actually a
-    // Gemini-style name — for a cover forced off OpenAI (isOpenAI false above
+    // Gemini-style name - for a cover forced off OpenAI (isOpenAI false above
     // even though the requested model is an OpenAI one), customImageModel would
     // otherwise be an OpenAI model name that Google's endpoint can't serve.
     const customIsGemini = typeof customImageModel === "string" && !/^(gpt-image|dall-e)/i.test(customImageModel);
@@ -684,7 +684,7 @@ serve(async (req) => {
 
     // Full Nano Banana 2 leads at 2K for every page (per user: lite's 1K output
     // read as low quality in print). Lite stays in the chain as a fast fallback
-    // — but never for the COVER, whose sharpness matters most.
+    // - but never for the COVER, whose sharpness matters most.
     const modelChain = [...new Set(imageModels)].filter(
       (m) => pageType !== "cover" || !m.includes("lite"),
     );
@@ -701,7 +701,7 @@ serve(async (req) => {
     // page. A 429 gets ONE short backoff + same-model retry first, since preview
     // models rate-limit in bursts under the orchestrator's concurrency.
     for (const model of modelChain) {
-      // Out of budget for another full attempt — fall through to the 1K rescue
+      // Out of budget for another full attempt - fall through to the 1K rescue
       // (fast) instead of starting a 2K render we'd have to abort mid-flight.
       if (lastErrorStatus !== null && remainingMs() < 45_000) break;
       let modelDone = false;
@@ -711,7 +711,7 @@ serve(async (req) => {
           const generationConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
           if (model.startsWith("gemini-3")) {
             // 2K on every gemini-3 model EXCEPT lite (Nano Banana 2 Lite only
-            // outputs 1K — asking it for 2K would get the request rejected and
+            // outputs 1K - asking it for 2K would get the request rejected and
             // skip the model entirely, defeating its speed/cost advantage).
             const wants2K = !model.includes("lite");
             const imageConfig = { ...(wants2K ? { imageSize: "2K" } : {}), ...(aspectRatio ? { aspectRatio } : {}) };
@@ -733,10 +733,10 @@ serve(async (req) => {
           );
         } catch (e) {
           const isTimeout = e instanceof DOMException && e.name === "AbortError";
-          console.error(`Gemini model ${model} ${isTimeout ? "timed out" : "threw"} — trying next model:`, e);
+          console.error(`Gemini model ${model} ${isTimeout ? "timed out" : "threw"} - trying next model:`, e);
           lastErrorStatus = isTimeout ? 504 : 500;
           lastErrorBody = String(e);
-          break; // next model — a hung model won't improve on an immediate retry
+          break; // next model - a hung model won't improve on an immediate retry
         }
 
         if (attempt.ok) {
@@ -757,7 +757,7 @@ serve(async (req) => {
             await sleep(7_000); // brief cool-off, then retry the same model once
             continue;
           }
-          break; // still limited — fall through to the next model's separate quota
+          break; // still limited - fall through to the next model's separate quota
         }
 
         const retryableModelError =
@@ -767,17 +767,17 @@ serve(async (req) => {
         if (!retryableModelError) {
           throw new Error(`Gemini image generation error [${attempt.status}]`);
         }
-        break; // model unavailable — next model
+        break; // model unavailable - next model
       }
       if (response) break;
     }
 
-    // RESCUE PASS: if every model TIMED OUT (Gemini running slow — 2K renders
+    // RESCUE PASS: if every model TIMED OUT (Gemini running slow - 2K renders
     // with reference images can outlast even the long timeout), try once more at
     // the default 1K size, which renders much faster. A slightly softer page
     // beats a failed one, and the admin can regenerate it at full quality later.
     if (!response && !saw429 && lastErrorStatus === 504 && remainingMs() > 20_000) {
-      // Lite is the fastest 1K model there is — exactly what a rescue wants.
+      // Lite is the fastest 1K model there is - exactly what a rescue wants.
       const rescueModel = "gemini-3.1-flash-lite-image";
       const rescueConfig: Record<string, unknown> = { responseModalities: ["TEXT", "IMAGE"] };
       if (rescueModel.startsWith("gemini-3") && aspectRatio) rescueConfig.imageConfig = { aspectRatio };
@@ -805,7 +805,7 @@ serve(async (req) => {
 
     if (!response) {
       if (saw429) {
-        const rateErr = new Error("Rate limited — please try again in a moment.") as Error & { status?: number };
+        const rateErr = new Error("Rate limited - please try again in a moment.") as Error & { status?: number };
         rateErr.status = 429;
         throw rateErr;
       }
@@ -829,7 +829,7 @@ serve(async (req) => {
       // A blocked generation comes back OK-status but with no image and a
       // safety/blocked finishReason (Gemini's image-safety filter). Tag it so
       // the caller can retry with a softened, child-friendly prompt instead of
-      // failing the page outright — this is the usual cause of certain scenes
+      // failing the page outright - this is the usual cause of certain scenes
       // (e.g. Tisha B'Av churban: fire, siege, mourning) failing every time.
       const fr = String(data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason || "");
       const err = new Error(`No image returned from Gemini${fr ? ` (${fr})` : ""}`) as Error & { safetyBlocked?: boolean };
@@ -843,8 +843,8 @@ serve(async (req) => {
     // ── CHARACTER QA GATE ────────────────────────────────────────────────────
     // Prompt rules steer, but they don't guarantee. After generating, a fast
     // vision model inspects the page against the character sheet(s) for the
-    // three failure modes users actually see — duplicated child, wrong hair
-    // color, wrong outfit — and, on failure, ONE corrective regeneration runs
+    // three failure modes users actually see - duplicated child, wrong hair
+    // color, wrong outfit - and, on failure, ONE corrective regeneration runs
     // with the inspector's findings appended to the prompt. Fail-open: any QA
     // error keeps the first image.
     const sheetRefs = cappedRefs.filter((r) => !r.isPhoto);
@@ -878,28 +878,28 @@ serve(async (req) => {
           .filter((c: any) => c?.name && c?.age)
           .map((c: any) => `${c.name} is ${c.age} years old`)
           .join("; ") || "ages as shown on the sheets";
-        // Image 1 is a colorless line-art page for coloring books — the sheets
+        // Image 1 is a colorless line-art page for coloring books - the sheets
         // are still full-color, so a color-based hair check would ALWAYS "fail"
         // (there's no color at all to compare). Judge hair by STYLE/shape instead.
         const hairDefectLine = isColoringPage
-          ? "2) hairMismatch — a star child's hair STYLE or length clearly differs from their character sheet (e.g. short hair on the page but long/braided on the sheet). Ignore color — this page has none."
-          : "2) hairMismatch — a star child's hair COLOR clearly differs from their character sheet (e.g. blonde on the page but brown on the sheet).";
-        // Teaser covers intentionally re-dress the kids — a "wrong" outfit is
+          ? "2) hairMismatch - a star child's hair STYLE or length clearly differs from their character sheet (e.g. short hair on the page but long/braided on the sheet). Ignore color - this page has none."
+          : "2) hairMismatch - a star child's hair COLOR clearly differs from their character sheet (e.g. blonde on the page but brown on the sheet).";
+        // Teaser covers intentionally re-dress the kids - a "wrong" outfit is
         // correct there, so the inspector must not flag (and re-roll) it.
         const outfitDefectLine = outfitVariant
-          ? "3) outfitMismatch — IGNORE this defect for this page: the outfit was INTENTIONALLY changed for this special cover, so clothing that differs from the sheet is CORRECT; always answer false."
-          : "3) outfitMismatch — a star child's clothing shape/style clearly differs from the outfit on their character sheet (e.g. modern t-shirt instead of the sheet outfit).";
-        qaParts.push({ text: `You are a strict QA inspector for a children's book. Image 1 is a GENERATED book page${isColoringPage ? " (a black-and-white LINE-ART coloring page — judge shapes/silhouettes only, ignore that it has no color)" : ""}. The following ${usableSheets.length} image(s) are the OFFICIAL character sheet(s) for the star child(ren): ${names}. Inspect the generated page for ONLY these defects:
-1) duplicate — the SAME star child appears more than once in the page (a twin, clone, mirror or extra copy of the same child).
+          ? "3) outfitMismatch - IGNORE this defect for this page: the outfit was INTENTIONALLY changed for this special cover, so clothing that differs from the sheet is CORRECT; always answer false."
+          : "3) outfitMismatch - a star child's clothing shape/style clearly differs from the outfit on their character sheet (e.g. modern t-shirt instead of the sheet outfit).";
+        qaParts.push({ text: `You are a strict QA inspector for a children's book. Image 1 is a GENERATED book page${isColoringPage ? " (a black-and-white LINE-ART coloring page - judge shapes/silhouettes only, ignore that it has no color)" : ""}. The following ${usableSheets.length} image(s) are the OFFICIAL character sheet(s) for the star child(ren): ${names}. Inspect the generated page for ONLY these defects:
+1) duplicate - the SAME star child appears more than once in the page (a twin, clone, mirror or extra copy of the same child).
 ${hairDefectLine}
 ${outfitDefectLine}
-4) ageMismatch — a star child looks CLEARLY older or younger than their real age (${agesLine}) — e.g. drawn as a teenager or grown child when they should be a toddler.
-5) styleMismatch — the page is clearly NOT rendered as a ${styleName} (e.g. a flat 2D cartoon or a real photograph when it must be a 3D CGI render).
-6) flatBand — a flat, solid-color, EMPTY horizontal band or strip (top or bottom) that looks like a blank text box or pasted-on panel, OR a visible horizontal SEAM where the top region does not continue the same scene — e.g. TWO different skies, a straight line where two images appear joined, or mismatched lighting/palette between a top strip and the rest of the image.
-7) extraAdult — a modern-day parent or family adult (father/Tatty, mother/Mommy, grandparent, teacher) appears WITH the star child(ren). Adults in biblical/Torah dress who belong to the Torah scene are FINE and must NOT be flagged.
-8) bookOnFloor — a book, sefer, chumash, or siddur is lying on the floor, rug, or ground (books held in hands or on tables/shelves/shtenders are fine).
-9) bakedText — clearly readable TEXT is painted into the image itself: a title, a child's name, a tagline, a caption, or any legible words, letters, or numbers anywhere (ignore faint, illegible decorative marks). All wording is overlaid later by software, so ANY painted text is a defect.
-Judge ONLY the star child(ren) shown on the sheets for defects 1-4 — ignore background/biblical figures. Be tolerant of art-style differences, lighting, and pose; flag only CLEAR problems. Reply with STRICT minified JSON only, no prose: {"duplicate":false,"hairMismatch":false,"outfitMismatch":false,"ageMismatch":false,"styleMismatch":false,"flatBand":false,"extraAdult":false,"bookOnFloor":false,"bakedText":false,"details":""}` });
+4) ageMismatch - a star child looks CLEARLY older or younger than their real age (${agesLine}) - e.g. drawn as a teenager or grown child when they should be a toddler.
+5) styleMismatch - the page is clearly NOT rendered as a ${styleName} (e.g. a flat 2D cartoon or a real photograph when it must be a 3D CGI render).
+6) flatBand - a flat, solid-color, EMPTY horizontal band or strip (top or bottom) that looks like a blank text box or pasted-on panel, OR a visible horizontal SEAM where the top region does not continue the same scene - e.g. TWO different skies, a straight line where two images appear joined, or mismatched lighting/palette between a top strip and the rest of the image.
+7) extraAdult - a modern-day parent or family adult (father/Tatty, mother/Mommy, grandparent, teacher) appears WITH the star child(ren). Adults in biblical/Torah dress who belong to the Torah scene are FINE and must NOT be flagged.
+8) bookOnFloor - a book, sefer, chumash, or siddur is lying on the floor, rug, or ground (books held in hands or on tables/shelves/shtenders are fine).
+9) bakedText - clearly readable TEXT is painted into the image itself: a title, a child's name, a tagline, a caption, or any legible words, letters, or numbers anywhere (ignore faint, illegible decorative marks). All wording is overlaid later by software, so ANY painted text is a defect.
+Judge ONLY the star child(ren) shown on the sheets for defects 1-4 - ignore background/biblical figures. Be tolerant of art-style differences, lighting, and pose; flag only CLEAR problems. Reply with STRICT minified JSON only, no prose: {"duplicate":false,"hairMismatch":false,"outfitMismatch":false,"ageMismatch":false,"styleMismatch":false,"flatBand":false,"extraAdult":false,"bookOnFloor":false,"bakedText":false,"details":""}` });
         const r = await fetchWithTimeout(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
           {
@@ -916,17 +916,17 @@ Judge ONLY the star child(ren) shown on the sheets for defects 1-4 — ignore ba
         if (!m) return null;
         const v = JSON.parse(m[0]);
         const issues: string[] = [];
-        if (v.duplicate) issues.push("the same star child appeared MORE THAN ONCE — render each named child EXACTLY ONCE, with no duplicate anywhere in the scene");
+        if (v.duplicate) issues.push("the same star child appeared MORE THAN ONCE - render each named child EXACTLY ONCE, with no duplicate anywhere in the scene");
         if (v.hairMismatch) issues.push(isColoringPage
-          ? "a star child's HAIR STYLE/length did not match the character sheet — copy the exact hair style and length from the sheet"
-          : "a star child's HAIR COLOR did not match the character sheet — copy the exact hair color and shade from the sheet");
-        if (v.outfitMismatch) issues.push("a star child's OUTFIT did not match the character sheet — dress them in exactly the outfit shown on the sheet");
-        if (v.ageMismatch) issues.push(`a star child was drawn at the WRONG AGE — render each child at their exact stated age (${agesLine}) with true proportions, never older or younger`);
-        if (v.styleMismatch) issues.push(`the page was NOT rendered in the required art style — the final image must be a ${styleName}, matching every other page of the book`);
-        if (v.flatBand) issues.push("the image contained a pasted-on band/strip or a second sky with a visible horizontal seam — repaint as ONE single continuous scene with ONE sky and ONE lighting scheme; clouds, light, and color must flow seamlessly from the very top edge down into the scene, with no line where two images appear joined");
-        if (v.extraAdult) issues.push("a modern parent/family adult appeared with the star child(ren) — remove ALL parents and modern adults; show ONLY the star child(ren), plus Torah-narrative figures if the scene depicts them");
-        if (v.bookOnFloor) issues.push("a sefer/book was lying on the floor or ground — kavod haseforim: books must be held in hands or rest on a table, shtender, or shelf, NEVER on the floor");
-        if (v.bakedText) issues.push("painted TEXT appeared in the image — repaint the SAME scene completely WORDLESS: no titles, names, taglines, captions, letters, words, or numbers anywhere; all wording is added later by software");
+          ? "a star child's HAIR STYLE/length did not match the character sheet - copy the exact hair style and length from the sheet"
+          : "a star child's HAIR COLOR did not match the character sheet - copy the exact hair color and shade from the sheet");
+        if (v.outfitMismatch) issues.push("a star child's OUTFIT did not match the character sheet - dress them in exactly the outfit shown on the sheet");
+        if (v.ageMismatch) issues.push(`a star child was drawn at the WRONG AGE - render each child at their exact stated age (${agesLine}) with true proportions, never older or younger`);
+        if (v.styleMismatch) issues.push(`the page was NOT rendered in the required art style - the final image must be a ${styleName}, matching every other page of the book`);
+        if (v.flatBand) issues.push("the image contained a pasted-on band/strip or a second sky with a visible horizontal seam - repaint as ONE single continuous scene with ONE sky and ONE lighting scheme; clouds, light, and color must flow seamlessly from the very top edge down into the scene, with no line where two images appear joined");
+        if (v.extraAdult) issues.push("a modern parent/family adult appeared with the star child(ren) - remove ALL parents and modern adults; show ONLY the star child(ren), plus Torah-narrative figures if the scene depicts them");
+        if (v.bookOnFloor) issues.push("a sefer/book was lying on the floor or ground - kavod haseforim: books must be held in hands or rest on a table, shtender, or shelf, NEVER on the floor");
+        if (v.bakedText) issues.push("painted TEXT appeared in the image - repaint the SAME scene completely WORDLESS: no titles, names, taglines, captions, letters, words, or numbers anywhere; all wording is added later by software");
         if (issues.length === 0) return null;
         const details = typeof v.details === "string" && v.details.trim() ? ` (inspector notes: ${v.details.slice(0, 200)})` : "";
         return issues.join("; ") + details;
@@ -943,11 +943,11 @@ Judge ONLY the star child(ren) shown on the sheets for defects 1-4 — ignore ba
     // depict destruction that trips Gemini's image-safety filter even though the
     // book wants a gentle, kid-safe rendering. On a block, retry with escalating
     // softening: first ask for a gentle/symbolic version of the SAME scene, then
-    // — if still blocked — abandon the scene entirely for a calm, generic image
+    // - if still blocked - abandon the scene entirely for a calm, generic image
     // of the children, so a blocked page never hard-fails (500) the whole page.
     const SAFETY_ESCALATIONS = [
-      ` \n\nIMPORTANT: Render this GENTLY and symbolically for a young child's storybook — absolutely NO fire, flames, smoke, weapons, blood, injury, death, rubble of bodies, or frightening/graphic imagery. Keep it calm, wholesome, tasteful, and hopeful; suggest sad or difficult moments softly (a lone tear, a quiet embrace, distant simple buildings) rather than depicting any violence or destruction.`,
-      ` \n\nDO NOT depict the difficult event at all. Instead draw ONLY the star child(ren) standing quietly and thoughtfully in a calm, peaceful, entirely non-violent setting with soft light — a gentle, hopeful, wholesome scene suitable for a young child. Nothing frightening, nothing on fire, no destruction, no weapons, no people in distress.`,
+      ` \n\nIMPORTANT: Render this GENTLY and symbolically for a young child's storybook - absolutely NO fire, flames, smoke, weapons, blood, injury, death, rubble of bodies, or frightening/graphic imagery. Keep it calm, wholesome, tasteful, and hopeful; suggest sad or difficult moments softly (a lone tear, a quiet embrace, distant simple buildings) rather than depicting any violence or destruction.`,
+      ` \n\nDO NOT depict the difficult event at all. Instead draw ONLY the star child(ren) standing quietly and thoughtfully in a calm, peaceful, entirely non-violent setting with soft light - a gentle, hopeful, wholesome scene suitable for a young child. Nothing frightening, nothing on fire, no destruction, no weapons, no people in distress.`,
     ];
     let finalImageUrl: string;
     try {
@@ -956,7 +956,7 @@ Judge ONLY the star child(ren) shown on the sheets for defects 1-4 — ignore ba
       if (!isSafetyBlocked(e)) throw e;
       let recovered: string | undefined;
       for (const escalation of SAFETY_ESCALATIONS) {
-        console.warn("Generation blocked by safety filter — retrying with a softened prompt.");
+        console.warn("Generation blocked by safety filter - retrying with a softened prompt.");
         imagePrompt += escalation;
         parts[parts.length - 1] = { text: imagePrompt };
         try {
@@ -964,7 +964,7 @@ Judge ONLY the star child(ren) shown on the sheets for defects 1-4 — ignore ba
           break;
         } catch (e2) {
           if (!isSafetyBlocked(e2)) throw e2;
-          // else: still blocked — escalate to the next, more neutral prompt
+          // else: still blocked - escalate to the next, more neutral prompt
         }
       }
       if (recovered === undefined) throw e; // exhausted escalations (rare)
@@ -974,20 +974,20 @@ Judge ONLY the star child(ren) shown on the sheets for defects 1-4 — ignore ba
     if (sheetRefs.length > 0 && Date.now() - qaStartedAt < 75_000 && remainingMs() > 35_000) {
       const issues = await qaCheck(finalImageUrl);
       if (issues) {
-        console.warn("QA gate rejected page — regenerating once:", issues);
-        imagePrompt += ` \n\n⚠️ PREVIOUS ATTEMPT REJECTED BY AUTOMATED QA — it had these exact problems: ${issues}. Fix them now: every named child appears EXACTLY ONCE, with hair color, hair style, and outfit copied EXACTLY from their character sheet.`;
+        console.warn("QA gate rejected page - regenerating once:", issues);
+        imagePrompt += ` \n\n⚠️ PREVIOUS ATTEMPT REJECTED BY AUTOMATED QA - it had these exact problems: ${issues}. Fix them now: every named child appears EXACTLY ONCE, with hair color, hair style, and outfit copied EXACTLY from their character sheet.`;
         parts[parts.length - 1] = { text: imagePrompt };
         try {
           finalImageUrl = await generateOnce();
         } catch (e) {
-          console.error("QA retry failed — keeping first attempt:", e);
+          console.error("QA retry failed - keeping first attempt:", e);
         }
       }
     }
 
     // Coloring interior pages are stored as the raw 2K generation; the browser
     // converts them to clean B&W line art at display/print time (see
-    // src/lib/lineArt.ts) — off the edge, where 2K processing is safe.
+    // src/lib/lineArt.ts) - off the edge, where 2K processing is safe.
 
     // Move the finished image into object storage and return its URL, so the
     // caller (generate-book) stores a short URL in pages_data instead of a

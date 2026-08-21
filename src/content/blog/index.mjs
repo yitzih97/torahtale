@@ -1,11 +1,11 @@
-// Blog content — single source of truth shared by the React blog pages
+// Blog content - single source of truth shared by the React blog pages
 // (src/pages/Blog.tsx, BlogArticle.tsx), the static prerender script
 // (scripts/prerender.mjs) and the daily blog agent (scripts/blog-agent.mjs).
 // Plain ESM so both Vite and Node can import it.
 //
 // Articles come from two places:
-//   core/     — hand-authored evergreen guides (how it works, gift guides…)
-//   stories/  — one article per story in our collections, written daily by the
+//   core/     - hand-authored evergreen guides (how it works, gift guides…)
+//   stories/  - one article per story in our collections, written daily by the
 //               blog agent and committed to the repo like any other content.
 //
 // bodyHtml is trusted HTML: hand-authored in core/, and assembled from a fixed
@@ -13,7 +13,7 @@
 //
 // Each article carries top-level ENGLISH fields (used by the prerender/SEO
 // layer) plus a `he` object with the Hebrew version of every reader-facing
-// field. Use `localizeArticle(article, lang)` to get the right variant —
+// field. Use `localizeArticle(article, lang)` to get the right variant -
 // Yiddish falls back to Hebrew.
 
 import howToCreate from "./core/how-to-create-a-personalized-torah-storybook.mjs";
@@ -36,7 +36,7 @@ export * from "./shared.mjs";
  * @property {string} [category]    // guide | gifts | torah | neviim | ketuvim | megillot | holiday | educational
  * @property {string} [portion]     // TORAH_PORTIONS value this article covers, when it covers one
  * @property {string[]} [keywords]
- * @property {string[]} [keyFacts]  // short, quotable answers — rendered up top, also fed to answer engines
+ * @property {string[]} [keyFacts]  // short, quotable answers - rendered up top, also fed to answer engines
  * @property {{q: string, a: string}[]} [faq]  // rendered as a FAQ section + FAQPage structured data
  * @property {string} bodyHtml
  * @property {Object} he

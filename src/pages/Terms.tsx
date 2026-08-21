@@ -114,7 +114,7 @@ const EnContent = () => (
           <thead><tr className="bg-background/50"><th className="text-left p-4 font-semibold text-foreground">Plan</th><th className="text-left p-4 font-semibold text-foreground">Price</th><th className="text-left p-4 font-semibold text-foreground">Includes</th></tr></thead>
           <tbody className="divide-y divide-border/30">
             <tr><td className="p-4 font-medium text-foreground">Parsha Series (monthly)</td><td className="p-4">from $74.77/month</td><td className="p-4">4 personalized seforim per month (Weekly Parsha + Yomim Tovim), shipped together in one delivery</td></tr>
-            <tr><td className="p-4 font-medium text-foreground">Year Bundle</td><td className="p-4">from $932.98/year</td><td className="p-4">52 personalized seforim across the year — best value</td></tr>
+            <tr><td className="p-4 font-medium text-foreground">Year Bundle</td><td className="p-4">from $932.98/year</td><td className="p-4">52 personalized seforim across the year - best value</td></tr>
           </tbody>
         </table>
       </div>
@@ -135,7 +135,7 @@ const EnContent = () => (
           </tbody>
         </table>
       </div>
-      <p className="mt-3">Page count varies by format: 20 pages for the softcover, 24 for the hardcover and the coloring book, and 10 for the board book. Each book includes a custom cover, story pages, and back cover. Shipping is charged per order and varies by destination: in the United States standard is $3.00 (5–8 business days) and express $6.00 (3 business days); to Israel standard is $5.95 (9–14 business days) and express $10.00 (5–8 business days). The exact amount is shown at checkout.</p>
+      <p className="mt-3">Page count varies by format: 20 pages for the softcover, 24 for the hardcover and the coloring book, and 10 for the board book. Each book includes a custom cover, story pages, and back cover. Shipping is charged per order and varies by destination: in the United States standard is $3.00 (5-8 business days) and express $6.00 (3 business days); to Israel standard is $5.95 (9-14 business days) and express $10.00 (5-8 business days). The exact amount is shown at checkout.</p>
     </section>
 
     <section id="payments">
@@ -155,7 +155,7 @@ const EnContent = () => (
       <p>Physical books are printed and fulfilled through our print-on-demand partner, Printify. By placing an order, you acknowledge and agree that:</p>
       <ul className="list-disc pl-6 mt-3 space-y-1.5">
         <li>Your shipping address and book content will be shared with Printify for production and delivery</li>
-        <li>Delivery times typically range from <strong className={b}>5–14 business days</strong> depending on your location</li>
+        <li>Delivery times typically range from <strong className={b}>5-14 business days</strong> depending on your location</li>
         <li>International orders may be subject to customs duties and import taxes, which are the responsibility of the buyer</li>
         <li>We are not responsible for delays caused by shipping carriers, customs processing, or force majeure events</li>
         <li>Delivery confirmation is provided via the tracking information shared at the time of shipment</li>
@@ -172,7 +172,7 @@ const EnContent = () => (
 
     <section id="user-content">
       <h2 className={h2Class}>User Content</h2>
-      <p>By submitting content to Torah Tale (including child profiles, photos, descriptions, and preferences), you grant us a limited, non-exclusive license to use that content solely for the purpose of providing the Service — specifically, generating personalized book content.</p>
+      <p>By submitting content to Torah Tale (including child profiles, photos, descriptions, and preferences), you grant us a limited, non-exclusive license to use that content solely for the purpose of providing the Service - specifically, generating personalized book content.</p>
       <p className="mt-3">You represent and warrant that:</p>
       <ul className="list-disc pl-6 mt-3 space-y-1.5">
         <li>You own or have the right to use all content you submit</li>
@@ -360,7 +360,7 @@ const HeContent = () => (
           </tbody>
         </table>
       </div>
-      <p className="mt-3">מספר העמודים משתנה לפי הפורמט: 20 עמודים בכריכה רכה, 24 בכריכה קשה ובספר הצביעה, ו-10 בספר הקרטון. כל ספר כולל כריכה מותאמת, עמודי סיפור וכריכה אחורית. דמי המשלוח נגבים לכל הזמנה ומשתנים לפי היעד: בישראל משלוח רגיל ₪19 (9–14 ימי עסקים) ומשלוח מהיר ₪31 (5–8 ימי עסקים); בארצות הברית משלוח רגיל $3.00 (5–8 ימי עסקים) ומשלוח מהיר $6.00 (3 ימי עסקים). הסכום המדויק מוצג בתשלום.</p>
+      <p className="mt-3">מספר העמודים משתנה לפי הפורמט: 20 עמודים בכריכה רכה, 24 בכריכה קשה ובספר הצביעה, ו-10 בספר הקרטון. כל ספר כולל כריכה מותאמת, עמודי סיפור וכריכה אחורית. דמי המשלוח נגבים לכל הזמנה ומשתנים לפי היעד: בישראל משלוח רגיל ₪19 (9-14 ימי עסקים) ומשלוח מהיר ₪31 (5-8 ימי עסקים); בארצות הברית משלוח רגיל $3.00 (5-8 ימי עסקים) ומשלוח מהיר $6.00 (3 ימי עסקים). הסכום המדויק מוצג בתשלום.</p>
     </section>
 
     <section id="payments">
@@ -380,7 +380,7 @@ const HeContent = () => (
       <p>ספרים פיזיים מודפסים ומופצים דרך שותף ההדפסה לפי דרישה שלנו, Printify. בביצוע הזמנה, אתם מאשרים ומסכימים כי:</p>
       <ul className="list-disc pl-6 mt-3 space-y-1.5">
         <li>כתובת המשלוח ותוכן הספר שלכם ישותפו עם Printify לייצור ומשלוח</li>
-        <li>זמני אספקה נעים בדרך כלל בין <strong className={b}>5–14 ימי עסקים</strong> בהתאם למיקומכם</li>
+        <li>זמני אספקה נעים בדרך כלל בין <strong className={b}>5-14 ימי עסקים</strong> בהתאם למיקומכם</li>
         <li>הזמנות בינלאומיות עשויות להיות כפופות למכס ומיסי יבוא, שהם באחריות הקונה</li>
         <li>איננו אחראים לעיכובים הנגרמים על ידי חברות שילוח, עיבוד מכס או אירועי כוח עליון</li>
         <li>אישור מסירה מסופק באמצעות מידע מעקב המשותף בעת המשלוח</li>
@@ -397,7 +397,7 @@ const HeContent = () => (
 
     <section id="user-content">
       <h2 className={h2Class}>תוכן משתמש</h2>
-      <p>בהגשת תוכן ל-Torah Tale (כולל פרופילי ילדים, תמונות, תיאורים והעדפות), אתם מעניקים לנו רישיון מוגבל ולא-בלעדי לשימוש בתוכן זה אך ורק לצורך מתן השירות — ספציפית, יצירת תוכן ספר מותאם אישית.</p>
+      <p>בהגשת תוכן ל-Torah Tale (כולל פרופילי ילדים, תמונות, תיאורים והעדפות), אתם מעניקים לנו רישיון מוגבל ולא-בלעדי לשימוש בתוכן זה אך ורק לצורך מתן השירות - ספציפית, יצירת תוכן ספר מותאם אישית.</p>
       <p className="mt-3">אתם מצהירים ומתחייבים כי:</p>
       <ul className="list-disc pl-6 mt-3 space-y-1.5">
         <li>אתם בעלי הזכויות או שיש לכם הרשאה לשימוש בכל תוכן שאתם מגישים</li>
@@ -539,7 +539,7 @@ const Terms = () => {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
       <SEO
-        title="Terms of Service — Torah Tale"
+        title="Terms of Service - Torah Tale"
         description="Read the Torah Tale terms of service covering accounts, subscriptions, book orders, refunds, and acceptable use."
         path="/terms"
       />

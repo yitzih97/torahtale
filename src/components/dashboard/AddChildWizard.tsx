@@ -377,7 +377,7 @@ export function AddChildWizard({ open, onClose, onSubmit, isPending, initialData
                       autoFocus
                     />
 
-                    {/* Optional per-language spellings — pick a language, then
+                    {/* Optional per-language spellings - pick a language, then
                         spell the name in it right here. */}
                     <div className="space-y-3">
                       <p className="text-xs text-muted-foreground">{t.dash.nameOtherLangs}</p>

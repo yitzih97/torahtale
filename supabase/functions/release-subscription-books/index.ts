@@ -6,8 +6,8 @@ import { addDaysISO, booksPerRelease, hourET, todayET } from "../_shared/subscri
 // Monday 9am-ET release. Triggered by the release-subscription-books GitHub
 // Actions cron (and re-runnable safely by an admin). For each active subscription
 // that has paid credit (books_remaining > 0) and is due (next_release_date <=
-// today ET), mint that plan's BATCH of books — one for the weekly plan, four for
-// the Parsha Series and the Year Bundle (see booksPerRelease) — then decrement
+// today ET), mint that plan's BATCH of books - one for the weekly plan, four for
+// the Parsha Series and the Year Bundle (see booksPerRelease) - then decrement
 // the credit by what was minted and advance next_release_date past the weeks the
 // batch covers. Idempotent: a second call the same day finds next_release_date
 // already advanced and does nothing, so the twin 13:00/14:00-UTC cron firings
@@ -28,7 +28,7 @@ serve(async (req) => {
 
   const CRON_SECRET = Deno.env.get("CRON_SECRET");
   if (!CRON_SECRET) {
-    console.error("CRON_SECRET not configured — refusing to run.");
+    console.error("CRON_SECRET not configured - refusing to run.");
     return new Response(JSON.stringify({ error: "Not configured" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -78,7 +78,7 @@ serve(async (req) => {
         1,
         Math.min(booksPerRelease((sub as any).frequency), Number((sub as any).books_remaining) || 1),
       );
-      // One id shared by every book in the batch — printify-submit groups on this
+      // One id shared by every book in the batch - printify-submit groups on this
       // to place ONE order for the set. Derived from the subscription + release
       // date rather than random so a partially-failed run regroups identically.
       const shipmentBatchId = `${(sub as any).id}:${releaseDate}`;
@@ -90,7 +90,7 @@ serve(async (req) => {
         const bookDate = addDaysISO(releaseDate, i * 7);
         const parsha = await getUpcomingParshaLive(new Date(`${bookDate}T12:00:00Z`));
         if (!parsha) {
-          console.error(`PARSHA_CALENDAR exhausted for release ${bookDate} (sub ${(sub as any).id}) — book minted with no portion; extend the calendar.`);
+          console.error(`PARSHA_CALENDAR exhausted for release ${bookDate} (sub ${(sub as any).id}) - book minted with no portion; extend the calendar.`);
         }
 
         const { data: newBook, error: insErr } = await supabase.from("books").insert({
@@ -110,7 +110,7 @@ serve(async (req) => {
             frequency: (sub as any).frequency,
             parsha,
             releaseDate: bookDate,
-            // Shared by the whole month's set — the handle printify-submit uses to
+            // Shared by the whole month's set - the handle printify-submit uses to
             // ship them as one parcel.
             shipmentBatchId,
             batchIndex: i,
@@ -126,7 +126,7 @@ serve(async (req) => {
         mintedIds.push(newBook!.id);
 
         // Auto-start server-side generation for the freshly minted book (no admin
-        // "Play" needed). Best-effort — generate-book returns 202 immediately.
+        // "Play" needed). Best-effort - generate-book returns 202 immediately.
         if (newBook?.id) {
           try {
             await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-book`, {

@@ -55,7 +55,7 @@ const saveVip = (s: Set<string>) => localStorage.setItem(VIP_KEY, JSON.stringify
 
 /**
  * Fallback per-book total from the local row. Real revenue comes from Shopify
- * (see useAdminRevenue) — this only covers rows that were priced locally, and
+ * (see useAdminRevenue) - this only covers rows that were priced locally, and
  * returns 0 for everything else rather than pretending to know.
  */
 const bookTotal = (b: any): number => {
@@ -66,7 +66,7 @@ const bookTotal = (b: any): number => {
 const usd = (n: number, currency = "USD") =>
   new Intl.NumberFormat(undefined, { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
-/** Lifecycle lanes for the segments board — first match wins. */
+/** Lifecycle lanes for the segments board - first match wins. */
 const SEGMENTS: { key: string; label: string; hint: string; match: (e: any) => boolean }[] = [
   { key: "subscribers", label: "Subscribers", hint: "active Parsha Club", match: (e) => e.hasActiveSub },
   { key: "repeat", label: "Repeat buyers", hint: "2+ paid orders", match: (e) => e.paidCount >= 2 },
@@ -106,7 +106,7 @@ export function AdminUsersTab({
   const [orderSummary, setOrderSummary] = useState<UserOrdersSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
 
-  /* Store-wide Shopify revenue — how the list knows what each customer really
+  /* Store-wide Shopify revenue - how the list knows what each customer really
      paid. The local books row has no price, so the old shipping_data.total
      lookup reported $0 for every customer and made "most spend" sort by nothing. */
   const revenueQuery = useAdminRevenue();
@@ -327,7 +327,7 @@ export function AdminUsersTab({
     const firstKidPhoto = uk.find((k: any) => k.photo_url)?.photo_url;
     // Dedupe on the normalized address, so a wizard-shaped row (street/state)
     // and a Shopify-shaped one (address1/province) for the same place collapse
-    // into one entry instead of showing twice — or, worse, all collapsing into
+    // into one entry instead of showing twice - or, worse, all collapsing into
     // a single blank row because they all had an undefined `street`.
     const addresses = ub
       .filter((b: any) => b.shipping_data)
@@ -407,7 +407,7 @@ export function AdminUsersTab({
               { label: "Subs", value: us.length, icon: CalendarHeart },
               { label: "Children", value: uk.length, icon: Users },
               { label: "Spend", value: summaryLoading ? "…" : (orderSummary ? formatMoney({ amount: orderSummary.totalSpent, currency: orderSummary.currency || "USD" }) : usd(spend, currency)), icon: CreditCard },
-              { label: "Last Order", value: lastOrder ? formatDistanceToNow(new Date(lastOrder.created_at)) : "—", icon: Clock },
+              { label: "Last Order", value: lastOrder ? formatDistanceToNow(new Date(lastOrder.created_at)) : "-", icon: Clock },
             ].map((s) => (
               <div key={s.label} className="rounded-xl bg-muted/30 border border-border p-3">
                 <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground"><s.icon className="w-3 h-3" />{s.label}</div>
@@ -486,7 +486,7 @@ export function AdminUsersTab({
                           {book.order_number && <span className="text-muted-foreground font-mono">#{book.order_number}</span>}
                         </p>
                         <p className="text-[10px] text-muted-foreground">
-                          For {book.child_name || "—"} · {getProductType(book)} · {format(new Date(book.paid_at || book.created_at), "MMM d, yyyy")}
+                          For {book.child_name || "-"} · {getProductType(book)} · {format(new Date(book.paid_at || book.created_at), "MMM d, yyyy")}
                         </p>
                       </div>
                     </div>
@@ -506,7 +506,7 @@ export function AdminUsersTab({
                           <Maximize2 className="w-3 h-3" />
                         </Button>
                       )}
-                      {/* has_pages is the list-safe flag — pages_data is deliberately
+                      {/* has_pages is the list-safe flag - pages_data is deliberately
                           not selected for the admin list, so testing it here hid
                           these buttons on every book. */}
                       {book.has_pages && (
@@ -536,7 +536,7 @@ export function AdminUsersTab({
                 {us.map((sub: any) => (
                   <div key={sub.id} className="bg-muted/30 rounded-xl p-3 flex items-center justify-between gap-3 flex-wrap">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-primary truncate">Parsha Club — {sub.child_name || "Child"}</p>
+                      <p className="text-xs font-semibold text-primary truncate">Parsha Club - {sub.child_name || "Child"}</p>
                       <p className="text-[10px] text-muted-foreground">${sub.price_per_week}/{sub.frequency} · {sub.art_style} · next {sub.next_delivery_date}</p>
                     </div>
                     <Select value={sub.status} onValueChange={(s) => updateSubscriptionStatus.mutate({ id: sub.id, status: s })}>
@@ -575,14 +575,14 @@ export function AdminUsersTab({
                       const profit = (bk && o.subtotal) ? getProfit(o.subtotal.amount, bk) : null;
                       return (
                         <tr key={o.bookId} className="border-b border-border last:border-0">
-                          <td className="p-2 text-muted-foreground whitespace-nowrap">{o.placedAt ? format(new Date(o.placedAt), "MMM d, yyyy") : "—"}</td>
-                          <td className="p-2 font-mono">{o.orderName || "—"}</td>
+                          <td className="p-2 text-muted-foreground whitespace-nowrap">{o.placedAt ? format(new Date(o.placedAt), "MMM d, yyyy") : "-"}</td>
+                          <td className="p-2 font-mono">{o.orderName || "-"}</td>
                           <td className="p-2 font-semibold text-primary">{formatMoney(o.total)}{o.refunded && o.refunded.amount > 0 ? <span className="text-destructive font-normal"> (−{formatMoney(o.refunded)})</span> : null}</td>
-                          <td className="p-2 text-muted-foreground">{cogs != null ? `$${cogs.toFixed(2)}` : "—"}</td>
-                          <td className={`p-2 font-medium ${profit != null && profit < 0 ? "text-destructive" : "text-emerald-600"}`}>{profit != null ? `$${profit.toFixed(2)}` : "—"}</td>
+                          <td className="p-2 text-muted-foreground">{cogs != null ? `$${cogs.toFixed(2)}` : "-"}</td>
+                          <td className={`p-2 font-medium ${profit != null && profit < 0 ? "text-destructive" : "text-emerald-600"}`}>{profit != null ? `$${profit.toFixed(2)}` : "-"}</td>
                           <td className="p-2 text-muted-foreground capitalize">{o.payment || "Shopify"}</td>
-                          <td className="p-2"><span className="px-2 py-0.5 rounded-full text-[10px] capitalize bg-muted text-muted-foreground">{(o.financialStatus || "—").toLowerCase().replace(/_/g, " ")}</span></td>
-                          <td className="p-2 text-muted-foreground capitalize">{(o.fulfillmentStatus || "—").toLowerCase().replace(/_/g, " ")}</td>
+                          <td className="p-2"><span className="px-2 py-0.5 rounded-full text-[10px] capitalize bg-muted text-muted-foreground">{(o.financialStatus || "-").toLowerCase().replace(/_/g, " ")}</span></td>
+                          <td className="p-2 text-muted-foreground capitalize">{(o.fulfillmentStatus || "-").toLowerCase().replace(/_/g, " ")}</td>
                           <td className="p-2">
                             {o.orderName && (
                               <a href={`https://admin.shopify.com/orders?query=${encodeURIComponent(o.orderName)}`} target="_blank" rel="noopener" className="text-accent hover:underline inline-flex items-center gap-1">
@@ -610,7 +610,7 @@ export function AdminUsersTab({
                     <div key={i} className="bg-muted/30 rounded-xl p-3 flex items-start gap-2">
                       <MapPin className="w-4 h-4 text-accent mt-0.5" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-primary">{name || "—"}</p>
+                        <p className="text-xs font-semibold text-primary">{name || "-"}</p>
                         <p className="text-[10px] text-muted-foreground">{addr.line}</p>
                         {a.phone && <p className="text-[10px] text-muted-foreground">{a.phone}</p>}
                       </div>
@@ -644,7 +644,7 @@ export function AdminUsersTab({
     </th>
   );
 
-  // Sizes are spelled out rather than interpolated — Tailwind only ships the
+  // Sizes are spelled out rather than interpolated - Tailwind only ships the
   // classes it can see in the source, so `w-${n}` would compile to nothing.
   const Avatar = ({ e, size = "sm" }: { e: any; size?: "sm" | "lg" }) => {
     const photo = e.kids.find((k: any) => k.photo_url)?.photo_url;
@@ -683,7 +683,7 @@ export function AdminUsersTab({
   };
 
   const LastOrderCell = ({ e }: { e: any }) => {
-    if (!e.lastOrder) return <span className="text-[11px] text-muted-foreground">—</span>;
+    if (!e.lastOrder) return <span className="text-[11px] text-muted-foreground">-</span>;
     return (
       <span className="inline-flex flex-col gap-0.5">
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] w-fit ${orderStatusColor(e.lastOrder.status)}`}>
@@ -882,7 +882,7 @@ export function AdminUsersTab({
                           <Avatar e={e} />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <p className="text-xs font-semibold text-primary truncate">{profile.full_name || "—"}</p>
+                              <p className="text-xs font-semibold text-primary truncate">{profile.full_name || "-"}</p>
                               {isVip && <Star className="w-3 h-3 text-[hsl(var(--gold))] fill-[hsl(var(--gold))]" />}
                               {hasActiveSub && <span className="text-[9px] text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950 px-1.5 rounded">sub</span>}
                               {e.needsAction > 0 && (
@@ -943,7 +943,7 @@ export function AdminUsersTab({
                   <Avatar e={e} size="lg" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold text-primary truncate">{profile.full_name || "—"}</p>
+                      <p className="text-sm font-semibold text-primary truncate">{profile.full_name || "-"}</p>
                       {isVip && <Star className="w-3 h-3 text-[hsl(var(--gold))] fill-[hsl(var(--gold))]" />}
                     </div>
                     <p className="text-[10px] text-muted-foreground truncate">{profile.email}</p>
@@ -1013,7 +1013,7 @@ export function AdminUsersTab({
                           <Avatar e={e} />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1">
-                              <p className="text-xs font-semibold text-primary truncate">{e.profile.full_name || "—"}</p>
+                              <p className="text-xs font-semibold text-primary truncate">{e.profile.full_name || "-"}</p>
                               {vip.has(e.profile.id) && <Star className="w-3 h-3 text-[hsl(var(--gold))] fill-[hsl(var(--gold))]" />}
                             </div>
                             <p className="text-[10px] text-muted-foreground truncate">{e.profile.email}</p>
@@ -1042,7 +1042,7 @@ export function AdminUsersTab({
       {/* Pagination */}
       {view !== "segments" && sorted.length > 0 && (
         <div className="flex items-center justify-between flex-wrap gap-2 text-xs text-muted-foreground">
-          <div>Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} of {sorted.length}</div>
+          <div>Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, sorted.length)} of {sorted.length}</div>
           <div className="flex items-center gap-2">
             <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
               <SelectTrigger className="h-8 w-[90px] text-xs"><SelectValue /></SelectTrigger>

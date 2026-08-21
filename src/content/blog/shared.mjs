@@ -1,4 +1,4 @@
-// Shared building blocks for every blog article — hand-authored and generated
+// Shared building blocks for every blog article - hand-authored and generated
 // alike. Plain ESM so both Vite (the React blog pages) and Node (the prerender
 // script and the daily blog agent) can import it.
 //
@@ -57,10 +57,10 @@ export const COVER = (file, alt, caption, rtl = false) => `
 
 // The four real book products, side by side (photos of the actual printed books).
 const PRODUCT_GRID_ITEMS = [
-  ["mockup-softcover.jpg", "Softcover photo book — the printed Torah Tale product", "Softcover 8″×8″", "כריכה רכה 8″×8″"],
-  ["mockup-hardcover.jpg", "Hardcover photo book — the printed Torah Tale product", "Hardcover 8″×8″", "כריכה קשה 8″×8″"],
-  ["mockup-board.jpg", "Board book — the printed Torah Tale product", "Board book 6″×6″", "ספר קרטון 6″×6″"],
-  ["mockup-coloring.jpg", "Matching coloring book — the printed Torah Tale product", "Coloring book 8.5″×11″", "חוברת צביעה 8.5″×11″"],
+  ["mockup-softcover.jpg", "Softcover photo book - the printed Torah Tale product", "Softcover 8″×8″", "כריכה רכה 8″×8″"],
+  ["mockup-hardcover.jpg", "Hardcover photo book - the printed Torah Tale product", "Hardcover 8″×8″", "כריכה קשה 8″×8″"],
+  ["mockup-board.jpg", "Board book - the printed Torah Tale product", "Board book 6″×6″", "ספר קרטון 6″×6″"],
+  ["mockup-coloring.jpg", "Matching coloring book - the printed Torah Tale product", "Coloring book 8.5″×11″", "חוברת צביעה 8.5″×11″"],
 ];
 
 const PRODUCT_GRID_FOR = (he) => `
@@ -75,8 +75,8 @@ const PRODUCT_GRID_FOR = (he) => `
     </div>
     <figcaption style="margin-top:.6rem;text-align:center;font-size:.8rem;color:#8a8578">${
       he
-        ? "הספרים המודפסים האמיתיים — כל פורמט מספר את אותו סיפור אישי."
-        : "The real printed books — every format tells the same personalized story."
+        ? "הספרים המודפסים האמיתיים - כל פורמט מספר את אותו סיפור אישי."
+        : "The real printed books - every format tells the same personalized story."
     }</figcaption>
   </figure>`;
 
@@ -88,20 +88,20 @@ export const PRODUCT_GRID_HE = PRODUCT_GRID_FOR(true);
 // on the home-page gallery), so a story article about, say, Parshas Noach can
 // show the actual Noach book. The rest are real wizard screenshots.
 export const COVER_BY_PORTION = {
-  bereishit: ["s1-cover.jpg", "The Wonders of Gan Eden — a real printed Torah Tale book for Parshas Bereishis"],
-  noach: ["s2-cover.jpg", "Noach's Incredible Teivah — a real printed Torah Tale book for Parshas Noach"],
-  "lech-lecha": ["s4-cover.jpg", "Avraham Counts the Stars — a real printed Torah Tale book for Parshas Lech Lecha"],
-  vayeshev: ["s5-cover.jpg", "Yosef's Coat of Colors — a real printed Torah Tale book for Parshas Vayeishev"],
-  shemot: ["s6-cover.jpg", "Baby Moshe on the Nile — a real printed Torah Tale book for Parshas Shemos"],
-  beshalach: ["s7-cover.jpg", "Krias Yam Suf — a real printed Torah Tale book for Parshas Beshalach"],
-  yitro: ["s8-cover.jpg", "Matan Torah on Har Sinai — a real printed Torah Tale book for Parshas Yisro"],
-  "david-goliath": ["s9-cover.jpg", "Dovid and Golyas — a real printed Torah Tale book from Sefer Shmuel"],
-  yonah: ["s10-cover.jpg", "Yonah and the Great Dag — a real printed Torah Tale book from Sefer Yonah"],
+  bereishit: ["s1-cover.jpg", "The Wonders of Gan Eden - a real printed Torah Tale book for Parshas Bereishis"],
+  noach: ["s2-cover.jpg", "Noach's Incredible Teivah - a real printed Torah Tale book for Parshas Noach"],
+  "lech-lecha": ["s4-cover.jpg", "Avraham Counts the Stars - a real printed Torah Tale book for Parshas Lech Lecha"],
+  vayeshev: ["s5-cover.jpg", "Yosef's Coat of Colors - a real printed Torah Tale book for Parshas Vayeishev"],
+  shemot: ["s6-cover.jpg", "Baby Moshe on the Nile - a real printed Torah Tale book for Parshas Shemos"],
+  beshalach: ["s7-cover.jpg", "Krias Yam Suf - a real printed Torah Tale book for Parshas Beshalach"],
+  yitro: ["s8-cover.jpg", "Matan Torah on Har Sinai - a real printed Torah Tale book for Parshas Yisro"],
+  "david-goliath": ["s9-cover.jpg", "Dovid and Golyas - a real printed Torah Tale book from Sefer Shmuel"],
+  yonah: ["s10-cover.jpg", "Yonah and the Great Dag - a real printed Torah Tale book from Sefer Yonah"],
 };
 
 /**
  * Hero art per collection. These replaced the 256x256 wizard tiles that were
- * being blown up to 520px in an article — they are original 3D illustrations
+ * being blown up to 520px in an article - they are original 3D illustrations
  * starring the same children who front the home-page gallery, so a reader meets
  * the same faces across the site. See docs/blog-art.md for the
  * recipe and the exact prompts, so they can be regenerated on the same model.
@@ -136,8 +136,8 @@ export const expandImages = (html, { portion, category, isHe = false } = {}) => 
     collection: CATEGORY_FIG(category, isHe),
     products: isHe ? PRODUCT_GRID_HE : PRODUCT_GRID,
     storypicker: isHe
-      ? SHOT("step-5-story-he.jpg", "בוחר הסיפורים של טורה־טייל", "בוחר הסיפורים האמיתי — כל התנ״ך בלחיצה.", true)
-      : SHOT("step-5-story.jpg", "The Torah Tale story picker", "The real story picker — the whole Tanach, one tap away."),
+      ? SHOT("step-5-story-he.jpg", "בוחר הסיפורים של טורה־טייל", "בוחר הסיפורים האמיתי - כל התנ״ך בלחיצה.", true)
+      : SHOT("step-5-story.jpg", "The Torah Tale story picker", "The real story picker - the whole Tanach, one tap away."),
     photo: isHe
       ? SHOT("step-4-photo-he.jpg", "העלאת תמונת הילד ביוצר הספרים", "תמונה אחת ברורה מלפנים וזה הכל.", true)
       : SHOT("step-4-photo.jpg", "Uploading the child's photo in the book creator", "One clear, front-facing photo is all it takes."),

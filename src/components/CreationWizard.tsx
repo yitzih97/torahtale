@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, type MutableRefObject } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -143,7 +143,7 @@ const createChild = (): ChildProfile => ({
 /**
  * A parent on the book. Kept in its own array rather than as a ChildProfile with
  * a role flag, so a parent can never be swept into the star cast by code that
- * iterates `children` — they are stars of nothing, and appear on exactly one
+ * iterates `children` - they are stars of nothing, and appear on exactly one
  * page at the very end.
  */
 export interface ParentProfile {
@@ -162,7 +162,7 @@ const createParent = (role: "tatty" | "mommy"): ParentProfile => ({
 
 interface WizardData {
   children: ChildProfile[];
-  /** Optional — at most one tatty and one mommy. */
+  /** Optional - at most one tatty and one mommy. */
   parents: ParentProfile[];
   torahPortion: string;
   artStyle: string;
@@ -232,7 +232,7 @@ const getAgePreset = (gender: string, ageLabel: string): string => {
 
 const ageToBracketLabel = (age: string): string => {
   const parsed = parseInt(age);
-  const n = Number.isNaN(parsed) ? 5 : parsed; // age 0 is valid — don't default it to 5
+  const n = Number.isNaN(parsed) ? 5 : parsed; // age 0 is valid - don't default it to 5
   if (n <= 3) return "2-3";
   if (n <= 5) return "4-5";
   if (n <= 7) return "6-7";
@@ -245,13 +245,13 @@ const ageToBracketLabel = (age: string): string => {
 /**
  * Which plan the summary pre-selects when the customer kept the upcoming parsha.
  * Monthly is the plan the UI already badges "popular", and it costs less per book
- * than paying weekly — so it is the fair one to open on rather than the priciest.
+ * than paying weekly - so it is the fair one to open on rather than the priciest.
  */
 const DEFAULT_PARSHA_PLAN = "monthly" as const;
 
 /**
  * How many children one book can star. Above CAST_ALL_UPTO (4) the pages are
- * cast individually — see supabase/functions/_shared/casting.ts — so a page
+ * cast individually - see supabase/functions/_shared/casting.ts - so a page
  * never exceeds the image model's 4 reference attachments however big the
  * family is. The limit here is a product choice, not a technical ceiling.
  */
@@ -308,7 +308,7 @@ const staggerChild = {
 /* ───────────────── component ───────────────── */
 
 interface Props {
-  /** Optional — when omitted, the wizard renders as a full page (no close affordance). */
+  /** Optional - when omitted, the wizard renders as a full page (no close affordance). */
   open?: boolean;
   onClose?: () => void;
   /** Collection-request mode: skips story selection + payment; the request is
@@ -316,9 +316,13 @@ interface Props {
   collection?: CollectionBundle;
   /** The full bundle when several collections were selected together. */
   collections?: CollectionBundle[];
+  /** Filled with a function that writes the live wizard state to storage and
+      reports whether it landed, so the page's "Save & exit" dialog can save on
+      demand instead of trusting that the autosave got there. */
+  saveStateRef?: MutableRefObject<(() => boolean) | null>;
 }
 
-export const CreationWizard = ({ open = true, onClose, collection, collections }: Props) => {
+export const CreationWizard = ({ open = true, onClose, collection, collections, saveStateRef }: Props) => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { t, lang, dir: textDir } = useLanguage();
@@ -343,7 +347,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   const [collectionSent, setCollectionSent] = useState(false);
   /* Which cover the collection gets printed in. Listed collection prices are the
      softcover ones, so the request step has to let this be chosen and re-price
-     before anything is sent — otherwise we quote softcover and hand-invoice
+     before anything is sent - otherwise we quote softcover and hand-invoice
      something else. */
   const [collectionFormat, setCollectionFormat] = useState<CollectionFormat>("softcover");
 
@@ -354,8 +358,8 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
     setData((d) => (d.pageCount === target ? d : { ...d, pageCount: target }));
   }, [bookOptions]);
 
-  // The book row is created at the step-9 login gate — one step BEFORE the
-  // product-type picker (step 10) — so it's inserted with the DEFAULT softcover
+  // The book row is created at the step-9 login gate - one step BEFORE the
+  // product-type picker (step 10) - so it's inserted with the DEFAULT softcover
   // options. Once the row exists, keep its stored bookOptions/pageCount in sync
   // when the user actually picks a type; otherwise story_data (what the admin
   // generation modal + downstream generation read) stays stuck on softcover.
@@ -402,7 +406,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   const [selectedPlan, setSelectedPlan] = useState<"weekly" | "monthly" | "yearly" | "once">("once");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   // Same-name-but-different-age/gender children found on the user's account when
-  // a returning guest signs in — the user decides merge vs. add-new per child.
+  // a returning guest signs in - the user decides merge vs. add-new per child.
   const [pendingConflicts, setPendingConflicts] = useState<
     Array<{ childId: string; incoming: { name: string; age: string; gender: string }; candidate: ChildRecord }>
   >([]);
@@ -428,7 +432,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   const persistingBookRef = useRef(false);
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Refs for stacked-step scrolling — each section uses a stable DOM id
+  // Refs for stacked-step scrolling - each section uses a stable DOM id
   // (e.g. "wizard-step-3") so scroll restoration can anchor to a section
   // rather than a pixel offset, surviving layout changes.
   const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -458,7 +462,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   const child = data.children[data.activeChildIdx] || data.children[0];
 
   /* The customer's REAL cover, generated in the background the moment both
-     halves of it exist — the child's photo and the chosen story — so it is
+     halves of it exist - the child's photo and the chosen story - so it is
      already on screen by the time they reach the summary. See useCoverPreview. */
   const coverPreview = useCoverPreview({
     referenceImage: data.children[0]?.photoPreview || null,
@@ -472,7 +476,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
     enabled: !collection,
   });
 
-  /** A saved dashboard child as a wizard ChildProfile — used by the "Pick saved
+  /** A saved dashboard child as a wizard ChildProfile - used by the "Pick saved
       kids" chips and by the ?child=<id> deep link, so both stay identical. */
   const profileFromRecord = useCallback((k: ChildRecord): ChildProfile => ({
     ...createChild(),
@@ -519,7 +523,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
     }));
   }, []);
 
-  // The child's name in the BOOK's own language — so a Hebrew book stars "ארי",
+  // The child's name in the BOOK's own language - so a Hebrew book stars "ארי",
   // a Yiddish book its Yiddish spelling, etc. (falls back to the base name).
   const nameForBook = (c: ChildProfile): string => {
     const code = bookLanguageCode(data.language);
@@ -538,29 +542,59 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   // Save wizard state continuously so user can resume after refresh/close/login.
   // We store the active section anchor (step number) rather than a raw scrollY
   // pixel offset, because anchors stay valid across layout changes.
-  const saveWizardState = useCallback(() => {
-    const serializable = {
-      step,
-      planType,
-      selectedPlan,
-      bookOptionsChosenEarly,
-      savedBookId,
-      data: {
-        ...data,
-        // Can't serialize File; also drop the large un-cropped original to keep
-        // the payload under the localStorage quota (photoPreview is enough).
-        children: data.children.map(c => ({ ...c, photo: null, photoOriginalSrc: null })),
-      },
-      shipping,
-      bookOptions,
-      portionFilter,
-      quantity,
-      activeSectionId: `wizard-step-${step}`,
+  const saveWizardState = useCallback((): boolean => {
+    // A cropped phone photo is a multi-megabyte base64 string, and two children
+    // put the payload over the ~5MB localStorage quota. That threw, the throw
+    // was swallowed, and NOTHING was saved - the wizard promised the progress
+    // was kept and then came back empty. So: try it with the previews, and if
+    // storage refuses, drop the previews and save everything else. A photo can
+    // be re-picked; a whole answered wizard cannot.
+    const build = (withPreviews: boolean) => {
+      const stripPreview = (src: string | null | undefined) =>
+        withPreviews || !src?.startsWith("data:") ? src ?? null : null;
+      return {
+        step,
+        planType,
+        selectedPlan,
+        bookOptionsChosenEarly,
+        savedBookId,
+        data: {
+          ...data,
+          // Can't serialize File; also drop the large un-cropped original, which
+          // is the single biggest thing in the payload (photoPreview is enough).
+          children: data.children.map((c) => ({
+            ...c, photo: null, photoOriginalSrc: null,
+            photoPreview: stripPreview(c.photoPreview),
+          })),
+          parents: data.parents.map((pr) => ({
+            ...pr, photo: null, photoOriginalSrc: null,
+            photoPreview: stripPreview(pr.photoPreview),
+          })),
+        },
+        shipping,
+        bookOptions,
+        portionFilter,
+        quantity,
+        activeSectionId: `wizard-step-${step}`,
+      };
     };
-    try {
-      localStorage.setItem("torahtale_wizard_state", JSON.stringify(serializable));
-    } catch { /* ignore quota */ }
+    const write = (payload: unknown) => {
+      try {
+        localStorage.setItem("torahtale_wizard_state", JSON.stringify(payload));
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    return write(build(true)) || write(build(false));
   }, [step, planType, selectedPlan, bookOptionsChosenEarly, savedBookId, data, shipping, bookOptions, portionFilter, quantity]);
+
+  // Hand the saver to the page, which owns the "Leave story creation?" dialog.
+  useEffect(() => {
+    if (!saveStateRef) return;
+    saveStateRef.current = saveWizardState;
+    return () => { saveStateRef.current = null; };
+  }, [saveStateRef, saveWizardState]);
 
   // Restore wizard state on mount (whether logged in or not)
   useEffect(() => {
@@ -590,7 +624,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
           setSavedBookId(parsed.savedBookId);
         }
         const restoredData = parsed.data || initialData;
-        // Style selection was removed — every book is 3D Pixar now.
+        // Style selection was removed - every book is 3D Pixar now.
         restoredData.artStyle = "3d-pixar";
         if (!restoredData.language || restoredData.language === "english") {
           restoredData.language = defaultLanguage;
@@ -714,11 +748,11 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
     if (!user) return;
 
     if (showLoginPrompt) setShowLoginPrompt(false);
-    setConfirmEmailPendingFor(null); // confirmed + signed in — drop the check-email panel
+    setConfirmEmailPendingFor(null); // confirmed + signed in - drop the check-email panel
 
     // The login/sign-up gate now lives at step 10 (after the generation skeletons
-    // begin). When the user signs in there — inline OR returning from an OAuth
-    // redirect — create the pending book and let the flow continue to book-type
+    // begin). When the user signs in there - inline OR returning from an OAuth
+    // redirect - create the pending book and let the flow continue to book-type
     // selection + checkout.
     if (step >= 9 && !savedBookId) {
       void persistGeneratedBook().then(() => {
@@ -765,7 +799,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
       return;
     }
     if (signUpData.session) {
-      // Email confirmation is disabled — they're signed in right away.
+      // Email confirmation is disabled - they're signed in right away.
       toast.success(t.wizard.accountCreated);
     } else {
       // Confirmation required: swap the auth card for the "check your email"
@@ -865,7 +899,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   /* ───── book generation (fire-and-forget → 10s animation) ───── */
 
   // Persist the pending book record (photos + reusable characters + book row).
-  // Requires a signed-in user. Safe to call once — bails if a book already exists.
+  // Requires a signed-in user. Safe to call once - bails if a book already exists.
   // Called from startGeneration (when already signed in) and from the post-auth
   // effect (when the user signs in at the step-10 gate, after generation began).
   const persistGeneratedBook = async () => {
@@ -939,7 +973,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
 
             if (targetId) {
               // MERGE into the existing child: update age/gender/description (and
-              // the photo only if a new one was provided — never erase a good
+              // the photo only if a new one was provided - never erase a good
               // saved photo). Reuse the saved photo for book generation if the
               // guest didn't upload a new one.
               const match = existingList.find((e) => e.id === targetId);
@@ -986,7 +1020,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
         );
 
         /* Parents: upload the face and record name + role. They are NOT saved to
-           the children table and never enter childDescriptions — the pipeline
+           the children table and never enter childDescriptions - the pipeline
            reads them from their own key and puts them on one page at the end. */
         const parentDescriptions = await Promise.all(
           data.parents.filter((pr) => !!pr.photoPreview).map(async (pr) => {
@@ -1008,7 +1042,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
           })
         );
 
-        // The current wizard selections — written on both insert and re-sync so a
+        // The current wizard selections - written on both insert and re-sync so a
         // reused (adopted) book can never keep a stale portion/child/format.
         const fields = {
           child_name: childNames,
@@ -1049,7 +1083,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
             .select()
             .single();
           if (saveError || !bookData) {
-            // Surface a save failure instead of silently proceeding with no order —
+            // Surface a save failure instead of silently proceeding with no order -
             // otherwise the book never reaches the admin and it looks "stuck".
             console.error("Book insert failed:", saveError);
             toast.error("We couldn't save your book. Please try again.");
@@ -1065,8 +1099,8 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
     }
   };
 
-  // Record the user's choice for one name-conflict child, then — once every
-  // conflict is decided — resume persisting the book.
+  // Record the user's choice for one name-conflict child, then - once every
+  // conflict is decided - resume persisting the book.
   const resolveConflict = (childId: string, decision: string) => {
     mergeDecisionsRef.current.set(childId, decision);
     setPendingConflicts((prev) => {
@@ -1076,7 +1110,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
     });
   };
 
-  // Collection-request mode: no story generation and no checkout — upload the
+  // Collection-request mode: no story generation and no checkout - upload the
   // child photos so the admin can see them, then file the request as a contact
   // ticket. Invoicing and book generation happen manually after review.
   const submitCollectionRequest = async () => {
@@ -1109,7 +1143,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
       const requesterName =
         (user.user_metadata?.full_name as string | undefined) || user.email || "Torah Tale user";
       // Quote the invoice off the SAME numbers the customer was shown on the
-      // request step — listed prices are softcover, so the chosen cover's
+      // request step - listed prices are softcover, so the chosen cover's
       // per-book upcharge has to travel with the request.
       const bundle = collections?.length ? collections : [collection];
       const bundleKeys = bundle.map((c) => c.key);
@@ -1119,7 +1153,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
       /* This message is not admin-only: contact-notify quotes it back to the
          CUSTOMER under "Here's what you sent us". So it names each collection
          the way the customer saw it, keeping the English alongside when they
-         differ so the inbox can still match it to the catalogue — and the
+         differ so the inbox can still match it to the catalogue - and the
          closing line is written to read correctly to both of them. */
       const coverLabel: Record<CollectionFormat, string> = {
         softcover: t.bookOptions.softcover,
@@ -1211,11 +1245,11 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
     if (step === 4) nextStep = 7;
     if (step === 7) nextStep = 5;
     if (step === 1 && allChildrenHaveGenderAge()) {
-      // Saved children already have gender/age — skip those steps; skip the photo
+      // Saved children already have gender/age - skip those steps; skip the photo
       // step too when every child already has a stored photo.
       nextStep = allChildrenHavePhotoOrDesc() ? 5 : 4;
     }
-    // Step 11 (payment + summary) — the "Continue" CTA inside the step advances directly to step 12 (shipping),
+    // Step 11 (payment + summary) - the "Continue" CTA inside the step advances directly to step 12 (shipping),
     // and step 12's own Place Order button calls handlePlaceOrder which jumps to the success step.
     if (step === 11) {
       nextStep = 12;
@@ -1265,7 +1299,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   // lives in the sticky bar, not in CheckoutStep, so the state lives here too.
   const [placingOrder, setPlacingOrder] = useState(false);
 
-  // Keeping the upcoming parsha IS the subscription intent — that customer wants
+  // Keeping the upcoming parsha IS the subscription intent - that customer wants
   // the weekly cycle, not one book. So the summary opens on a plan for them, and
   // one-time stays one tap away. Picking any other story leaves the default at a
   // single purchase, because nothing about a Yom Tov book implies a weekly drip.
@@ -1294,7 +1328,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
         return;
       }
       if (!savedBookId) {
-        toast.error("Your book isn't ready yet — please try again in a moment.");
+        toast.error("Your book isn't ready yet - please try again in a moment.");
         return;
       }
 
@@ -1317,7 +1351,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
       // Shopify customer/contract back to it once payment completes. Carry the child
       // id + the book "recipe" (childDescriptions incl. photo, page count, options)
       // from this first book so every recurring book the webhook mints keeps the
-      // child's likeness — not just their name.
+      // child's likeness - not just their name.
       if (isSubscription) {
         const { data: srcBook } = await supabase
           .from("books")
@@ -1373,7 +1407,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
         !!c.photoPreview || !!c.existingPhotoUrl);
       case 5: return !!data.torahPortion;
       case 6: return selectedLanguages.length >= 1;
-      case 7: return true; // "add another child?" — Continue always allowed
+      case 7: return true; // "add another child?" - Continue always allowed
       case 8: return true;
       case 10: return true;
       case 11: return !!(shipping.fullName && shipping.street && shipping.city && shipping.state && shipping.zip);
@@ -1392,7 +1426,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   })();
 
   /* ───── progress calculation ───── */
-  // Keep in step with the header's mainSteps — the bar was hitting 100% at the
+  // Keep in step with the header's mainSteps - the bar was hitting 100% at the
   // book-options step, so the last two screens looked like the end of the flow.
   const WIZARD_STEPS = [0, 1, 2, 3, 4, 7, 5, 6, 8, 10, 11];
   const progressPercent = (() => {
@@ -1441,7 +1475,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
   return (
     <>
     <div className="wizard-glass h-screen h-[100dvh] w-full flex flex-col relative overflow-hidden bg-background">
-      {/* ── Clean minimal top bar — back · step title + dots · close ── */}
+      {/* ── Clean minimal top bar - back · step title + dots · close ── */}
       {(() => {
         const stepTitles: Record<number, string> = {
           0: t.wizard.planChoiceTitle,
@@ -1457,17 +1491,17 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
           11: t.wizard.createYourBook,
         };
         // Steps 10 (book options) and 11 (shipping + summary) are real steps the
-        // customer can go back from — they were falling outside the header gate,
+        // customer can go back from - they were falling outside the header gate,
         // so those screens rendered with no back arrow, no progress and no close.
         const mainSteps = WIZARD_STEPS;
         const currentIdx = mainSteps.indexOf(step);
-        // Step 9 is the generation animation, which auto-advances — no chrome.
+        // Step 9 is the generation animation, which auto-advances - no chrome.
         const showHeader = step !== 9 && mainSteps.includes(step);
         if (!showHeader) return null;
         const stepProgress = ((currentIdx + 1) / mainSteps.length) * 100;
         return (
           <div className="shrink-0 z-30 bg-background/90 backdrop-blur-xl">
-            {/* Slim progress bar — fills step-by-step toward a finished book */}
+            {/* Slim progress bar - fills step-by-step toward a finished book */}
             <div className="h-1 w-full bg-foreground/10" role="progressbar" aria-valuenow={Math.round(stepProgress)} aria-valuemin={0} aria-valuemax={100}>
               <motion.div
                 className="h-full rounded-e-full bg-accent"
@@ -1530,7 +1564,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
        * flex children and this region takes whatever is left. It scrolls ONLY
        * inside itself, and `justify-center` on a min-h-full inner wrapper means
        * a short step sits centred rather than hugging the top with dead space
-       * under it — which is what made the steps feel half-empty. A step taller
+       * under it - which is what made the steps feel half-empty. A step taller
        * than the space still scrolls, but the chrome stays put.
        */}
       <div className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain">
@@ -1627,7 +1661,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                               setData((prev) => {
                                 const idx = prev.children.findIndex((c) => c.savedChildId === k.id);
                                 if (idx >= 0) {
-                                  // Toggle off — remove this saved kid
+                                  // Toggle off - remove this saved kid
                                   const next = prev.children.filter((_, i) => i !== idx);
                                   const remaining = next.length ? next : [createChild()];
                                   return {
@@ -1636,7 +1670,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                                     activeChildIdx: Math.min(prev.activeChildIdx, remaining.length - 1),
                                   };
                                 }
-                                // Toggle on — add this saved kid
+                                // Toggle on - add this saved kid
                                 const newEntry: ChildProfile = profileFromRecord(k);
                                 // If the only existing child is the empty starter, replace it
                                 const base = prev.children;
@@ -1688,7 +1722,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   {(() => {
                     // The field only ever holds a name being TYPED. Picking saved
                     // kids above adds them as their own entries and leaves this
-                    // box empty — mirroring the last pick in here read as "this
+                    // box empty - mirroring the last pick in here read as "this
                     // is the child" when several were selected.
                     const typedIdx = data.children.findIndex((c) => !c.savedChildId);
                     const typedName = typedIdx >= 0 ? data.children[typedIdx].name : "";
@@ -1884,7 +1918,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
             )}
 
             {/* ── STEP 7: Art Style (shown after Language, right before Review/Generate;
-                    block kept here in the file — only one step renders at a time) ── */}
+                    block kept here in the file - only one step renders at a time) ── */}
             {/* ── STEP 4: Photo / Description ── */}
             {step === 4 && (
               <section
@@ -1926,7 +1960,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                         </div>
                         <span className="text-[11px] leading-tight text-center text-muted-foreground">{t.wizard.photoGood}</span>
                       </div>
-                      {/* BAD — facing away */}
+                      {/* BAD - facing away */}
                       <div className="flex flex-col items-center gap-1.5">
                         <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-accent/10">
                           <img src={photoBadFacingImg} alt="" loading="lazy" className="w-full h-full object-cover" />
@@ -1936,7 +1970,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                         </div>
                         <span className="text-[11px] leading-tight text-center text-muted-foreground">{t.wizard.photoBadFacing}</span>
                       </div>
-                      {/* BAD — group */}
+                      {/* BAD - group */}
                       <div className="flex flex-col items-center gap-1.5">
                         <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-accent/10">
                           <img src={photoBadGroupImg} alt="" loading="lazy" className="w-full h-full object-cover" />
@@ -1949,7 +1983,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                     </div>
                   </motion.div>
 
-                  {/* Option 1 — upload a photo */}
+                  {/* Option 1 - upload a photo */}
                   <motion.div variants={staggerChild} className="rounded-3xl border border-border/50 bg-card/40 backdrop-blur-sm p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-xl bg-accent/15 flex items-center justify-center"><Camera className="w-4 h-4 text-accent" /></div>
@@ -2044,7 +2078,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   ))}
                 </div>
 
-                {/* Parents added so far — shown apart from the kids, because they
+                {/* Parents added so far - shown apart from the kids, because they
                     are not stars of the book: they appear once, at the end. */}
                 {data.parents.length > 0 && (
                   <div className="flex flex-wrap justify-center gap-2">
@@ -2128,7 +2162,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                 ? filteredPortions
                 : TORAH_PORTIONS.filter((p) => p.category === portionFilter);
               const catMeta = CATEGORY_META[portionFilter];
-              // `short` strips the "Sefer X – " prefix (used inside a sefer accordion,
+              // `short` strips the "Sefer X - " prefix (used inside a sefer accordion,
               // where the header already names the sefer).
               const renderStoryCard = (p: TorahOption, short = false) => {
                 const selected = data.torahPortion === p.value;
@@ -2433,7 +2467,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                             if (prev.includes(l.key)) {
                               next = prev.filter((k) => k !== l.key);
                             } else if (prev.length >= 2) {
-                              // Cap at 2 selected at once — bump the oldest pick
+                              // Cap at 2 selected at once - bump the oldest pick
                               // to make room for the new one.
                               next = [...prev.slice(1), l.key];
                             } else {
@@ -2496,7 +2530,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                 </motion.div>
 
                 {/* Bullet-style summary. A collection request has nothing to
-                    confirm here that the customer did not just pick — the cover
+                    confirm here that the customer did not just pick - the cover
                     is the only open question, so the recap is dropped for it. */}
                 {!collection && (
                 <motion.ul variants={staggerChild} className="space-y-3 max-w-md mx-auto text-start">
@@ -2506,12 +2540,12 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   </li>
                   <li className="flex items-start gap-3 text-base">
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.age}:</span> <span className="font-semibold">{data.children.map(c => c.age).filter(Boolean).join(" & ") || "—"}</span></span>
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.age}:</span> <span className="font-semibold">{data.children.map(c => c.age).filter(Boolean).join(" & ") || "-"}</span></span>
                   </li>
                   {planType !== "subscription" && (
                     <li className="flex items-start gap-3 text-base">
                       <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.story}:</span> <span className="font-semibold">{getPortionLabel(data.torahPortion) || "—"}</span></span>
+                      <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.story}:</span> <span className="font-semibold">{getPortionLabel(data.torahPortion) || "-"}</span></span>
                     </li>
                   )}
                   <li className="flex items-start gap-3 text-base">
@@ -2523,7 +2557,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
 
                 {/* Cover + price. The collection prices quoted on /pricing are the
                     SOFTCOVER ones, so the request cannot be sent until a cover is
-                    chosen and the bundle re-priced — otherwise the customer agrees
+                    chosen and the bundle re-priced - otherwise the customer agrees
                     to one number and the hand-written invoice says another. */}
                 {collection && (() => {
                   const isIls = t.currency.code === "ILS";
@@ -2589,7 +2623,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                       </div>
 
                       <div className="space-y-1.5 border-t border-border/60 pt-3 text-sm">
-                        {/* What is in the bundle — but NOT its price. The
+                        {/* What is in the bundle - but NOT its price. The
                             estimated total below is the only figure needed, and
                             for a softcover order the two were the same number
                             printed twice. */}
@@ -2622,7 +2656,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                     bottom (calls startGeneration). The old in-content button was
                     a confusing duplicate that just advanced the step. */}
 
-                {/* Auth moved to step 10 — anyone can generate; sign-in is asked
+                {/* Auth moved to step 10 - anyone can generate; sign-in is asked
                     after the skeletons begin, before book-type + checkout. */}
               </motion.div>
               </section>
@@ -2755,7 +2789,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   // table (per plan × book format) so what's shown equals what's
                   // charged at checkout.
                   // Two ways to buy: this book once, or the monthly plan. Weekly
-                  // and the year bundle are no longer cards — yearly is reached
+                  // and the year bundle are no longer cards - yearly is reached
                   // from the savings toggle below, which only appears once the
                   // customer is actually on a plan.
                   // Yearly is a billing period of the same plan, not a card of its
@@ -2812,7 +2846,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                     </div>
                   );
                 })()}
-                {/* A subscription always drips the UPCOMING WEEKLY PARSHA — one
+                {/* A subscription always drips the UPCOMING WEEKLY PARSHA - one
                     book per Monday, whatever plan pays for it (the frequency is
                     the billing period, not the delivery cadence). The story
                     chosen here is only book one. When that story is not the
@@ -2824,7 +2858,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                     <span>{t.checkout.subDripNote}</span>
                   </p>
                 )}
-                {/* Billing period — a segmented control in the brand's own
+                {/* Billing period - a segmented control in the brand's own
                     shapes (pill, accent fill, display face) rather than an OS
                     switch, and only once the customer is on a plan. */}
                 {planType === "subscription" && (() => {
@@ -2955,7 +2989,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
         </div>
       </div>
 
-      {/* ── Collection request sent — confirmation takes over the wizard ── */}
+      {/* ── Collection request sent - confirmation takes over the wizard ── */}
       {collectionSent && collection && (
         <div className="fixed inset-0 z-40 bg-background flex items-center justify-center p-6">
           <motion.div
@@ -2979,7 +3013,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
         </div>
       )}
 
-      {/* ── Sticky bottom action — full-width black pill (Fanvue style) ── */}
+      {/* ── Sticky bottom action - full-width black pill (Fanvue style) ── */}
       {step !== 9 && step !== 14 && !collectionSent && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -2993,7 +3027,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
               if (step <= 7) {
                 // On the last question (language, step 6) "Continue" also saves the
                 // book (uploads the child photo + inserts the order), which takes a
-                // moment — show a spinner so it never looks frozen/"stuck".
+                // moment - show a spinner so it never looks frozen/"stuck".
                 return (
                   <motion.button
                     whileTap={{ scale: 0.98 }}
@@ -3019,7 +3053,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                     </motion.button>
                   );
                 }
-                // Generation is open to everyone now — sign-in is asked at step 10.
+                // Generation is open to everyone now - sign-in is asked at step 10.
                 return (
                   <motion.button
                     whileTap={{ scale: 0.98 }}
@@ -3080,7 +3114,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
       onSubscribed={() => {
         justSubscribedRef.current = true;
         setShowUpsellDialog(false);
-        // Subscribed — continue past the book-options step into shipping/checkout.
+        // Subscribed - continue past the book-options step into shipping/checkout.
         setDir(1);
         setStep(11);
       }}
@@ -3278,7 +3312,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
               </div>
               <div className="flex gap-2">
                 <Button variant="gold" className="flex-1 rounded-xl h-9 text-xs" onClick={() => resolveConflict(conf.childId, `merge:${conf.candidate.id}`)}>
-                  {lang === "he" ? "אותו ילד — מזג" : lang === "yi" ? "זעלבער קינד — צונויפגיסן" : "Same child — merge"}
+                  {lang === "he" ? "אותו ילד - מזג" : lang === "yi" ? "זעלבער קינד - צונויפגיסן" : "Same child - merge"}
                 </Button>
                 <Button variant="outline" className="flex-1 rounded-xl h-9 text-xs border-border/50" onClick={() => resolveConflict(conf.childId, "new")}>
                   {lang === "he" ? "הוסף כילד נוסף" : lang === "yi" ? "צולייגן ווי נײַער קינד" : "Add as new child"}

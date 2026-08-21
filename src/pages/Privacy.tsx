@@ -71,7 +71,7 @@ const EnContent = () => (
       <h3 className={h3Class}>Information You Provide</h3>
       <ul className={ulClass}>
         <li><strong className={b}>Account Information:</strong> Name, email address, and password when you create an account</li>
-        <li><strong className={b}>Child Information:</strong> Child's name, age, gender, physical description, and optional photo — provided by you for book personalization</li>
+        <li><strong className={b}>Child Information:</strong> Child's name, age, gender, physical description, and optional photo - provided by you for book personalization</li>
         <li><strong className={b}>Shipping Information:</strong> Mailing address, phone number, and recipient name for physical book delivery</li>
         <li><strong className={b}>Preferences:</strong> Art style preferences, language settings, Torah portion selections, and book format choices</li>
         <li><strong className={b}>Communications:</strong> Messages, feedback, and support requests you send to us</li>
@@ -122,15 +122,15 @@ const EnContent = () => (
       <p>We use the following third-party services to operate Torah Tale. Each processes only the minimum data necessary for their function:</p>
       <div className="mt-4 space-y-4">
         <div className={cardClass}>
-          <h4 className="font-semibold text-foreground mb-1">Shopify — Payment Processing</h4>
+          <h4 className="font-semibold text-foreground mb-1">Shopify - Payment Processing</h4>
           <p className="text-sm">Handles checkout and payment processing. Your payment data (credit card, billing address) is managed entirely by Shopify and never touches our servers. <a href="https://www.shopify.com/legal/privacy" className={linkClass} target="_blank" rel="noopener noreferrer">Shopify Privacy Policy</a></p>
         </div>
         <div className={cardClass}>
-          <h4 className="font-semibold text-foreground mb-1">Printify — Print Fulfillment</h4>
+          <h4 className="font-semibold text-foreground mb-1">Printify - Print Fulfillment</h4>
           <p className="text-sm">Produces and ships physical books. We share your shipping address and book content (images and text) with Printify to fulfill your order. <a href="https://printify.com/privacy-policy/" className={linkClass} target="_blank" rel="noopener noreferrer">Printify Privacy Policy</a></p>
         </div>
         <div className={cardClass}>
-          <h4 className="font-semibold text-foreground mb-1">Google AI (Gemini) — Content Generation</h4>
+          <h4 className="font-semibold text-foreground mb-1">Google AI (Gemini) - Content Generation</h4>
           <p className="text-sm">Generates personalized stories and illustrations. Child information (name, age, gender, physical description) is sent to Google's AI services for content creation. No photos are sent to AI services. <a href="https://policies.google.com/privacy" className={linkClass} target="_blank" rel="noopener noreferrer">Google Privacy Policy</a></p>
         </div>
       </div>
@@ -146,7 +146,7 @@ const EnContent = () => (
         <li>Child data is used <strong className={b}>solely</strong> for generating personalized book content</li>
         <li>Child data is <strong className={b}>never</strong> sold, shared for advertising, used for profiling, or monetized in any way</li>
         <li>Child photos are stored securely with encryption and row-level access controls</li>
-        <li>AI processing of child data is limited to text descriptions — photos are not sent to AI services</li>
+        <li>AI processing of child data is limited to text descriptions - photos are not sent to AI services</li>
       </ul>
       <h3 className={h3Class}>Parental Rights</h3>
       <p>As a parent or legal guardian, you have the right to:</p>
@@ -281,7 +281,7 @@ const HeContent = () => (
       <h3 className={h3Class}>מידע שאתם מספקים</h3>
       <ul className={ulClass}>
         <li><strong className={b}>פרטי חשבון:</strong> שם, כתובת אימייל וסיסמה בעת יצירת חשבון</li>
-        <li><strong className={b}>מידע על הילד:</strong> שם הילד, גיל, מגדר, תיאור חיצוני ותמונה אופציונלית — מסופקים על ידכם להתאמה אישית של הספר</li>
+        <li><strong className={b}>מידע על הילד:</strong> שם הילד, גיל, מגדר, תיאור חיצוני ותמונה אופציונלית - מסופקים על ידכם להתאמה אישית של הספר</li>
         <li><strong className={b}>פרטי משלוח:</strong> כתובת למשלוח, מספר טלפון ושם הנמען למשלוח ספרים פיזיים</li>
         <li><strong className={b}>העדפות:</strong> העדפות סגנון איור, הגדרות שפה, בחירת פרשיות תורה ואפשרויות פורמט ספר</li>
         <li><strong className={b}>תקשורת:</strong> הודעות, משוב ובקשות תמיכה שאתם שולחים אלינו</li>
@@ -332,15 +332,15 @@ const HeContent = () => (
       <p>אנו משתמשים בשירותי צד שלישי הבאים להפעלת Torah Tale. כל אחד מעבד רק את המידע המינימלי הנדרש לתפקודו:</p>
       <div className="mt-4 space-y-4">
         <div className={cardClass}>
-          <h4 className="font-semibold text-foreground mb-1">Shopify — עיבוד תשלומים</h4>
+          <h4 className="font-semibold text-foreground mb-1">Shopify - עיבוד תשלומים</h4>
           <p className="text-sm">מטפל בתשלום ובעיבוד תשלומים. נתוני התשלום שלכם (כרטיס אשראי, כתובת חיוב) מנוהלים כולם על ידי Shopify ולעולם אינם מגיעים לשרתים שלנו. <a href="https://www.shopify.com/legal/privacy" className={linkClass} target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של Shopify</a></p>
         </div>
         <div className={cardClass}>
-          <h4 className="font-semibold text-foreground mb-1">Printify — הפקת הדפסה</h4>
+          <h4 className="font-semibold text-foreground mb-1">Printify - הפקת הדפסה</h4>
           <p className="text-sm">מייצר ושולח ספרים פיזיים. אנו משתפים את כתובת המשלוח ותוכן הספר (תמונות וטקסט) עם Printify למילוי ההזמנה שלכם. <a href="https://printify.com/privacy-policy/" className={linkClass} target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של Printify</a></p>
         </div>
         <div className={cardClass}>
-          <h4 className="font-semibold text-foreground mb-1">Google AI (Gemini) — יצירת תוכן</h4>
+          <h4 className="font-semibold text-foreground mb-1">Google AI (Gemini) - יצירת תוכן</h4>
           <p className="text-sm">מייצר סיפורים ואיורים מותאמים אישית. מידע על הילד (שם, גיל, מגדר, תיאור חיצוני) נשלח לשירותי ה-AI של Google ליצירת תוכן. תמונות אינן נשלחות לשירותי AI. <a href="https://policies.google.com/privacy" className={linkClass} target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של Google</a></p>
         </div>
       </div>
@@ -356,7 +356,7 @@ const HeContent = () => (
         <li>מידע על ילדים משמש <strong className={b}>אך ורק</strong> ליצירת תוכן ספר מותאם אישית</li>
         <li>מידע על ילדים <strong className={b}>לעולם לא</strong> נמכר, משותף לפרסום, משמש לפרופילינג או ממומן בכל דרך</li>
         <li>תמונות ילדים מאוחסנות באופן מאובטח עם הצפנה ובקרות גישה ברמת שורה</li>
-        <li>עיבוד AI של נתוני ילדים מוגבל לתיאורי טקסט — תמונות אינן נשלחות לשירותי AI</li>
+        <li>עיבוד AI של נתוני ילדים מוגבל לתיאורי טקסט - תמונות אינן נשלחות לשירותי AI</li>
       </ul>
       <h3 className={h3Class}>זכויות הורים</h3>
       <p>כהורה או אפוטרופוס חוקי, יש לכם הזכות:</p>
@@ -501,7 +501,7 @@ const Privacy = () => {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
       <SEO
-        title="Privacy Policy — Torah Tale"
+        title="Privacy Policy - Torah Tale"
         description="How Torah Tale collects, uses, and protects your family's information, including children's photos used to personalize books."
         path="/privacy"
       />

@@ -63,12 +63,12 @@ export const BookPreviewModal = ({ book, open, onClose }: BookPreviewModalProps)
           {/* Main content card */}
           <div dir={dir} className="w-full bg-card rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-border/50">
             <div className="flex flex-col md:flex-row">
-              {/* Book cover — left side */}
+              {/* Book cover - left side */}
               <div className="md:w-[45%] relative">
                 <div className="aspect-[3/4] md:aspect-auto md:h-full relative overflow-hidden">
                   <img
                     src={book.coverImage}
-                    alt={`${title} — Cover`}
+                    alt={`${title} - Cover`}
                     className="w-full h-full object-cover"
                   />
                   {/* Subtle overlay for depth */}
@@ -81,7 +81,7 @@ export const BookPreviewModal = ({ book, open, onClose }: BookPreviewModalProps)
                 </div>
               </div>
 
-              {/* Review content — right side */}
+              {/* Review content - right side */}
               <div className="md:w-[55%] p-6 lg:p-8 flex flex-col justify-center">
                 {/* Child profile with photo */}
                 <div className="flex items-center gap-4 mb-6">

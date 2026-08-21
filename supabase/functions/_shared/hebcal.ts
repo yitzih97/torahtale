@@ -1,6 +1,6 @@
 // Live weekly-parsha lookup via the Hebcal sedrot API (free, public, CORS-open).
 // This is the auto-updating source of truth for which parsha a subscription book
-// covers — it never runs dry, unlike a hardcoded calendar. _shared/parsha.ts wraps
+// covers - it never runs dry, unlike a hardcoded calendar. _shared/parsha.ts wraps
 // it with a hardcoded fallback for when Hebcal is unreachable.
 
 const VALID = new Set([
@@ -35,7 +35,7 @@ function iso(d: Date): string {
 }
 
 /**
- * The parsha read `leadWeeks` weeks after `from` (default 3 — production lead),
+ * The parsha read `leadWeeks` weeks after `from` (default 3 - production lead),
  * fetched live from Hebcal (diaspora). Returns the slug, or null if Hebcal is
  * unreachable / returns nothing (caller should fall back to the hardcoded calendar).
  */

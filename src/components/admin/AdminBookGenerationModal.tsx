@@ -27,7 +27,7 @@ type PageStatus = "pending" | "generating" | "done" | "failed" | "skipped";
 const IMAGE_CONCURRENCY = 6;
 
 // Every book generates in the signature high-res style, regardless of what
-// older rows have stored — the product no longer offers other styles.
+// older rows have stored - the product no longer offers other styles.
 const ART_STYLE = "3d-pixar";
 
 interface Props {
@@ -138,7 +138,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       const loaded = book.pages_data as BookPage[];
       setPages(loaded);
       setPhase("done");
-      setStatusText("Book loaded — edits save automatically.");
+      setStatusText("Book loaded - edits save automatically.");
       lastSavedPagesRef.current = JSON.stringify(loaded);
     } else if (open) {
       setPhase("idle");
@@ -157,7 +157,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       // Reuse the sheets from a previous generation so retries/regens keep the
       // exact same character look across sessions. Admin-generated books save
       // them under `characterSheets`; the subscription generator (generate-book)
-      // saves them under `_characterSheets` — accept EITHER, or a single-page
+      // saves them under `_characterSheets` - accept EITHER, or a single-page
       // regen of a subscription book loads no sheets and the kids come out
       // inconsistent.
       characterSheetsRef.current =
@@ -173,7 +173,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   /* ─────────────── Phase 1: character sheets (photo-less children only) ─────────────── */
 
   const generateCharacterSheets = useCallback(async () => {
-    // Every child gets a character sheet — it locks ONE canonical outfit and the
+    // Every child gets a character sheet - it locks ONE canonical outfit and the
     // stylized look, which is what keeps the child consistent across pages. The
     // real photo (when present) is passed as the likeness input. Sheets from a
     // previous run are reused so the look never drifts between regenerations.
@@ -218,7 +218,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       setStatusText(`Creating character reference for ${ch.name} (${i + 1}/${needing.length})…`);
       try {
         // Explicit-prompt render (skips the frum-child scaffolding but keeps the
-        // non-negotiable modesty rules) — a clean single-character reference.
+        // non-negotiable modesty rules) - a clean single-character reference.
         const sheetPrompt = `A clean CHARACTER REFERENCE illustration of ONE single Torah-story character on a plain white studio background, in a ${ART_STYLE} children's book illustration style. Full body, front view, neutral standing pose, even lighting, no scenery and no other characters. The character is ${ch.name}: ${ch.description || ch.name}. Render ONLY this one character, centered. NO text, NO words, NO labels anywhere in the image.`;
         const { data, error } = await supabase.functions.invoke("generate-image", {
           body: { prompt: sheetPrompt, artStyle: ART_STYLE, torahPortion: book.torah_portion, pageType: "character-sheet" },
@@ -240,7 +240,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       // The discussion-questions page prints as its OWN interior page (see
       // renderQuestionsSpread), not composited onto the last story page. Each
       // Printify blueprint's interior capacity is fixed at `pageCount` slots
-      // (Cover + pageCount PAGES — see PAGES_BY_TYPE), so one of those slots
+      // (Cover + pageCount PAGES - see PAGES_BY_TYPE), so one of those slots
       // must go to the questions page: request one fewer story page here or
       // the questions page overflows the print product's slot count and gets
       // silently dropped at submit time.
@@ -267,7 +267,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       if (abortRef.current) return null;
 
       // Merge onto the existing story_data instead of replacing it. generate-story
-      // only returns the story (cover/pages/characters/backCover) — it does NOT
+      // only returns the story (cover/pages/characters/backCover) - it does NOT
       // return the book "recipe" fields (childDescriptions, childrenInfo,
       // bookOptions, pageCount). Replacing wholesale dropped childDescriptions on
       // every regenerate, which then left illustration with no per-child reference
@@ -287,7 +287,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       // Cap the story pages to the reserved count. The LLM is ASKED for
       // storyPageCount pages but doesn't always obey (it returned 20 when asked
       // for 19), and every extra page pushes the total over the Printify
-      // blueprint's print-slot count — which now hard-fails the order at submit
+      // blueprint's print-slot count - which now hard-fails the order at submit
       // ("22 images but 21 print slots"). Slicing here guarantees the budget:
       // cover + storyPageCount story pages + questions page = the blueprint's
       // slot count, so the questions page always fits.
@@ -325,7 +325,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     // Effective child references. Normally these come from childDescriptions, but
     // if that list is missing (an older book, or one whose recipe was dropped by a
     // past regenerate) fall back to the character-sheet names so the saved sheets
-    // are still applied to every page — otherwise the sheet lookup below misses
+    // are still applied to every page - otherwise the sheet lookup below misses
     // (it would key on the combined "Adina & Ari" instead of "Ari"/"Adina") and
     // the pages print generic kids that ignore the real likenesses.
     const effectiveChildren: any[] = childDescriptions.length
@@ -343,7 +343,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     }));
     const primaryChildName = effectiveChildren[0]?.name || book.child_name;
     // A "preview" page is a cover-style teaser for a DIFFERENT (upcoming) parsha,
-    // still starring these kids — so it uses that portion + a "cover" pageType and
+    // still starring these kids - so it uses that portion + a "cover" pageType and
     // drops this story's recurring characters.
     const isPreview = pg.type === "preview";
     // Recurring Torah characters in this page's scene (all of them on the cover).
@@ -417,11 +417,11 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         statuses[idx] = "generating";
         setPageStatuses([...statuses]);
         const t0 = Date.now();
-        // A single generation can fail transiently — a provider timeout, a burst
+        // A single generation can fail transiently - a provider timeout, a burst
         // 429, or the edge worker hitting its CPU/memory limit on a heavy page.
         // Retry a couple of times (fresh edge invocation each time, with a short
         // backoff) before giving up, so a blip doesn't leave the admin to
-        // manually re-generate. Do NOT pass `prompt` — the edge function honors
+        // manually re-generate. Do NOT pass `prompt` - the edge function honors
         // admin per-page templates, the global image-prompt-template, and master
         // rules.
         let url: string | null = null;
@@ -451,7 +451,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
     await Promise.all(Array.from({ length: Math.min(IMAGE_CONCURRENCY, targets.length) }, worker));
 
-    // Pages that survived 3 inline attempts usually failed from batch pressure —
+    // Pages that survived 3 inline attempts usually failed from batch pressure -
     // provider rate limits or the edge worker's CPU/memory ceiling under
     // concurrency. Automatically sweep them up to 2 more times, after a cool-off
     // and at gentler concurrency, so the admin almost never has to click
@@ -475,14 +475,14 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     setPhase("done");
     setStatusText(
       abortRef.current
-        ? "Generation stopped — progress saved. You can resume by retrying the remaining pages."
+        ? "Generation stopped - progress saved. You can resume by retrying the remaining pages."
         : failed > 0
-          ? `Illustrations complete with ${failed} failed page${failed > 1 ? "s" : ""} — retry them below.`
-          : "Book generated and saved — edits keep saving automatically."
+          ? `Illustrations complete with ${failed} failed page${failed > 1 ? "s" : ""} - retry them below.`
+          : "Book generated and saved - edits keep saving automatically."
     );
     persistPages(working, storyData);
     if (!abortRef.current) {
-      if (failed > 0) toast.warning(`${failed} page(s) failed — use "Retry failed pages".`);
+      if (failed > 0) toast.warning(`${failed} page(s) failed - use "Retry failed pages".`);
       else toast.success("Book generated and saved.");
     }
     return working;
@@ -564,7 +564,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
     setSaving(true);
     const toastId = toast.loading("Sending to Printify…");
     try {
-      // Persist the latest edits, but DON'T claim "approved" yet — approval only
+      // Persist the latest edits, but DON'T claim "approved" yet - approval only
       // means something once Printify accepts the order (the edge function flips
       // the book to "printing" on success). Keep it at pending_review so a failed
       // submit is obvious instead of a book stuck at "approved" with no order.
@@ -578,7 +578,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       } as any).eq("id", book.id);
 
       // Render the print-ready images (cover wrap + each page WITH its caption
-      // text baked in) and submit — not the raw, text-free stored illustrations.
+      // text baked in) and submit - not the raw, text-free stored illustrations.
       const result = await submitBookToPrintify({
         bookId: book.id,
         pages: pages as any,
@@ -598,7 +598,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
       }
 
       toast.success(
-        result.duplicate ? "Already in Printify — order confirmed." : "Book approved & sent to Printify for printing!",
+        result.duplicate ? "Already in Printify - order confirmed." : "Book approved & sent to Printify for printing!",
         { id: toastId },
       );
       onBookUpdated();
@@ -649,8 +649,8 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
   };
 
   // Render the EXACT print files sent to Printify (front cover, back cover, each
-  // page) so the admin can eyeball the covers — especially the coloring-book back
-  // cover — before approving.
+  // page) so the admin can eyeball the covers - especially the coloring-book back
+  // cover - before approving.
   const handlePreviewPrint = async () => {
     if (!pages.length) return;
     setPreviewingPrint(true);
@@ -723,7 +723,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
   const summaryChips = [
     { icon: Baby, label: book?.child_name },
-    { icon: BookOpen, label: book?.torah_portion ? getPortionDisplay(book.torah_portion, "en") || book.torah_portion : "—" },
+    { icon: BookOpen, label: book?.torah_portion ? getPortionDisplay(book.torah_portion, "en") || book.torah_portion : "-" },
     { icon: Palette, label: book?.art_style, cap: true },
     { icon: Languages, label: book?.language || "english", cap: true },
     { icon: Layers, label: bookFormat.replace("-", " · ") },
@@ -741,7 +741,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               </div>
               <div className="min-w-0">
                 <h2 className="font-display text-base sm:text-lg font-bold text-primary truncate">
-                  {book?.child_name}'s Book — {book?.torah_portion}
+                  {book?.child_name}'s Book - {book?.torah_portion}
                 </h2>
                 <p className="text-xs text-muted-foreground">3D Pixar style · <span className="capitalize">{book?.language || "english"}</span></p>
               </div>
@@ -870,7 +870,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                   </div>
                   <p className="font-display font-bold text-foreground">Write story first, review, then illustrate</p>
                   <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                    Generate the story text, proofread and edit every page, then illustrate. Catches text issues before spending on images — the top-quality path.
+                    Generate the story text, proofread and edit every page, then illustrate. Catches text issues before spending on images - the top-quality path.
                   </p>
                 </button>
 
@@ -885,7 +885,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                   </div>
                   <p className="font-display font-bold text-foreground">Generate everything in one go</p>
                   <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                    Story and all illustrations without pausing. Fastest path — review and fix pages at the end.
+                    Story and all illustrations without pausing. Fastest path - review and fix pages at the end.
                   </p>
                 </button>
               </div>
@@ -902,7 +902,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
               <div className="flex items-center gap-2 p-3 rounded-2xl bg-accent/10 border border-accent/25">
                 <PenLine className="w-4 h-4 text-accent flex-shrink-0" />
                 <p className="text-sm text-foreground/80">
-                  <span className="font-semibold">Proofread before illustrating.</span> Fix names, nusach, and flow now — each page's text also guides its illustration.
+                  <span className="font-semibold">Proofread before illustrating.</span> Fix names, nusach, and flow now - each page's text also guides its illustration.
                 </p>
               </div>
 
@@ -1088,7 +1088,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 </Button>
               </div>
 
-              {/* Exact print files (front cover, back cover, each page) — the same
+              {/* Exact print files (front cover, back cover, each page) - the same
                   images uploaded to Printify, so the covers can be checked here. */}
               {printPreview && (
                 <div className="mt-4 rounded-2xl border border-border/60 bg-muted/20 p-4">
@@ -1099,7 +1099,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                   {printSlots?.slots && (
                     <div className="mb-3 rounded-lg bg-background/60 border border-border/50 p-2.5">
                       <p className="text-[11px] font-semibold text-foreground mb-1">
-                        Printify slots for “{printSlots.formatKey}” (blueprint {printSlots.blueprintId}) — {printSlots.slots.length} slots:
+                        Printify slots for “{printSlots.formatKey}” (blueprint {printSlots.blueprintId}) - {printSlots.slots.length} slots:
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {printSlots.slots.map((s: any, i: number) => (
@@ -1154,7 +1154,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
                 {confirmRegen ? (
                   <div className="inline-flex flex-col items-center gap-3 rounded-xl border border-red-300 bg-red-50 dark:bg-red-950 px-4 py-3">
                     <span className="text-xs text-red-700 dark:text-red-300 font-medium">Overwrite the entire book?</span>
-                    {/* Let the admin pick the length when regenerating — the book's
+                    {/* Let the admin pick the length when regenerating - the book's
                         stored count is used by default, but they can bump it here. */}
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-medium text-muted-foreground">Story pages:</span>

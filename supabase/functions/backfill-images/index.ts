@@ -22,7 +22,7 @@ const json = (body: unknown, status = 200) =>
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
 // Upload one base64 data URL to the bucket, return the public URL (or the
-// original data URL if anything goes wrong — never lose an image).
+// original data URL if anything goes wrong - never lose an image).
 async function uploadDataUrl(dataUrl: string, bookId: string): Promise<string> {
   const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
   if (!m) return dataUrl;
@@ -42,7 +42,7 @@ async function uploadDataUrl(dataUrl: string, bookId: string): Promise<string> {
 }
 
 // Convert at most `budget.left` images per invocation so a huge book can't
-// blow the edge worker's memory — decoding many base64 images at once trips
+// blow the edge worker's memory - decoding many base64 images at once trips
 // WORKER_RESOURCE_LIMIT. Once the budget is spent, remaining data URLs are left
 // in place and the caller re-invokes to finish them. Mutates budget.left.
 type Budget = { left: number };
@@ -126,7 +126,7 @@ serve(async (req) => {
       JSON.stringify(book.pages_data ?? "").includes("data:image") ||
       JSON.stringify(book.story_data ?? "").includes("data:image") ||
       (typeof book.cover_image_url === "string" && book.cover_image_url.startsWith("data:image"));
-    if (!hasB64) continue; // already fully converted — next book
+    if (!hasB64) continue; // already fully converted - next book
 
     workedOn = id;
     const [pages, pc] = await convertDeep(book.pages_data, id, budget);
@@ -145,9 +145,9 @@ serve(async (req) => {
         .update({ pages_data: pages as any, story_data: story as any, cover_image_url: cover, updated_at: new Date().toISOString() })
         .eq("id", id);
       if (upErr) return json({ error: upErr.message, workedOn }, 500);
-      console.log(`backfill: ${id} — moved ${imagesMoved} image(s) this pass`);
+      console.log(`backfill: ${id} - moved ${imagesMoved} image(s) this pass`);
     }
-    break; // one book per invocation — keep memory bounded
+    break; // one book per invocation - keep memory bounded
   }
 
   // done when no book still contained a base64 image this scan.

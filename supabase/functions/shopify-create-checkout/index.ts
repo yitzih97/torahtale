@@ -102,7 +102,7 @@ serve(async (req) => {
     const text = await shopifyRes.text();
     if (!shopifyRes.ok) {
       console.error("Shopify HTTP error:", shopifyRes.status, text);
-      // Build a direct-to-store cart URL — this is a real, working Shopify
+      // Build a direct-to-store cart URL - this is a real, working Shopify
       // checkout entry point and will succeed even when the Storefront API
       // is unavailable (e.g. 402 = store billing plan inactive).
       const fallbackUrl = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/cart/${cleanLines

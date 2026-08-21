@@ -11,7 +11,7 @@ const counts = (plan: string[][]) => {
 };
 
 describe("per-page casting", () => {
-  it("is a no-op at or below the threshold — everyone on every page", () => {
+  it("is a no-op at or below the threshold - everyone on every page", () => {
     for (const n of [1, 2, 3, CAST_ALL_UPTO]) {
       const plan = buildCastingPlan(kids(n), 19);
       expect(plan).toHaveLength(19);

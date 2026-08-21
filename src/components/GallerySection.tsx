@@ -13,7 +13,7 @@ const books = [
     style: "3D Pixar",
     image: storyNoach,
     assetKey: "story-noach",
-    description: "Join the animals two by two on the greatest adventure at sea — with a keshet of Hashem's promise waiting at the end.",
+    description: "Join the animals two by two on the greatest adventure at sea - with a keshet of Hashem's promise waiting at the end.",
   },
   {
     title: "Krias Yam Suf",

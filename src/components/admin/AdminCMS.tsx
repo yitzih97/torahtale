@@ -25,27 +25,27 @@ const DEFAULT_PROMPTS: Record<string, string> = {
 };
 
 const SITE_IMAGE_KEYS = [
-  { key: "hero-scene-1", label: "Hero Scene 1 — Bereishis", defaultPrompt: "A breathtaking 3D Pixar-style illustration of Gan Eden with lush gardens, golden light, and a young frum Yiddishe girl with long modest dress exploring among friendly animals." },
-  { key: "hero-scene-2", label: "Hero Scene 2 — Noach", defaultPrompt: "A stunning 3D Pixar-style illustration of Noach's Teivah with animals boarding two by two, a frum Yiddishe boy with peyos, yarmulke, and tzitzis helping." },
-  { key: "hero-scene-3", label: "Hero Scene 3 — Tower of Bavel", defaultPrompt: "A dramatic 3D Pixar-style illustration of the Tower of Bavel, with a frum Yiddishe boy with peyos looking up in wonder." },
-  { key: "hero-scene-4", label: "Hero Scene 4 — Avraham's Stars", defaultPrompt: "A beautiful 3D Pixar-style night scene with Avraham and a frum girl in modest dress counting stars." },
-  { key: "hero-scene-5", label: "Hero Scene 5 — Yosef's Coat", defaultPrompt: "A colorful 3D Pixar-style illustration of Yosef in his coat of many colors with a frum boy with peyos." },
-  { key: "hero-scene-6", label: "Hero Scene 6 — Baby Moshe", defaultPrompt: "A serene 3D Pixar-style illustration of baby Moshe in a basket on the Nile, frum girl watching." },
-  { key: "hero-scene-7", label: "Hero Scene 7 — Krias Yam Suf", defaultPrompt: "A spectacular 3D Pixar-style illustration of splitting the sea with a frum boy with peyos walking through." },
-  { key: "hero-scene-8", label: "Hero Scene 8 — Har Sinai", defaultPrompt: "A majestic 3D Pixar-style illustration of Har Sinai with thunder and lightning, a frum girl standing in awe." },
-  { key: "hero-scene-9", label: "Hero Scene 9 — Dovid & Golyas", defaultPrompt: "A dramatic 3D Pixar-style illustration of Dovid with a slingshot facing Golyas, a frum boy watching." },
-  { key: "hero-scene-10", label: "Hero Scene 10 — Yonah", defaultPrompt: "A magical 3D Pixar-style illustration of Yonah inside the great fish, frum girl finding hope." },
+  { key: "hero-scene-1", label: "Hero Scene 1 - Bereishis", defaultPrompt: "A breathtaking 3D Pixar-style illustration of Gan Eden with lush gardens, golden light, and a young frum Yiddishe girl with long modest dress exploring among friendly animals." },
+  { key: "hero-scene-2", label: "Hero Scene 2 - Noach", defaultPrompt: "A stunning 3D Pixar-style illustration of Noach's Teivah with animals boarding two by two, a frum Yiddishe boy with peyos, yarmulke, and tzitzis helping." },
+  { key: "hero-scene-3", label: "Hero Scene 3 - Tower of Bavel", defaultPrompt: "A dramatic 3D Pixar-style illustration of the Tower of Bavel, with a frum Yiddishe boy with peyos looking up in wonder." },
+  { key: "hero-scene-4", label: "Hero Scene 4 - Avraham's Stars", defaultPrompt: "A beautiful 3D Pixar-style night scene with Avraham and a frum girl in modest dress counting stars." },
+  { key: "hero-scene-5", label: "Hero Scene 5 - Yosef's Coat", defaultPrompt: "A colorful 3D Pixar-style illustration of Yosef in his coat of many colors with a frum boy with peyos." },
+  { key: "hero-scene-6", label: "Hero Scene 6 - Baby Moshe", defaultPrompt: "A serene 3D Pixar-style illustration of baby Moshe in a basket on the Nile, frum girl watching." },
+  { key: "hero-scene-7", label: "Hero Scene 7 - Krias Yam Suf", defaultPrompt: "A spectacular 3D Pixar-style illustration of splitting the sea with a frum boy with peyos walking through." },
+  { key: "hero-scene-8", label: "Hero Scene 8 - Har Sinai", defaultPrompt: "A majestic 3D Pixar-style illustration of Har Sinai with thunder and lightning, a frum girl standing in awe." },
+  { key: "hero-scene-9", label: "Hero Scene 9 - Dovid & Golyas", defaultPrompt: "A dramatic 3D Pixar-style illustration of Dovid with a slingshot facing Golyas, a frum boy watching." },
+  { key: "hero-scene-10", label: "Hero Scene 10 - Yonah", defaultPrompt: "A magical 3D Pixar-style illustration of Yonah inside the great fish, frum girl finding hope." },
   { key: "hero-boy", label: "Hero Boy Character", defaultPrompt: "A 3D Pixar-style character portrait of a Chareidi Jewish boy with peyos, yarmulke, and tzitzis." },
   { key: "hero-girl", label: "Hero Girl Character", defaultPrompt: "A 3D Pixar-style character portrait of a Chareidi Jewish girl in a modest long-sleeved dress." },
-  { key: "logo", label: "Site Logo", defaultPrompt: "A clean modern logo for Torah Tale — a children's Torah book brand." },
-  { key: "favicon", label: "Favicon", defaultPrompt: "A small icon for Torah Tale — a Torah book icon." },
-  { key: "story-noach", label: "Gallery — Noach", defaultPrompt: "A 3D Pixar-style book cover: Noach's Teivah with animals and frum kinderlach." },
-  { key: "story-beshalach", label: "Gallery — Beshalach", defaultPrompt: "A 3D Pixar-style book cover: Krias Yam Suf with frum kinderlach." },
-  { key: "story-bereishit", label: "Gallery — Bereishis", defaultPrompt: "A 3D Pixar-style book cover: Gan Eden with frum kinderlach." },
+  { key: "logo", label: "Site Logo", defaultPrompt: "A clean modern logo for Torah Tale - a children's Torah book brand." },
+  { key: "favicon", label: "Favicon", defaultPrompt: "A small icon for Torah Tale - a Torah book icon." },
+  { key: "story-noach", label: "Gallery - Noach", defaultPrompt: "A 3D Pixar-style book cover: Noach's Teivah with animals and frum kinderlach." },
+  { key: "story-beshalach", label: "Gallery - Beshalach", defaultPrompt: "A 3D Pixar-style book cover: Krias Yam Suf with frum kinderlach." },
+  { key: "story-bereishit", label: "Gallery - Bereishis", defaultPrompt: "A 3D Pixar-style book cover: Gan Eden with frum kinderlach." },
 ];
 
 const AI_MODELS = [
-  { value: "claude-fable-5", label: "Claude Fable 5 (Anthropic — most capable, recommended)" },
+  { value: "claude-fable-5", label: "Claude Fable 5 (Anthropic - most capable, recommended)" },
   { value: "claude-opus-4-8", label: "Claude Opus 4.8 (Anthropic)" },
   { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
   { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
@@ -54,7 +54,7 @@ const AI_MODELS = [
 ];
 
 const IMAGE_MODELS = [
-  { value: "gemini-3.1-flash-image-preview", label: "Nano Banana 2 (Gemini 3.1 Flash Image — recommended)" },
+  { value: "gemini-3.1-flash-image-preview", label: "Nano Banana 2 (Gemini 3.1 Flash Image - recommended)" },
   { value: "gemini-2.5-flash-image-preview", label: "Gemini 2.5 Flash Image" },
   { value: "gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image (stable)" },
   { value: "gpt-image-2", label: "GPT Image 2 (OpenAI)" },
@@ -159,8 +159,8 @@ const DEFAULT_PAGE_TEMPLATES: Record<string, { text: string; "image-prompt": str
     "image-prompt": `A stunning children's book cover illustration in {artStyle} style. A frum Yiddishe {gender} named {childName}, age {age}, as the star. The scene depicts the opening moment of the {torahPortion} story. Warm, magical atmosphere with golden light. Include subtle Torah motifs (stars of David, olive branches, scrollwork border). Title area at top. Safe for children. High resolution for print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
   },
   "page-1": {
-    text: `Set the scene at the VERY BEGINNING of the {torahPortion} storyline — the world, the people and the situation BEFORE the famous event, told from inside the scene with {childName} already standing there. Introduce who everyone is, as if the reader has never heard this story. Do NOT jump ahead to the part everyone knows.`,
-    "image-prompt": `A vivid children's book illustration in {artStyle} style opening at the VERY BEGINNING of the {torahPortion} story — the situation BEFORE the famous event, not the famous event itself. A frum Yiddishe {gender} named {childName}, age {age}, stands as part of that very first scene, already present in the authentic Biblical setting. Historically appropriate details for the Torah story. Warm, inviting light. NO modern home, NO glowing book, NO magical portal or swirling light. Safe for children. Print dimensions: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
+    text: `Set the scene at the VERY BEGINNING of the {torahPortion} storyline - the world, the people and the situation BEFORE the famous event, told from inside the scene with {childName} already standing there. Introduce who everyone is, as if the reader has never heard this story. Do NOT jump ahead to the part everyone knows.`,
+    "image-prompt": `A vivid children's book illustration in {artStyle} style opening at the VERY BEGINNING of the {torahPortion} story - the situation BEFORE the famous event, not the famous event itself. A frum Yiddishe {gender} named {childName}, age {age}, stands as part of that very first scene, already present in the authentic Biblical setting. Historically appropriate details for the Torah story. Warm, inviting light. NO modern home, NO glowing book, NO magical portal or swirling light. Safe for children. Print dimensions: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "page-2": {
     text: `The story of {torahPortion} came alive all around {childName}, and they were right in the middle of it as the events unfolded.`,
@@ -175,7 +175,7 @@ const DEFAULT_PAGE_TEMPLATES: Record<string, { text: string; "image-prompt": str
     "image-prompt": `A heartwarming meeting scene in {artStyle} style. {childName}, a frum Yiddishe {gender} age {age}, meets the key Biblical figure(s) from {torahPortion}. The Torah character is depicted with dignity and warmth. They interact kindly with the child. Beautiful background appropriate to the story. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "page-5": {
-    text: `The most exciting moment arrived — the central miracle of {torahPortion}! {childName} watched with wide eyes as Hashem's power was revealed.`,
+    text: `The most exciting moment arrived - the central miracle of {torahPortion}! {childName} watched with wide eyes as Hashem's power was revealed.`,
     "image-prompt": `A dramatic, awe-inspiring scene in {artStyle} style depicting the central event/miracle of {torahPortion}. {childName}, a frum Yiddishe {gender} age {age}, witnesses the event with wonder. Dramatic lighting, vibrant colors, sense of divine power. Appropriate for the specific Torah portion. Child-safe. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "page-6": {
@@ -187,12 +187,12 @@ const DEFAULT_PAGE_TEMPLATES: Record<string, { text: string; "image-prompt": str
     "image-prompt": `A meaningful scene in {artStyle} style showing {childName}, a frum Yiddishe {gender} age {age}, applying the moral lesson from {torahPortion}. The child performs a related mitzvah or act of kindness. Warm community setting with other frum characters. Uplifting atmosphere. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "page-8": {
-    text: `Finish the storyline, then APPLY IT: name the lesson of {torahPortion} and tell {childName} one or two concrete, doable things a {age}-year-old really does with it this week — at the Shabbos table, in cheder/Bais Yaakov, with a brother or sister, with a friend. Speak warmly and directly to the child, never a vague "be good". Close with one line of excitement for the next Torah Tale.`,
+    text: `Finish the storyline, then APPLY IT: name the lesson of {torahPortion} and tell {childName} one or two concrete, doable things a {age}-year-old really does with it this week - at the Shabbos table, in cheder/Bais Yaakov, with a brother or sister, with a friend. Speak warmly and directly to the child, never a vague "be good". Close with one line of excitement for the next Torah Tale.`,
     "image-prompt": `A warm, uplifting closing scene in {artStyle} style, still INSIDE the world of {torahPortion}. {childName}, a frum Yiddishe {gender} age {age}, smiles with a full heart in the authentic Biblical setting, looking ahead with excitement for the next story. Golden, hopeful light. NO return to a modern home, NO fading magic, NO glowing book. A sense of a joyful moral and eagerness for the next adventure. Print: Softcover 2400×2400px, Hardcover 2325×2325px, Board Book 3675×1875px.`,
   },
   "back-cover": {
-    text: `Synopsis: Step straight into the story of {torahPortion} alongside {childName}, where the events of the parsha come alive and a beautiful lesson unfolds — with another Torah Tale adventure waiting next time!\n\nDedication: With love and brachos`,
-    "image-prompt": `A beautiful back cover design in {artStyle} style for a children's Torah book. Soft, decorative background with subtle Torah motifs (olive branches, scrollwork, stars). Space for text overlay with synopsis and dedication. Warm, elegant color palette. No characters needed — decorative only. Print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
+    text: `Synopsis: Step straight into the story of {torahPortion} alongside {childName}, where the events of the parsha come alive and a beautiful lesson unfolds - with another Torah Tale adventure waiting next time!\n\nDedication: With love and brachos`,
+    "image-prompt": `A beautiful back cover design in {artStyle} style for a children's Torah book. Soft, decorative background with subtle Torah motifs (olive branches, scrollwork, stars). Space for text overlay with synopsis and dedication. Warm, elegant color palette. No characters needed - decorative only. Print: Softcover 4790×2400px, Hardcover 5370×2850px, Board Book 3863×1875px.`,
   },
 };
 
@@ -400,7 +400,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
         <span className="font-semibold">Variables:</span> <code className="text-[10px] bg-muted px-1 rounded">{"{childName}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{age}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{gender}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{artStyle}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{language}"}</code> <code className="text-[10px] bg-muted px-1 rounded">{"{torahPortion}"}</code>
       </p>
 
-      {/* ── Master Book Rules — applied to every page of every book ── */}
+      {/* ── Master Book Rules - applied to every page of every book ── */}
       <div className="rounded-2xl border border-gold/40 bg-gold/5 p-4 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -422,7 +422,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
           </Button>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          Applied to every page of every book — text and illustration. Use the same variables above.
+          Applied to every page of every book - text and illustration. Use the same variables above.
         </p>
         <Textarea
           rows={8}
@@ -454,11 +454,11 @@ function BookTemplatesTab({ onSave, savingKey }: {
                   return (
                     <div key={book}>
                       <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/50">
-                        {meta.emoji} {meta.label} — {book}
+                        {meta.emoji} {meta.label} - {book}
                       </div>
                       {bookItems.map((p) => (
                         <SelectItem key={p.value} value={p.value}>
-                          {p.emoji} {p.label} — {p.sub}
+                          {p.emoji} {p.label} - {p.sub}
                         </SelectItem>
                       ))}
                     </div>
@@ -473,7 +473,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
                   </div>
                   {items.map((p) => (
                     <SelectItem key={p.value} value={p.value}>
-                      {p.emoji} {p.label} — {p.sub}
+                      {p.emoji} {p.label} - {p.sub}
                     </SelectItem>
                   ))}
                 </div>
@@ -523,7 +523,7 @@ function BookTemplatesTab({ onSave, savingKey }: {
       {selectedPortion && !loading && (
         <div className="space-y-4">
           <div className="text-sm font-semibold text-foreground flex items-center gap-2">
-            {portionObj?.emoji} {portionObj?.label} <span className="text-muted-foreground font-normal">— {portionObj?.sub}</span>
+            {portionObj?.emoji} {portionObj?.label} <span className="text-muted-foreground font-normal">- {portionObj?.sub}</span>
           </div>
 
           {PAGE_SLOTS.map((slot) => {
@@ -584,13 +584,13 @@ function BookTemplatesTab({ onSave, savingKey }: {
                   </Button>
                 </div>
 
-                {/* Reference Image — Upload, Generate, or Edit with AI */}
+                {/* Reference Image - Upload, Generate, or Edit with AI */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     Reference Image (Scene Guide)
                   </label>
                   <p className="text-[10px] text-muted-foreground">
-                    Upload or generate a reference image so every book uses the same scene layout — only the child character will change.
+                    Upload or generate a reference image so every book uses the same scene layout - only the child character will change.
                   </p>
 
                   {/* Prompt editor for generating reference image */}
@@ -796,9 +796,9 @@ export function AdminCMS() {
               <Brain className="w-5 h-5 text-accent" /> Master AI Prompts
             </h3>
             <p className="text-xs text-muted-foreground">Edit the prompts that control how stories, images, and characters are generated.</p>
-            <SettingField category="prompts" settingKey="story-system-prompt" label="Story Generation — System Prompt" multiline placeholder={DEFAULT_PROMPTS["story-system-prompt"]} edits={promptEdits} setEdits={setPromptEdits} {...fieldProps} />
-            <SettingField category="prompts" settingKey="image-prompt-template" label="Image Generation — Prompt Template" multiline placeholder={DEFAULT_PROMPTS["image-prompt-template"]} edits={promptEdits} setEdits={setPromptEdits} {...fieldProps} />
-            <SettingField category="prompts" settingKey="character-prompt-template" label="Character Preview — Prompt Template" multiline placeholder={DEFAULT_PROMPTS["character-prompt-template"]} edits={promptEdits} setEdits={setPromptEdits} {...fieldProps} />
+            <SettingField category="prompts" settingKey="story-system-prompt" label="Story Generation - System Prompt" multiline placeholder={DEFAULT_PROMPTS["story-system-prompt"]} edits={promptEdits} setEdits={setPromptEdits} {...fieldProps} />
+            <SettingField category="prompts" settingKey="image-prompt-template" label="Image Generation - Prompt Template" multiline placeholder={DEFAULT_PROMPTS["image-prompt-template"]} edits={promptEdits} setEdits={setPromptEdits} {...fieldProps} />
+            <SettingField category="prompts" settingKey="character-prompt-template" label="Character Preview - Prompt Template" multiline placeholder={DEFAULT_PROMPTS["character-prompt-template"]} edits={promptEdits} setEdits={setPromptEdits} {...fieldProps} />
           </div>
         </TabsContent>
 
@@ -1103,7 +1103,7 @@ export function AdminCMS() {
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">General Meta</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="seo" settingKey="title" label="Page Title (<title>)" placeholder="Torah Tale — Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="title" label="Page Title (<title>)" placeholder="Torah Tale - Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
                 <SettingField category="seo" settingKey="description" label="Meta Description" placeholder="AI-powered personalized Torah storybooks for frum Yiddishe kinderlach." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
                 <SettingField category="seo" settingKey="author" label="Author" placeholder="Torah Tale" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
                 <SettingField category="seo" settingKey="canonical-url" label="Canonical URL" placeholder="https://torahtale.lovable.app" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
@@ -1114,7 +1114,7 @@ export function AdminCMS() {
             <div className="space-y-1 mb-4">
               <h4 className="text-sm font-semibold text-foreground">Open Graph (Facebook / LinkedIn)</h4>
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
-                <SettingField category="seo" settingKey="og-title" label="og:title" placeholder="Torah Tale — Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="og-title" label="og:title" placeholder="Torah Tale - Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
                 <SettingField category="seo" settingKey="og-description" label="og:description" placeholder="AI-powered personalized Torah storybooks for frum Yiddishe kinderlach." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
                 <SettingField category="seo" settingKey="og-type" label="og:type" placeholder="website" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
                 <SettingField category="seo" settingKey="og-image" label="og:image (URL)" placeholder="https://..." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
@@ -1128,7 +1128,7 @@ export function AdminCMS() {
               <div className="border-l-2 border-accent/20 pl-4 space-y-4">
                 <SettingField category="seo" settingKey="twitter-card" label="twitter:card" placeholder="summary_large_image" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
                 <SettingField category="seo" settingKey="twitter-site" label="twitter:site" placeholder="@TorahTale" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
-                <SettingField category="seo" settingKey="twitter-title" label="twitter:title" placeholder="Torah Tale — Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
+                <SettingField category="seo" settingKey="twitter-title" label="twitter:title" placeholder="Torah Tale - Personalized Torah Storybooks" edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
                 <SettingField category="seo" settingKey="twitter-description" label="twitter:description" placeholder="AI-powered personalized Torah storybooks for frum Yiddishe kinderlach." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
                 <SettingField category="seo" settingKey="twitter-image" label="twitter:image (URL)" placeholder="https://..." edits={seoEdits} setEdits={setSeoEdits} {...fieldProps} />
               </div>

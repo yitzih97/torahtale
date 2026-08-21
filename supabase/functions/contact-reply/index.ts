@@ -1,7 +1,7 @@
 // Sends an admin's reply to a contact ticket as a branded email from
 // help@torahtale.com, and records it on the ticket thread.
 //
-// The reply is recorded whether or not Resend accepted it — a failed send that
+// The reply is recorded whether or not Resend accepted it - a failed send that
 // left no trace would read in the admin inbox as "replied", which is the one
 // outcome worse than not replying at all.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -67,7 +67,7 @@ serve(async (req) => {
     const label = SUPPORT_SUBJECT_LABELS[String(ticket.subject || "general")] || "General";
     const sent = await sendResendEmail({
       to: String(ticket.email),
-      subject: `Re: your ${label.toLowerCase()} message — Torah Tale`,
+      subject: `Re: your ${label.toLowerCase()} message - Torah Tale`,
       html: renderContactReplyEmail({
         name: ticket.name,
         subject: ticket.subject,
@@ -82,7 +82,7 @@ serve(async (req) => {
       body: replyBody,
       sent_by: callerId,
       email_status: sent ? "sent" : "failed",
-      email_error: sent ? null : "Resend rejected or was not configured — see function logs",
+      email_error: sent ? null : "Resend rejected or was not configured - see function logs",
     });
 
     // Only a delivered reply advances the ticket. A failed send leaves it where
@@ -96,7 +96,7 @@ serve(async (req) => {
     }
 
     return json(
-      sent ? { ok: true, sent: true } : { ok: false, sent: false, error: "The email could not be sent — the reply was saved but the customer has not received it." },
+      sent ? { ok: true, sent: true } : { ok: false, sent: false, error: "The email could not be sent - the reply was saved but the customer has not received it." },
       sent ? 200 : 502,
     );
   } catch (e) {

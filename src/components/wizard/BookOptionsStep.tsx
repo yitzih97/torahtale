@@ -10,7 +10,7 @@ import boardImg from "@/assets/books/mockup-board.jpg";
 import coloringImg from "@/assets/books/mockup-coloring.jpg";
 // Square 320px crops of the same mockups. The full files are 2133x1200, and
 // squeezing one into an 80px tile made the browser resample ~27x in a single
-// step — which is what read as blurry. These are pre-cropped to the book and
+// step - which is what read as blurry. These are pre-cropped to the book and
 // sized for the tile (320 = 80 at 4x), so they land crisp; the full-resolution
 // image is still what the zoom dialog shows.
 import softcoverThumb from "@/assets/books/thumb-softcover.jpg";
@@ -49,7 +49,7 @@ export function getStoryPageCount(options: BookOptions): number {
   return PAGES_BY_TYPE[options.productType] ?? 20;
 }
 
-// Prices must match the live Shopify product variants — checkout charges the
+// Prices must match the live Shopify product variants - checkout charges the
 // variant price, so a mismatch here would show one price and bill another.
 const PRODUCT_INFO = {
   softcover: {

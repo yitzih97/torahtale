@@ -17,7 +17,7 @@ export const TORAH_PORTIONS: TorahOption[] = TORAH_PORTIONS_DATA as TorahOption[
 
 export const TORAH_BOOKS = ["Bereishit", "Shemot", "Vayikra", "Bamidbar", "Devarim"] as const;
 
-/** Bilingual sefer titles for the Torah books — shown as accordion headers. */
+/** Bilingual sefer titles for the Torah books - shown as accordion headers. */
 export const TORAH_BOOK_LABELS: Record<string, { en: string; he: string }> = {
   Bereishit: { en: "Sefer Bereishis", he: "ספר בראשית" },
   Shemot: { en: "Sefer Shemos", he: "ספר שמות" },
@@ -26,7 +26,7 @@ export const TORAH_BOOK_LABELS: Record<string, { en: string; he: string }> = {
   Devarim: { en: "Sefer Devarim", he: "ספר דברים" },
 };
 
-/** Sifrei Nevi'im, in order — used to group the Nevi'im list into accordions. */
+/** Sifrei Nevi'im, in order - used to group the Nevi'im list into accordions. */
 export const NEVIIM_BOOKS = ["Yehoshua", "Shoftim", "Shmuel", "Melachim", "Yeshayahu", "Yirmiyahu", "Yechezkel", "Trei Asar"] as const;
 
 /** Sifrei Kesuvim (excluding the Megillos, which are their own category). */
@@ -80,12 +80,12 @@ export const CATEGORY_META: Record<TorahOption["category"], { label: string; lab
 };
 
 /**
- * Story title with the leading "Sefer X – " (or "Tehillim – ", etc.) removed —
+ * Story title with the leading "Sefer X - " (or "Tehillim - ", etc.) removed -
  * used inside a sefer accordion, where the header already names the sefer.
- * Returns the text unchanged when there is no " – " separator (e.g. Torah parshiyos).
+ * Returns the text unchanged when there is no " - " separator (e.g. Torah parshiyos).
  */
 export const stripSeferPrefix = (text: string): string => {
-  const idx = text.indexOf(" – ");
+  const idx = text.indexOf(" - ");
   return idx >= 0 ? text.slice(idx + 3) : text;
 };
 
@@ -106,11 +106,11 @@ const prettifySlug = (value: string): string =>
  *  short display code + text direction. Book text (incl. the cover) must follow
  *  the BOOK's own language, not the viewer's UI language. */
 /** The languages selected for a book, parsed from the (possibly "+"-joined)
- *  language string — e.g. "hebrew+yiddish", "english+hebrew", "yiddish". */
+ *  language string - e.g. "hebrew+yiddish", "english+hebrew", "yiddish". */
 const bookLanguageParts = (language?: string | null): string[] =>
   (language || "").toLowerCase().split(/[+,/|\s]+/).filter(Boolean);
 
-/** The book's PREMIER (default) language — the one all of its baked text (cover,
+/** The book's PREMIER (default) language - the one all of its baked text (cover,
  *  captions, questions) renders in. **English always wins when it is one of the
  *  selected languages**; otherwise the first Hebrew/Yiddish selection is used.
  *  Robust to the "+"-joined multi-language string and to selection order. */
@@ -149,7 +149,7 @@ const PARSHA_CALENDAR: Record<string, string> = PARSHA_CALENDAR_DATA;
 /**
  * Returns the parsha read `leadWeeks` weeks after `from` (default: 3 weeks from
  * now, the production lead time). Pass a future Monday to find the portion a
- * subscription book released that day will cover — mirrors the server-side
+ * subscription book released that day will cover - mirrors the server-side
  * supabase/functions/_shared/parsha.ts used by the release job.
  */
 export const getUpcomingParsha = (from: Date = new Date(), leadWeeks = 3): string => {
@@ -168,15 +168,15 @@ export const getUpcomingParsha = (from: Date = new Date(), leadWeeks = 3): strin
 };
 
 /**
- * Modest outfit change-ups for the back-cover teaser thumbnails — each teaser
+ * Modest outfit change-ups for the back-cover teaser thumbnails - each teaser
  * re-dresses the kids differently so the "coming next" row looks varied and
  * attractive. Mirrors PREVIEW_OUTFITS in supabase/functions/generate-book.
  */
 export const PREVIEW_OUTFITS = [
-  "festive Shabbos best — boys in a navy vest over a crisp white shirt, girls in an elegant navy-and-cream long-sleeved dress",
-  "warm autumn knits — boys in a rust-brown sweater, girls in a mustard-gold long-sleeved dress with a cozy cream cardigan",
-  "fresh spring colors — boys in a soft sage-green shirt, girls in a blush-pink long-sleeved floral dress",
-  "royal celebration — boys in a burgundy sweater-vest over a white shirt, girls in a deep burgundy velvet long-sleeved dress with delicate gold trim",
+  "festive Shabbos best - boys in a navy vest over a crisp white shirt, girls in an elegant navy-and-cream long-sleeved dress",
+  "warm autumn knits - boys in a rust-brown sweater, girls in a mustard-gold long-sleeved dress with a cozy cream cardigan",
+  "fresh spring colors - boys in a soft sage-green shirt, girls in a blush-pink long-sleeved floral dress",
+  "royal celebration - boys in a burgundy sweater-vest over a white shirt, girls in a deep burgundy velvet long-sleeved dress with delicate gold trim",
 ];
 
 /**
@@ -227,9 +227,9 @@ const easternClock = (d: Date): { et: Date; offset: number } => {
 /**
  * The order-by deadline shown on the wizard's countdown: the NEXT Wednesday
  * 12:00 PM ET rollover, so the countdown is always within a week (a rolling
- * ≤7-day cadence). The production runway lives in the TARGET — getCurrentParsha
+ * ≤7-day cadence). The production runway lives in the TARGET - getCurrentParsha
  * delivers the Shabbos 10 days after this deadline, which is exactly 7 business
- * days (Thu, Fri, Mon–Fri) — so the countdown stays short without promising a
+ * days (Thu, Fri, Mon-Fri) - so the countdown stays short without promising a
  * Shabbos we cannot print and ship for.
  */
 export const getNextParshaRollover = (from: Date = new Date()): Date => {
@@ -248,7 +248,7 @@ export const PRINT_LEAD_BUSINESS_DAYS = 7;
  * The parsha to offer in the creation wizard.
  *
  * It is anchored on the DEADLINE the customer is actually being counted down to
- * — the next Wednesday-noon-ET rollover — and then set 10 days later, which is
+ * - the next Wednesday-noon-ET rollover - and then set 10 days later, which is
  * exactly PRINT_LEAD_BUSINESS_DAYS business days (Thu, Fri, Mon, Tue, Wed, Thu,
  * Fri) to print and ship.
  *

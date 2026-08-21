@@ -99,7 +99,7 @@ export function ManageSubscriptionDialog({ open, onClose, subscription, onChange
     }
   };
 
-  /* Everything on this dialog is handled here — pause, resume, cancel and the
+  /* Everything on this dialog is handled here - pause, resume, cancel and the
      address all go straight to the Shopify Admin API and come back into this
      panel. The ONE thing that cannot be local is card entry: card numbers must
      never touch our servers. So instead of dropping the customer into Shopify's

@@ -84,7 +84,7 @@ export function DashboardSettings({ user }: Props) {
    * The button here previously had no onClick at all, so it did nothing. It now
    * runs a two-question flow before anything is destroyed: first WHY, then a
    * confirmation of what goes and what stays, gated on typing DELETE. A live
-   * subscription blocks it outright — and the edge function re-checks all of
+   * subscription blocks it outright - and the edge function re-checks all of
    * this server-side, so none of these guards can be skipped from the console.
    */
   const navigate = useNavigate();

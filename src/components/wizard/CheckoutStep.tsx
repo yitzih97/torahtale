@@ -33,7 +33,7 @@ interface Plan {
 /* Round to a friendly .99 price */
 const friendly = (n: number) => Math.max(0.99, Math.round(n) - 0.01);
 
-/* The weekly plan is retired — a subscription is 4 books a month in ONE
+/* The weekly plan is retired - a subscription is 4 books a month in ONE
  * delivery, which is what the monthly plan is. "weekly" stays in the types and
  * in SUB_PRICE because subscriptions sold under it are still live and still
  * render in the dashboard; it is simply no longer offered. */
@@ -131,7 +131,7 @@ export const CheckoutStep = ({
   const activePlan = PLANS.find((p) => p.id === selectedPlan);
 
   // The subscription price MUST come from the same canonical table (subPrice) the
-  // plan cards use — otherwise the summary shows a different number than the card
+  // plan cards use - otherwise the summary shows a different number than the card
   // the user selected (and than what Shopify actually charges).
   const subscriptionPrice = isSubscription
     ? subPrice(selectedPlan as "weekly" | "monthly" | "yearly", bookOptions.productType, isIls)
@@ -239,8 +239,8 @@ export const CheckoutStep = ({
   }
 
   /* ── Order summary screen ──────────────────────────────────────────────────
-   * Leads with the actual product — the mockup of the format they picked, the
-   * story name, and what it costs — because that is what someone is deciding
+   * Leads with the actual product - the mockup of the format they picked, the
+   * story name, and what it costs - because that is what someone is deciding
    * on. The line-by-line breakdown is real but secondary, so it collapses; each
    * changeable line carries an Edit that jumps back to the step that owns it,
    * which previously meant backing out of the flow entirely.
@@ -256,8 +256,8 @@ export const CheckoutStep = ({
     : isColoringBook ? t.productsShowcase.coloring
     : t.bookOptions.softcover;
   const formatLabel = `${formatName} ${formatDims}`;
-  /* The standalone coloring book named itself twice — "Book for Adina and Ari ·
-     Coloring Book 8.5″×11″" — as if a storybook came with a coloring book. It is
+  /* The standalone coloring book named itself twice - "Book for Adina and Ari ·
+     Coloring Book 8.5″×11″" - as if a storybook came with a coloring book. It is
      the product, so it takes the name and the size follows it. */
   const productLine = isColoringBook
     ? `${t.checkout.coloringBookFor(childName)} · ${formatDims}`
@@ -291,10 +291,10 @@ export const CheckoutStep = ({
 
   return (
     <>
-      {/* One card, no chrome of its own — the wizard wraps the plan chooser and
+      {/* One card, no chrome of its own - the wizard wraps the plan chooser and
           this together so the whole summary reads as a single object. */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border p-3 sm:p-4">
-        {/* The customer's OWN cover once it exists — the point of the moment
+        {/* The customer's OWN cover once it exists - the point of the moment
             before paying is seeing the actual book, not a stock product shot.
             It is shown flat, not printed onto a mock-up: the format they chose
             doesn't change the artwork. Falls back to the product photo while
@@ -319,7 +319,7 @@ export const CheckoutStep = ({
             </div>
           )}
         </div>
-        {/* The book, named once. No price here — it is on the plan card above
+        {/* The book, named once. No price here - it is on the plan card above
             and on the total below, and repeating it three more times was the
             main thing making this panel feel busy. */}
         <div className="min-w-[8rem] flex-1">
@@ -349,8 +349,8 @@ export const CheckoutStep = ({
       </div>
 
       {/* The expandable details are gone: every row in them repeated something
-          already on screen. What did NOT appear elsewhere — an add-on, a volume
-          discount, shipping — still shows, and only when it actually applies, so
+          already on screen. What did NOT appear elsewhere - an add-on, a volume
+          discount, shipping - still shows, and only when it actually applies, so
           the ordinary order stays a clean card. */}
       {(bookOptions.coloringBook || (!isSubscription && volumeDiscount > 0) || shippingCost > 0) && (
         <div className="space-y-1.5 border-t border-border px-4 sm:px-5 py-2.5 text-xs">
@@ -368,8 +368,8 @@ export const CheckoutStep = ({
           )}
           {shippingCost > 0 && (
             <div className="flex justify-between">
-              {/* A subscription's books for the period ship TOGETHER — the
-                  monthly plan is 4 books in one box — so shipping is charged
+              {/* A subscription's books for the period ship TOGETHER - the
+                  monthly plan is 4 books in one box - so shipping is charged
                   once per delivery, not once per book. Say so, or the single
                   line looks like it under-counts. */}
               <span className="text-muted-foreground">

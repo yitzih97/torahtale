@@ -1,7 +1,7 @@
 /**
  * supabase.functions.invoke wraps every non-2xx response in a FunctionsHttpError
  * whose .message is always the useless "Edge Function returned a non-2xx status
- * code" — the real reason is in the Response it carries. Unwrap it so toasts can
+ * code" - the real reason is in the Response it carries. Unwrap it so toasts can
  * show what actually went wrong (and its HTTP status).
  */
 export async function describeFunctionsError(err: unknown): Promise<string> {

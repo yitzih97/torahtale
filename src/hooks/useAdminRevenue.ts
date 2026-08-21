@@ -20,7 +20,7 @@ export interface RevenueSummary {
 }
 
 /**
- * Every order on the store, priced by Shopify — the only source of what a
+ * Every order on the store, priced by Shopify - the only source of what a
  * customer ACTUALLY paid (the local `books` row never stores a price).
  *
  * One query key shared by the dashboard, orders and users tabs, so moving

@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowUp, ArrowDown, Loader2, Upload, Save, Wand2 } from "lucide-react";
 
-/** Step keys + defaults — mirror the wizard order */
+/** Step keys + defaults - mirror the wizard order */
 const DEFAULT_STEPS = [
   { key: "name", title: "What's your child's name?", subtitle: "We'll use this throughout the personalized story.", helper: "" },
   { key: "gender", title: "Is your child a boy or a girl?", subtitle: "Helps us pick the right pronouns and clothing.", helper: "" },
@@ -172,7 +172,7 @@ export function WizardStepsTab() {
     <div className="space-y-4">
       <div className="bg-card rounded-2xl border border-border p-6 shadow-soft-sm">
         <h3 className="font-display text-lg font-semibold text-primary flex items-center gap-2">
-          <Wand2 className="w-5 h-5 text-accent" /> Creation Wizard — Steps
+          <Wand2 className="w-5 h-5 text-accent" /> Creation Wizard - Steps
         </h3>
         <p className="text-xs text-muted-foreground mt-1">
           Edit titles, subtitles, helper text, icons, visibility and order for each wizard step.

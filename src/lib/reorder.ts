@@ -2,14 +2,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateId } from "@/lib/utils";
 
 /**
- * "Order again" — put the customer straight on the checkout summary with the
+ * "Order again" - put the customer straight on the checkout summary with the
  * same book and the same kids, so a repeat order is a confirm rather than a
  * re-run of the whole wizard.
  *
  * The original book row is NOT reused. handlePlaceOrder flips whatever
  * `savedBookId` points at to "awaiting_payment", so pointing it at a delivered
  * book would rewrite the record of an order the customer already received. A
- * reorder therefore COPIES the row — same story_data recipe and, where they
+ * reorder therefore COPIES the row - same story_data recipe and, where they
  * exist, the same generated pages, so a reprint is the identical book rather
  * than a fresh generation that would draw the child slightly differently.
  */

@@ -19,7 +19,7 @@ export interface SubscriptionRecord {
   created_at: string;
   updated_at: string;
   canceled_at: string | null;
-  /** Shopify linkage (written by the webhook) — drives local billing management. */
+  /** Shopify linkage (written by the webhook) - drives local billing management. */
   shopify_contract_id?: string | null;
   shopify_customer_id?: string | null;
 }

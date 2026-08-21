@@ -5,7 +5,7 @@
 //
 // verify_jwt is OFF because the contact form is public. The only input is a
 // ticket id, everything else is read server-side, and both sends are stamped
-// (ack_sent_at / admin_notified_at) so replaying the call is a no-op — there is
+// (ack_sent_at / admin_notified_at) so replaying the call is a no-op - there is
 // no way to use this to mail an arbitrary address, or the same address twice.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -67,7 +67,7 @@ serve(async (req) => {
     if (!ticket.ack_sent_at) {
       acked = await sendResendEmail({
         to: String(ticket.email),
-        subject: "We got your message — Torah Tale",
+        subject: "We got your message - Torah Tale",
         html: renderContactAckEmail({
           name: ticket.name,
           subject: ticket.subject,

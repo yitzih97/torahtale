@@ -87,7 +87,7 @@ const SORT_LABEL: Record<SortKey, string> = {
   status: "Status",
 };
 
-/** Hours a ticket has gone unanswered — the number that matters in a support inbox. */
+/** Hours a ticket has gone unanswered - the number that matters in a support inbox. */
 const waitingHours = (t: ContactTicket) =>
   (t.status === "resolved" || t.status === "replied")
     ? 0
@@ -123,7 +123,7 @@ export function AdminMessagesTab({ onSelectUser }: Props) {
     },
   });
 
-  // The whole reply thread, in one query — a support inbox is small, and per-row
+  // The whole reply thread, in one query - a support inbox is small, and per-row
   // fetching would make expanding a ticket feel slow.
   const { data: replies = [] } = useQuery({
     queryKey: ["admin-contact-replies"],
@@ -297,7 +297,7 @@ export function AdminMessagesTab({ onSelectUser }: Props) {
             onClick={(e) => {
               e.stopPropagation();
               window.open(
-                `mailto:${t.email}?subject=${encodeURIComponent(`Re: ${SUBJECT_LABELS[t.subject] || t.subject} — Torah Tale`)}`,
+                `mailto:${t.email}?subject=${encodeURIComponent(`Re: ${SUBJECT_LABELS[t.subject] || t.subject} - Torah Tale`)}`,
                 "_blank", "noopener,noreferrer",
               );
             }}
@@ -337,7 +337,7 @@ export function AdminMessagesTab({ onSelectUser }: Props) {
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => window.open(
-            `mailto:${t.email}?subject=${encodeURIComponent(`Re: ${SUBJECT_LABELS[t.subject] || t.subject} — Torah Tale`)}`,
+            `mailto:${t.email}?subject=${encodeURIComponent(`Re: ${SUBJECT_LABELS[t.subject] || t.subject} - Torah Tale`)}`,
             "_blank", "noopener,noreferrer",
           )}
         >

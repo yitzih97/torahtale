@@ -7,14 +7,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
  * articles are written in Hebrew rather than translated, and a page only ranks
  * in Hebrew if it has a Hebrew URL of its own to rank.
  *
- * The URL — not the stored site language — decides which language an article is
+ * The URL - not the stored site language - decides which language an article is
  * served in. That is what keeps the two apart: /blog is always English and
  * /he/blog is always Hebrew, so a page can never come out half in one language
  * and half in the other. The two ways a reader can end up on the "wrong" one are
  * both corrected here:
  *
  *   • Arriving on /he/blog from a Hebrew search result switches the site to
- *     Hebrew — that reader should get the Hebrew site, not an English shell.
+ *     Hebrew - that reader should get the Hebrew site, not an English shell.
  *   • A reader already browsing in Hebrew who opens an English blog URL is sent
  *     to the Hebrew one, rather than being shown English inside a Hebrew site.
  *
@@ -65,6 +65,6 @@ export const useBlogLocale = () => {
   };
 };
 
-/** The blog index in a given site language — for nav and footer links. */
+/** The blog index in a given site language - for nav and footer links. */
 export const blogHref = (lang: string) =>
   lang === "he" || lang === "yi" ? "/he/blog" : "/blog";

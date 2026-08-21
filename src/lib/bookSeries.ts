@@ -4,7 +4,7 @@ type Lang = "en" | "he" | "yi";
 
 /**
  * The four series advertised on every back cover, each represented by ONE
- * personalized book — the same kids, in a story from that series — so the reader
+ * personalized book - the same kids, in a story from that series - so the reader
  * sees where else their child can star, not just which parsha comes next.
  *
  * The FEATURED portion of each series is what the generator illustrates; the
@@ -33,7 +33,7 @@ const categoryOf = (portion: string): string =>
 
 /**
  * Short titles for the back-cover stacks. The catalogue's own label is written
- * for a picker, not a 2cm thumbnail — "Sefer Shmuel – Dovid & Golias" wrapped
+ * for a picker, not a 2cm thumbnail - "Sefer Shmuel - Dovid & Golias" wrapped
  * onto three lines and collided with the "With <child>" line. These are the
  * same stories, named the way they'd be said aloud.
  *
@@ -69,7 +69,7 @@ export const getSeriesName = (portion: string, lang: Lang): string => {
  *
  * When the book being made IS the featured title of a series (a Noach book
  * would otherwise advertise Noach), that slot falls back to another story from
- * the same series — the back cover should never sell the book already in the
+ * the same series - the back cover should never sell the book already in the
  * reader's hands.
  */
 export const getSeriesPreviewPortions = (currentPortion: string): string[] =>

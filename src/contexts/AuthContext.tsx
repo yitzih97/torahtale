@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       //
       // IMPORTANT: only sign out on a real auth rejection (401/403 / bad_jwt).
       // A transient network error or 5xx (e.g. the DB briefly overloaded) must
-      // NOT purge a valid session — doing so was booting admins out on every
+      // NOT purge a valid session - doing so was booting admins out on every
       // slow request. On a transient failure, keep the stored session and
       // proceed; the token is still valid.
       if (session) {

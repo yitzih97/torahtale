@@ -1,12 +1,12 @@
 // Post-build static pre-rendering for the SPA.
 //
 // GitHub Pages serves a static shell for every route, and crawlers index
-// whatever HTML they get FIRST — before React boots. This script takes the
+// whatever HTML they get FIRST - before React boots. This script takes the
 // built dist/index.html and, for each public route, writes a dedicated
 // dist/<route>/index.html with (a) the correct per-route <title>, description,
 // canonical + OG/Twitter tags, (b) route-specific JSON-LD, and (c) real
 // pre-rendered body content inside #root. React replaces #root on mount, so
-// users still get the full SPA — but Google sees a proper, unique page per URL.
+// users still get the full SPA - but Google sees a proper, unique page per URL.
 //
 // Runs as part of `npm run build` (vite build && node scripts/prerender.mjs),
 // so both local builds and CI produce the static pages.
@@ -34,14 +34,14 @@ const template = readFileSync(join(DIST, "index.html"), "utf8");
 const HOME_HTML = `
   <main>
     <h1>Personalized Torah Storybooks Starring Your Child</h1>
-    <p>Torah Tale creates one-of-a-kind personalized Torah storybooks where your own child is the hero of the weekly parsha — made with careful rabbinical guidance and strict tznius, illustrated in high-resolution 3D Pixar style, and printed and delivered to your door.</p>
+    <p>Torah Tale creates one-of-a-kind personalized Torah storybooks where your own child is the hero of the weekly parsha - made with careful rabbinical guidance and strict tznius, illustrated in high-resolution 3D Pixar style, and printed and delivered to your door.</p>
     <h2>How it works</h2>
     <ol>
       <li>Add your child's name, age, and a photo.</li>
       <li>Choose this week's parsha (selected automatically) or any Torah story or Yom Tov.</li>
       <li>Pick English, Hebrew, or Yiddish.</li>
-      <li>We generate a complete, kosher story with your child as the hero — illustrated in movie-quality 3D Pixar style.</li>
-      <li>Order a softcover, hardcover keepsake, or board book (with an optional matching coloring book) — or subscribe for a new book every week.</li>
+      <li>We generate a complete, kosher story with your child as the hero - illustrated in movie-quality 3D Pixar style.</li>
+      <li>Order a softcover, hardcover keepsake, or board book (with an optional matching coloring book) - or subscribe for a new book every week.</li>
     </ol>
     <p><a href="/create">Create your child's book</a> · <a href="/pricing">See pricing</a> · <a href="/blog">Read our guides</a></p>
   </main>`;
@@ -51,10 +51,10 @@ const blogIndexHtml = (isHe = false) => {
   const base = isHe ? "/he/blog" : "/blog";
   return `
   <main${isHe ? ' dir="rtl" lang="he"' : ""}>
-    <h1>${isHe ? "הבלוג של טורה־טייל — מדריכים לספרי תורה מותאמים אישית" : "Torah Tale Blog — Guides to Personalized Torah Storybooks"}</h1>
+    <h1>${isHe ? "הבלוג של טורה־טייל - מדריכים לספרי תורה מותאמים אישית" : "Torah Tale Blog - Guides to Personalized Torah Storybooks"}</h1>
     <p>${isHe ? "מדריכים ורעיונות ליצירת ספרי סיפורי תורה מותאמים אישית לילדים." : "Step-by-step guides and ideas for making personalized Torah storybooks for Jewish children."}</p>
     <ul>
-      ${items.map((a) => `<li><a href="${base}/${a.slug}">${esc(a.title)}</a> — <time datetime="${esc(a.dateISO)}">${esc(a.date)}</time> — ${esc(a.excerpt)}</li>`).join("\n      ")}
+      ${items.map((a) => `<li><a href="${base}/${a.slug}">${esc(a.title)}</a> - <time datetime="${esc(a.dateISO)}">${esc(a.date)}</time> - ${esc(a.excerpt)}</li>`).join("\n      ")}
     </ul>
   </main>`;
 };
@@ -112,20 +112,20 @@ const articleJsonLd = (a, isHe = false) => {
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = [
-  { path: "/", title: "Torah Tale — Personalized Torah Storybooks for Jewish Kids", description: "Personalized Torah storybooks starring your child, aligned with the weekly parsha and made with rabbinical guidance. Delivered to your door.", content: HOME_HTML },
-  { path: "/about", title: "About Torah Tale — Our Story & Mission", description: "Meet the team behind Torah Tale. Learn how we craft personalized Torah storybooks for Orthodox Jewish families with kedushah and care." },
-  { path: "/pricing", title: "Pricing — Torah Tale Personalized Storybooks", description: "Simple pricing for personalized Torah storybooks — softcover, hardcover keepsakes, and board books, plus weekly, monthly, and yearly parsha subscriptions." },
-  { path: "/faq", title: "FAQ — Torah Tale", description: "Answers to common questions about Torah Tale's personalized Torah storybooks: how they're made, tznius and rabbinical guidance, shipping, and subscriptions." },
-  { path: "/testimonials", title: "Reviews — What Families Say About Torah Tale", description: "Read what frum families say about their personalized Torah Tale storybooks for their children." },
+  { path: "/", title: "Torah Tale - Personalized Torah Storybooks for Jewish Kids", description: "Personalized Torah storybooks starring your child, aligned with the weekly parsha and made with rabbinical guidance. Delivered to your door.", content: HOME_HTML },
+  { path: "/about", title: "About Torah Tale - Our Story & Mission", description: "Meet the team behind Torah Tale. Learn how we craft personalized Torah storybooks for Orthodox Jewish families with kedushah and care." },
+  { path: "/pricing", title: "Pricing - Torah Tale Personalized Storybooks", description: "Simple pricing for personalized Torah storybooks - softcover, hardcover keepsakes, and board books, plus weekly, monthly, and yearly parsha subscriptions." },
+  { path: "/faq", title: "FAQ - Torah Tale", description: "Answers to common questions about Torah Tale's personalized Torah storybooks: how they're made, tznius and rabbinical guidance, shipping, and subscriptions." },
+  { path: "/testimonials", title: "Reviews - What Families Say About Torah Tale", description: "Read what frum families say about their personalized Torah Tale storybooks for their children." },
   { path: "/contact", title: "Contact Torah Tale", description: "Get in touch with the Torah Tale team. We're happy to help with your personalized Torah storybook order." },
-  { path: "/affiliates", title: "Affiliate Program — Torah Tale", description: "Earn by sharing Torah Tale's personalized Torah storybooks with your community. Join the affiliate program." },
-  { path: "/create", title: "Create Your Child's Torah Storybook — Torah Tale", description: "Start building a personalized Torah storybook starring your child in about five minutes. Choose the parsha, language, and book format." },
-  { path: "/blog", title: "Torah Tale Blog — Guides to Personalized Torah Storybooks", description: "Step-by-step guides and ideas for making personalized Torah storybooks for Jewish kids — choosing the weekly parsha, gift ideas, and how it works.", content: blogIndexHtml(), alternates: { en: "/blog", he: "/he/blog" } },
-  { path: "/terms", title: "Terms of Service — Torah Tale", description: "Torah Tale's terms of service." },
-  { path: "/privacy", title: "Privacy Policy — Torah Tale", description: "How Torah Tale handles your data and your child's photos with care." },
+  { path: "/affiliates", title: "Affiliate Program - Torah Tale", description: "Earn by sharing Torah Tale's personalized Torah storybooks with your community. Join the affiliate program." },
+  { path: "/create", title: "Create Your Child's Torah Storybook - Torah Tale", description: "Start building a personalized Torah storybook starring your child in about five minutes. Choose the parsha, language, and book format." },
+  { path: "/blog", title: "Torah Tale Blog - Guides to Personalized Torah Storybooks", description: "Step-by-step guides and ideas for making personalized Torah storybooks for Jewish kids - choosing the weekly parsha, gift ideas, and how it works.", content: blogIndexHtml(), alternates: { en: "/blog", he: "/he/blog" } },
+  { path: "/terms", title: "Terms of Service - Torah Tale", description: "Torah Tale's terms of service." },
+  { path: "/privacy", title: "Privacy Policy - Torah Tale", description: "How Torah Tale handles your data and your child's photos with care." },
   ...ARTICLES.map((a) => ({
     path: `/blog/${a.slug}`,
-    title: `${a.title} — Torah Tale`,
+    title: `${a.title} - Torah Tale`,
     description: a.description,
     content: articleHtml(a),
     ogType: "article",
@@ -139,9 +139,9 @@ const routes = [
   // its own structured data, tied to the English by hreflang.
   {
     path: "/he/blog",
-    title: "הבלוג של טורה־טייל — מדריכים לספרי תורה מותאמים אישית",
+    title: "הבלוג של טורה־טייל - מדריכים לספרי תורה מותאמים אישית",
     description:
-      "מדריכים ורעיונות ליצירת ספרי תורה מותאמים אישית לילדים — סיפורי פרשה לפי שבוע, איך בוחרים סיפור, ורעיונות למתנה לכל שמחה.",
+      "מדריכים ורעיונות ליצירת ספרי תורה מותאמים אישית לילדים - סיפורי פרשה לפי שבוע, איך בוחרים סיפור, ורעיונות למתנה לכל שמחה.",
     content: blogIndexHtml(true),
     locale: "he",
     alternates: { en: "/blog", he: "/he/blog" },
@@ -150,7 +150,7 @@ const routes = [
     const he = localizeArticle(a, "he");
     return {
       path: `/he/blog/${a.slug}`,
-      title: `${he.title} — Torah Tale`,
+      title: `${he.title} - Torah Tale`,
       description: he.description,
       content: articleHtml(he, true),
       ogType: "article",
@@ -204,7 +204,7 @@ for (const r of routes) {
   }
 
   // Pre-rendered body content inside #root (React replaces it on mount).
-  // Visually hidden so users never see raw text while the app boots —
+  // Visually hidden so users never see raw text while the app boots -
   // crawlers still read it from the HTML.
   if (r.content) {
     const hidden = `<div style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">${r.content}</div>`;
@@ -314,21 +314,21 @@ ${ARTICLES.map(
   "utf8"
 );
 
-// llms.txt — the map an answer engine reads first.
+// llms.txt - the map an answer engine reads first.
 writeFileSync(
   join(DIST, "llms.txt"),
   `# Torah Tale
 
-> Personalized Torah storybooks for frum Yiddishe kinderlach. Each book stars your own child — by name and likeness — as the hero of a real Torah story, illustrated in high-resolution 3D Pixar style, written under rabbinical guidance with strict tznius, then printed and shipped worldwide.
+> Personalized Torah storybooks for frum Yiddishe kinderlach. Each book stars your own child - by name and likeness - as the hero of a real Torah story, illustrated in high-resolution 3D Pixar style, written under rabbinical guidance with strict tznius, then printed and shipped worldwide.
 
-Torah Tale (https://torahtale.com) creates custom hardcover, softcover and board books in English, Hebrew and Yiddish. Stories cover the weekly parsha, all of Tanach (Chumash, Nevi'im, Kesuvim, Megillos), the Yamim Tovim, and middos stories for everyday life. Books can be ordered one at a time or by weekly, monthly and yearly subscription. Standard shipping is free (5–7 business days); express is 2–3 business days.
+Torah Tale (https://torahtale.com) creates custom hardcover, softcover and board books in English, Hebrew and Yiddish. Stories cover the weekly parsha, all of Tanach (Chumash, Nevi'im, Kesuvim, Megillos), the Yamim Tovim, and middos stories for everyday life. Books can be ordered one at a time or by weekly, monthly and yearly subscription. Standard shipping is free (5-7 business days); express is 2-3 business days.
 
 ## Pages
 
 - [Home](${SITE}/): Overview, gallery, and how it works.
 - [About](${SITE}/about): The story and values behind Torah Tale.
 - [Pricing](${SITE}/pricing): Book formats, subscription plans, and one-time options.
-- [Create](${SITE}/create): The personalization wizard — name, photo, story, language, format.
+- [Create](${SITE}/create): The personalization wizard - name, photo, story, language, format.
 - [FAQ](${SITE}/faq): Shipping, customization, billing, and content questions.
 - [Testimonials](${SITE}/testimonials): Reviews from families.
 - [Contact](${SITE}/contact): Get in touch with the team.
@@ -337,7 +337,7 @@ Torah Tale (https://torahtale.com) creates custom hardcover, softcover and board
 
 ${ARTICLES.map((a) => `- [${a.title}](${SITE}/blog/${a.slug}): ${a.description}`).join("\n")}
 
-## Blog (Hebrew — written in Hebrew, not translated)
+## Blog (Hebrew - written in Hebrew, not translated)
 
 ${ARTICLES.map((a) => {
   const he = localizeArticle(a, "he");
@@ -354,11 +354,11 @@ ${ARTICLES.map((a) => {
   "utf8"
 );
 
-// llms-full.txt — the whole blog corpus as plain text, so a model that follows
+// llms-full.txt - the whole blog corpus as plain text, so a model that follows
 // the map above can read the substance without executing our JavaScript.
 writeFileSync(
   join(DIST, "llms-full.txt"),
-  `# Torah Tale — full blog text
+  `# Torah Tale - full blog text
 
 Source: ${SITE}/blog
 Generated: ${today}

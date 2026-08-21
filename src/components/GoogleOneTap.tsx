@@ -48,7 +48,7 @@ function loadGsi(): Promise<void> {
  * Google One Tap auto-login. Shows the "Sign in with Google" prompt to
  * logged-out visitors on the /auth page only, and silently re-signs returning
  * users (auto_select). On accept it exchanges the Google ID token for a
- * Supabase session via signInWithIdToken — no redirect.
+ * Supabase session via signInWithIdToken - no redirect.
  */
 export function GoogleOneTap() {
   const { user, loading } = useAuth();
@@ -62,7 +62,7 @@ export function GoogleOneTap() {
 
   useEffect(() => {
     if (loading || user) return;
-    // Only prompt on the dedicated auth page — never over the homepage or content pages.
+    // Only prompt on the dedicated auth page - never over the homepage or content pages.
     if (location.pathname !== "/auth") return;
     if (!GOOGLE_CLIENT_ID || initialized.current) return;
 

@@ -43,7 +43,7 @@ describe("wizard parsha timing", () => {
   it("holds one parsha across its week and rolls at Wednesday noon ET", () => {
     // Just BEFORE the Wednesday-noon-ET deadline (11:00 ET = 15:00 UTC in EDT).
     expect(getCurrentParsha(new Date("2026-08-19T15:00:00Z"))).toBe("ki-tavo");
-    // Just AFTER it (13:00 ET = 17:00 UTC) — rolls to the following week.
+    // Just AFTER it (13:00 ET = 17:00 UTC) - rolls to the following week.
     expect(getCurrentParsha(new Date("2026-08-19T17:00:00Z"))).toBe("nitzavim-vayelech");
   });
 

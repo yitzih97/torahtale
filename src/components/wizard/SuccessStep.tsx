@@ -151,8 +151,8 @@ export const SuccessStep = ({
           childNames={childName}
           heading={isHe ? "רוצים ספר חדש כל שבוע?" : "Want a new book every week?"}
           subtext={isHe
-            ? "הצטרפו למועדון הפרשה — ספר אישי חדש בכל שבוע, עם אותם הילדים."
-            : `Join the Parsha Club — a new personalized book every week, starring ${childName || "your kids"}.`}
+            ? "הצטרפו למועדון הפרשה - ספר אישי חדש בכל שבוע, עם אותם הילדים."
+            : `Join the Parsha Club - a new personalized book every week, starring ${childName || "your kids"}.`}
           ctaLabel={onSubscribe ? (isHe ? "מנוי שבועי" : "Start a weekly subscription") : undefined}
           onCta={onSubscribe}
         />

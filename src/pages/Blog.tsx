@@ -23,7 +23,7 @@ const Blog = () => {
     [lang, isHe]
   );
 
-  // Only offer a chip for a category that actually has articles — the archive
+  // Only offer a chip for a category that actually has articles - the archive
   // fills in category by category as the daily agent works through the collections.
   const categories = useMemo(
     () => CATEGORY_ORDER.filter((c: string) => articles.some((a) => a.category === c)),
@@ -33,7 +33,7 @@ const Blog = () => {
   const visible = filter === "all" ? articles : articles.filter((a) => a.category === filter);
 
   // The Hebrew index is its own page at its own URL, listing the Hebrew
-  // articles — which are written in Hebrew, not translated from the English.
+  // articles - which are written in Hebrew, not translated from the English.
   const paths = { en: "/blog", he: "/he/blog" };
   const indexUrl = `https://torahtale.com${isHe ? paths.he : paths.en}`;
   const jsonLd = {
@@ -45,8 +45,8 @@ const Blog = () => {
         url: indexUrl,
         inLanguage: isHe ? "he" : "en",
         description: isHe
-          ? "מדריכים ורעיונות ליצירת ספרי תורה מותאמים אישית לילדים — סיפורי פרשה, טיפים ורעיונות למתנה."
-          : "Guides and ideas for creating personalized Torah storybooks for Jewish children — parsha tips, gift guides, and step-by-step how-tos.",
+          ? "מדריכים ורעיונות ליצירת ספרי תורה מותאמים אישית לילדים - סיפורי פרשה, טיפים ורעיונות למתנה."
+          : "Guides and ideas for creating personalized Torah storybooks for Jewish children - parsha tips, gift guides, and step-by-step how-tos.",
         publisher: { "@type": "Organization", name: "Torah Tale", url: "https://torahtale.com" },
         blogPost: ARTICLES.map((a) => ({
           "@type": "BlogPosting",
@@ -71,7 +71,7 @@ const Blog = () => {
     ? {
         kicker: "הבלוג של טורה־טייל",
         heading: "מדריכים לספרי תורה מותאמים אישית",
-        sub: "איך הופכים את הילד שלכם לגיבור של פרשת השבוע — מדריכים שלב אחרי שלב, טיפים לבחירת פרשה ורעיונות למתנה לכל שמחה.",
+        sub: "איך הופכים את הילד שלכם לגיבור של פרשת השבוע - מדריכים שלב אחרי שלב, טיפים לבחירת פרשה ורעיונות למתנה לכל שמחה.",
         minRead: "דקות קריאה",
         readGuide: "לקריאת המדריך",
         all: "הכל",
@@ -79,7 +79,7 @@ const Blog = () => {
     : {
         kicker: "Torah Tale Blog",
         heading: "Guides to personalized Torah storybooks",
-        sub: "How to turn your child into the star of the weekly parsha — step-by-step guides, parsha tips, and gift ideas for every simcha.",
+        sub: "How to turn your child into the star of the weekly parsha - step-by-step guides, parsha tips, and gift ideas for every simcha.",
         minRead: "min read",
         readGuide: "Read the guide",
         all: "All",
@@ -97,13 +97,13 @@ const Blog = () => {
       <SEO
         title={
           isHe
-            ? "הבלוג של טורה־טייל — מדריכים לספרי תורה מותאמים אישית"
-            : "Torah Tale Blog — Guides to Personalized Torah Storybooks"
+            ? "הבלוג של טורה־טייל - מדריכים לספרי תורה מותאמים אישית"
+            : "Torah Tale Blog - Guides to Personalized Torah Storybooks"
         }
         description={
           isHe
-            ? "מדריכים ורעיונות ליצירת ספרי תורה מותאמים אישית לילדים — סיפורי פרשה לפי שבוע, איך בוחרים סיפור, ורעיונות למתנה לכל שמחה."
-            : "Step-by-step guides and ideas for making personalized Torah storybooks for Jewish kids — choosing the weekly parsha, gift ideas, and how it works."
+            ? "מדריכים ורעיונות ליצירת ספרי תורה מותאמים אישית לילדים - סיפורי פרשה לפי שבוע, איך בוחרים סיפור, ורעיונות למתנה לכל שמחה."
+            : "Step-by-step guides and ideas for making personalized Torah storybooks for Jewish kids - choosing the weekly parsha, gift ideas, and how it works."
         }
         path={isHe ? paths.he : paths.en}
         locale={isHe ? "he" : "en"}

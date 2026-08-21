@@ -2,7 +2,7 @@ name: Daily blog post
 
 # Writes one new blog article a day and deploys it.
 #
-# Sunday–Thursday only, and deliberately so: the run commits to main and
+# Sunday-Thursday only, and deliberately so: the run commits to main and
 # publishes the site, and we don't want either happening on erev Shabbos or on
 # Shabbos itself. That's five fresh articles a week; to publish seven, add
 # `5,6` to the cron's day-of-week field.
@@ -12,7 +12,7 @@ name: Daily blog post
 
 on:
   schedule:
-    - cron: "0 11 * * 0-4" # 07:00 America/New_York during EDT, Sun–Thu
+    - cron: "0 11 * * 0-4" # 07:00 America/New_York during EDT, Sun-Thu
   workflow_dispatch:
     inputs:
       count:
@@ -28,7 +28,7 @@ on:
         type: string
         default: ""
       plan:
-        description: "Only print what it would write — no API call, no commit"
+        description: "Only print what it would write - no API call, no commit"
         type: boolean
         default: false
 
@@ -109,7 +109,7 @@ jobs:
           git config user.email "bot@torahtale.com"
           git add src/content/blog/stories
           git commit -m "$subject"
-          # Writing an article takes minutes, and main moves while it does — so
+          # Writing an article takes minutes, and main moves while it does - so
           # rebase onto whatever landed meanwhile rather than losing the article
           # to a rejected push. The commit only ever adds files under
           # src/content/blog/stories, so there is nothing for it to conflict with.

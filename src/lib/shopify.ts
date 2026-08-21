@@ -3,13 +3,13 @@ import { toast } from "sonner";
 const SHOPIFY_API_VERSION = '2025-07';
 const SHOPIFY_STORE_PERMANENT_DOMAIN = 'cnhtj8-x9.myshopify.com';
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
-// Token from the TorahTale Integration app — includes unauthenticated_read_selling_plans,
+// Token from the TorahTale Integration app - includes unauthenticated_read_selling_plans,
 // required for subscription (selling plan) checkout lines.
 const SHOPIFY_STOREFRONT_TOKEN = '370f86bdf115e6b0593f7248f5cfb4b0';
 
 /**
  * Shopify's hosted customer-account portal. Card/payment-method editing is
- * PCI-owned by Shopify and only available here — we deep-link to it rather than
+ * PCI-owned by Shopify and only available here - we deep-link to it rather than
  * editing payments in-app. Used by every "Manage payment & billing" entry point.
  */
 export const SHOPIFY_ACCOUNT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/account`;
@@ -239,7 +239,7 @@ export const SHOPIFY_VARIANT_IDS = {
   bookHardcover8x8: { standard: "gid://shopify/ProductVariant/53047693803744", coloring: "gid://shopify/ProductVariant/53047693836512" },
   bookHardcover11x85: { standard: "gid://shopify/ProductVariant/53047693869280", coloring: "gid://shopify/ProductVariant/53047693902048" },
   bookBoardBook6x6: { standard: "gid://shopify/ProductVariant/53047693967584", coloring: "gid://shopify/ProductVariant/53047694000352" },
-  // Standalone Coloring Book ($12) — its own product (no "+coloring" sub-variant).
+  // Standalone Coloring Book ($12) - its own product (no "+coloring" sub-variant).
   coloringBook: { standard: "gid://shopify/ProductVariant/53221487444192", coloring: "gid://shopify/ProductVariant/53221487444192" },
 } as const;
 
@@ -276,7 +276,7 @@ export const SUBSCRIPTION_VARIANT_IDS: Record<
 // Selling-plan IDs that turn a subscription variant into a recurring charge.
 // These come from the Shopify Subscriptions app once selling plans are configured
 // on the subscription products. Fill these in (gid://shopify/SellingPlan/...) before
-// recurring billing will work — until then, subscription checkouts fall back to a
+// recurring billing will work - until then, subscription checkouts fall back to a
 // one-off charge of the subscription variant.
 export const SHOPIFY_SELLING_PLAN_IDS: Record<"weekly" | "monthly" | "yearly", string | null> = {
   weekly: "gid://shopify/SellingPlan/11163369696",

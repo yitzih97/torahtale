@@ -10,7 +10,7 @@ function extractTrackingUrl(event: unknown): string | null {
   const e = event as any;
   let raw = "";
   try { raw = JSON.stringify(e); } catch (_e) { /* ignore */ }
-  // Printify sends a branded AfterShip tracking page — prefer that link.
+  // Printify sends a branded AfterShip tracking page - prefer that link.
   const after = raw.match(/https?:\/\/[^"'\\ ]*aftership\.com[^"'\\ ]*/i);
   if (after) return after[0].replace(/\\\//g, "/");
   const d = e?.resource?.data ?? e?.data ?? {};
@@ -87,7 +87,7 @@ serve(async (req) => {
   try {
     const PRINTIFY_WEBHOOK_SECRET = Deno.env.get("PRINTIFY_WEBHOOK_SECRET");
     if (!PRINTIFY_WEBHOOK_SECRET) {
-      console.error("PRINTIFY_WEBHOOK_SECRET is not configured — rejecting webhook");
+      console.error("PRINTIFY_WEBHOOK_SECRET is not configured - rejecting webhook");
       return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -126,7 +126,7 @@ serve(async (req) => {
 
     // A cancellation arrives as an order:updated with a canceled status in the
     // payload (Printify has no dedicated cancel event). Without this, a cancel was
-    // mapped straight to "printing" — leaving the book looking in-production and
+    // mapped straight to "printing" - leaving the book looking in-production and
     // its printify_order_id set, which then blocked re-approval. Detect it
     // defensively from wherever the status lives and self-heal instead.
     const resourceStatus = String(
@@ -185,7 +185,7 @@ serve(async (req) => {
       }
 
       // On the first delivery event, email the customer "Your Book Has Arrived!".
-      // delivered_email_sent_at makes this idempotent — Printify can re-fire the
+      // delivered_email_sent_at makes this idempotent - Printify can re-fire the
       // delivered event, and a duplicate "your book arrived" email reads as spam.
       if (newStatus === "delivered" && !book.delivered_email_sent_at) {
         const to = await resolveCustomerEmail(supabase, book);

@@ -94,7 +94,7 @@ export const Navbar = ({ onStart, transparentHero = true }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Language picker — globe icon opens a flag + name dropdown */}
+          {/* Language picker - globe icon opens a flag + name dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button

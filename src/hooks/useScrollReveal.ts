@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 /**
  * Adds `.is-visible` to any element with class `.reveal` once it enters
- * the viewport — powering the sitewide scroll-reveal animation.
+ * the viewport - powering the sitewide scroll-reveal animation.
  *
  * Mount once at the app root.
  */

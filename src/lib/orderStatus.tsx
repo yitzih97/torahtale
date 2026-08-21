@@ -2,7 +2,7 @@ import { Package, Truck, Wand2, Loader2, CheckCircle2 } from "lucide-react";
 
 /**
  * The order lifecycle, in workflow order. Shared by the admin orders table
- * (chips, status picker, status sort) so every surface offers the same set —
+ * (chips, status picker, status sort) so every surface offers the same set -
  * a status that only exists in one dropdown is a status that gets stranded.
  */
 export const ORDER_STATUSES = [

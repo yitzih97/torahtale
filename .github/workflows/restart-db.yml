@@ -2,7 +2,7 @@ name: Restart Supabase project (recovery)
 
 # Manual recovery tool: restarts the cjgqpusyxvltglcbnpvg project when the
 # database stops responding (REST/auth returning 522). Uses the same
-# SUPABASE_ACCESS_TOKEN the deploy workflow already has — run it from the
+# SUPABASE_ACCESS_TOKEN the deploy workflow already has - run it from the
 # Actions tab (or `gh workflow run restart-db.yml`).
 
 on:

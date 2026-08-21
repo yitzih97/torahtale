@@ -1,12 +1,12 @@
 // Customer-initiated account deletion.
 //
-// The dashboard button used to do nothing at all — it had no onClick. This is
+// The dashboard button used to do nothing at all - it had no onClick. This is
 // the real thing, so it is deliberately hard to trigger by accident and every
 // guard is re-checked HERE rather than trusted from the browser:
 //
 //   • the caller is identified from their own JWT; a user can only ever delete
 //     themselves, there is no id parameter to tamper with
-//   • an active or paused subscription BLOCKS the deletion — a live Shopify
+//   • an active or paused subscription BLOCKS the deletion - a live Shopify
 //     contract would keep billing a customer whose account no longer exists
 //   • the typed confirmation and the reason must both be present
 //
@@ -83,7 +83,7 @@ serve(async (req) => {
       email,
       subject: "general",
       message:
-        `ACCOUNT DELETION — user ${userId} (${email || "no email"}) deleted their account.\n` +
+        `ACCOUNT DELETION - user ${userId} (${email || "no email"}) deleted their account.\n` +
         `Reason: ${reason}\n` +
         (reasonDetail ? `Details: ${reasonDetail}\n` : "") +
         `Their books remain in the database with a null user_id.`,

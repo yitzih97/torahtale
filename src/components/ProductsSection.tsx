@@ -139,7 +139,7 @@ export const ProductsSection = ({ onStart }: Props) => {
         {/* Active product card */}
         <div className="mt-8 rounded-3xl border border-foreground/10 bg-background/60 backdrop-blur-sm shadow-[0_24px_60px_-30px_rgba(0,0,0,0.3)] overflow-hidden">
           <div className="grid lg:grid-cols-2 items-stretch">
-            {/* Product photo — fills the panel edge to edge (no letterbox bands).
+            {/* Product photo - fills the panel edge to edge (no letterbox bands).
                 Safe to cover-crop: every mockup is rendered 4:3 (close to this
                 panel's ratio) with the book centred inside a wide cream margin,
                 so the few percent trimmed off never reaches the book. */}

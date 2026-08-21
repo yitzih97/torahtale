@@ -1,12 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,600;1,700;1,800&family=Inter:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500;700&family=Fredoka:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&display=swap');
 @import "./styles/brand-font.css";
 
-/* Thin weight of the brand font — used for STORY PAGE TEXT (book captions) so the
+/* Thin weight of the brand font - used for STORY PAGE TEXT (book captions) so the
    English body reads in the Torah Tale hand, lighter than the display Regular.
    The Thin file is Latin-only, so Hebrew (letters + nikud) falls straight through
    to Frank Ruhl Libre in the caption font stack (BOOK_TEXT_FONT). */
 /* Same treatment as TorahTaleTitle: two plain weights instead of a variable
-   weight RANGE, which older mobile WebKit can fail to parse — dropping the whole
+   weight RANGE, which older mobile WebKit can fail to parse - dropping the whole
    rule and silently falling back. */
 @font-face {
   font-family: "TorahTaleText";
@@ -51,7 +51,7 @@
     --muted: 220 14% 94%;
     --muted-foreground: 220 8% 46%;
 
-    --accent: 42 88% 55%;              /* warm champagne gold — primary accent */
+    --accent: 42 88% 55%;              /* warm champagne gold - primary accent */
     --accent-foreground: 222 30% 12%;
 
     --destructive: 0 65% 48%;
@@ -243,7 +243,7 @@
     text-wrap: pretty;
     overflow-wrap: break-word;
   }
-  /* Selection — silver, never black */
+  /* Selection - silver, never black */
   ::selection {
     background: hsl(var(--silver) / 0.5);
     color: hsl(var(--graphite));
@@ -283,7 +283,7 @@
       hsl(var(--gold-dark)) 100%);
     color: hsl(var(--gold-foreground));
   }
-  /* Brand-gold metallic text with a slow moving highlight — matches the logo
+  /* Brand-gold metallic text with a slow moving highlight - matches the logo
      golds (--gold-light/--gold/--gold-dark). Pair with a drop-shadow for
      legibility on warm/light backgrounds. */
   .gold-shine-text {
@@ -331,7 +331,7 @@
     color: transparent;
   }
 
-  /* Selected state — slap on any card/option to indicate active choice */
+  /* Selected state - slap on any card/option to indicate active choice */
   .is-selected,
   [data-state="checked"].selectable,
   [aria-selected="true"].selectable {
@@ -472,7 +472,7 @@
 /* Every step question in the wizard is an h2, and this rule used to hard-set
    Cormorant Garamond here. A descendant selector (0,1,1) outranks the
    `font-heading` utility class (0,1,0) on the heading itself, so the brand face
-   was silently overridden — inside the wizard ONLY, which is exactly why the
+   was silently overridden - inside the wizard ONLY, which is exactly why the
    rest of the site looked right while every "What's your child's name?" did
    not. Same stack as font-heading now. */
  .wizard-glass h2 {
@@ -482,7 +482,7 @@
   line-height: 1.05;
   text-wrap: balance;
 }
-/* Flat soft selection — replaces gold glow */
+/* Flat soft selection - replaces gold glow */
 .wizard-glass .is-selected,
 .wizard-glass [aria-selected="true"].selectable {
   background-image: linear-gradient(180deg, hsl(142 71% 45% / 0.08), hsl(142 71% 45% / 0.04)) !important;
@@ -497,7 +497,7 @@
 
 
 /* Hero storybook page-turn: the previous page (clipped to just the book) rotates
-   away on its spine to reveal the next page beneath — only the book moves. */
+   away on its spine to reveal the next page beneath - only the book moves. */
 @keyframes heroPageTurn {
   0%   { transform: rotateY(0deg); }
   100% { transform: rotateY(-172deg); }
@@ -532,7 +532,7 @@
 .blog-prose th { background: hsl(var(--muted) / 0.4); color: hsl(var(--foreground)); font-weight: 600; }
 .blog-prose td { color: hsl(var(--muted-foreground)); }
 
-/* "The short answer" — the quotable summary answer engines and skimmers lift */
+/* "The short answer" - the quotable summary answer engines and skimmers lift */
 .blog-keyfacts { margin: 0 0 1.75rem; padding: 1rem 1.15rem; border: 1px solid hsl(var(--accent) / 0.28); background: hsl(var(--accent) / 0.06); border-radius: 1rem; }
 .blog-keyfacts-title { margin: 0 0 0.5rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: hsl(var(--accent)); }
 .blog-keyfacts ul { margin: 0 0 0 1.15rem; list-style: disc; color: hsl(var(--muted-foreground)); }

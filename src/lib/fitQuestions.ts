@@ -68,7 +68,7 @@ export function fitQuestionsLayout(
     fontSize = fsRef; // keep the last measured size if nothing fits
   }
   // Centre the finished block in the space that is left, instead of pinning it
-  // to the top — ten short questions used to sit high with a wide empty band
+  // to the top - ten short questions used to sit high with a wide empty band
   // under them.
   const blockH = lines * fontSize * scale * lineHeight;
   const slackPct = Math.max(0, ((availH - blockH) / H) * 100);

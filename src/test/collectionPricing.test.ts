@@ -101,7 +101,7 @@ describe("collection pricing", () => {
         expect(collectionBlurb(c, lang).trim().length, `${c.key} blurb/${lang}`).toBeGreaterThan(0);
       }
       expect(collectionName(c, "en")).toBe(c.name);
-      // The book count still has to survive translation — the number is parsed
+      // The book count still has to survive translation - the number is parsed
       // out of the English string, so a broken label would show "0 ספרים".
       for (const lang of ["en", "he", "yi"] as const) {
         expect(collectionBooksLabel(c, lang), `${c.key} books/${lang}`)

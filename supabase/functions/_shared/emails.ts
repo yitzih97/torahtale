@@ -58,7 +58,7 @@ interface LayoutOpts {
   preheader: string;
   /**
    * The brand heading. A `file` title is one of the pre-rendered TorahTale-font
-   * PNGs; a `text` title is set live in a serif face. Support emails use text —
+   * PNGs; a `text` title is set live in a serif face. Support emails use text -
    * their headings are written per message, and a wrong-wording PNG would be
    * worse than an honest text heading in a matching serif.
    */
@@ -93,7 +93,7 @@ function quote(text: string): string {
   return `<table role="presentation" border="0" width="100%" cellPadding="0" cellSpacing="0" style="margin:4px 0 18px 0"><tbody><tr><td style="background-color:#FBF7EC;border-left:3px solid ${C.gold};border-radius:6px;padding:14px 16px"><p style="margin:0;padding:0;font-size:15px;line-height:24px;color:${C.body};text-align:left;white-space:pre-wrap">${safe}</p></td></tr></tbody></table>`;
 }
 
-/** Left-aligned body copy — support replies read as a letter, not a headline. */
+/** Left-aligned body copy - support replies read as a letter, not a headline. */
 function paraLeft(html: string): string {
   return `<p style="margin:0 0 16px 0;padding:0;font-size:16px;line-height:26px;color:${C.body};text-align:left">${html}</p>`;
 }
@@ -122,7 +122,7 @@ export function renderDeliveredEmail(input: OrderInput): string {
     para(`Curl up together, turn to page one, and watch ${child}&#x27;s eyes light up at seeing themselves inside a timeless Torah story. This is the moment we made it for.`) +
     button("Write a review", "https://g.page/r/CdbQVA-n5_hAEAI/review");
   const closing = small(
-    `Loved it? Please take a moment to leave a review — it helps other families discover TorahTale, and we read every one. You can also reply with a photo of ${child} enjoying their book, and any questions about your order are always welcome here too.`,
+    `Loved it? Please take a moment to leave a review - it helps other families discover TorahTale, and we read every one. You can also reply with a photo of ${child} enjoying their book, and any questions about your order are always welcome here too.`,
   );
   return layout({
     preheader: `${child}'s Torah Tale has been delivered!`,
@@ -145,12 +145,12 @@ export function renderShippedEmail(input: OrderInput & { trackingUrl?: string | 
     para(`${child}&#x27;s very own Torah Tale${forPortion} has left our workshop and is heading to your door.`) +
     para(
       track
-        ? `Follow its journey with the tracking link below — we can&#x27;t wait for ${child} to hold it.`
-        : `We&#x27;ll send another note the moment it arrives — we can&#x27;t wait for ${child} to hold it.`,
+        ? `Follow its journey with the tracking link below - we can&#x27;t wait for ${child} to hold it.`
+        : `We&#x27;ll send another note the moment it arrives - we can&#x27;t wait for ${child} to hold it.`,
     ) +
     (track ? button("Track your package", escapeHtml(track)) : "");
   const closing = small(
-    `Questions about your order? Just reply — we&#x27;re always happy to help. We&#x27;ll email you again as soon as it&#x27;s delivered.`,
+    `Questions about your order? Just reply - we&#x27;re always happy to help. We&#x27;ll email you again as soon as it&#x27;s delivered.`,
   );
   return layout({
     preheader: `${child}'s Torah Tale is on its way!`,
@@ -217,12 +217,12 @@ export function renderContactAckEmail(input: { name?: string | null; subject?: s
   const hi = first ? `Thanks, ${escapeHtml(first)}!` : "Thanks for writing!";
   const body =
     greeting(hi) +
-    paraLeft("We&#x27;ve got your message and a real person will read it — we usually reply within one business day.") +
+    paraLeft("We&#x27;ve got your message and a real person will read it - we usually reply within one business day.") +
     paraLeft("Here&#x27;s what you sent us:") +
     quote(input.message) +
     paraLeft("Need to add something? Just reply to this email and it lands on the same thread.");
   return layout({
-    preheader: "We received your message — we'll reply within one business day.",
+    preheader: "We received your message - we'll reply within one business day.",
     title: { text: "We got your message" },
     body,
     closing: small(`Reference: ${escapeHtml(supportLabel(input.subject))} enquiry &middot; sent to help@torahtale.com`),
@@ -248,7 +248,7 @@ export function renderContactReplyEmail(input: {
     preheader: input.reply.slice(0, 120),
     title: { text: "A note from Torah Tale" },
     body,
-    closing: small("Just reply to this email if you need anything else — it comes straight back to our team."),
+    closing: small("Just reply to this email if you need anything else - it comes straight back to our team."),
     footerNote: "You are receiving this email because you contacted Torah Tale through our website.",
   });
 }
@@ -281,7 +281,7 @@ export function renderContactAdminAlertEmail(input: {
 
 /**
  * Send a transactional email through the Resend API. Returns true on success.
- * Never throws — a failed notification must not fail the webhook that triggered it.
+ * Never throws - a failed notification must not fail the webhook that triggered it.
  */
 export async function sendResendEmail(opts: {
   to: string;
@@ -291,7 +291,7 @@ export async function sendResendEmail(opts: {
 }): Promise<boolean> {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) {
-    console.warn("sendResendEmail: RESEND_API_KEY not configured — skipping send");
+    console.warn("sendResendEmail: RESEND_API_KEY not configured - skipping send");
     return false;
   }
   try {

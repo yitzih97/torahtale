@@ -4,7 +4,7 @@ import { getNextParshaRollover } from "./TorahPortions";
 
 /**
  * Live countdown to the order-by deadline for delivery before Shabbos (the next
- * Wednesday-noon-ET rollover — see getNextParshaRollover). Recomputes the
+ * Wednesday-noon-ET rollover - see getNextParshaRollover). Recomputes the
  * target each tick, so the moment the deadline passes it automatically resets
  * to the following week's countdown.
  */

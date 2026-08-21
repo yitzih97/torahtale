@@ -3,13 +3,23 @@
 // fit a caption matches exactly how that caption is later drawn.
 //
 // Wrapping breaks at natural PHRASE boundaries so a rendered line ends where a
-// phrase ends — never mid-thought. Explicit "\n" in the text are honored as hard
+// phrase ends - never mid-thought. Explicit "\n" in the text are honored as hard
 // breaks (the author's/AI's own phrase boundaries).
 
 export type MeasureFn = (text: string) => number;
 
-// Split a paragraph into phrases at clause boundaries — after clause punctuation
-// (, ; : . ! ?) and around dashes — keeping the mark attached to the phrase it
+/**
+ * Torah Tale text uses a plain hyphen, never a long dash. New books are written
+ * that way, but books generated before that rule still hold em/en dashes in
+ * their saved story_data, so every caption is normalized on the way to the page
+ * - the print files and the PDF are rendered from that text on demand, so an
+ * old book reprints correctly. Escapes, not the characters themselves: the long
+ * dash is not allowed in this codebase either.
+ */
+export const plainDashes = (text: string): string => text.replace(/[\u2014\u2013]/g, "-");
+
+// Split a paragraph into phrases at clause boundaries - after clause punctuation
+// (, ; : . ! ?) and around dashes - keeping the mark attached to the phrase it
 // closes.
 export function splitIntoPhrases(para: string): string[] {
   const words = para.split(/\s+/).filter(Boolean);
@@ -18,7 +28,7 @@ export function splitIntoPhrases(para: string): string[] {
   const flush = () => { if (cur.length) { phrases.push(cur.join(" ")); cur = []; } };
   for (const w of words) {
     // A standalone dash is a pause: attach it to the phrase before it, then break.
-    if (/^[—–-]+$/.test(w)) {
+    if (/^-+$/.test(w)) {
       if (cur.length) { cur.push(w); flush(); }
       else if (phrases.length) { phrases[phrases.length - 1] += ` ${w}`; }
       else cur.push(w);
@@ -47,13 +57,13 @@ function wordWrap(measure: MeasureFn, phrase: string, maxWidth: number): string[
 // Wrap text to lines that fit within maxWidth, preferring phrase boundaries.
 export function wrapText(measure: MeasureFn, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
-  for (const para of (text || "").split("\n")) {
+  for (const para of plainDashes(text || "").split("\n")) {
     if (!para.trim()) { lines.push(""); continue; }
     let line = "";
     for (const phrase of splitIntoPhrases(para)) {
       const test = line ? `${line} ${phrase}` : phrase;
       if (measure(test) > maxWidth && line) {
-        // Won't fit on the current line — end the line at this phrase boundary.
+        // Won't fit on the current line - end the line at this phrase boundary.
         lines.push(line);
         line = phrase;
       } else {

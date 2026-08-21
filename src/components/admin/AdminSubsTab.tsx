@@ -81,7 +81,7 @@ export function AdminSubsTab({
 
   /* Move a retired weekly contract onto the Parsha Series. This changes what a
      real customer is billed, so it confirms first, and it is SHOPIFY that sets
-     the new price — the edge function commits a subscription draft against the
+     the new price - the edge function commits a subscription draft against the
      monthly selling plan and only mirrors `frequency` locally once that lands. */
   const [migrating, setMigrating] = useState<string | null>(null);
   const migrateToParshaSeries = async (sub: any) => {
@@ -102,7 +102,7 @@ export function AdminSubsTab({
         toast.error((data as any)?.error || error?.message || "Migration failed");
         return;
       }
-      toast.success(`Moved to the Parsha Series — billing ${String((data as any)?.billingPolicy?.interval || "monthly").toLowerCase()}.`);
+      toast.success(`Moved to the Parsha Series - billing ${String((data as any)?.billingPolicy?.interval || "monthly").toLowerCase()}.`);
     } finally {
       setMigrating(null);
     }
@@ -123,7 +123,7 @@ export function AdminSubsTab({
   const rows = useMemo(() => subscriptions.map((sub: any) => {
     const profile = profiles.find((p: any) => p.id === sub.user_id);
     const kid = children.find((c: any) => c.id === sub.child_id);
-    // Books the Monday release job minted for this subscription — matched on the
+    // Books the Monday release job minted for this subscription - matched on the
     // subscription id it stamps into story_data.
     const subBooks = books
       .filter((b: any) => b.subscription_id === sub.id)
@@ -133,7 +133,7 @@ export function AdminSubsTab({
     const nextBilling = sub.next_billing_at ? new Date(sub.next_billing_at) : null;
     const overdue = sub.status === "active" && credit > 0 &&
       (!nextRelease || nextRelease.getTime() < today.getTime());
-    // An active plan with no Shopify contract will never bill again — it looks
+    // An active plan with no Shopify contract will never bill again - it looks
     // healthy in the table but silently stops earning.
     const noContract = sub.status === "active" && !sub.shopify_contract_id;
     return {
@@ -354,11 +354,11 @@ export function AdminSubsTab({
   );
 
   const NextRelease = ({ r }: { r: any }) => {
-    if (r.sub.status !== "active") return <span className="text-[11px] text-muted-foreground">—</span>;
+    if (r.sub.status !== "active") return <span className="text-[11px] text-muted-foreground">-</span>;
     if (!r.nextRelease) {
       return (
         <span className="text-[11px] text-muted-foreground">
-          {r.credit > 0 ? <span className="text-amber-600">not scheduled</span> : "—"}
+          {r.credit > 0 ? <span className="text-amber-600">not scheduled</span> : "-"}
         </span>
       );
     }
@@ -385,13 +385,13 @@ export function AdminSubsTab({
             <div key={b.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-foreground truncate">
-                  {b.torah_portion || "—"}{" "}
+                  {b.torah_portion || "-"}{" "}
                   <span className="font-mono text-[10px] text-muted-foreground">
                     {b.shopify_order_name || b.order_number || b.id.slice(0, 8)}
                   </span>
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  {format(new Date(b.paid_at || b.created_at), "MMM d, yyyy")} · {b.child_name || "—"}
+                  {format(new Date(b.paid_at || b.created_at), "MMM d, yyyy")} · {b.child_name || "-"}
                 </p>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
@@ -422,7 +422,7 @@ export function AdminSubsTab({
         </span>
       )}
       {r.noContract && (
-        <span className="inline-flex items-center gap-1 text-[9px] text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-950 px-1.5 py-0.5 rounded" title="Active but not linked to a Shopify contract — it will never bill again">
+        <span className="inline-flex items-center gap-1 text-[9px] text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-950 px-1.5 py-0.5 rounded" title="Active but not linked to a Shopify contract - it will never bill again">
           <AlertCircle className="w-2.5 h-2.5" /> no contract
         </span>
       )}
@@ -591,27 +591,27 @@ export function AdminSubsTab({
                         <div className="flex flex-wrap gap-1 mt-0.5"><Flags r={r} /></div>
                       </td>
                       <td className="p-3">
-                        <p className="text-xs font-medium text-foreground whitespace-nowrap">{sub.child_name || "—"}</p>
+                        <p className="text-xs font-medium text-foreground whitespace-nowrap">{sub.child_name || "-"}</p>
                         <p className="text-[10px] text-muted-foreground">
                           {langLabel(sub.language)}{sub.art_style ? ` · ${sub.art_style}` : ""}
                         </p>
                       </td>
                       <td className="p-3 text-right whitespace-nowrap">
                         <span className="text-xs font-medium text-foreground tabular-nums">{usd(sub.price_per_week)}</span>
-                        <span className="block text-[10px] text-muted-foreground capitalize">{sub.frequency || "—"}</span>
+                        <span className="block text-[10px] text-muted-foreground capitalize">{sub.frequency || "-"}</span>
                       </td>
                       <td className="p-3 text-[11px] text-muted-foreground max-w-[170px]">
-                        <span className="line-clamp-2">{formatAddressLine(sub.shipping_data) || "—"}</span>
+                        <span className="line-clamp-2">{formatAddressLine(sub.shipping_data) || "-"}</span>
                       </td>
                       <td className="p-3 text-right">
                         {r.credit > 0 ? (
                           <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground">
                             <Gift className="w-3 h-3 text-accent" />{r.credit}
                           </span>
-                        ) : <span className="text-[11px] text-muted-foreground">—</span>}
+                        ) : <span className="text-[11px] text-muted-foreground">-</span>}
                       </td>
                       <td className="p-3 text-right text-xs text-foreground tabular-nums">
-                        {r.subBooks.length || <span className="text-muted-foreground">—</span>}
+                        {r.subBooks.length || <span className="text-muted-foreground">-</span>}
                       </td>
                       <td className="p-3"><NextRelease r={r} /></td>
                       <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
@@ -651,7 +651,7 @@ export function AdminSubsTab({
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">
-                      Parsha Club — {sub.child_name || "Child"}
+                      Parsha Club - {sub.child_name || "Child"}
                     </p>
                     <p className="text-[11px] text-muted-foreground truncate">
                       {usd(sub.price_per_week)} / <span className="capitalize">{sub.frequency}</span> · {langLabel(sub.language)}
@@ -663,8 +663,8 @@ export function AdminSubsTab({
 
                 <div className="grid grid-cols-3 gap-1.5 text-center">
                   {[
-                    { l: "Credit", v: r.credit || "—" },
-                    { l: "Released", v: r.subBooks.length || "—" },
+                    { l: "Credit", v: r.credit || "-" },
+                    { l: "Released", v: r.subBooks.length || "-" },
                     { l: "Monthly", v: usd(monthlyValue(sub)) },
                   ].map((x) => (
                     <div key={x.l} className="rounded-xl bg-secondary/50 py-1.5">
@@ -677,7 +677,7 @@ export function AdminSubsTab({
                 <div className="space-y-1 text-[11px] text-muted-foreground">
                   <p className="flex items-center gap-1.5">
                     <Clock className="w-3 h-3 shrink-0" />
-                    Next release: {r.nextRelease ? format(r.nextRelease, "MMM d, yyyy") : "—"}
+                    Next release: {r.nextRelease ? format(r.nextRelease, "MMM d, yyyy") : "-"}
                   </p>
                   <p className="flex items-start gap-1.5">
                     <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
@@ -687,7 +687,7 @@ export function AdminSubsTab({
 
                 <div className="flex flex-wrap gap-1"><Flags r={r} /></div>
 
-                {/* Weekly is retired — offer the move to the Parsha Series right
+                {/* Weekly is retired - offer the move to the Parsha Series right
                     where the remaining ones are visible. */}
                 {/week/i.test(String(sub.frequency || "")) && sub.status !== "canceled" && (
                   <Button
@@ -748,7 +748,7 @@ export function AdminSubsTab({
                         className="rounded-xl border border-border bg-card p-2.5 shadow-soft-sm hover:border-accent/50 cursor-pointer space-y-1.5"
                       >
                         <div className="flex items-start justify-between gap-1">
-                          <p className="text-xs font-semibold text-foreground truncate">{r.sub.child_name || "—"}</p>
+                          <p className="text-xs font-semibold text-foreground truncate">{r.sub.child_name || "-"}</p>
                           <div className="flex items-center gap-0.5 shrink-0">
                             <QuickActions r={r} compact />
                             <RowActions r={r} />
@@ -761,7 +761,7 @@ export function AdminSubsTab({
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-[10px] text-muted-foreground">
-                            {r.nextRelease ? format(r.nextRelease, "MMM d") : "—"}
+                            {r.nextRelease ? format(r.nextRelease, "MMM d") : "-"}
                           </span>
                           {r.credit > 0 && (
                             <span className="inline-flex items-center gap-1 text-[10px] text-accent">

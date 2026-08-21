@@ -241,7 +241,7 @@ serve(async (req) => {
     }
 
     // ── revenue-summary (admin only): totals for EVERY order on the store's
-    // books — feeds the admin dashboard's revenue/profit/expense analytics. ──
+    // books - feeds the admin dashboard's revenue/profit/expense analytics. ──
     if (action === "revenue-summary") {
       if (!isAdmin) return json({ error: "Forbidden" }, 403);
       const { data: books } = await admin
@@ -252,7 +252,7 @@ serve(async (req) => {
       const rows = books || [];
       if (rows.length === 0) return json({ orders: [], totalRevenue: 0, currency: null });
 
-      // nodes() caps around 250 ids — chunk to stay well clear.
+      // nodes() caps around 250 ids - chunk to stay well clear.
       const byGid = new Map<string, any>();
       for (let i = 0; i < rows.length; i += 100) {
         const ids = rows.slice(i, i + 100).map((b: any) => orderGid(b.shopify_order_id));
@@ -414,13 +414,13 @@ serve(async (req) => {
     }
 
     // ── subscription-migrate: move a retired weekly contract onto the Parsha
-    // ── Series (monthly). ADMIN ONLY — it changes what a real customer is
+    // ── Series (monthly). ADMIN ONLY - it changes what a real customer is
     // ── charged, so it is never reachable by the subscriber themselves.
     //
     // A contract's selling plan cannot be swapped in place. The edit is made
     // through a DRAFT: open one on the live contract, repoint its line at the
     // target selling plan, and commit. Shopify recalculates the billing policy
-    // and price from the plan, so we do NOT set an amount here — sending our own
+    // and price from the plan, so we do NOT set an amount here - sending our own
     // would risk billing something the plan does not agree with.
     //
     // The local `frequency` is only mirrored AFTER Shopify commits. If the draft
@@ -433,7 +433,7 @@ serve(async (req) => {
       const { err, cid, sub } = await loadOwnedContract();
       if (err) return err;
 
-      // What is on the contract now — we need the line id to repoint it.
+      // What is on the contract now - we need the line id to repoint it.
       const detail = await shopifyGraphQL(
         `query($id: ID!) {
           subscriptionContract(id: $id) {
@@ -448,12 +448,12 @@ serve(async (req) => {
       const contract = detail.subscriptionContract;
       if (!contract) return json({ error: "Contract not found in Shopify" }, 404);
       if (contract.status !== "ACTIVE" && contract.status !== "PAUSED") {
-        return json({ error: `Contract is ${contract.status} — only an active or paused one can be migrated` }, 400);
+        return json({ error: `Contract is ${contract.status} - only an active or paused one can be migrated` }, 400);
       }
       const lines = (contract.lines?.edges || []).map((e: any) => e.node);
       if (lines.length !== 1) {
         // Multi-line contracts need a human decision about which line moves.
-        return json({ error: `Contract has ${lines.length} lines — migrate this one by hand in Shopify` }, 400);
+        return json({ error: `Contract has ${lines.length} lines - migrate this one by hand in Shopify` }, 400);
       }
 
       const draftRes = await shopifyGraphQL(
@@ -490,7 +490,7 @@ serve(async (req) => {
       if (commitErr) return json({ error: commitErr }, 400);
       const updated = commitRes.subscriptionDraftCommit?.contract;
 
-      // Shopify has committed — only now does the local row follow.
+      // Shopify has committed - only now does the local row follow.
       await admin.from("subscriptions")
         .update({ frequency: "monthly", updated_at: new Date().toISOString() } as any)
         .eq("id", subscriptionId);
@@ -530,8 +530,8 @@ serve(async (req) => {
     // ── replace the card on this subscription.
     // Card data can never touch our servers (PCI), so the entry form has to be
     // the processor's. The direct updatePaymentMethodUrl above now lands in
-    // Shopify's new customer-accounts portal — a list of invoices with no card
-    // form — so this sends the customer straight to the real form instead.
+    // Shopify's new customer-accounts portal - a list of invoices with no card
+    // form - so this sends the customer straight to the real form instead.
     if (action === "subscription-card-email") {
       const { err, cid } = await loadOwnedContract();
       if (err) return err;

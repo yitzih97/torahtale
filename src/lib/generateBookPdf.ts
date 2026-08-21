@@ -37,16 +37,16 @@ const PDF_SCALE = 1.4;
 let PDF_COMPACT = false;
 
 /** Encode a rendered page canvas. Coloring (portrait) line art stays PNG for
- *  crisp print — except in the compact PDF path, where everything is JPEG. */
+ *  crisp print - except in the compact PDF path, where everything is JPEG. */
 function encodePage(canvas: HTMLCanvasElement, isPortrait = false): string {
   if (isPortrait && !PDF_COMPACT) return canvas.toDataURL("image/png");
   return canvas.toDataURL("image/jpeg", PDF_COMPACT ? 0.82 : 0.96);
 }
 
 /** Interior page layout for a book format:
- *   • "spread"   — board (6×6): one wide 2:1 illustration per open spread.
- *   • "portrait" — coloring (8.5×11): one tall line-art page.
- *   • "square"   — softcover/hardcover (8×8): one square page.  */
+ *   • "spread"   - board (6×6): one wide 2:1 illustration per open spread.
+ *   • "portrait" - coloring (8.5×11): one tall line-art page.
+ *   • "square"   - softcover/hardcover (8×8): one square page.  */
 type LayoutMode = "spread" | "portrait" | "square";
 
 /** Board (6×6) prints as wide 2:1 spreads; softcover/hardcover (8×8) print as
@@ -256,9 +256,9 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
     const textAnchorX = anchorFor(align);
     const ly = boxTop + padY + i * lineHeight;
     // Shadow pass: paint the OUTER glyph shape with a shadow enabled, then redraw
-    // the crisp outline + fill on top (mirrors CSS text-shadow). Two passes — a
+    // the crisp outline + fill on top (mirrors CSS text-shadow). Two passes - a
     // tight, dense dark halo (thickens the edge like a soft outline) and a softer
-    // offset drop — keep white captions readable on any scene.
+    // offset drop - keep white captions readable on any scene.
     if (shadow) {
       const drawGlyph = () => {
         if (outline) {
@@ -270,7 +270,7 @@ function drawTextOverlay(ctx: CanvasRenderingContext2D, text: string, layout: Te
           ctx.fillText(line, textAnchorX, ly);
         }
       };
-      // Tight dark halo — drawn twice to build up a thicker, denser edge.
+      // Tight dark halo - drawn twice to build up a thicker, denser edge.
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,0.9)";
       ctx.shadowBlur = Math.max(2, 4 * scale);
@@ -322,7 +322,7 @@ function drawHalfImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, hal
 }
 
 /** Cover-fit an image across the full canvas (mirrors CSS object-cover, which
- *  the on-screen preview uses for story pages — full spread for board, single
+ *  the on-screen preview uses for story pages - full spread for board, single
  *  square page for 8×8). */
 function drawFullImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: number, H: number) {
   const ratio = Math.max(W / img.naturalWidth, H / img.naturalHeight);
@@ -338,14 +338,14 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   // Board: 2:1 spread. 8×8: square page. Coloring: 8.5×11 portrait page.
   const [W, H] = interiorDims(mode);
 
-  // `scale` renders at a higher backing resolution (used for print — the Printify
+  // `scale` renders at a higher backing resolution (used for print - the Printify
   // page slot is 2400², double our 1200 base) while keeping every coordinate/font
   // size in the original logical space, so nothing below needs to change.
   const canvas = document.createElement("canvas");
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
   // The source AI image is native-resolution (well under the print canvas
-  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // size) and gets stretched up via drawImage - canvas defaults to LOW-quality
   // smoothing for that resample, which reads as blur/softness. Use the best
   // available resampling filter instead.
   ctx.imageSmoothingEnabled = true;
@@ -360,7 +360,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
     drawFullImage(ctx, img, W, H);
     if (!layout) layout = computeAutoTextLayout(img, rtl, page.text) || undefined;
     // Coloring interior pages are generated in full colour at 2K (crisp) and
-    // converted to clean B&W line art HERE on the client — this conversion used
+    // converted to clean B&W line art HERE on the client - this conversion used
     // to run in the edge function but couldn't handle 2K. Do it on the drawn
     // canvas before the caption goes on top.
     if (mode === "portrait") {
@@ -374,7 +374,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
     ctx.fillRect(0, 0, W, H);
   }
   if (!layout) layout = makeDefaultLayout(rtl ? "right" : "left", rtl);
-  // Coloring pages are line art on WHITE — the white caption default would be
+  // Coloring pages are line art on WHITE - the white caption default would be
   // invisible, so force dark text with no shadow and a soft cream backing box.
   if (mode === "portrait") layout = { ...layout, color: "#2b2418", shadow: false, background: true };
 
@@ -389,7 +389,7 @@ async function renderStorySpread(page: BookPage, _storyIdx: number, rtl: boolean
   } else {
     drawTextOverlay(ctx, page.text || "", layout, W, H, rtl);
   }
-  // Coloring pages are pure black-on-white line art — JPEG's block compression
+  // Coloring pages are pure black-on-white line art - JPEG's block compression
   // artifacts (ringing/haloing) are especially visible on hard edges like
   // these, so export losslessly. Painted illustrations stay JPEG (smaller,
   // and JPEG's loss is imperceptible on continuous-tone art).
@@ -414,7 +414,7 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
   // The source AI image is native-resolution (well under the print canvas
-  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // size) and gets stretched up via drawImage - canvas defaults to LOW-quality
   // smoothing for that resample, which reads as blur/softness. Use the best
   // available resampling filter instead.
   ctx.imageSmoothingEnabled = true;
@@ -427,7 +427,7 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
   // Board books print as a wide 2:1 spread with a physical center fold. A single
   // block of questions would be cut down the middle by the fold, so split them
   // across the two pages of the spread (5 + 5), each column well clear of the
-  // gutter. The first group goes on the page read first — the RIGHT half for a
+  // gutter. The first group goes on the page read first - the RIGHT half for a
   // right-to-left (Hebrew/Yiddish) book, the LEFT half otherwise.
   if (mode === "spread" && questions.length > 1) {
     const mid = Math.ceil(questions.length / 2);
@@ -435,7 +435,7 @@ async function renderQuestionsSpread(page: BookPage, rtl: boolean, mode: LayoutM
     const secondText = buildQuestionsText(questions.slice(mid));
     const leftText = rtl ? secondText : firstText;
     const rightText = rtl ? firstText : secondText;
-    const HALF_PCT = 40; // % of the full 2:1 width — stays inside the 50% half
+    const HALF_PCT = 40; // % of the full 2:1 width - stays inside the 50% half
     const leftFit = fitQuestionsLayout(leftText, { ...layout, x: 6, width: HALF_PCT }, W, H, rtl);
     const rightFit = fitQuestionsLayout(rightText, { ...layout, x: 54, width: HALF_PCT }, W, H, rtl);
     // Match the two columns to a common font size so the spread reads as one set.
@@ -508,7 +508,7 @@ async function ensureBookFonts() {
       f.load("120px TorahTaleTitle"), f.load("70px TorahTaleTitle"),
       f.load("700 120px Cinzel"), f.load("600 40px Cinzel"),
       f.load("600 60px 'Cormorant Garamond'"), f.load("italic 500 40px 'Cormorant Garamond'"),
-      // Story-caption fonts — MUST be loaded before drawing captions or the canvas
+      // Story-caption fonts - MUST be loaded before drawing captions or the canvas
       // silently falls back (and inconsistently, page to page).
       f.load("400 40px Fredoka"), f.load("500 40px Fredoka"),
       f.load("400 40px 'Frank Ruhl Libre'"), f.load("700 40px 'Frank Ruhl Libre'"),
@@ -561,7 +561,7 @@ function engravedLine(
 
 const letterSpace = (s: string, n = 2) => s.split("").join(" ".repeat(n));
 
-// Centered ornament:  ·——❦——·
+// Centered ornament:  ·--❦--·
 function coverFlourish(ctx: CanvasRenderingContext2D, cx: number, y: number, w: number, color: string) {
   ctx.save();
   ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
@@ -599,7 +599,7 @@ function drawCoverFurniture(
   g.addColorStop(0, "rgba(8,14,30,0)"); g.addColorStop(1, "rgba(8,14,30,0.72)");
   ctx.fillStyle = g; ctx.fillRect(0, H * 0.82, W, H * 0.18);
 
-  // (No decorative frame — the cover runs clean to the edge.)
+  // (No decorative frame - the cover runs clean to the edge.)
   const m = Math.round(U * 0.028), bw = Math.round(U * 0.02);
   ctx.direction = dir;
   const top = m + bw;
@@ -611,7 +611,7 @@ function drawCoverFurniture(
     coverFlourish(ctx, W / 2, top + U * 0.084, U * 0.15, gold);
     ctx.restore();
   }
-  // Parsha (book name) — big engraved gold blackletter, fit + wrap to ≤2 lines.
+  // Parsha (book name) - big engraved gold blackletter, fit + wrap to ≤2 lines.
   const maxTW = W * 0.82;
   const fit = (t: string, base: number) => {
     let f = base; ctx.font = coverTitleFont(f);
@@ -634,12 +634,12 @@ function drawCoverFurniture(
   engravedLine(ctx, l1, W / 2, ty, tFont, fs);
   if (l2) { ty += fs * 1.02; engravedLine(ctx, l2, W / 2, ty, tFont, fs); }
 
-  // Personalized title (no divider rule — it crowded/overlapped the "With <name>"
+  // Personalized title (no divider rule - it crowded/overlapped the "With <name>"
   // subtitle, so the flourish under the parsha title was removed).
   if (opts.title) {
     ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
     // Split a bilingual personalized title into its language lines so English and
-    // Hebrew each render on ONE compact line, in the right font + direction —
+    // Hebrew each render on ONE compact line, in the right font + direction -
     // keeps the title small and near the top instead of sprawling over faces.
     const titleLines = opts.title.split(/\n{2,}/).map((l) => l.trim()).filter(Boolean);
     const baseM = Math.round(U * 0.066);
@@ -679,7 +679,7 @@ function drawCoverFurniture(
 }
 
 /** Draw one "coming next" teaser thumbnail styled like the real branded front
- *  cover — engraved gold parsha title over the art, no child line — instead of a
+ *  cover - engraved gold parsha title over the art, no child line - instead of a
  *  plain white text band. Shared by the bound-book back cover and the
  *  coloring-book back matter so both match the front cover. */
 function drawMiniCover(
@@ -700,7 +700,7 @@ function drawMiniCover(
   const g = ctx.createLinearGradient(x, y, x, y + size * 0.6);
   g.addColorStop(0, "rgba(8,14,30,0.78)"); g.addColorStop(0.6, "rgba(8,14,30,0.18)"); g.addColorStop(1, "rgba(8,14,30,0)");
   ctx.fillStyle = g; ctx.fillRect(x, y, size, size * 0.6);
-  // No decorative frame — the mini cover runs clean to the edge, matching the
+  // No decorative frame - the mini cover runs clean to the edge, matching the
   // current front cover (drawCoverFurniture). Parsha title in flat gold
   // blackletter (no engrave/drop shadow), ≤2 lines.
   ctx.direction = rtl ? "rtl" : "ltr";
@@ -711,7 +711,7 @@ function drawMiniCover(
   let ty = y + size * 0.12 + fs;
   for (const ln of lines) { ctx.fillStyle = goldFill(ctx, ty, fs); ctx.fillText(ln, x + size / 2, ty); ty += fs * 1.1; }
   // No child line here. At 216px the "with [name]" line was unreadable anyway and
-  // sat right across the children's faces — the series name below the stack
+  // sat right across the children's faces - the series name below the stack
   // carries the meaning instead.
   ctx.restore();
   ctx.strokeStyle = "rgba(0,0,0,0.30)"; ctx.lineWidth = 2;
@@ -816,7 +816,7 @@ async function renderCoverSpread(
   canvas.width = SPREAD_W * scale; canvas.height = SPREAD_H * scale;
   const ctx = canvas.getContext("2d")!;
   // The source AI image is native-resolution (well under the print canvas
-  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // size) and gets stretched up via drawImage - canvas defaults to LOW-quality
   // smoothing for that resample, which reads as blur/softness. Use the best
   // available resampling filter instead.
   ctx.imageSmoothingEnabled = true;
@@ -827,13 +827,13 @@ async function renderCoverSpread(
   const rtlDir: CanvasDirection = rtl ? "rtl" : "ltr";
   // A right-to-left book opens from the other side, so the wrap is FLIPPED
   // (mirrored, not rotated): the front illustration sits on the LEFT half and the
-  // back panel on the RIGHT half — English's back-cover side becomes the Hebrew
+  // back panel on the RIGHT half - English's back-cover side becomes the Hebrew
   // front cover, and vice-versa. Everything stays upright.
   const backX = rtl ? HALF_W : 0;
   const frontX = rtl ? 0 : HALF_W;
   drawPaperHalf(ctx, rtl ? "right" : "left");
 
-  // ── BACK COVER: a clean cream panel carrying only what a back cover needs —
+  // ── BACK COVER: a clean cream panel carrying only what a back cover needs -
   // the brand logo, ONE line of copy in the Torah Tale display face, the four
   // series shown as stacks of books, and the domain. The old three-line
   // subscribe blurb and the "coming next" label are gone: with four series
@@ -841,7 +841,7 @@ async function renderCoverSpread(
   const BW = HALF_W;                              // back cover = BW × SPREAD_H square
   const cx = backX + BW / 2;
 
-  // Brand logo — the single combined lockup (book icon on top of the wordmark),
+  // Brand logo - the single combined lockup (book icon on top of the wordmark),
   // one clean file so the book + text stay perfectly aligned.
   const logo = await safeLoad(torahTaleLogoFull);
   if (logo) {
@@ -900,7 +900,7 @@ async function renderCoverSpread(
     ctx.fillRect(frontX, 0, HALF_W, SPREAD_H);
   }
   // Front cover chrome: navy filigree frame, "Torah Tale" brand, big gold PARSHA
-  // title, a gold "With [kids]" subtitle, and a bottom tagline — drawn over the
+  // title, a gold "With [kids]" subtitle, and a bottom tagline - drawn over the
   // illustration.
   ctx.save();
   ctx.translate(frontX, 0);
@@ -912,7 +912,7 @@ async function renderCoverSpread(
   ctx.restore();
   drawGutter(ctx, SPREAD_W, SPREAD_H);
 
-  // ── SPINE — width tracks the physical book thickness so the fold lands right:
+  // ── SPINE - width tracks the physical book thickness so the fold lands right:
   // board books are thick, hardcover medium, softcover very thin. ──
   const spineFrac = bookFormat.startsWith("board") ? 0.045 : bookFormat.startsWith("hardcover") ? 0.025 : 0.012;
   const spineW = SPREAD_W * spineFrac;
@@ -943,7 +943,7 @@ async function renderCoverSpread(
   return encodePage(canvas);
 }
 
-/** Coloring-book cover: a single 8.5×11 PORTRAIT front cover — the line-art
+/** Coloring-book cover: a single 8.5×11 PORTRAIT front cover - the line-art
  *  cover image full-bleed with the book name + kids in white over a dark top
  *  gradient. Coloring books aren't perfect-bound, so there's no wraparound
  *  back/spine like the 8×8 books. */
@@ -961,7 +961,7 @@ async function renderPortraitCover(
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
   // The source AI image is native-resolution (well under the print canvas
-  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // size) and gets stretched up via drawImage - canvas defaults to LOW-quality
   // smoothing for that resample, which reads as blur/softness. Use the best
   // available resampling filter instead.
   ctx.imageSmoothingEnabled = true;
@@ -986,7 +986,7 @@ async function renderPortraitCover(
 
 /** Coloring books have no printed back cover, so the LAST page doubles as the
  *  back matter: the Torah Tale logo, up to 10 discussion questions, the
- *  subscribe invitation, and the 4 "coming next" teaser thumbnails — everything
+ *  subscribe invitation, and the 4 "coming next" teaser thumbnails - everything
  *  that would otherwise live on a back cover. 8.5×11 portrait. */
 async function renderColoringBackMatter(
   page: BookPage,
@@ -1005,7 +1005,7 @@ async function renderColoringBackMatter(
   canvas.width = W * scale; canvas.height = H * scale;
   const ctx = canvas.getContext("2d")!;
   // The source AI image is native-resolution (well under the print canvas
-  // size) and gets stretched up via drawImage — canvas defaults to LOW-quality
+  // size) and gets stretched up via drawImage - canvas defaults to LOW-quality
   // smoothing for that resample, which reads as blur/softness. Use the best
   // available resampling filter instead.
   ctx.imageSmoothingEnabled = true;
@@ -1016,13 +1016,13 @@ async function renderColoringBackMatter(
   const padX = W * 0.1;
   const frameM = 44;
 
-  // Double gold keyline frame — gives the page a finished, real-cover feel.
+  // Double gold keyline frame - gives the page a finished, real-cover feel.
   ctx.strokeStyle = "rgba(184,138,42,0.5)"; ctx.lineWidth = 2.5;
   roundedRect(ctx, frameM, frameM, W - 2 * frameM, H - 2 * frameM, 26); ctx.stroke();
   ctx.strokeStyle = "rgba(184,138,42,0.22)"; ctx.lineWidth = 1;
   roundedRect(ctx, frameM + 9, frameM + 9, W - 2 * (frameM + 9), H - 2 * (frameM + 9), 19); ctx.stroke();
 
-  // ── Bottom anchors — built up from the page bottom so nothing ever overflows:
+  // ── Bottom anchors - built up from the page bottom so nothing ever overflows:
   //    footer URL, divider, the series stacks, and the headline above them. ──
   const yURL = H - frameM - 44;
   const yDivider = yURL - 46;
@@ -1044,13 +1044,13 @@ async function renderColoringBackMatter(
     y += logoH + 22;
   }
 
-  // A single gold flourish under the logo — the invitation paragraph that used
+  // A single gold flourish under the logo - the invitation paragraph that used
   // to sit here is gone; the series stacks at the foot of the page carry it.
   y += 6;
   coverFlourish(ctx, cx, y + 6, W * 0.26, COVER_GOLD);
   y += 34;
 
-  // ── Questions "feature card" — a framed panel, header centered, list auto-fit
+  // ── Questions "feature card" - a framed panel, header centered, list auto-fit
   //    so all 10 questions sit comfortably inside no matter their length. ──
   const cardTop = y;
   const cardBottom = headingBaseline - shf - 42;
@@ -1132,20 +1132,20 @@ async function renderColoringBackMatter(
 /**
  * Composite the print-ready images for Printify, in the exact order of the
  * blueprint's print placeholders: [cover-wrap, page_1, page_2, …]. These are
- * the SAME fully-rendered images the PDF/preview use — the cover is a 2:1
+ * the SAME fully-rendered images the PDF/preview use - the cover is a 2:1
  * wraparound (back + spine + front, with the title baked on) and every interior
  * page has its caption text composited in. printify-submit uploads these instead
  * of the raw, text-free stored illustrations (which was why printed books came
  * out with no text and a mis-arranged cover).
  *
  * The discussion-questions page is rendered as its own clean page (matching the
- * on-screen PDF), filling the trailing interior slot — earlier it was composited
+ * on-screen PDF), filling the trailing interior slot - earlier it was composited
  * onto the last story illustration, which overlapped the art.
  */
 /** Pull the back-cover teasers from the generated "preview" pages (each carries
  *  a featured `portion` + its generated cover `image`, starring this book's own
  *  kids). Both the book title and the series name are derived from the portion,
- *  so they follow the book's language — and so a book generated before the
+ *  so they follow the book's language - and so a book generated before the
  *  series change still labels whatever teasers it happens to have. */
 function backCoverPreviews(pages: BookPage[], lang: "en" | "he" | "yi"): BackCoverPreview[] {
   return pages
@@ -1208,7 +1208,7 @@ export async function renderPrintImages(
   const questionsPage = pages.find((p) => p.type === "questions");
   const previews = backCoverPreviews(pages, lang);
   // Coloring (portrait) books print on a single WIDE wraparound "cover" slot
-  // (blueprint 2721: 5175×3375) — front illustration + branded back composited
+  // (blueprint 2721: 5175×3375) - front illustration + branded back composited
   // together. Bound 8×8/board books use the square/spread wraparound.
   let coverImg: string | null = null;
   if (cover) coverImg = await (mode === "portrait"
@@ -1236,7 +1236,7 @@ export async function renderPrintImages(
   }
 
   // Right-to-left (Hebrew/Yiddish) books open from the other side, so the book is
-  // FLIPPED (not rotated — every page stays upright): the interior page order is
+  // FLIPPED (not rotated - every page stays upright): the interior page order is
   // reversed, and the cover wrap is laid out mirrored (front on the left half,
   // back on the right). English's back-cover side becomes the Hebrew front.
   const ordered = rtl ? [...interior].reverse() : interior;
@@ -1267,9 +1267,9 @@ export async function generateBookPdf(
   const mode = layoutMode(bookFormat, pages);
   const pdfPreviews = backCoverPreviews(pages, lang);
   const renderable = pages.filter((p) => p.type !== "back-cover" && p.type !== "preview");
-  const WIDE: [number, number] = [356, 178]; // mm — 2:1 cover/spread
-  const SQUARE: [number, number] = [178, 178]; // mm — single 8×8 page
-  const LETTER: [number, number] = [215.9, 279.4]; // mm — 8.5×11 portrait coloring page
+  const WIDE: [number, number] = [356, 178]; // mm - 2:1 cover/spread
+  const SQUARE: [number, number] = [178, 178]; // mm - single 8×8 page
+  const LETTER: [number, number] = [215.9, 279.4]; // mm - 8.5×11 portrait coloring page
   const interior: [number, number] = mode === "spread" ? WIDE : mode === "portrait" ? LETTER : SQUARE;
   // Bound 8×8/board books have a wide wraparound cover; the coloring book has a
   // single portrait front cover the same size as its pages.
@@ -1282,7 +1282,7 @@ export async function generateBookPdf(
   });
 
   // Render the cover and the interior pages (natural reading order) separately,
-  // so an RTL book can reverse the interiors (see renderPrintImages) — the cover
+  // so an RTL book can reverse the interiors (see renderPrintImages) - the cover
   // stays first (mirrored), then the reversed pages. Nothing is rotated.
   const coverPage = renderable.find((p) => p.type === "cover");
   const interiorPages = renderable.filter((p) => p.type !== "cover");
@@ -1301,7 +1301,7 @@ export async function generateBookPdf(
   for (const page of interiorPages) {
     let dataUrl: string;
     if (page.type === "questions") {
-      // Coloring books have no back cover — the questions page becomes the back
+      // Coloring books have no back cover - the questions page becomes the back
       // matter (logo + up to 10 questions + subscribe + teaser thumbnails).
       dataUrl = mode === "portrait"
         ? await renderColoringBackMatter(page, childName, pdfPreviews, lang, PDF_SCALE, localizedChildName)
@@ -1313,7 +1313,7 @@ export async function generateBookPdf(
     interiorEntries.push({ dataUrl, fmt: interior });
   }
 
-  // RTL: flip the book — reverse the interior order (the cover is already laid
+  // RTL: flip the book - reverse the interior order (the cover is already laid
   // out mirrored). Pages stay upright; nothing is rotated.
   const orderedInterior = rtl ? [...interiorEntries].reverse() : interiorEntries;
   const entries = [...(coverEntry ? [coverEntry] : []), ...orderedInterior];
@@ -1322,7 +1322,7 @@ export async function generateBookPdf(
     const { fmt, dataUrl } = entries[i];
     if (i > 0) pdf.addPage(fmt, fmt[0] >= fmt[1] ? "landscape" : "portrait");
     try {
-      // Coloring interior pages are exported as PNG (see renderStorySpread) —
+      // Coloring interior pages are exported as PNG (see renderStorySpread) -
       // jsPDF needs the format arg to match the actual encoding, not just the
       // page type.
       const imgFormat = dataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";

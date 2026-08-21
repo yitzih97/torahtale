@@ -8,7 +8,7 @@
 // Maps a Saturday date (YYYY-MM-DD) to the parsha value read that Shabbat.
 const PARSHA_CALENDAR: Record<string, string> = {
   // Diaspora weekly parsha, generated from the Hebcal sedrot API (i=off).
-  // Double parshiyos use the combined slug (e.g. matot-masei). Fallback only —
+  // Double parshiyos use the combined slug (e.g. matot-masei). Fallback only -
   // getUpcomingParshaLive prefers the live Hebcal API. Keyed by Shabbos (Saturday).
   "2024-01-06": "shemot", "2024-01-13": "vaera", "2024-01-20": "bo", "2024-01-27": "beshalach",
   "2024-02-03": "yitro", "2024-02-10": "mishpatim", "2024-02-17": "terumah", "2024-02-24": "tetzaveh",
@@ -130,7 +130,7 @@ export async function getUpcomingParshaLive(from: Date = new Date(), leadWeeks =
 /**
  * Hardcoded-calendar fallback. Returns the parsha read `leadWeeks` weeks from
  * `from` (default 3 weeks, the production+shipping lead time). `null` if the
- * calendar has run out — the live path above should normally prevent this.
+ * calendar has run out - the live path above should normally prevent this.
  */
 export function getUpcomingParsha(from: Date = new Date(), leadWeeks = 3): string | null {
   const daysUntilSat = (6 - from.getDay() + 7) % 7 || 7;

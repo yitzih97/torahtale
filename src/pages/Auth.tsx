@@ -34,7 +34,7 @@ export default function Auth() {
   // The clean auth screen shows just two buttons (Google / email) first; the
   // name+email+password form only unfolds once the user picks "Continue with Email".
   const [showEmailForm, setShowEmailForm] = useState(false);
-  // Set when a sign-in fails because the email was never confirmed — shows the
+  // Set when a sign-in fails because the email was never confirmed - shows the
   // resend-confirmation notice above the form.
   const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -102,7 +102,7 @@ export default function Auth() {
       options: {
         data: { full_name: fullName },
         // Return to wherever they were headed (e.g. a collection request), or to
-        // the wizard — see confirmNext.
+        // the wizard - see confirmNext.
         emailRedirectTo: `${window.location.origin}${confirmNext}`,
       },
     });
@@ -168,7 +168,7 @@ export default function Auth() {
               </Button>
             </div>
           )}
-          {/* Method picker — Google or email. The email form stays hidden until chosen. */}
+          {/* Method picker - Google or email. The email form stays hidden until chosen. */}
           {mode !== "forgot" && !showEmailForm && (
             <div className="space-y-3 sm:space-y-4">
               <motion.div whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
@@ -223,7 +223,7 @@ export default function Auth() {
                 <ArrowLeft className="w-3 h-3" /> {t.auth.backToOptions}
               </button>
             )}
-            {/* Full name is only collected on sign-up — login just needs email + password. */}
+            {/* Full name is only collected on sign-up - login just needs email + password. */}
             {mode === "signup" && (
               <motion.div
                 variants={fieldVariants}

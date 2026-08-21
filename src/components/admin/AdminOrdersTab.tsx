@@ -26,10 +26,10 @@ import {
 } from "@/lib/orderStatus";
 import { toast } from "sonner";
 
-/** Board-view lanes — a workflow grouping, not one column per raw status. */
+/** Board-view lanes - a workflow grouping, not one column per raw status. */
 const BOARD_LANES: { key: string; label: string; statuses: string[] }[] = [
   { key: "new", label: "New / unpaid", statuses: ["draft", "awaiting_payment"] },
-  { key: "queue", label: "Paid — to generate", statuses: ["paid", "ordered"] },
+  { key: "queue", label: "Paid - to generate", statuses: ["paid", "ordered"] },
   { key: "generating", label: "Generating", statuses: ["generating"] },
   { key: "review", label: "Review & approve", statuses: ["pending_review", "approved"] },
   { key: "printing", label: "Printing", statuses: ["printing"] },
@@ -59,7 +59,7 @@ const langLabel = (l?: string | null) => {
 };
 
 const money = (n: number | null | undefined, currency = "USD") =>
-  n == null ? "—" : new Intl.NumberFormat(undefined, { style: "currency", currency }).format(n);
+  n == null ? "-" : new Intl.NumberFormat(undefined, { style: "currency", currency }).format(n);
 
 /* ────────────────────────────── sorting ────────────────────────────── */
 
@@ -115,7 +115,7 @@ export function AdminOrdersTab({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
 
-  /* Real per-order money, straight from Shopify — cache-shared with the
+  /* Real per-order money, straight from Shopify - cache-shared with the
      dashboard and users tabs, so opening Orders costs no extra call. */
   const revenueQuery = useAdminRevenue();
 
@@ -183,7 +183,7 @@ export function AdminOrdersTab({
         case "portion": return (r.book.torah_portion || "").toLowerCase();
         case "type": return r.productType;
         case "paid": return r.amount ?? -1;
-        // Sort by workflow position, not alphabetically — "approved" before
+        // Sort by workflow position, not alphabetically - "approved" before
         // "printing" is the order an admin actually thinks in.
         case "status": {
           const idx = (ORDER_STATUSES as readonly string[]).indexOf(r.book.status);
@@ -245,7 +245,7 @@ export function AdminOrdersTab({
       }}
     >
       {/* The base trigger is full-width with a line-clamped span (which forces
-          display:-webkit-box and breaks the pill's flex row) — undo both so the
+          display:-webkit-box and breaks the pill's flex row) - undo both so the
           status reads as a single compact chip. */}
       <SelectTrigger
         className={`h-7 w-auto gap-1 justify-start text-[11px] border-0 bg-transparent shadow-none px-0 focus:ring-0 focus:ring-offset-0 [&>span]:!inline-flex [&>span]:overflow-visible ${className}`}
@@ -311,7 +311,7 @@ export function AdminOrdersTab({
             className="text-amber-600 focus:text-amber-600"
             disabled={markBookPaid.isPending}
             onClick={() => {
-              if (!window.confirm("Mark this book as PAID? This lets it be sent to Printify without a Shopify payment — use only for test/comp/manual orders.")) return;
+              if (!window.confirm("Mark this book as PAID? This lets it be sent to Printify without a Shopify payment - use only for test/comp/manual orders.")) return;
               markBookPaid.mutate({ id: book.id }, {
                 onSuccess: () => toast.success("Book marked as paid"),
                 onError: (e: any) => toast.error(e?.message || "Could not mark paid"),
@@ -348,7 +348,7 @@ export function AdminOrdersTab({
   );
 
   /**
-   * The per-order icon buttons, one tap each — details, generate, view/edit,
+   * The per-order icon buttons, one tap each - details, generate, view/edit,
    * ZIP, mark paid, approve. `compact` drops to just the two that drive the
    * workflow, for the card and board layouts where there's no room for six.
    * Everything here is also in the labelled menu, so nothing is icon-only.
@@ -401,7 +401,7 @@ export function AdminOrdersTab({
             disabled={markBookPaid.isPending}
             onClick={(e) => {
               e.stopPropagation();
-              if (!window.confirm("Mark this book as PAID? This lets it be sent to Printify without a Shopify payment — use only for test/comp/manual orders.")) return;
+              if (!window.confirm("Mark this book as PAID? This lets it be sent to Printify without a Shopify payment - use only for test/comp/manual orders.")) return;
               markBookPaid.mutate({ id: book.id }, {
                 onSuccess: () => toast.success("Book marked as paid"),
                 onError: (err: any) => toast.error(err?.message || "Could not mark paid"),
@@ -439,7 +439,7 @@ export function AdminOrdersTab({
   const PaidCell = ({ r }: { r: any }) => {
     if (revenueQuery.isLoading) return <Skeleton className="h-3.5 w-12" />;
     if (r.amount == null) {
-      return <span className="text-[11px] text-muted-foreground">{r.isPaid ? "Paid (manual)" : "—"}</span>;
+      return <span className="text-[11px] text-muted-foreground">{r.isPaid ? "Paid (manual)" : "-"}</span>;
     }
     const refunded = /refund/i.test(r.financialStatus || "");
     return (
@@ -656,7 +656,7 @@ export function AdminOrdersTab({
                       <td className="p-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {openingBookId === book.id && <Loader2 className="w-3 h-3 animate-spin text-accent" />}
-                          <span className="font-mono text-xs text-primary">{r.orderRef || "—"}</span>
+                          <span className="font-mono text-xs text-primary">{r.orderRef || "-"}</span>
                         </div>
                         {book.has_pages && (
                           <span className="text-[10px] text-muted-foreground">{PAGES_BY_TYPE[r.productType]} pages ready</span>
@@ -673,9 +673,9 @@ export function AdminOrdersTab({
                           <p className="text-[10px] text-muted-foreground truncate max-w-[160px]">{r.profile.email}</p>
                         )}
                       </td>
-                      <td className="p-3 text-xs font-medium text-foreground whitespace-nowrap">{book.child_name || "—"}</td>
+                      <td className="p-3 text-xs font-medium text-foreground whitespace-nowrap">{book.child_name || "-"}</td>
                       <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
-                        {book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "—"}
+                        {book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "-"}
                         <span className="block text-[10px] opacity-70">{langLabel(book.language)}</span>
                       </td>
                       <td className="p-3">
@@ -685,7 +685,7 @@ export function AdminOrdersTab({
                         </span>
                       </td>
                       <td className="p-3 text-[11px] text-muted-foreground max-w-[180px]">
-                        <span className="line-clamp-2">{formatAddressLine(book.shipping_data) || "—"}</span>
+                        <span className="line-clamp-2">{formatAddressLine(book.shipping_data) || "-"}</span>
                       </td>
                       <td className="p-3 text-right"><PaidCell r={r} /></td>
                       <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
@@ -726,9 +726,9 @@ export function AdminOrdersTab({
                       {openingBookId === book.id && <Loader2 className="w-3 h-3 animate-spin text-accent" />}
                       {r.orderRef || book.id.slice(0, 8)}
                     </p>
-                    <p className="text-sm font-semibold text-foreground truncate">{book.child_name || "—"}</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{book.child_name || "-"}</p>
                     <p className="text-[11px] text-muted-foreground truncate">
-                      {book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "—"} · {langLabel(book.language)}
+                      {book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "-"} · {langLabel(book.language)}
                     </p>
                   </div>
                   <StatusSelect book={book} />
@@ -805,7 +805,7 @@ export function AdminOrdersTab({
                           className="rounded-xl border border-border bg-card p-2.5 shadow-soft-sm hover:border-accent/50 cursor-pointer space-y-1.5"
                         >
                           <div className="flex items-start justify-between gap-1">
-                            <p className="text-xs font-semibold text-foreground truncate">{book.child_name || "—"}</p>
+                            <p className="text-xs font-semibold text-foreground truncate">{book.child_name || "-"}</p>
                             <div className="flex items-center gap-0.5 shrink-0">
                               <QuickActions book={book} compact />
                               <RowActions book={book} />
@@ -816,7 +816,7 @@ export function AdminOrdersTab({
                             {r.orderRef || book.id.slice(0, 8)}
                           </p>
                           <p className="text-[11px] text-muted-foreground truncate">
-                            {book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "—"}
+                            {book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "-"}
                           </p>
                           <div className="flex items-center justify-between gap-2">
                             <TypeBadge type={r.productType} qty={r.quantity} />

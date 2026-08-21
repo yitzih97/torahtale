@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 // Pulling `select("*")` here was re-downloading ~118 MB every refetch, which is
 // what made the admin page crawl and pounded the database.
 //
-// `story_options` is a JSON-path select of story_data->bookOptions only — the
+// `story_options` is a JSON-path select of story_data->bookOptions only - the
 // product type of older books lives there rather than in shipping_data, and the
 // path select costs a few bytes instead of the whole (image-laden) story_data.
 // The payment/fulfilment correlation columns are needed by the orders table to
@@ -20,15 +20,15 @@ const BOOK_LIST_COLS =
   "id,user_id,child_id,child_name,torah_portion,art_style,language,status,order_number,questions,shipping_data,created_at,updated_at," +
   "paid_at,shopify_order_id,shopify_order_name,printify_order_id,printify_product_id,story_options:story_data->bookOptions," +
   // Books minted by the Monday release job stamp their subscription id into
-  // story_data — projecting just that key is what lets the subs tab count and
+  // story_data - projecting just that key is what lets the subs tab count and
   // open the books a subscription has actually produced.
   "subscription_id:story_data->>subscriptionId," +
   // The month's books share one shipmentBatchId and are sold as a single
   // delivery, so approving any one of them has to be able to find its siblings
-  // and send the set as ONE Printify order — see approveBatchAndSubmit.
+  // and send the set as ONE Printify order - see approveBatchAndSubmit.
   "shipment_batch_id:story_data->>shipmentBatchId";
 
-// Fetch the complete book row (including the heavy image columns) for one book —
+// Fetch the complete book row (including the heavy image columns) for one book -
 // used when opening the generation modal or exporting a ZIP.
 export async function fetchBookFull(id: string) {
   const { data, error } = await supabase.from("books").select("*").eq("id", id).maybeSingle();
@@ -72,7 +72,7 @@ export function useAdminData() {
     staleTime: 5000,
   });
 
-  // Which books already have generated pages — a tiny id-only query (PostgREST
+  // Which books already have generated pages - a tiny id-only query (PostgREST
   // filters server-side, so no image bytes cross the wire). Drives the
   // download / approve / "has pages" UI without pulling pages_data into the list.
   const bookPageIdsQuery = useQuery({
@@ -171,7 +171,7 @@ export function useAdminData() {
 
   // Admin edit of an order's fulfilment details (book format, quantity,
   // shipping address, shipping speed). Everything lives inside shipping_data,
-  // which is what printify-submit reads when it places the print order — so
+  // which is what printify-submit reads when it places the print order - so
   // this is the one write that can still change what actually gets printed and
   // where it goes, right up until the book is handed to Printify.
   const updateBookOrderDetails = useMutation({

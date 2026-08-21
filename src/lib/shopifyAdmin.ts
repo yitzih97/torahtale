@@ -66,9 +66,9 @@ export async function fetchUserOrdersSummary(userId?: string): Promise<UserOrder
   return data as UserOrdersSummary;
 }
 
-/** Format a ShopMoney for display, e.g. "$24.99". Falls back to "—". */
+/** Format a ShopMoney for display, e.g. "$24.99". Falls back to "-". */
 export function formatMoney(m: ShopMoney | null | undefined): string {
-  if (!m) return "—";
+  if (!m) return "-";
   try {
     return new Intl.NumberFormat(undefined, { style: "currency", currency: m.currency || "USD" }).format(m.amount);
   } catch {

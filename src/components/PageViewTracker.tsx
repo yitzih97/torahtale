@@ -18,7 +18,7 @@ const sessionId = (() => {
 
 /**
  * First-party page-view tracking for the admin analytics dashboard.
- * One insert per path per session, fire-and-forget — never blocks the UI and
+ * One insert per path per session, fire-and-forget - never blocks the UI and
  * failures are silently ignored. Admin pages are excluded.
  */
 export const PageViewTracker = () => {
@@ -30,8 +30,8 @@ export const PageViewTracker = () => {
     try {
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "1");
-    } catch { /* storage unavailable — still record the view */ }
-    // "page_views" is newer than the generated Supabase types — cast until regenerated.
+    } catch { /* storage unavailable - still record the view */ }
+    // "page_views" is newer than the generated Supabase types - cast until regenerated.
     void supabase.from("page_views" as never).insert({
       path: pathname,
       session_id: sessionId,

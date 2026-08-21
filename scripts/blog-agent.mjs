@@ -6,7 +6,7 @@
  * bilingual, SEO- and GEO-shaped article about it, validates the result, and
  * writes it into src/content/blog/stories/. The commit triggers the normal
  * Pages build, which regenerates sitemap.xml / rss.xml / llms.txt from the
- * article list — so a new post is live and discoverable without any other step.
+ * article list - so a new post is live and discoverable without any other step.
  *
  * Usage:
  *   node scripts/blog-agent.mjs                  # write today's article
@@ -62,52 +62,53 @@ Torah Tale (torahtale.com) makes personalized Torah storybooks for Jewish childr
 - Languages: English, Hebrew and Yiddish (a book can be ordered in more than one).
 - Formats: softcover photo book 8"x8" (ages 4-8), hardcover photo book 8"x8" in square or landscape (ages 5-12), board book 6"x6" with rounded safety corners (ages 2-4), and an optional matching coloring book 8.5"x11" in black-and-white line art.
 - Ordering: a single book, or a Weekly / Monthly (4 books) / Year Bundle subscription. Standard shipping is free (5-7 business days); express is 2-3 business days; we ship worldwide.
-- Every book ends with a dedicated discussion page carrying 10 questions about the story, mixing comprehension with middos — what happened, and what it asks of the child. This is what turns the book from something read to a child into something talked about at the table, and it is worth mentioning.
+- Every book ends with a dedicated discussion page carrying 10 questions about the story, mixing comprehension with middos - what happened, and what it asks of the child. This is what turns the book from something read to a child into something talked about at the table, and it is worth mentioning.
 - Every book is written with careful rabbinical guidance and strict tznius, and reviewed by our team before it goes to print.
 - The whole creation flow takes about five minutes and starts at torahtale.com/create.
 Do NOT state prices, discounts, page counts, delivery guarantees, review counts, or any statistic that is not in this list.
 
-HALACHA — this is not a style preference, it is a correctness rule:
-- Coloring, drawing and writing are melacha. NEVER present the coloring book as something to do on Shabbos or on Yom Tov, and never as a way to occupy children during either. It is a WEEKDAY activity — erev Shabbos, a weekday afternoon, the days before a Yom Tov, or Chol HaMoed (which is permitted).
-- The STORYBOOKS are the opposite: reading is entirely appropriate on Shabbos and Yom Tov, and saying so is good — a book to read at the Shabbos table, or on a long Yom Tov afternoon, is exactly right.
+HALACHA - this is not a style preference, it is a correctness rule:
+- Coloring, drawing and writing are melacha. NEVER present the coloring book as something to do on Shabbos or on Yom Tov, and never as a way to occupy children during either. It is a WEEKDAY activity - erev Shabbos, a weekday afternoon, the days before a Yom Tov, or Chol HaMoed (which is permitted).
+- The STORYBOOKS are the opposite: reading is entirely appropriate on Shabbos and Yom Tov, and saying so is good - a book to read at the Shabbos table, or on a long Yom Tov afternoon, is exactly right.
 `.trim();
 
 // The same sheet in Hebrew, so the Hebrew writer isn't reading English facts and
-// rendering them — which is where translated-sounding product copy comes from.
+// rendering them - which is where translated-sounding product copy comes from.
 const PRODUCT_FACTS_HE = `
 טורה־טייל (torahtale.com) מייצרת ספרי סיפורי תורה מותאמים אישית לילדים.
-- הילד הוא הגיבור: השם שלו, ומתמונה אחת שמעלים — גם הדמות שלו — מופיעים בכל עמוד, מאוירים בתלת־ממד ברזולוציה גבוהה בסגנון פיקסאר.
+- הילד הוא הגיבור: השם שלו, ומתמונה אחת שמעלים - גם הדמות שלו - מופיעים בכל עמוד, מאוירים בתלת־ממד ברזולוציה גבוהה בסגנון פיקסאר.
 - אפשר להכניס עד ארבעה ילדים (אחים) לאותו ספר.
 - הסיפורים מכסים את פרשת השבוע, את כל התנ״ך (חומש, נביאים, כתובים, מגילות), את הימים הטובים, וסיפורי מידות מחיי היום־יום.
 - יוצר הספרים מציע את פרשת השבוע הבא (לא של השבוע הנוכחי), עם ספירה לאחור עד מועד ההזמנה האחרון למשלוח לפני אותה שבת; בשבוע של פרשה כפולה נוצר ספר אחד שמכסה את שתיהן.
 - יצירת ספר דורשת חשבון חינם, ולוקחת שמונה שאלות קצרות: שם, בן או בת, גיל, תמונה אחת, אחים, סיפור, שפה ופורמט הדפסה.
 - שפות: עברית, אנגלית ויידיש (אפשר להזמין ספר ביותר משפה אחת).
-- פורמטים: כריכה רכה 8"x8" (גילאי 4–8), כריכה קשה 8"x8" מרובע או לרוחב (גילאי 5–12), ספר קרטון 6"x6" עם פינות מעוגלות ובטוחות (גילאי 2–4), וחוברת צביעה תואמת 8.5"x11" בקווי מתאר בשחור־לבן כתוספת.
-- הזמנה: ספר בודד, או מנוי שבועי / חודשי (4 ספרים) / חבילה שנתית. משלוח רגיל חינם (5–7 ימי עסקים), משלוח מהיר 2–3 ימי עסקים, ואנחנו שולחים לכל העולם.
-- בסוף כל ספר יש עמוד דיון ייעודי עם 10 שאלות על הסיפור, שמשלבות שאלות הבנה עם שאלות במידות — מה קרה, ומה זה מבקש מהילד. זה מה שהופך את הספר ממשהו שקוראים לילד למשהו שמדברים עליו סביב השולחן, וכדאי להזכיר את זה.
+- פורמטים: כריכה רכה 8"x8" (גילאי 4-8), כריכה קשה 8"x8" מרובע או לרוחב (גילאי 5-12), ספר קרטון 6"x6" עם פינות מעוגלות ובטוחות (גילאי 2-4), וחוברת צביעה תואמת 8.5"x11" בקווי מתאר בשחור־לבן כתוספת.
+- הזמנה: ספר בודד, או מנוי שבועי / חודשי (4 ספרים) / חבילה שנתית. משלוח רגיל חינם (5-7 ימי עסקים), משלוח מהיר 2-3 ימי עסקים, ואנחנו שולחים לכל העולם.
+- בסוף כל ספר יש עמוד דיון ייעודי עם 10 שאלות על הסיפור, שמשלבות שאלות הבנה עם שאלות במידות - מה קרה, ומה זה מבקש מהילד. זה מה שהופך את הספר ממשהו שקוראים לילד למשהו שמדברים עליו סביב השולחן, וכדאי להזכיר את זה.
 - כל ספר נכתב בליווי רבני קפדני ובצניעות מלאה, והצוות עובר עליו לפני ההדפסה.
 - כל התהליך אורך כחמש דקות ומתחיל ב־torahtale.com/create.
 אסור לציין מחירים, הנחות, מספר עמודים, התחייבות לזמן אספקה, מספר ביקורות או כל נתון שלא מופיע ברשימה הזו.
 
-הלכה — זה לא עניין של סגנון אלא של נכונות:
-- צביעה, ציור וכתיבה הם מלאכה. לעולם אל תציג את חוברת הצביעה כפעילות לשבת או ליום טוב, וגם לא כדרך להעסיק ילדים בשבת או בחג. זו פעילות של יום חול — ערב שבת, אחר צהריים של יום חול, הימים שלפני החג, או חול המועד (שמותר).
-- הספרים עצמם הם ההפך: קריאה מתאימה לגמרי לשבת וליום טוב, וכדאי לומר את זה — ספר לקרוא בשולחן שבת או באחר צהריים ארוך של יום טוב זה בדיוק הרעיון.
+הלכה - זה לא עניין של סגנון אלא של נכונות:
+- צביעה, ציור וכתיבה הם מלאכה. לעולם אל תציג את חוברת הצביעה כפעילות לשבת או ליום טוב, וגם לא כדרך להעסיק ילדים בשבת או בחג. זו פעילות של יום חול - ערב שבת, אחר צהריים של יום חול, הימים שלפני החג, או חול המועד (שמותר).
+- הספרים עצמם הם ההפך: קריאה מתאימה לגמרי לשבת וליום טוב, וכדאי לומר את זה - ספר לקרוא בשולחן שבת או באחר צהריים ארוך של יום טוב זה בדיוק הרעיון.
 `.trim();
 
 const STYLE_RULES = `
 Voice and hashkafa:
-- Write for frum (Orthodox) parents — mostly American, some Israeli — choosing a book for a child aged roughly 2 to 12.
+- Write for frum (Orthodox) parents - mostly American, some Israeli - choosing a book for a child aged roughly 2 to 12.
 - Use traditional transliteration and terminology: Hashem, Torah, parsha (not "portion of the week"), Shabbos, cheder, Bais Yaakov, Avraham Avinu, Moshe Rabbeinu, Yidden, middos, mitzvah/mitzvos, tefillah, tzedakah, Yom Tov.
 - Retell the story the way it is taught in a frum home or classroom: pshat plus well-known Rashi/Midrash. Attribute midrashim as "Chazal tell us" or "the Midrash relates" rather than presenting them as pesukim.
 - Never take an academic, critical, or comparative-religion angle. Never question whether events happened. Never describe or depict Hashem physically.
 - Keep everything tzniusdik: no romantic detail, no descriptions of women's appearance, nothing frightening described graphically.
 - Warm, practical and specific. No hype, no exclamation marks stacked up, no "unlock" / "dive in" / "in today's fast-paced world" filler.
+- Never use a long dash of any kind (em dash or en dash), in either language. A plain hyphen "-", a comma or a full stop instead.
 
 Writing rules:
 - 900-1400 words in the English body. Short paragraphs (2-4 sentences). Concrete detail over adjectives.
 - Every H2 should be something a parent would actually search or ask.
 - Include at least one practical, usable section a parent can act on today (questions to ask at the Shabbos table, how to explain it to a 4-year-old vs an 8-year-old, an activity).
-- Mention Torah Tale naturally where it belongs (the book for this story, the format that suits the age) — roughly one product mention per two sections, never in every paragraph.
+- Mention Torah Tale naturally where it belongs (the book for this story, the format that suits the age) - roughly one product mention per two sections, never in every paragraph.
 `.trim();
 
 // ── Topic selection ──────────────────────────────────────────────────────────
@@ -256,14 +257,14 @@ const buildPrompt = (portion, dateISO) => {
     educational: "middos stories set in everyday life",
   }[category];
 
-  const existing = ARTICLES.map((a) => `- /blog/${a.slug} — ${a.title}`).join("\n");
+  const existing = ARTICLES.map((a) => `- /blog/${a.slug} - ${a.title}`).join("\n");
   const hasBookPhoto = Boolean(COVER_BY_PORTION[portion.value]);
 
   return `Write today's Torah Tale blog article. Today is ${dateISO}.
 
 STORY: ${portion.label} (${portion.sub})
 COLLECTION: ${collectionName}${portion.book ? `, Sefer ${portion.book}` : ""}
-The article's job is to be genuinely useful to a parent about THIS story, and — as a natural consequence — to be the page that ranks and gets cited when someone searches for this story for their kids.
+The article's job is to be genuinely useful to a parent about THIS story, and - as a natural consequence - to be the page that ranks and gets cited when someone searches for this story for their kids.
 
 ABOUT TORAH TALE (the only product facts you may use):
 ${PRODUCT_FACTS}
@@ -272,15 +273,15 @@ STYLE:
 ${STYLE_RULES}
 
 STRUCTURE of bodyHtml:
-- Open with one short paragraph that answers the searcher's question directly — what this story is and why it lands with children.
+- Open with one short paragraph that answers the searcher's question directly - what this story is and why it lands with children.
 - Then 5 to 7 <h2> sections. Cover, in your own order: what happens in the story (retold for children), the middah or lesson, how to explain it at different ages, what a personalized Torah Tale book of this story is like, and something practical (Shabbos-table questions, an activity, or a "say it in one sentence" script).
 - Close with a short paragraph pointing to <a href="/create">create the book</a>.
-- Do NOT write an <h1> (the page renders the title itself), and do NOT write the FAQ or the summary box in bodyHtml — those come from the faq and keyFacts fields.
+- Do NOT write an <h1> (the page renders the title itself), and do NOT write the FAQ or the summary box in bodyHtml - those come from the faq and keyFacts fields.
 
-ALLOWED HTML in bodyHtml: <p> <h2> <h3> <ul> <ol> <li> <strong> <em> <a> <blockquote> <table> <thead> <tbody> <tr> <th> <td>. Nothing else — no <img>, <script>, <style>, <div> or inline style attributes.
+ALLOWED HTML in bodyHtml: <p> <h2> <h3> <ul> <ol> <li> <strong> <em> <a> <blockquote> <table> <thead> <tbody> <tr> <th> <td>. Nothing else - no <img>, <script>, <style>, <div> or inline style attributes.
 
 IMAGES: place exactly two or three image tokens on their own line where they belong. Available tokens:
-${Object.entries(IMAGE_TOKENS).map(([k, v]) => `  [[IMAGE:${k}]] — ${v}`).join("\n")}
+${Object.entries(IMAGE_TOKENS).map(([k, v]) => `  [[IMAGE:${k}]] - ${v}`).join("\n")}
 ${hasBookPhoto ? "We have a real photo of the printed book for this story, so [[IMAGE:cover]] is worth using." : "We have no book photo for this specific story; [[IMAGE:cover]] will fall back to the collection's artwork."}
 Never write an <img> tag yourself and never invent a token name.
 
@@ -288,7 +289,7 @@ LINKS: you may link only to ${ALLOWED_LINKS.join(", ")} and to these already-pub
 ${existing}
 Link to two or three of them where the connection is real. Never invent a /blog/ URL.
 
-keyFacts: 3 to 5 one-sentence, self-contained facts that answer the article's core question on their own — assume they will be quoted with no surrounding context. Light <strong> is fine; no other tags.
+keyFacts: 3 to 5 one-sentence, self-contained facts that answer the article's core question on their own - assume they will be quoted with no surrounding context. Light <strong> is fine; no other tags.
 
 faq: 4 to 6 questions a parent actually types ("How do I explain X to a 5-year-old?", "What is the lesson of X?"), each answered in 2 to 4 plain-text sentences that stand alone. No tags in the answers.
 
@@ -297,14 +298,14 @@ SLUG: lowercase, hyphenated, 3 to 8 words, containing the story's name as a pare
 
 /**
  * The Hebrew article is written from scratch by its own call, in Hebrew, for an
- * Israeli frum parent — it never sees the English one. Written as a translation
+ * Israeli frum parent - it never sees the English one. Written as a translation
  * job it would inherit English phrasing, English-shaped headings and the search
  * terms an American types; an Israeli parent searches "פרשת נח לילדים", not a
  * rendering of "Parshas Noach for kids".
  */
 const buildHebrewPrompt = (portion, dateISO) => {
   const collectionName = {
-    torah: "חומש — פרשת השבוע",
+    torah: "חומש - פרשת השבוע",
     neviim: "נביאים",
     ketuvim: "כתובים",
     megillot: "מגילות",
@@ -312,7 +313,7 @@ const buildHebrewPrompt = (portion, dateISO) => {
     educational: "סיפורי מידות מחיי היום־יום",
   }[portion.category];
 
-  const existing = ARTICLES.map((a) => `- /blog/${a.slug} — ${a.he?.title || a.title}`).join("\n");
+  const existing = ARTICLES.map((a) => `- /blog/${a.slug} - ${a.he?.title || a.title}`).join("\n");
   const existingTitles = ARTICLES.map((a) => a.he?.title).filter(Boolean);
 
   return `כתוב את מאמר הבלוג של טורה־טייל להיום. התאריך: ${dateISO}.
@@ -320,7 +321,7 @@ const buildHebrewPrompt = (portion, dateISO) => {
 הסיפור: ${portion.sub} (${portion.label})
 האוסף: ${collectionName}${portion.book ? `, ספר ${portion.book}` : ""}
 
-זהו מאמר עצמאי בעברית — לא תרגום. אתה כותב מאפס, בעברית, עבור הורה חרדי/דתי דובר עברית בישראל שמחפש בגוגל על הסיפור הזה עבור הילדים שלו. המבנה, הכותרות, הדוגמאות ומילות החיפוש צריכים להיות של קורא ישראלי — לא גרסה עברית של מאמר אנגלי.
+זהו מאמר עצמאי בעברית - לא תרגום. אתה כותב מאפס, בעברית, עבור הורה חרדי/דתי דובר עברית בישראל שמחפש בגוגל על הסיפור הזה עבור הילדים שלו. המבנה, הכותרות, הדוגמאות ומילות החיפוש צריכים להיות של קורא ישראלי - לא גרסה עברית של מאמר אנגלי.
 
 על טורה־טייל (אלה העובדות היחידות שמותר להשתמש בהן):
 ${PRODUCT_FACTS_HE}
@@ -328,23 +329,23 @@ ${PRODUCT_FACTS_HE}
 סגנון והשקפה:
 - כתוב לאבא או אמא שבוחרים ספר לילד בגיל 2 עד 12. עברית טבעית וזורמת, לא מתורגמת ולא מליצית.
 - מונחים כמו שמדברים בבית חרדי בארץ: הקב״ה, פרשת השבוע, שבת קודש, חז״ל, רש״י, המדרש, מידות טובות, תלמוד תורה או חיידר, בית יעקב, יום טוב, סבא וסבתא, אבא ואמא.
-- ספר את הסיפור כפי שמלמדים אותו בבית ובכיתה: פשט וגם מדרשים מוכרים. ייחוס נכון — "חז״ל מספרים", "המדרש מביא" — ולא כאילו זה פסוק.
+- ספר את הסיפור כפי שמלמדים אותו בבית ובכיתה: פשט וגם מדרשים מוכרים. ייחוס נכון - "חז״ל מספרים", "המדרש מביא" - ולא כאילו זה פסוק.
 - בלי זווית אקדמית או ביקורתית, בלי להטיל ספק, בלי תיאור גשמי של הקב״ה.
 - הכל בצניעות: בלי תיאורי מראה, בלי רומנטיקה, בלי תיאורים מפחידים לילדים.
 - חם, מעשי וקונקרטי. בלי סופרלטיבים, בלי "בעולם המהיר של ימינו", בלי סימני קריאה מיותרים.
 
-אורך: 700 עד 1100 מילים בגוף המאמר. פסקאות קצרות (2–4 משפטים).
+אורך: 700 עד 1100 מילים בגוף המאמר. פסקאות קצרות (2-4 משפטים).
 
 מבנה bodyHtml:
 - פסקה ראשונה קצרה שעונה ישירות: מה הסיפור הזה, ולמה הוא עובד עם ילדים.
 - אחר כך 5 עד 7 כותרות <h2>. הכותרות צריכות להיות שאלות או ניסוחים שהורה ישראלי באמת מקליד בחיפוש. כסה: מה קורה בסיפור (מסופר לילדים), המידה או הלקח, איך מסבירים בגילאים שונים, איך נראה ספר טורה־טייל מותאם אישית של הסיפור הזה, ומשהו מעשי (שאלות לשולחן שבת, פעילות, או משפט אחד להסביר בו את הסיפור).
 - סיים בפסקה קצרה עם קישור <a href="/create">ליצירת הספר</a>.
-- אל תכתוב <h1> (הכותרת מוצגת על ידי הדף), ואל תכתוב את השאלות הנפוצות או את תיבת הסיכום בתוך bodyHtml — הן מגיעות מהשדות faq ו־keyFacts.
+- אל תכתוב <h1> (הכותרת מוצגת על ידי הדף), ואל תכתוב את השאלות הנפוצות או את תיבת הסיכום בתוך bodyHtml - הן מגיעות מהשדות faq ו־keyFacts.
 
-תגיות HTML מותרות ב־bodyHtml: <p> <h2> <h3> <ul> <ol> <li> <strong> <em> <a> <blockquote> <table> <thead> <tbody> <tr> <th> <td>. שום דבר אחר — בלי <img>, <script>, <style>, <div> ובלי style בתוך תגית.
+תגיות HTML מותרות ב־bodyHtml: <p> <h2> <h3> <ul> <ol> <li> <strong> <em> <a> <blockquote> <table> <thead> <tbody> <tr> <th> <td>. שום דבר אחר - בלי <img>, <script>, <style>, <div> ובלי style בתוך תגית.
 
 תמונות: שבץ בדיוק שניים או שלושה טוקנים של תמונה, כל אחד בשורה משלו, במקום שבו הם שייכים. הטוקנים הזמינים:
-${Object.entries(IMAGE_TOKENS_HE).map(([k, v]) => `  [[IMAGE:${k}]] — ${v}`).join("\n")}
+${Object.entries(IMAGE_TOKENS_HE).map(([k, v]) => `  [[IMAGE:${k}]] - ${v}`).join("\n")}
 לעולם אל תכתוב תגית <img> בעצמך ואל תמציא שם טוקן.
 
 קישורים: מותר לקשר רק אל ${ALLOWED_LINKS.join(", ")} ואל המאמרים שכבר פורסמו:
@@ -354,7 +355,7 @@ ${existing}
 title: כותרת בעברית, 20 עד 70 תווים, שאדם היה מקליד או לוחץ עליה.
 הכותרות שכבר קיימות בבלוג:
 ${existingTitles.map((t) => `  - ${t}`).join("\n")}
-הכותרת שלך חייבת להיות שונה מהן באמת — לא אותה תבנית עם שם חג או פרשה אחרים. אם הכותרת שלך נראית כמו אחת מהן אחרי הנקודתיים או המקף, כתוב אותה מחדש. חשוב על מה ייחודי דווקא בסיפור הזה, ותן לזה להוביל.
+הכותרת שלך חייבת להיות שונה מהן באמת - לא אותה תבנית עם שם חג או פרשה אחרים. אם הכותרת שלך נראית כמו אחת מהן אחרי הנקודתיים או המקף, כתוב אותה מחדש. חשוב על מה ייחודי דווקא בסיפור הזה, ותן לזה להוביל.
 description: תיאור מטא בעברית, 80 עד 165 תווים.
 excerpt: משפט או שניים שמופיעים מתחת לכותרת בדף המאמר.
 keywords: 3 עד 8 ביטויי חיפוש בעברית שהורה ישראלי באמת מקליד.
@@ -376,7 +377,7 @@ const ALLOWED_TAGS = new Set([
  * afternoon"), because nothing had told the model otherwise.
  *
  * A sentence is only a problem when it puts the two together with no weekday
- * framing — saying the coloring book is for the days *before* Yom Tov, or for
+ * framing - saying the coloring book is for the days *before* Yom Tov, or for
  * Chol HaMoed, is correct and must stay allowed.
  */
 const COLORING = /coloring|colouring|צביעה|לצבוע|לצייר/i;
@@ -389,7 +390,7 @@ const halachicProblems = (body, label) => {
     if (!COLORING.test(sentence) || !HOLY_DAY.test(sentence)) continue;
     if (WEEKDAY_FRAMING.test(sentence)) continue;
     problems.push(
-      `${label} offers the coloring book on Shabbos or Yom Tov, which is melacha: "${sentence.trim().slice(0, 120)}". Coloring is a weekday activity — erev Shabbos, a weekday afternoon, the days before Yom Tov, or Chol HaMoed. The storybooks themselves are fine to read on Shabbos and Yom Tov.`
+      `${label} offers the coloring book on Shabbos or Yom Tov, which is melacha: "${sentence.trim().slice(0, 120)}". Coloring is a weekday activity - erev Shabbos, a weekday afternoon, the days before Yom Tov, or Chol HaMoed. The storybooks themselves are fine to read on Shabbos and Yom Tov.`
     );
   }
   return problems;
@@ -401,7 +402,7 @@ const validateBody = (body, label, { minWords }) => {
   if (!body) return [`${label} is missing`];
 
   const words = stripHtml(body).split(/\s+/).filter(Boolean).length;
-  if (words < minWords) problems.push(`${label} is only ~${words} words — write more`);
+  if (words < minWords) problems.push(`${label} is only ~${words} words - write more`);
   if (!/<h2>/.test(body)) problems.push(`${label} needs <h2> section headings`);
   if (/<h1[\s>]/i.test(body)) problems.push(`${label} must not contain an <h1>`);
   if (/\sstyle\s*=/i.test(body)) problems.push(`${label} must not use inline style attributes`);
@@ -432,7 +433,7 @@ export const validateEnglish = (art, { plannedSlugs = new Set() } = {}) => {
   const req = (cond, msg) => { if (!cond) problems.push(msg); };
 
   req(/^[a-z0-9]+(-[a-z0-9]+)*$/.test(art.slug || ""), "slug must be lowercase words separated by single hyphens");
-  req(!publishedSlugs.has(art.slug) && !plannedSlugs.has(art.slug), `slug "${art.slug}" is already used — choose a different one`);
+  req(!publishedSlugs.has(art.slug) && !plannedSlugs.has(art.slug), `slug "${art.slug}" is already used - choose a different one`);
   req((art.title || "").length >= 20 && art.title.length <= 75, "title must be between 20 and 75 characters");
   req((art.description || "").length >= 80 && art.description.length <= 165, "description must be between 80 and 165 characters (it is the meta description)");
   req((art.excerpt || "").length >= 60, "excerpt is too short");
@@ -446,10 +447,10 @@ export const validateEnglish = (art, { plannedSlugs = new Set() } = {}) => {
   return [...problems, ...validateBody(art.bodyHtml, "bodyHtml", { minWords: 700 })];
 };
 
-/** The half of a title after its colon or dash — the part that goes templated. */
+/** The half of a title after its colon or dash - the part that goes templated. */
 const titleTail = (t) =>
   String(t || "")
-    .split(/[:—–-]/)
+    .split(/[:-]/)
     .slice(1)
     .join(" ")
     .replace(/\s+/g, " ")
@@ -472,16 +473,16 @@ export const validateHebrew = (he, { publishedTitles = ARTICLES.map((a) => a.he?
   req(hebrew(he.bodyHtml), "he.bodyHtml must be written in Hebrew");
 
   // Three holiday articles once shipped with the identical tail
-  // "איך מספרים את הסיפור בבית" — distinct bodies under templated titles, which
+  // "איך מספרים את הסיפור בבית" - distinct bodies under templated titles, which
   // is what a search engine reads as filler.
   const tail = titleTail(he.title);
   const clash = publishedTitles.find((t) => t !== he.title && tail && titleTail(t) === tail);
   if (clash) {
     problems.push(
-      `he.title repeats the shape of an existing title ("${clash}") — the part after the colon must not be reused, write a title specific to this story`
+      `he.title repeats the shape of an existing title ("${clash}") - the part after the colon must not be reused, write a title specific to this story`
     );
   }
-  req(!latinRun(he.bodyHtml), "he.bodyHtml contains a run of English prose — write the article in Hebrew, do not translate");
+  req(!latinRun(he.bodyHtml), "he.bodyHtml contains a run of English prose - write the article in Hebrew, do not translate");
 
   for (const [i, f] of (he.faq || []).entries()) {
     problems.push(...halachicProblems(f.a, `he.faq[${i}] answer`));
@@ -519,7 +520,7 @@ const EN_SCHEMA = {
 };
 
 // The Hebrew article is its own document, with its own title, description and
-// search phrases — not a `he` block hanging off the English one.
+// search phrases - not a `he` block hanging off the English one.
 const HE_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -537,25 +538,25 @@ const HE_SCHEMA = {
 
 const SYSTEM = `You are the staff writer for Torah Tale, a company that prints personalized Torah storybooks starring the child who receives them.
 
-You write one article a day for torahtale.com/blog. Each one covers a different story from the collections families can order, and each has to stand on its own as something a frum parent is glad they read — the search traffic follows from that, not the other way round.
+You write one article a day for torahtale.com/blog. Each one covers a different story from the collections families can order, and each has to stand on its own as something a frum parent is glad they read - the search traffic follows from that, not the other way round.
 
-Two audiences read every piece: a parent skimming on a phone, and an answer engine deciding what to quote. Both are served by the same thing — direct answers stated plainly, early, and in complete sentences that survive being lifted out of context.
+Two audiences read every piece: a parent skimming on a phone, and an answer engine deciding what to quote. Both are served by the same thing - direct answers stated plainly, early, and in complete sentences that survive being lifted out of context.
 
 Only claim what the provided product facts support. If you are unsure whether a detail about the story is pshat, Midrash, or your own inference, either attribute it correctly or leave it out.`;
 
 // Hebrew has its own writer, briefed in Hebrew. The point is not politeness: a
 // model asked in English to "also write it in Hebrew" produces English thinking
-// in Hebrew words — English sentence rhythm, American examples, and headings
+// in Hebrew words - English sentence rhythm, American examples, and headings
 // that answer questions an Israeli parent never typed.
 const SYSTEM_HE = `אתה הכותב של טורה־טייל, חברה שמדפיסה ספרי סיפורי תורה מותאמים אישית שבהם הילד שמקבל את הספר הוא הגיבור.
 
-אתה כותב את המאמר היומי לגרסה העברית של torahtale.com/blog, עבור הורים חרדים ודתיים דוברי עברית בישראל. אתה לא מתרגם ולא מעבד מאמר קיים — אתה כותב מאמר מקורי בעברית, מהתחלה, כפי שהיית כותב אותו לולא היה קיים שום מאמר אחר.
+אתה כותב את המאמר היומי לגרסה העברית של torahtale.com/blog, עבור הורים חרדים ודתיים דוברי עברית בישראל. אתה לא מתרגם ולא מעבד מאמר קיים - אתה כותב מאמר מקורי בעברית, מהתחלה, כפי שהיית כותב אותו לולא היה קיים שום מאמר אחר.
 
-עברית טבעית של דובר ילידי: משפטים קצרים, סדר מילים עברי, דימויים ודוגמאות מהחיים בארץ. אם משפט נשמע כמו תרגום מאנגלית — כתוב אותו מחדש.
+עברית טבעית של דובר ילידי: משפטים קצרים, סדר מילים עברי, דימויים ודוגמאות מהחיים בארץ. אם משפט נשמע כמו תרגום מאנגלית - כתוב אותו מחדש.
 
-שני קהלים קוראים כל מאמר: הורה שמדפדף בטלפון, ומנוע תשובות שמחליט מה לצטט. שניהם מרוויחים מאותו דבר — תשובה ישירה, מוקדם, במשפטים שלמים שנשארים נכונים גם כשמצטטים אותם לבד.
+שני קהלים קוראים כל מאמר: הורה שמדפדף בטלפון, ומנוע תשובות שמחליט מה לצטט. שניהם מרוויחים מאותו דבר - תשובה ישירה, מוקדם, במשפטים שלמים שנשארים נכונים גם כשמצטטים אותם לבד.
 
-אל תטען דבר שלא מופיע בעובדות המוצר שקיבלת. אם אינך בטוח אם פרט הוא פשט, מדרש או פרשנות שלך — ייחס אותו נכון או השמט אותו.`;
+אל תטען דבר שלא מופיע בעובדות המוצר שקיבלת. אם אינך בטוח אם פרט הוא פשט, מדרש או פרשנות שלך - ייחס אותו נכון או השמט אותו.`;
 
 /** Every layer of an error, since a dropped stream surfaces as a bare "terminated". */
 const describeError = (err) => {
@@ -574,7 +575,7 @@ const describeError = (err) => {
 
 /**
  * One model call. The SDK retries a request that never connected, but a stream
- * that dies partway through is ours to redo — and on a long article that is the
+ * that dies partway through is ours to redo - and on a long article that is the
  * failure that actually happens.
  */
 const requestArticle = async (client, { messages, system, schema }) => {
@@ -590,12 +591,26 @@ const requestArticle = async (client, { messages, system, schema }) => {
       return await stream.finalMessage();
     } catch (err) {
       const detail = describeError(err);
-      if (attempt === 3) throw new Error(`the model call failed 3 times — ${detail}`);
+      if (attempt === 3) throw new Error(`the model call failed 3 times - ${detail}`);
       console.warn(`blog-agent: model call failed (${detail}); retrying in ${attempt * 20}s`);
       await new Promise((r) => setTimeout(r, attempt * 20_000));
     }
   }
 };
+
+/**
+ * No long dashes anywhere in Torah Tale copy - the site and the printed books
+ * use a plain hyphen. The style rules say so, but a model reaches for the em
+ * dash by habit, so every string in the draft is normalized before it is
+ * validated or written. Escapes, not the characters themselves: they are not
+ * allowed in this codebase either.
+ */
+const plainDashes = (val) =>
+  typeof val === "string" ? val.replace(/[\u2014\u2013]/g, "-")
+  : Array.isArray(val) ? val.map(plainDashes)
+  : val && typeof val === "object"
+    ? Object.fromEntries(Object.entries(val).map(([k, v]) => [k, plainDashes(v)]))
+  : val;
 
 /**
  * Drives one language to a valid article: ask, validate, and hand the problems
@@ -617,7 +632,7 @@ const writeInLanguage = async (client, { label, system, prompt, schema, check, r
     const text = message.content.filter((b) => b.type === "text").map((b) => b.text).join("");
     let article;
     try {
-      article = JSON.parse(text);
+      article = plainDashes(JSON.parse(text));
     } catch {
       throw new Error(`the ${label} call returned something that was not valid JSON`);
     }
@@ -638,8 +653,8 @@ const writeInLanguage = async (client, { label, system, prompt, schema, check, r
 
 /**
  * English and Hebrew are written by two independent calls that never see each
- * other's output. They cover the same story and share a URL; everything else —
- * headings, examples, search phrases, FAQ — each language works out for itself.
+ * other's output. They cover the same story and share a URL; everything else -
+ * headings, examples, search phrases, FAQ - each language works out for itself.
  */
 const generate = async (client, portion, plannedSlugs, dateISO) => {
   const [en, he] = await Promise.all([
@@ -710,7 +725,7 @@ ${faqList(he.faq, "      ")}
 
 const renderModule = (art, portion, dateISO) => {
   const dates = humanDates(dateISO);
-  return `// Written by scripts/blog-agent.mjs on ${dateISO} — story: ${portion.value}.
+  return `// Written by scripts/blog-agent.mjs on ${dateISO} - story: ${portion.value}.
 // Reviewed and edited like any other content file; the agent never rewrites a
 // file it has already written.
 import { expandImages } from "../shared.mjs";
@@ -754,7 +769,7 @@ const rewriteStoryIndex = async () => {
 
   writeFileSync(
     join(STORIES_DIR, "index.mjs"),
-    `// AUTO-GENERATED by scripts/blog-agent.mjs — do not edit by hand.
+    `// AUTO-GENERATED by scripts/blog-agent.mjs - do not edit by hand.
 // One entry per daily story article; newest first.
 
 ${entries.map((e) => `import ${ident(e.file)} from "./${e.file}";`).join("\n")}
@@ -771,7 +786,7 @@ ${entries.map((e) => `  ${ident(e.file)},`).join("\n")}
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 /**
- * Rewrites one article's Hebrew from scratch — for articles written before
+ * Rewrites one article's Hebrew from scratch - for articles written before
  * Hebrew got its own call, whose `he` block reads like a translation because
  * that is effectively what it was.
  */
@@ -816,7 +831,7 @@ const main = async () => {
     const { default: Anthropic } = await import(/* @vite-ignore */ sdk);
     const client = new Anthropic({ timeout: 20 * 60 * 1000, maxRetries: 3 });
     const done = await rewriteHebrew(client, REWRITE_HEBREW);
-    console.log(`blog-agent: rewrote the Hebrew of ${done.file} — "${done.title}"`);
+    console.log(`blog-agent: rewrote the Hebrew of ${done.file} - "${done.title}"`);
     return;
   }
 
@@ -831,7 +846,7 @@ const main = async () => {
       break;
     }
     chosen.add(pick.portion.value);
-    console.log(`blog-agent: ${pick.portion.label} (${pick.portion.value}) — ${pick.reason}`);
+    console.log(`blog-agent: ${pick.portion.label} (${pick.portion.value}) - ${pick.reason}`);
 
     if (PLAN_ONLY) continue;
 
@@ -845,7 +860,7 @@ const main = async () => {
 
     // Everything written in one run carries that run's date. A backfill used to
     // spread the articles back across previous days so the archive looked
-    // gradual, which was just a lie about when they were written — and it went
+    // gradual, which was just a lie about when they were written - and it went
     // into the sitemap's lastmod and the RSS pubDate.
     const article = await generate(client, pick.portion, plannedSlugs, RUN_DATE);
     plannedSlugs.add(article.slug);
@@ -853,7 +868,7 @@ const main = async () => {
     const file = join(STORIES_DIR, `${article.slug}.mjs`);
     writeFileSync(file, renderModule(article, pick.portion, RUN_DATE), "utf8");
     written.push({ slug: article.slug, title: article.title, portion: pick.portion.value });
-    console.log(`blog-agent: wrote src/content/blog/stories/${article.slug}.mjs — "${article.title}"`);
+    console.log(`blog-agent: wrote src/content/blog/stories/${article.slug}.mjs - "${article.title}"`);
   }
 
   if (!written.length) {

@@ -3,7 +3,7 @@ import { ArrowRight, BookOpen, Heart, Gift, Star, ShieldCheck, Award, Lock } fro
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-// Single fixed hero image (the "as the world is created" scene) — no rotation,
+// Single fixed hero image (the "as the world is created" scene) - no rotation,
 // no random per-load switch, so it caches and the title stays constant.
 import heroDesktop from "@/assets/hero-desktop-3.jpg";
 import heroMobile from "@/assets/hero-m-3.jpg";
@@ -23,7 +23,7 @@ const getHeroCopy = (isHebrew: boolean) =>
         title1: "סיפורי תורה,",
         title2: "בכיכוב הילדים שלכם",
         description:
-          "יוצרים ספרים מותאמים אישית שמחזירים לחיים סיפורי תורה וסיפורים חינוכיים — בכיכוב הילד שלכם",
+          "יוצרים ספרים מותאמים אישית שמחזירים לחיים סיפורי תורה וסיפורים חינוכיים - בכיכוב הילד שלכם",
         primaryCta: "צרו את הסיפור של ילדכם",
         features: [
           { icon: BookOpen, label: "תוכן יהודי טהור" },
@@ -35,7 +35,7 @@ const getHeroCopy = (isHebrew: boolean) =>
         testimonials: [
           { quote: "הדרך הכי יפה לחבר את הילדים שלנו לתורה. הם מבקשים את הספר שלהם כל ערב מחדש!", name: "רבקי ומשה ש.", location: "ברוקלין, ניו יורק", avatar: reviewer1 },
           { quote: "האיכות פשוט מדהימה, וההתאמה האישית עושה את כל ההבדל. מתנה שתישאר איתנו שנים.", name: "חנה פ.", location: "לוס אנג׳לס", avatar: reviewer2 },
-          { quote: "הבן שלנו מרגיש שהוא ממש גיבור הסיפור — וזה מחבר אותו לערכים של התורה בצורה הכי טבעית.", name: "אבי מ.", location: "טורונטו, קנדה", avatar: reviewer3 },
+          { quote: "הבן שלנו מרגיש שהוא ממש גיבור הסיפור - וזה מחבר אותו לערכים של התורה בצורה הכי טבעית.", name: "אבי מ.", location: "טורונטו, קנדה", avatar: reviewer3 },
         ],
         trustBar: [
           { icon: ShieldCheck, label: "בטוח ומותאם לגיל" },
@@ -59,7 +59,7 @@ const getHeroCopy = (isHebrew: boolean) =>
         testimonials: [
           { quote: "The most beautiful way to connect our kids to Torah. They ask for their book every night!", name: "Rivky & Moshe S.", location: "Brooklyn, NY", avatar: reviewer1 },
           { quote: "The quality is amazing and the personalization is beyond special. It's a gift our children will cherish forever.", name: "Chana F.", location: "Los Angeles, CA", avatar: reviewer2 },
-          { quote: "Our son feels like the star of the story—and it brings Torah values to life in such a beautiful way.", name: "Avi M.", location: "Toronto, Canada", avatar: reviewer3 },
+          { quote: "Our son feels like the star of the story-and it brings Torah values to life in such a beautiful way.", name: "Avi M.", location: "Toronto, Canada", avatar: reviewer3 },
         ],
         trustBar: [
           { icon: ShieldCheck, label: "Safe & Age Appropriate" },
@@ -77,7 +77,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   return (
     <>
       <section className="relative overflow-hidden bg-[hsl(42_60%_96%)]" dir={dir}>
-        {/* Hero visual wrapper — keeps the background images above the opaque trust bar
+        {/* Hero visual wrapper - keeps the background images above the opaque trust bar
             so the book at the bottom of the image is never covered by it. */}
         <div className="relative overflow-hidden">
         {/* Desktop: a wide render of the same scene, FULL-BLEED across the whole
@@ -118,7 +118,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
         <div
           className={`hidden lg:block pointer-events-none absolute inset-y-0 ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} w-[66%] from-[hsl(42_60%_96%)] from-[12%] via-[hsl(42_60%_96%)]/94 via-[52%] to-transparent z-[1]`}
         />
-        {/* Mobile scrim — near-solid cream behind the whole copy+CTA block (top ~55%),
+        {/* Mobile scrim - near-solid cream behind the whole copy+CTA block (top ~55%),
             fading out only below it so the text passes WCAG AA over the busy photo. */}
         <div className="lg:hidden pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-[hsl(42_60%_96%)] from-[18%] via-[hsl(42_60%_96%)]/88 via-[42%] to-transparent to-[62%]" />
 
@@ -134,7 +134,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
                 className="font-medium leading-[1.12] tracking-[-0.01em] text-foreground text-[2.5rem] sm:text-6xl lg:text-[4.75rem]"
               >
                 <span className="block">{copy.title1}</span>
-                {/* Emphasis line — a deep amber gold so it stays legible over the warm background. */}
+                {/* Emphasis line - a deep amber gold so it stays legible over the warm background. */}
                 {/* pb/-mb pair extends the paint box below the baseline so the
                     "g" descender isn't clipped by backgroundClip: text. */}
                 <span className="block font-normal pb-[0.18em] -mb-[0.18em] gold-shine-text [filter:drop-shadow(0_1px_2px_hsl(36_70%_15%/0.55))]">
@@ -190,7 +190,7 @@ export const HeroSection = ({ onStart }: HeroSectionProps) => {
   );
 };
 
-/** "Loved by families" testimonials strip — rendered on the homepage below the
+/** "Loved by families" testimonials strip - rendered on the homepage below the
     Collections section (it used to sit directly under the hero). */
 export const HeroTestimonialsStrip = () => {
   const { dir, lang } = useLanguage();

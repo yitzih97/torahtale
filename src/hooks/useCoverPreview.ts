@@ -39,7 +39,7 @@ const save = (s: CoverPreviewState) => {
     // The image can be a multi-MB data URL; keep it out of the quota-limited
     // slot and store only what is needed to survive a reload.
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ regens: s.regens, key: s.key }));
-  } catch { /* quota — the preview simply regenerates */ }
+  } catch { /* quota - the preview simply regenerates */ }
 };
 
 interface Inputs {
@@ -56,7 +56,7 @@ interface Inputs {
 
 /**
  * Generates the customer's REAL cover in the background as soon as both halves
- * of it are known — the child's photo and the chosen story — so that by the time
+ * of it are known - the child's photo and the chosen story - so that by the time
  * they reach the summary the book they are buying is already on screen.
  *
  * It is deliberately a plain illustration, not a mock-up printed onto a book:
@@ -72,13 +72,13 @@ export function useCoverPreview(inputs: Inputs) {
   const [state, setState] = useState<CoverPreviewState>(load);
   const inFlight = useRef<string | null>(null);
 
-  // Which inputs the current image belongs to — a change here is a NEW cover,
+  // Which inputs the current image belongs to - a change here is a NEW cover,
   // not a regeneration, so it must not consume the customer's allowance.
   //
   // The photo identity has to be STABLE. A saved child's photo arrives as a
   // signed storage URL whose token carries iat/exp and is re-issued on every
   // new session, so keying on the raw string (or its tail, which IS the
-  // signature) produced a different key each time — silently regenerating the
+  // signature) produced a different key each time - silently regenerating the
   // cover at real cost and resetting the customer's allowance to two again.
   // The path identifies the photo; the query string only signs it.
   const key = referenceImage && torahPortion
@@ -99,7 +99,7 @@ export function useCoverPreview(inputs: Inputs) {
           torahPortion,
           referenceImage,
           childRefs: childRefs?.length ? childRefs : undefined,
-          // A preview only — never bound to a book row, so nothing it produces
+          // A preview only - never bound to a book row, so nothing it produces
           // can be mistaken for the finished article.
           promptAdditions:
             "This is a COVER PREVIEW for the customer: a single beautiful cover " +

@@ -91,7 +91,7 @@ export function AdminOrderDetailDialog({
         <div className="space-y-5">
           {/* Placed + customer */}
           <section className="space-y-2">
-            <Row Icon={Calendar} label="Placed" value={placed ? format(new Date(placed), "MMM d, yyyy · h:mm a") : "—"} />
+            <Row Icon={Calendar} label="Placed" value={placed ? format(new Date(placed), "MMM d, yyyy · h:mm a") : "-"} />
             <Row Icon={User} label="Customer" value={profile?.full_name || profile?.email || (book.user_id || "").slice(0, 8)} />
             {profile?.email && <Row Icon={Mail} label="Email" value={profile.email} />}
             <Button variant="outline" size="sm" className="mt-1 h-8 text-xs" onClick={onViewCustomer}>
@@ -103,10 +103,10 @@ export function AdminOrderDetailDialog({
           <section className="space-y-2 border-t border-border pt-4">
             <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Book</h3>
             <Row Icon={BookOpen} label="Type" value={PRODUCT_LABEL[productType] || productType} />
-            <Row Icon={BookOpen} label="Portion" value={book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "—"} />
+            <Row Icon={BookOpen} label="Portion" value={book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "-"} />
             <Row Icon={Palette} label="Art style" value={(book.art_style || "3d-pixar").replace("3d-pixar", "3D Pixar")} />
             <Row Icon={Globe2} label="Language" value={book.language || "English"} />
-            <Row Icon={Hash} label="Pages" value={String(PAGES_BY_TYPE[productType] ?? "—")} />
+            <Row Icon={Hash} label="Pages" value={String(PAGES_BY_TYPE[productType] ?? "-")} />
             <Row Icon={Package} label="Quantity" value={String(Math.max(1, parseInt(ship?.quantity) || 1))} />
             {ship?.bookOptions?.coloringBook && productType !== "coloring" && (
               <Row Icon={Palette} label="Add-on" value="Coloring book" />
@@ -126,7 +126,7 @@ export function AdminOrderDetailDialog({
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{k.name}</p>
                       <p className="text-[11px] text-muted-foreground truncate">
-                        {[k.age && `${k.age}y`, k.gender].filter(Boolean).join(" · ") || "—"}
+                        {[k.age && `${k.age}y`, k.gender].filter(Boolean).join(" · ") || "-"}
                       </p>
                     </div>
                   </div>
@@ -185,17 +185,17 @@ export function AdminOrderDetailDialog({
                       ? fin.payment.wallet
                       : fin.payment?.cardCompany
                         ? `${fin.payment.cardCompany}${fin.payment.cardLast4 ? ` ••${fin.payment.cardLast4}` : ""}`
-                        : (fin.paymentGateways[0] || "—")
+                        : (fin.paymentGateways[0] || "-")
                   } />
-                  <Row Icon={CheckCircle2} label="Status" value={<span className="capitalize">{(fin.financialStatus || "—").toLowerCase().replace(/_/g, " ")}</span>} />
-                  <Row Icon={Truck} label="Fulfillment" value={<span className="capitalize">{(fin.fulfillmentStatus || "—").toLowerCase().replace(/_/g, " ")}</span>} />
+                  <Row Icon={CheckCircle2} label="Status" value={<span className="capitalize">{(fin.financialStatus || "-").toLowerCase().replace(/_/g, " ")}</span>} />
+                  <Row Icon={Truck} label="Fulfillment" value={<span className="capitalize">{(fin.fulfillmentStatus || "-").toLowerCase().replace(/_/g, " ")}</span>} />
                 </div>
 
                 {/* Margin (admin estimate) */}
                 <div className="rounded-xl bg-secondary/50 p-3 grid grid-cols-3 gap-2 text-center">
-                  <div><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Revenue</p><p className="text-sm font-semibold">{revenue != null ? formatMoney({ amount: revenue, currency: fin.subtotal?.currency || "USD" }) : "—"}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Revenue</p><p className="text-sm font-semibold">{revenue != null ? formatMoney({ amount: revenue, currency: fin.subtotal?.currency || "USD" }) : "-"}</p></div>
                   <div><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Est. COGS</p><p className="text-sm font-semibold">${cogs.toFixed(2)}</p></div>
-                  <div><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Est. profit</p><p className={`text-sm font-semibold ${profit != null && profit < 0 ? "text-destructive" : "text-emerald-600"}`}>{profit != null ? `$${profit.toFixed(2)}` : "—"}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Est. profit</p><p className={`text-sm font-semibold ${profit != null && profit < 0 ? "text-destructive" : "text-emerald-600"}`}>{profit != null ? `$${profit.toFixed(2)}` : "-"}</p></div>
                 </div>
 
                 {fin.lineItems.length > 0 && (

@@ -42,19 +42,19 @@ const content = {
       "Join our affiliate family and earn a generous commission on every personalized sefer ordered through your link.",
     perksTitle: "Why partner with Torah Tale",
     perks: [
-      { icon: TrendingUp, title: "Market-leading commission", desc: "Industry-competitive payout on every order — recurring on subscriptions." },
+      { icon: TrendingUp, title: "Market-leading commission", desc: "Industry-competitive payout on every order - recurring on subscriptions." },
       { icon: Gift, title: "30-day cookie window", desc: "You get credit even if they buy days after clicking your link." },
-      { icon: Users, title: "A product families love", desc: "High conversion — frum parents are searching for exactly this." },
+      { icon: Users, title: "A product families love", desc: "High conversion - frum parents are searching for exactly this." },
     ],
-    stepsTitle: "How it works — start earning in 4 steps",
+    stepsTitle: "How it works - start earning in 4 steps",
     steps: [
-      { icon: UserPlus, title: "Apply below", desc: "Fill out the short form. We review every application within 1–2 business days." },
+      { icon: UserPlus, title: "Apply below", desc: "Fill out the short form. We review every application within 1-2 business days." },
       { icon: Link2, title: "Get your unique link", desc: "Once approved, we email you a personal referral link and a dashboard login." },
-      { icon: Share2, title: "Share with your community", desc: "Post it on WhatsApp groups, social media, blogs, school newsletters — wherever families gather." },
+      { icon: Share2, title: "Share with your community", desc: "Post it on WhatsApp groups, social media, blogs, school newsletters - wherever families gather." },
       { icon: Wallet, title: "Get paid monthly", desc: "Track your clicks and sales in real time. We pay out every month via PayPal or bank transfer." },
     ],
     formTitle: "Apply to become an affiliate",
-    formSubtitle: "Tell us about you — approval usually takes 1–2 business days.",
+    formSubtitle: "Tell us about you - approval usually takes 1-2 business days.",
     fields: {
       full_name: "Full Name",
       email: "Email",
@@ -68,12 +68,12 @@ const content = {
       submitting: "Submitting…",
     },
     successTitle: "Application received!",
-    successDesc: "We'll review and email you within 1–2 business days.",
+    successDesc: "We'll review and email you within 1-2 business days.",
     faqTitle: "Quick answers",
     faqs: [
       { q: "How much can I earn?", a: "Our commission rate is market-leading and disclosed in your welcome email after approval. Top affiliates earn hundreds to thousands of dollars per month." },
       { q: "When do I get paid?", a: "Payouts go out monthly for all commissions older than 30 days (to cover refund windows)." },
-      { q: "Who can apply?", a: "Anyone with a relevant audience — bloggers, content creators, school administrators, community askanim, rebbetzins, and parents." },
+      { q: "Who can apply?", a: "Anyone with a relevant audience - bloggers, content creators, school administrators, community askanim, rebbetzins, and parents." },
       { q: "How do I track sales?", a: "After approval you'll get a private dashboard showing clicks, signups, and commissions in real time." },
     ],
   },
@@ -83,19 +83,19 @@ const content = {
     subtitle: "הצטרפו למשפחת השותפים שלנו והרוויחו עמלה נדיבה על כל ספר שמוזמן דרך הקישור האישי שלכם.",
     perksTitle: "למה להיות שותפים שלנו",
     perks: [
-      { icon: TrendingUp, title: "עמלה מובילה בשוק", desc: "תשלום תחרותי על כל הזמנה — חוזר על מנויים." },
+      { icon: TrendingUp, title: "עמלה מובילה בשוק", desc: "תשלום תחרותי על כל הזמנה - חוזר על מנויים." },
       { icon: Gift, title: "חלון מעקב של 30 יום", desc: "תקבלו קרדיט גם אם הלקוח קונה ימים אחרי הקליק." },
-      { icon: Users, title: "מוצר שמשפחות אוהבות", desc: "המרה גבוהה — הורים חרדים מחפשים בדיוק את זה." },
+      { icon: Users, title: "מוצר שמשפחות אוהבות", desc: "המרה גבוהה - הורים חרדים מחפשים בדיוק את זה." },
     ],
-    stepsTitle: "איך זה עובד — מתחילים להרוויח ב-4 שלבים",
+    stepsTitle: "איך זה עובד - מתחילים להרוויח ב-4 שלבים",
     steps: [
-      { icon: UserPlus, title: "מלאו את הטופס", desc: "אנחנו בודקים כל בקשה תוך 1–2 ימי עסקים." },
+      { icon: UserPlus, title: "מלאו את הטופס", desc: "אנחנו בודקים כל בקשה תוך 1-2 ימי עסקים." },
       { icon: Link2, title: "קבלו קישור אישי", desc: "לאחר אישור, נשלח אליכם קישור הפניה ייחודי וגישה לדאשבורד." },
-      { icon: Share2, title: "שתפו עם הקהילה", desc: "וואטסאפ, רשתות חברתיות, בלוגים, עלוני בית ספר — בכל מקום." },
+      { icon: Share2, title: "שתפו עם הקהילה", desc: "וואטסאפ, רשתות חברתיות, בלוגים, עלוני בית ספר - בכל מקום." },
       { icon: Wallet, title: "תשלום חודשי", desc: "מעקב בזמן אמת. תשלום חודשי דרך PayPal או העברה בנקאית." },
     ],
     formTitle: "הגישו בקשה להיות שותפים",
-    formSubtitle: "ספרו לנו על עצמכם — אישור בדרך כלל תוך 1–2 ימי עסקים.",
+    formSubtitle: "ספרו לנו על עצמכם - אישור בדרך כלל תוך 1-2 ימי עסקים.",
     fields: {
       full_name: "שם מלא",
       email: "אימייל",
@@ -109,12 +109,12 @@ const content = {
       submitting: "שולח…",
     },
     successTitle: "הבקשה התקבלה!",
-    successDesc: "נבדוק ונחזור אליכם תוך 1–2 ימי עסקים.",
+    successDesc: "נבדוק ונחזור אליכם תוך 1-2 ימי עסקים.",
     faqTitle: "תשובות מהירות",
     faqs: [
       { q: "כמה אפשר להרוויח?", a: "העמלה שלנו מובילה בשוק ומפורטת במייל הקבלה לאחר אישור. שותפים מובילים מרוויחים מאות עד אלפי דולרים בחודש." },
       { q: "מתי משלמים?", a: "תשלום חודשי על כל עמלה ישנה מ-30 יום." },
-      { q: "מי יכול להגיש בקשה?", a: "כל מי שיש לו קהל רלוונטי — בלוגרים, יוצרי תוכן, מנהלי בתי ספר, אסקנים, רבניות והורים." },
+      { q: "מי יכול להגיש בקשה?", a: "כל מי שיש לו קהל רלוונטי - בלוגרים, יוצרי תוכן, מנהלי בתי ספר, אסקנים, רבניות והורים." },
       { q: "איך עוקבים אחר מכירות?", a: "לאחר אישור תקבלו דאשבורד פרטי עם נתונים בזמן אמת." },
     ],
   },
@@ -170,7 +170,7 @@ const Affiliates = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Affiliate Program — Earn With Torah Tale"
+        title="Affiliate Program - Earn With Torah Tale"
         description="Join the Torah Tale affiliate program. Share personalized Torah storybooks with frum families and earn a market-leading commission on every order."
         path="/affiliates"
       />

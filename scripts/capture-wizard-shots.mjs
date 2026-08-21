@@ -4,7 +4,7 @@
  * (/blog/how-to-create-a-personalized-torah-storybook).
  *
  * The wizard changes often, and a how-to illustrated with last quarter's UI is
- * worse than no screenshots at all — so this drives the actual wizard in a real
+ * worse than no screenshots at all - so this drives the actual wizard in a real
  * browser and writes what it sees to public/blog/wizard/. Run it after any
  * change to the creation flow:
  *
@@ -93,16 +93,16 @@ const run = async () => {
   await page.goto(`${BASE}/create?shots`, { waitUntil: "networkidle" });
   await page.waitForSelector("input");
 
-  // 1 — the child's name
+  // 1 - the child's name
   await page.locator("input").first().fill("Adina");
   await shot("step-1-name");
   await clickContinue();
 
-  // 2 — boy or girl
+  // 2 - boy or girl
   await shot("step-2-gender");
   await clickText(T.girl);
 
-  // 3 — age (the stepper starts empty; tap up to a realistic age first)
+  // 3 - age (the stepper starts empty; tap up to a realistic age first)
   const older = page.getByRole("button", { name: "Increase age" });
   for (let i = 0; i < 5; i++) {
     await older.click();
@@ -111,9 +111,9 @@ const run = async () => {
   await shot("step-3-age");
   await clickContinue();
 
-  // 4 — the photo, empty (the guidance panel is the point of this one)
+  // 4 - the photo, empty (the guidance panel is the point of this one)
   await shot("step-4-photo");
-  // Uploading opens the built-in crop tool — worth a shot of its own.
+  // Uploading opens the built-in crop tool - worth a shot of its own.
   const input = page.locator('input[type="file"]').first();
   await input.setInputFiles(PHOTO);
   await settle(1800);
@@ -122,11 +122,11 @@ const run = async () => {
   await settle(1400);
   await clickContinue();
 
-  // 5 — add another child?
+  // 5 - add another child?
   await shot("step-7-add-child");
   await clickContinue();
 
-  // 6 — the story: the suggested parsha, then the full browse view behind it
+  // 6 - the story: the suggested parsha, then the full browse view behind it
   await shot("step-5-story");
   await clickText(T.differentStory);
   await shot("step-5-browse");
@@ -135,11 +135,11 @@ const run = async () => {
   await page.getByText(T.upcomingParsha, { exact: true }).first().click();
   await settle(900);
 
-  // 7 — the language (the site's current language comes pre-selected)
+  // 7 - the language (the site's current language comes pre-selected)
   await shot("step-6-language");
   await clickContinue();
 
-  // 8 — choosing the printed format (this now comes before generating)
+  // 8 - choosing the printed format (this now comes before generating)
   await shot("step-9-format");
 
   // Everything past this point (sign-in, shipping, payment) needs a real

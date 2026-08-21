@@ -1,4 +1,4 @@
-// Shared "majestic" cover branding — colors, tagline, and title logic used by
+// Shared "majestic" cover branding - colors, tagline, and title logic used by
 // BOTH the print/PDF canvas renderer (generateBookPdf.ts) and the on-screen
 // admin/wizard cover preview (components/wizard/BookViewer.tsx). Keeping this
 // in one place is what keeps the two renderers from drifting apart.

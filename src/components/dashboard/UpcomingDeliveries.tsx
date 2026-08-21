@@ -21,8 +21,8 @@ function nextMonday(from: Date): Date {
 }
 
 /**
- * Shows each active subscription's upcoming weekly books — the Monday they drop
- * into production and which parsha they'll cover — so users see what's coming.
+ * Shows each active subscription's upcoming weekly books - the Monday they drop
+ * into production and which parsha they'll cover - so users see what's coming.
  * Books already paid for (books_remaining) are marked "Scheduled"; the rest are
  * "After next billing".
  */

@@ -41,7 +41,7 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <SEO
-        title="Torah Tale — Personalized Torah Storybooks for Jewish Kids"
+        title="Torah Tale - Personalized Torah Storybooks for Jewish Kids"
         description="Personalized Torah storybooks starring your child. Tznius, halachically-mindful stories aligned with the weekly parsha, delivered to your door."
         path="/"
       />

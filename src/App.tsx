@@ -14,7 +14,7 @@ import { useMetaTags } from "@/hooks/useMetaTags";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 // Landing page stays in the main bundle so "/" paints immediately. Every other
 // route is code-split so first-time visitors don't download the wizard, admin
-// dashboard, etc. up front — they load on demand.
+// dashboard, etc. up front - they load on demand.
 import Index from "./pages/Index.tsx";
 
 const Create = lazy(() => import("./pages/Create.tsx"));

@@ -24,7 +24,7 @@ interface Props {
 }
 
 /**
- * Step 10 — Story Preview
+ * Step 10 - Story Preview
  * Shows the freshly generated cover + 2-3 sample pages so the parent can
  * confidently click "Print My Book". Polls the books row in case images
  * are still being generated when this step mounts.
@@ -47,7 +47,7 @@ export const StoryPreviewStep = ({ bookId, childNames, onPrint, onEdit }: Props)
 
     // Pull the heavy image columns exactly ONCE, when generation is done. Polling
     // these directly (they hold ~15 MB of base64 images per book) every 2s was
-    // hammering the database and helping wedge it — poll only the tiny `status`
+    // hammering the database and helping wedge it - poll only the tiny `status`
     // column, then fetch the images a single time.
     const loadImagesOnce = async () => {
       const { data: full } = await supabase
@@ -75,7 +75,7 @@ export const StoryPreviewStep = ({ bookId, childNames, onPrint, onEdit }: Props)
       }
       // keep polling the cheap status column while images are still being produced
       if (attempts < 15) setTimeout(tick, 2000);
-      else await loadImagesOnce(); // timed out — try once in case partial images exist
+      else await loadImagesOnce(); // timed out - try once in case partial images exist
     };
     tick();
     return () => { cancelled = true; };

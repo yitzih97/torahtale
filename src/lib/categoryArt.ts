@@ -7,7 +7,7 @@ import educationalArt from "@/assets/categories/educational.jpg";
 
 /**
  * A sample story title page per category, shown on every story option in that
- * category instead of a line icon — so browsing Yamim Tovim looks like browsing
+ * category instead of a line icon - so browsing Yamim Tovim looks like browsing
  * a shelf of holiday books rather than a list of glyphs.
  *
  * The art is deliberately TEXT-FREE: one image serves English, Hebrew and

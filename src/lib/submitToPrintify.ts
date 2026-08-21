@@ -28,7 +28,7 @@ async function readFnError(error: any, data: any): Promise<string> {
 
 /**
  * Submit a book to Printify the RIGHT way: render the print-ready images
- * client-side (cover wrap + each page with its caption text baked in — the same
+ * client-side (cover wrap + each page with its caption text baked in - the same
  * images the PDF/preview use), upload them one at a time through the edge
  * function, then place the order from the returned Printify image ids.
  *
@@ -39,7 +39,7 @@ async function readFnError(error: any, data: any): Promise<string> {
  * Deliberately NOT written in terms of prepareBook: this path places the order
  * in the same edge-function call that builds the product, which is one fewer
  * round trip and is the path every single-book order has gone through. The
- * render + upload loop is duplicated in prepareBook — change both together.
+ * render + upload loop is duplicated in prepareBook - change both together.
  */
 export interface PrintifyBookInput {
   bookId: string;
@@ -54,7 +54,7 @@ export interface PrintifyBookInput {
 
 /**
  * Render + upload one book's print images and build its Printify PRODUCT,
- * without placing an order. Shared by the single and batch paths — the single
+ * without placing an order. Shared by the single and batch paths - the single
  * path places the order in the same call, the batch path collects the line and
  * places one order for all of them.
  */
@@ -106,7 +106,7 @@ interface PrintifyLine {
 }
 
 /**
- * Submit a whole batch — a Parsha Series month, say — as ONE Printify order.
+ * Submit a whole batch - a Parsha Series month, say - as ONE Printify order.
  *
  * Every book still needs its own product (its own artwork), so each is prepared
  * in turn; the order at the end carries them as separate line items, which is
@@ -170,7 +170,7 @@ export async function submitBookToPrintify(opts: {
   const imageIds: string[] = [];
   for (let i = 0; i < images.length; i++) {
     // Coloring interior pages render as lossless PNG (see renderStorySpread in
-    // generateBookPdf.ts) — the extension must match the actual encoding, not
+    // generateBookPdf.ts) - the extension must match the actual encoding, not
     // just assume JPEG, since Printify may use it to decide how to decode the
     // upload.
     const ext = images[i].startsWith("data:image/png") ? "png" : "jpg";

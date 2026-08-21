@@ -28,7 +28,7 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .eq("role", "admin")
       .maybeSingle();
-    if (!roleData) throw new Error("Not authorized — admin only");
+    if (!roleData) throw new Error("Not authorized - admin only");
 
     const { assetKey, prompt } = await req.json();
     if (!assetKey || !prompt) throw new Error("assetKey and prompt are required");

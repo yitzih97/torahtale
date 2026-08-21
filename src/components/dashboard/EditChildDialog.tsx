@@ -38,7 +38,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSubmit: (child: EditChildResult) => Promise<void> | void;
-  /** Remove this child from the account. Opens the caller's confirm step —
+  /** Remove this child from the account. Opens the caller's confirm step -
    *  nothing is deleted from here. Omit to hide the delete button. */
   onDelete?: () => void;
   isPending?: boolean;
@@ -123,7 +123,7 @@ export function EditChildDialog({ open, onClose, onSubmit, onDelete, isPending, 
   const handleSave = async () => {
     const photoUrl = await uploadPhoto();
     // The base `name` is required (NOT NULL) and is the fallback for languages
-    // with no override — backfill it from whichever name the parent did fill.
+    // with no override - backfill it from whichever name the parent did fill.
     const baseName = name.trim() || nameHe.trim() || nameYi.trim();
     await onSubmit({
       name: baseName,
@@ -231,7 +231,7 @@ export function EditChildDialog({ open, onClose, onSubmit, onDelete, isPending, 
             <div className="space-y-5">
               <div className="space-y-2">
                 <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{t.dash.childName}</Label>
-                {/* Language tabs — edit the name separately per language. */}
+                {/* Language tabs - edit the name separately per language. */}
                 <div className="flex gap-1.5">
                   {NAME_LANGS.map((l) => {
                     const filled = (l.key === "he" ? nameHe : l.key === "yi" ? nameYi : name).trim();

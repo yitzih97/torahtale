@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// CANONICAL PRICING — the single source of truth for every price shown on the
+// CANONICAL PRICING - the single source of truth for every price shown on the
 // site. These MUST match the live Shopify product variants (that's what the
 // customer actually pays at checkout). If a Shopify price changes, update it
 // HERE and every surface follows.
 //
-// Verified against the Shopify Storefront API (store cnhtj8-x9) — USD is the shop
+// Verified against the Shopify Storefront API (store cnhtj8-x9) - USD is the shop
 // currency; ILS is the Israel market presentment price (NOT a currency-rate
 // conversion, so use these exact numbers rather than usd × rate).
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ export const SUB_PRICE: Record<SubPlan, Record<BookFormat, Money>> = {
 
 /* ───────────────────────────── Shipping ─────────────────────────────
  * Mirrors the Shopify shipping zones, which is what the customer is actually
- * charged. The site has one zone signal — the display currency — so USD is read
+ * charged. The site has one zone signal - the display currency - so USD is read
  * as the United States zone and ILS as the Israel zone.
  *
  * Standard shipping is NOT free. It was, and the claim survived in a lot of
@@ -67,10 +67,10 @@ export const SHIPPING_PRICE: Record<ShippingMethod, Money> = {
   express: { usd: 6, ils: 31 },
 };
 
-/** Quoted transit time, as a bare range — the "business days" wording is i18n. */
+/** Quoted transit time, as a bare range - the "business days" wording is i18n. */
 export const SHIPPING_DAYS: Record<ShippingMethod, { us: string; il: string }> = {
-  standard: { us: "5–8", il: "9–14" },
-  express: { us: "3", il: "5–8" },
+  standard: { us: "5-8", il: "9-14" },
+  express: { us: "3", il: "5-8" },
 };
 
 export const shippingPrice = (method: ShippingMethod, isIls: boolean): number =>
@@ -80,7 +80,7 @@ export const shippingDays = (method: ShippingMethod, isIls: boolean): string =>
   isIls ? SHIPPING_DAYS[method].il : SHIPPING_DAYS[method].us;
 
 /**
- * Books that one successful charge of each plan entitles — mirrors
+ * Books that one successful charge of each plan entitles - mirrors
  * BOOKS_PER_PERIOD in supabase/functions/_shared/subscription.ts, which is what
  * the release job actually drips.
  */
@@ -103,7 +103,7 @@ export const subPrice = (plan: SubPlan, format: string, isIls: boolean): number 
 
 /**
  * What the year bundle's 52 books would cost on the monthly plan. Monthly bills
- * per 4 books, so that is THIRTEEN charges, not twelve — comparing a year of
+ * per 4 books, so that is THIRTEEN charges, not twelve - comparing a year of
  * monthly billing (48 books) against the bundle (52 books) prices two different
  * baskets and makes the bundle look more expensive than it is.
  */
@@ -112,7 +112,7 @@ export const yearlyEquivalentMonthlyCost = (format: string, isIls: boolean): num
 
 /* ───────────────────────────── Display ─────────────────────────────
  * Every customer-facing price goes through this. A plain toFixed(2) prints the
- * year bundle as "$1348.98" — four figures with no thousands separator, which
+ * year bundle as "$1348.98" - four figures with no thousands separator, which
  * reads as a typo on the one screen where the number matters most. Grouping is
  * en-US on purpose: the shekel amounts are presentment prices with a "₪" prefix
  * in this UI, not locale-formatted ILS. */

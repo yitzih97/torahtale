@@ -29,14 +29,14 @@ interface PlanData {
    are therefore free-shipping at checkout. */
 const SHIP_PER_BOOK = 5.95;
 /* The same per-book shipping in shekels, derived from the canonical table:
-   sub_per_book = book × (1 − tier) + ship, which solves to 18.13–18.70 across
+   sub_per_book = book × (1 − tier) + ship, which solves to 18.13-18.70 across
    the three plans. Single orders pay shipping too, so this is also the baseline
    a subscription is compared against. */
 const SHIP_PER_BOOK_ILS = 18.5;
 const shipPerBook = (isIls: boolean) => (isIls ? SHIP_PER_BOOK_ILS : SHIP_PER_BOOK);
 
 /**
- * What a plan saves PER BOOK against simply buying single books — the thing the
+ * What a plan saves PER BOOK against simply buying single books - the thing the
  * reader of this dialog is actually deciding against, and measured the same way
  * for all three plans so the ladder is comparable.
  *
@@ -58,12 +58,12 @@ const savingsBadge = (perBookPrice: number, bookPrice: number, isIls = false): {
     : { savings: `${Math.round(pct * 100)}% off`, savingsPct: round2(pct) };
 };
 
-/* Default fallback pricing (used when no bookPriceUsd is provided) — softcover base,
+/* Default fallback pricing (used when no bookPriceUsd is provided) - softcover base,
    shipping included. */
 const DEFAULT_BOOK_USD = 14.99; // softcover, the base this fallback assumes
 /* No weekly plan: a subscription is 4 books a month in one delivery. "weekly"
    survives in the types and in SUB_PRICE only so live subscriptions sold under
-   it keep rendering — it is never offered. */
+   it keep rendering - it is never offered. */
 const DEFAULT_PLANS: PlanData[] = [
   { id: "monthly", priceUsd: 74.77, perWeekUsd: 18.69, ...savingsBadge(18.69, DEFAULT_BOOK_USD), booksPerPeriod: 4, icon: Crown, badge: true, frequency: "monthly" },
   { id: "yearly", priceUsd: 932.98, perWeekUsd: 17.94, ...savingsBadge(17.94, DEFAULT_BOOK_USD), booksPerPeriod: 52, icon: CalendarDays, frequency: "yearly" },
@@ -71,7 +71,7 @@ const DEFAULT_PLANS: PlanData[] = [
 
 /* NOTE: these MUST equal the live Shopify subscription variant prices =
    (book × (1 − discount) + shipping) × books, or the customer sees one price and
-   is billed another. Discount ladder: weekly 10% / monthly 15% / yearly 20% —
+   is billed another. Discount ladder: weekly 10% / monthly 15% / yearly 20% -
    that is the cut off the BOOK price, not what the badge shows. */
 const perBook = (bookPriceUsd: number, disc: number) => bookPriceUsd * (1 - disc) + SHIP_PER_BOOK;
 
@@ -101,10 +101,10 @@ interface Props {
   onClose: () => void;
   onSubscribed?: () => void;
   context?: "limit-reached" | "wizard-step";
-  /** Per-book price in the display currency — used for the "/book" line + as a
+  /** Per-book price in the display currency - used for the "/book" line + as a
    *  fallback for plan pricing when productType isn't supplied. */
   bookPriceUsd?: number;
-  /** Book format — when supplied, plan prices come straight from the canonical
+  /** Book format - when supplied, plan prices come straight from the canonical
    *  Shopify table (exact per plan × format × currency). */
   productType?: BookFormat;
   /** Whether the display currency is ILS (so canonical ILS prices are used). */
@@ -323,7 +323,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                 onClick={handleGoToPayment}
               >
                 <Crown className="w-4 h-4" />
-                {t.upsell.subscribe} — {fmt(activePlan.priceUsd)}/{periodLabel(selectedPlan)}
+                {t.upsell.subscribe} - {fmt(activePlan.priceUsd)}/{periodLabel(selectedPlan)}
               </Button>
               <p className="text-center text-[10px] text-muted-foreground">
                 {t.upsell.freeShipCancel}

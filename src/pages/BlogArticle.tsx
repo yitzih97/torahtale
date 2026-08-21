@@ -42,7 +42,7 @@ const BlogArticle = () => {
   if (!article) {
     return (
       <div className="min-h-screen bg-background text-foreground" dir={dir}>
-        <SEO title="Article not found — Torah Tale" description="This article could not be found." path={blogPath(slug || "")} />
+        <SEO title="Article not found - Torah Tale" description="This article could not be found." path={blogPath(slug || "")} />
         <Navbar transparentHero={false} />
         <div className="container max-w-3xl mx-auto px-6 pt-40 pb-24 text-center">
           <h1 className="font-display text-3xl font-bold">{copy.notFoundTitle}</h1>
@@ -61,8 +61,8 @@ const BlogArticle = () => {
   // Each language is its own indexed page: the Hebrew article is written in
   // Hebrew rather than translated, so it carries its own title, description and
   // structured data at its own URL, with hreflang tying the pair together.
-  // A graph, not a single node: the article itself, a breadcrumb trail, and —
-  // when the article carries a FAQ — a FAQPage, which is what answer engines
+  // A graph, not a single node: the article itself, a breadcrumb trail, and -
+  // when the article carries a FAQ - a FAQPage, which is what answer engines
   // and rich results lift question-and-answer pairs out of.
   const paths = { en: `/blog/${article.slug}`, he: `/he/blog/${article.slug}` };
   const url = `https://torahtale.com${isHe ? paths.he : paths.en}`;
@@ -114,7 +114,7 @@ const BlogArticle = () => {
   return (
     <div className="min-h-screen bg-background text-foreground" dir={dir}>
       <SEO
-        title={`${meta.title} — Torah Tale`}
+        title={`${meta.title} - Torah Tale`}
         description={meta.description}
         path={isHe ? paths.he : paths.en}
         ogType="article"

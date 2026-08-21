@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
  *
  * Deliberately fire-and-forget. The ticket row is already written under RLS by
  * the caller, so a notification failure must not surface as "your message
- * didn't send" — the message did send, we just didn't manage to email about it.
+ * didn't send" - the message did send, we just didn't manage to email about it.
  * The edge function is idempotent, so a retry is harmless.
  */
 export function notifyContactTicket(ticketId: string): void {

@@ -105,7 +105,7 @@ export function SubscriptionEditDialog({ open, onClose, subscription, children, 
               <SelectContent>
                 {/* Weekly is retired, but a subscription still ON it has to be
                     able to open this dialog and change its address without the
-                    Select silently blanking its own value — so the option is
+                    Select silently blanking its own value - so the option is
                     listed only when that is what this subscription already is. */}
                 {frequency === "weekly" && (
                   <SelectItem value="weekly">{t.dash.subEdit.weekly}</SelectItem>

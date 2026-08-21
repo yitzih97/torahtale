@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { BookOpen } from "lucide-react";
+import { toast } from "sonner";
 import { CreationWizard } from "@/components/CreationWizard";
 import {
   AlertDialog,
@@ -51,7 +52,22 @@ const Create = () => {
 
   const handleClose = () => setOpen(true);
 
-  const saveAndExit = () => {
+  // The wizard fills this in; "Save & exit" writes the live state through it
+  // rather than assuming the autosave already got there. It had not: a payload
+  // over the storage quota threw and was swallowed, so the button that promised
+  // to save was really just a way out of the page.
+  const saveWizardState = useRef<(() => boolean) | null>(null);
+
+  const saveAndExit = (e: React.MouseEvent) => {
+    const saved = saveWizardState.current?.() ?? false;
+    if (!saved) {
+      // Leaving now would lose the work, so don't leave: hold the dialog open
+      // (the action closes it by default) and let them finish, or discard on
+      // purpose.
+      e.preventDefault();
+      toast.error(t.wizard.exitSaveFailed);
+      return;
+    }
     setOpen(false);
     navigate("/");
   };
@@ -71,14 +87,14 @@ const Create = () => {
   return (
     <>
       <SEO
-        title="Create Your Torah Tale — Personalize a Parsha Book"
+        title="Create Your Torah Tale - Personalize a Parsha Book"
         description="Start the personalization wizard. Add your child's name, photo, and details to generate a one-of-a-kind Torah storybook."
         path="/create"
       />
-      <CreationWizard onClose={handleClose} collection={collection} collections={collections} />
+      <CreationWizard onClose={handleClose} collection={collection} collections={collections} saveStateRef={saveWizardState} />
       {/* Branded to match the wizard it interrupts: the same accent tile, the
           Torah Tale display face on the question, and a clear primary action.
-          The two ways of leaving are separated from the way back — "Discard"
+          The two ways of leaving are separated from the way back - "Discard"
           is the destructive one and reads as such. */}
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent

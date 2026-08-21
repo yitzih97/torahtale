@@ -25,7 +25,7 @@ export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
   const today = new Date();
   const slots: Slot[] = [];
 
-  // Past — delivered / shipped books in last ~30 days
+  // Past - delivered / shipped books in last ~30 days
   books
     .filter((b) => ["delivered", "shipped", "printing", "ordered"].includes(b.status))
     .forEach((b) => {
@@ -40,7 +40,7 @@ export function BookTimeline({ books, subscriptions, weeksAhead = 2 }: Props) {
       });
     });
 
-  // Upcoming — next deliveries from active subs (project next N weeks)
+  // Upcoming - next deliveries from active subs (project next N weeks)
   subscriptions
     .filter((s) => s.status === "active" && s.next_delivery_date)
     .forEach((s) => {

@@ -55,7 +55,7 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
     return sub.language || t.dash.langEnglish;
   })();
 
-  // The next few weekly parshiyos this subscription will deliver — shown as small
+  // The next few weekly parshiyos this subscription will deliver - shown as small
   // cover thumbnails so it's clear at a glance what's coming for this child.
   const upcoming = (() => {
     const start = sub.next_delivery_date ? new Date(sub.next_delivery_date) : new Date();
@@ -151,7 +151,7 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
         <MetaPill Icon={Globe} label={t.dash.metaLang} value={langLabel} />
       </div>
 
-      {/* Coming next — small cover thumbnails of the upcoming weekly books */}
+      {/* Coming next - small cover thumbnails of the upcoming weekly books */}
       {!isCanceled && upcoming.length > 0 && (
         <div className="relative">
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
@@ -166,7 +166,7 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
               >
                 {it.cover ? (
                   <>
-                    {/* The story's own cover art — these are the same 138 covers
+                    {/* The story's own cover art - these are the same 138 covers
                         the wizard shows when picking a parsha, so a subscriber
                         sees the actual book coming rather than a blank card. */}
                     <img
@@ -195,7 +195,7 @@ export function SubscriptionCard({ sub, index, onEdit, onManage }: Props) {
         </div>
       )}
 
-      {/* Actions — all billing is managed in the Shopify hosted customer portal,
+      {/* Actions - all billing is managed in the Shopify hosted customer portal,
           the only place that actually updates payment or stops the charge. */}
       <div className="relative flex flex-col gap-2 mt-auto">
         <Button

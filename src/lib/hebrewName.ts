@@ -1,13 +1,13 @@
 /* Rendering a child's name on a Hebrew/Yiddish book cover.
  *
  * New books get an accurate Hebrew/Yiddish spelling straight from the story LLM
- * (which writes the whole book — including the child's name — in the target
+ * (which writes the whole book - including the child's name - in the target
  * script). `localizedCoverName` prefers that when present. For older books (or
  * any book missing the field) it falls back to a per-name lookup:
- *   1. NAMES — a dictionary of common Jewish names with their CANONICAL Hebrew
+ *   1. NAMES - a dictionary of common Jewish names with their CANONICAL Hebrew
  *      spelling (Adina→עדינה, Dovid→דוד), which rules alone can't derive (the
  *      ayin-vs-aleph and dropped-vowel choices depend on the name's origin).
- *   2. transliterateToHebrew — rule-based Latin→Hebrew for anything not listed;
+ *   2. transliterateToHebrew - rule-based Latin→Hebrew for anything not listed;
  *      approximate, but always better than a Latin name on an all-Hebrew cover. */
 
 const HEBREW_RE = /[֐-׿]/;
@@ -15,10 +15,10 @@ const HEBREW_RE = /[֐-׿]/;
 // Hebrew spellings for common Jewish children's names. FORMAL names use their
 // canonical/traditional spelling (Adina→עדינה, Dovid→דוד). NICKNAMES are spelled
 // AS the nickname, phonetically (Esti→אסתי, NOT the formal אסתר; Rivky→ריבקי;
-// Shlomi→שלומי) — parents want the name they actually call the child. Keys are
-// lowercase, apostrophes/spaces stripped. Extend freely — misses transliterate.
+// Shlomi→שלומי) - parents want the name they actually call the child. Keys are
+// lowercase, apostrophes/spaces stripped. Extend freely - misses transliterate.
 const NAMES: Record<string, string> = {
-  // ── Boys — formal ──
+  // ── Boys - formal ──
   avraham: "אברהם", avrohom: "אברהם", abraham: "אברהם",
   yitzchak: "יצחק", yitzchok: "יצחק", isaac: "יצחק",
   yaakov: "יעקב", yankel: "יענקל", jacob: "יעקב",
@@ -59,7 +59,7 @@ const NAMES: Record<string, string> = {
   amram: "עמרם", avigdor: "אביגדור", akiva: "עקיבא", amos: "עמוס",
   betzalel: "בצלאל", gavriel: "גבריאל", gabriel: "גבריאל", michael: "מיכאל", michoel: "מיכאל",
   zusha: "זושא", zushe: "זושא", fishel: "פישל", shmelke: "שמעלקא",
-  // ── Boys — nicknames (spelled as the nickname) ──
+  // ── Boys - nicknames (spelled as the nickname) ──
   avrumi: "אברומי", itzik: "איציק", yitzi: "יצי", yitzy: "יצי", yanky: "יענקי",
   koby: "קובי", moishy: "מוישי", moshy: "מושי", dovi: "דובי", dovy: "דובי",
   shlomi: "שלומי", shloimy: "שלוימי", yossi: "יוסי", yossy: "יוסי", yossel: "יאסל",
@@ -67,7 +67,7 @@ const NAMES: Record<string, string> = {
   mendy: "מענדי", shmuli: "שמולי", lazer: "לייזר", motti: "מוטי", motty: "מוטי",
   mottel: "מוטל", sruli: "שרולי", srulik: "שרוליק", yoni: "יוני",
   chatzkel: "חצקל",
-  // ── Girls — formal ──
+  // ── Girls - formal ──
   sara: "שרה", sarah: "שרה", rivka: "רבקה", rivkah: "רבקה", rebecca: "רבקה",
   rochel: "רחל", rachel: "רחל", leah: "לאה", adina: "עדינה",
   miriam: "מרים", chana: "חנה", hannah: "חנה", hana: "חנה",
@@ -87,7 +87,7 @@ const NAMES: Record<string, string> = {
   yaffa: "יפה", zahava: "זהבה", raizel: "רייזל", mindel: "מינדל",
   kayla: "קיילא", zisel: "זיסל", yitta: "יטא",
   eliana: "אליאנה", ahuva: "אהובה", shprintza: "שפרינצא", henna: "הענא",
-  // ── Girls — nicknames (spelled as the nickname) ──
+  // ── Girls - nicknames (spelled as the nickname) ──
   sury: "סורי", suri: "סורי", surie: "סורי", rivky: "ריבקי", rifky: "ריפקי",
   ruchy: "רוחי", rochy: "רוחי", mimi: "מימי", chani: "חני", dassy: "דסי",
   esti: "אסתי", esty: "אסתי", malky: "מלכי", shaindy: "שיינדי", toby: "טובי",
@@ -110,7 +110,7 @@ const MAP: Array<[string, string]> = [
 ];
 
 /** Convert one Latin name to Hebrew. Prefers the canonical dictionary spelling
- *  (Adina→עדינה, Dovid→דוד); otherwise transliterates rule-based — a leading
+ *  (Adina→עדינה, Dovid→דוד); otherwise transliterates rule-based - a leading
  *  vowel gets an aleph, medial/final "e" is dropped the way Hebrew omits most
  *  vowels (Ari→ארי, Esther→אסתר). Idempotent: a name already in Hebrew is
  *  returned untouched. */
@@ -146,12 +146,12 @@ function hebForChild(part: string): string {
   return part.trim().split(/\s+/).map(transliterateWord).filter(Boolean).join(" ");
 }
 
-/** Transliterate a full cover name — possibly several children ("Adina & Ari")
- *  — into Hebrew, joining extra names with a prefixed vav ("עדינה וארי"). */
+/** Transliterate a full cover name - possibly several children ("Adina & Ari")
+ *  - into Hebrew, joining extra names with a prefixed vav ("עדינה וארי"). */
 export function transliterateToHebrew(name: string): string {
   const raw = (name || "").trim();
   if (!raw) return "";
-  if (HEBREW_RE.test(raw)) return raw; // already Hebrew/Yiddish — leave as-is
+  if (HEBREW_RE.test(raw)) return raw; // already Hebrew/Yiddish - leave as-is
   const parts = raw.split(/\s*(?:&|,|\band\b|\bund\b|\bun\b)\s*/i).filter(Boolean);
   const heb = parts.map(hebForChild).filter(Boolean);
   if (heb.length <= 1) return heb[0] || "";

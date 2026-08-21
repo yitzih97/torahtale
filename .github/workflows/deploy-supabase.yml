@@ -2,7 +2,7 @@ name: Deploy to Supabase (cjgqpusyxvltglcbnpvg)
 
 # Lovable's native Supabase integration is bound to a defunct, inaccessible
 # project. This workflow keeps the REAL backend (cjgqpusyxvltglcbnpvg) in sync
-# on every push to main — deploying edge functions, applying new migrations, and
+# on every push to main - deploying edge functions, applying new migrations, and
 # re-pinning the client if Lovable regenerates it with the old project. It is the
 # substitute for the broken Lovable<->Supabase link.
 
@@ -72,7 +72,7 @@ jobs:
             supabase secrets set RESEND_API_KEY="$RESEND_API_KEY" --project-ref "$PROJECT_REF"
             echo "RESEND_API_KEY synced to Supabase."
           else
-            echo "::warning::RESEND_API_KEY repo secret not set — printify-webhook can't send the 'Your Book Has Arrived!' email."
+            echo "::warning::RESEND_API_KEY repo secret not set - printify-webhook can't send the 'Your Book Has Arrived!' email."
           fi
 
       - name: Sync function secrets (CRON_SECRET for the release job)
@@ -84,7 +84,7 @@ jobs:
             supabase secrets set CRON_SECRET="$CRON_SECRET" --project-ref "$PROJECT_REF"
             echo "CRON_SECRET synced to Supabase."
           else
-            echo "::warning::CRON_SECRET repo secret not set — the Monday release job will 401 until it is."
+            echo "::warning::CRON_SECRET repo secret not set - the Monday release job will 401 until it is."
           fi
 
       - name: Sync function secrets (SHOPIFY_ADMIN_ACCESS_TOKEN for shopify-admin-data)
@@ -96,7 +96,7 @@ jobs:
             supabase secrets set SHOPIFY_ADMIN_ACCESS_TOKEN="$SHOPIFY_ADMIN_ACCESS_TOKEN" --project-ref "$PROJECT_REF"
             echo "SHOPIFY_ADMIN_ACCESS_TOKEN synced to Supabase."
           else
-            echo "::warning::SHOPIFY_ADMIN_ACCESS_TOKEN repo secret not set — the shopify-admin-data function will 500 until it is."
+            echo "::warning::SHOPIFY_ADMIN_ACCESS_TOKEN repo secret not set - the shopify-admin-data function will 500 until it is."
           fi
 
       - name: Sync function secrets (OPENAI_API_KEY for image generation)
@@ -108,7 +108,7 @@ jobs:
             supabase secrets set OPENAI_API_KEY="$OPENAI_API_KEY" --project-ref "$PROJECT_REF"
             echo "OPENAI_API_KEY synced to Supabase."
           else
-            echo "::warning::OPENAI_API_KEY repo secret not set — book images fall back to Gemini instead of gpt-image-1."
+            echo "::warning::OPENAI_API_KEY repo secret not set - book images fall back to Gemini instead of gpt-image-1."
           fi
 
       - name: Sync function secrets (ANTHROPIC_API_KEY for Claude story generation)
@@ -120,7 +120,7 @@ jobs:
             supabase secrets set ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" --project-ref "$PROJECT_REF"
             echo "ANTHROPIC_API_KEY synced to Supabase."
           else
-            echo "::warning::ANTHROPIC_API_KEY repo secret not set — story generation falls back to Gemini instead of Claude Fable 5."
+            echo "::warning::ANTHROPIC_API_KEY repo secret not set - story generation falls back to Gemini instead of Claude Fable 5."
           fi
 
       - name: Sync function secrets (PRINTIFY_API_KEY for order submission)
@@ -132,7 +132,7 @@ jobs:
             supabase secrets set PRINTIFY_API_KEY="$PRINTIFY_API_KEY" --project-ref "$PROJECT_REF"
             echo "PRINTIFY_API_KEY synced to Supabase."
           else
-            echo "::warning::PRINTIFY_API_KEY repo secret not set — approving an order will fail to submit to Printify."
+            echo "::warning::PRINTIFY_API_KEY repo secret not set - approving an order will fail to submit to Printify."
           fi
 
       - name: Re-pin Supabase client if Lovable reverted it
@@ -142,10 +142,10 @@ jobs:
           set -euo pipefail
           f=src/integrations/supabase/client.ts
           if grep -q "cjgqpusyxvltglcbnpvg" "$f"; then
-            echo "client.ts already pinned to the current project — nothing to do."
+            echo "client.ts already pinned to the current project - nothing to do."
             exit 0
           fi
-          echo "client.ts points at the wrong project — re-pinning."
+          echo "client.ts points at the wrong project - re-pinning."
           sed -i -E "s#const SUPABASE_URL = \".*\"#const SUPABASE_URL = \"$NEW_SUPABASE_URL\"#" "$f"
           sed -i -E "s#const SUPABASE_PUBLISHABLE_KEY = \".*\"#const SUPABASE_PUBLISHABLE_KEY = \"$NEW_PUBLISHABLE_KEY\"#" "$f"
           git config user.name "torahtale-ci"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Push the branded auth email templates in supabase/templates/ to the live
 # project's auth config via the Management API (token-only, like
-# apply-migrations.sh — no dashboard clicking, no DB password).
+# apply-migrations.sh - no dashboard clicking, no DB password).
 set -euo pipefail
 
 : "${SUPABASE_ACCESS_TOKEN:?SUPABASE_ACCESS_TOKEN is required}"

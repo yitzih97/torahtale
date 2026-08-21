@@ -19,7 +19,7 @@ verify_jwt = false
 verify_jwt = false
 
 # The book generator is invoked server-to-server by the orders/paid webhook (and
-# the release job) with an x-cron-secret header — not a user JWT — so the platform
+# the release job) with an x-cron-secret header - not a user JWT - so the platform
 # must not pre-reject it. The function authorizes the secret (or an admin JWT) itself.
 [functions.generate-book]
 verify_jwt = false
@@ -31,7 +31,7 @@ verify_jwt = false
 
 # The contact form is public (a logged-out visitor can write to us), so the
 # post-insert notifier must accept the anon key. It takes only a ticket id,
-# reads everything else server-side, and stamps each send — so it can't be used
+# reads everything else server-side, and stamps each send - so it can't be used
 # to mail an arbitrary address, or the same one twice.
 [functions.contact-notify]
 verify_jwt = false

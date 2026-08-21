@@ -9,7 +9,7 @@ set -euo pipefail
 : "${PROJECT_REF:?PROJECT_REF is required}"
 
 if [ -z "${RESEND_API_KEY:-}" ]; then
-  echo "::warning::RESEND_API_KEY repo secret not set — auth emails keep the default Supabase sender."
+  echo "::warning::RESEND_API_KEY repo secret not set - auth emails keep the default Supabase sender."
   exit 0
 fi
 

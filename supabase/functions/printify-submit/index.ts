@@ -30,7 +30,7 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .eq("role", "admin")
       .maybeSingle();
-    if (!roleData) throw new Error("Not authorized — admin only");
+    if (!roleData) throw new Error("Not authorized - admin only");
 
     const body = await req.json();
     const { action } = body;
@@ -76,7 +76,7 @@ serve(async (req) => {
     // Upload ONE composited print image (a data URL rendered client-side with
     // the caption text + cover wrap baked in) and return its Printify image id.
     // The admin client calls this per image, then passes the ids to submit-order
-    // — keeping each request small instead of shipping ~21 images in one body.
+    // - keeping each request small instead of shipping ~21 images in one body.
     if (action === "upload-image") {
       if (!PRINTIFY_API_KEY) throw new Error("PRINTIFY_API_KEY not configured");
       const src: string = body.dataUrl || "";
@@ -139,11 +139,11 @@ serve(async (req) => {
       if (!bookId) throw new Error("bookId is required");
       // The batch path needs the PRODUCT built without an order placed, so that
       // one order can then carry every book in the batch as its own line item.
-      // Everything above this point is identical either way — the product is the
+      // Everything above this point is identical either way - the product is the
       // expensive part and it is per book regardless.
       const prepareOnly = body.prepareOnly === true;
       // Pre-uploaded, print-ready image ids (cover-wrap first, then page_1…N), in
-      // placeholder order — produced by the client via renderPrintImages + the
+      // placeholder order - produced by the client via renderPrintImages + the
       // upload-image action above. When present we use them directly and skip the
       // raw pages_data upload (which had no text and a square, front-only cover).
       const providedImageIds: string[] = Array.isArray(body.imageIds)
@@ -161,12 +161,12 @@ serve(async (req) => {
       // Safety: never send an unpaid book to print. Payment is confirmed by the
       // Shopify orders/paid webhook, which stamps shopify_order_id + paid_at.
       if (!book.shopify_order_id && !book.paid_at) {
-        throw new Error("Book is not paid — refusing to submit to Printify.");
+        throw new Error("Book is not paid - refusing to submit to Printify.");
       }
 
       // Idempotency: if this book already has a Printify order, don't place a
       // second one (e.g. an admin double-clicking Approve). BUT verify the order
-      // still exists first — an earlier attempt may have saved an id for an order
+      // still exists first - an earlier attempt may have saved an id for an order
       // that was later deleted (or never fully created), and a blind dedup would
       // then block re-submission forever ("says confirmed, but nothing in
       // Printify"). Re-create only when Printify says the order is gone (404) or
@@ -174,8 +174,8 @@ serve(async (req) => {
       if (book.printify_order_id) {
         // The saved order only counts as a live duplicate if Printify still has it
         // AND it hasn't been canceled. Two cases mean "re-create instead":
-        //   • 404 — the order was deleted / never fully created.
-        //   • canceled — the common flow where an admin cancels the order in
+        //   • 404 - the order was deleted / never fully created.
+        //   • canceled - the common flow where an admin cancels the order in
         //     Printify, regenerates the book, and re-approves. A canceled order is
         //     NOT a 404 (Printify keeps returning 200 for it), so the old "still
         //     exists?" check treated it as a duplicate and blocked re-submission
@@ -193,7 +193,7 @@ serve(async (req) => {
             const st = String(existingOrder?.status || "").toLowerCase();
             if (st.includes("cancel")) orderIsLiveDuplicate = false; // canceled / canceled-by-provider
           }
-        } catch (_e) { /* transient — keep the id, treat as duplicate */ }
+        } catch (_e) { /* transient - keep the id, treat as duplicate */ }
 
         if (orderIsLiveDuplicate) {
           return new Response(JSON.stringify({
@@ -204,7 +204,7 @@ serve(async (req) => {
           }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
         console.warn(
-          `Printify order ${book.printify_order_id} for book ${bookId} is gone or canceled — clearing the stale product+order ids and re-creating with the current images.`,
+          `Printify order ${book.printify_order_id} for book ${bookId} is gone or canceled - clearing the stale product+order ids and re-creating with the current images.`,
         );
         await supabase.from("books")
           .update({ printify_order_id: null, printify_product_id: null })
@@ -221,7 +221,7 @@ serve(async (req) => {
 
       const shipping = (book.shipping_data as any) || {};
       // Admin-created ("manual") orders never went through Shopify checkout, so
-      // shipping_data was never filled in — Printify then holds the order with
+      // shipping_data was never filled in - Printify then holds the order with
       // "Please complete the shipping address." Fall back to the shop's default
       // address ONLY when there's no shopify_order_id (i.e. this book was pushed
       // straight to Printify from the admin dashboard, not paid for by a real
@@ -283,7 +283,7 @@ serve(async (req) => {
       const price = parseInt(fmt("price"));
       if (!blueprintId || !printProviderId || !price) {
         throw new Error(
-          `Printify config missing for format "${formatKey}" — set printify-blueprint-id/print-provider-id/price in site_settings before submitting.`,
+          `Printify config missing for format "${formatKey}" - set printify-blueprint-id/print-provider-id/price in site_settings before submitting.`,
         );
       }
 
@@ -300,7 +300,7 @@ serve(async (req) => {
       let imageIds: string[] = [];
       if (providedImageIds.length) {
         // Print-ready images were already uploaded (with text + cover wrap) via
-        // the upload-image action — use them as-is, in placeholder order.
+        // the upload-image action - use them as-is, in placeholder order.
         imageIds = providedImageIds;
       } else {
         // Legacy fallback: upload the raw stored images (no text overlay). Kept so
@@ -330,24 +330,24 @@ serve(async (req) => {
           }
         }
 
-        // Abort if any page image failed to upload — placing an order with a
+        // Abort if any page image failed to upload - placing an order with a
         // partial/blank print area would print (and charge for) a broken book.
         const pagesWithImages = pages.filter((p: any) => p.imageUrl || p.image);
         if (imageIds.length < pagesWithImages.length) {
           throw new Error(
-            `Only ${imageIds.length}/${pagesWithImages.length} page images uploaded to Printify — aborting to avoid printing an incomplete book.`,
+            `Only ${imageIds.length}/${pagesWithImages.length} page images uploaded to Printify - aborting to avoid printing an incomplete book.`,
           );
         }
       }
       if (!imageIds.length) throw new Error("No print images to submit.");
 
       // Map each uploaded image to its real print-area placeholder. These books
-      // print one image PER print area — a "Cover" plus "Page 1…N" (8×8) or
+      // print one image PER print area - a "Cover" plus "Page 1…N" (8×8) or
       // "Spread 1…N" (board). `imageIds` are in page order (cover first, then the
       // story pages), matching the blueprint's placeholder order. We discover the
       // placeholder positions at runtime from the catalog so we never hardcode
       // catalog slugs, and fall back to a single "front" placeholder if the lookup
-      // fails — so submission never breaks.
+      // fails - so submission never breaks.
       // Discover the blueprint's real print-slot positions (cover, page_1, …).
       // These photo-book blueprints have NO "front" placeholder, so a fallback
       // to "front" always produces "Placeholder: front is invalid". If the
@@ -363,7 +363,7 @@ serve(async (req) => {
         throw new Error(
           `Could not load Printify print slots for blueprint ${blueprintId} [${variantsRes.status}]` +
           (variantsRes.status === 401 || variantsRes.status === 403
-            ? " — the PRINTIFY_API_KEY is invalid or lacks scopes. Order NOT created."
+            ? " - the PRINTIFY_API_KEY is invalid or lacks scopes. Order NOT created."
             : `: ${t.slice(0, 150)}`),
         );
       }
@@ -375,7 +375,7 @@ serve(async (req) => {
         positions = (variant?.placeholders || []).map((ph: any) => ph.position).filter(Boolean);
       }
       if (!positions.length) {
-        throw new Error(`Blueprint ${blueprintId} / variant ${variantId} exposed no print placeholders — check the Printify config. Order NOT created.`);
+        throw new Error(`Blueprint ${blueprintId} / variant ${variantId} exposed no print placeholders - check the Printify config. Order NOT created.`);
       }
       // Log the exact slot names so a mismatched front/back mapping can be
       // diagnosed from the function logs (position names vary by blueprint).
@@ -389,13 +389,13 @@ serve(async (req) => {
         // questions page (last), so the printed book keeps its key pages.
         const overflow = imageIds.length - positions.length;
         const last = imageIds[imageIds.length - 1];
-        console.warn(`Book has ${imageIds.length} images for ${positions.length} slots — trimming ${overflow} story page(s) from the end, keeping cover + questions.`);
+        console.warn(`Book has ${imageIds.length} images for ${positions.length} slots - trimming ${overflow} story page(s) from the end, keeping cover + questions.`);
         imageIds = [...imageIds.slice(0, positions.length - 1), last];
       } else if (imageIds.length < positions.length) {
-        console.warn(`Book has ${imageIds.length} images for ${positions.length} slots — ${positions.length - imageIds.length} will print blank.`);
+        console.warn(`Book has ${imageIds.length} images for ${positions.length} slots - ${positions.length - imageIds.length} will print blank.`);
       }
       // One image per placeholder, in order: the blueprint's first slot is the
-      // cover (a wide wraparound for coloring — front + back composited by
+      // cover (a wide wraparound for coloring - front + back composited by
       // renderColoringCoverWrap), then page_1…page_N. renderPrintImages emits the
       // images in exactly that order, so a straight positional map is correct.
       const printAreas = [{
@@ -410,7 +410,7 @@ serve(async (req) => {
 
       // Ensure a Printify product exists whose print areas match the CURRENT
       // images. If the book was submitted before we reuse its product id, but we
-      // ALWAYS refresh its print areas first — otherwise a re-approval after the
+      // ALWAYS refresh its print areas first - otherwise a re-approval after the
       // book was regenerated reprints whatever images were baked in last time
       // (the reused product keeps its old pages). Create a fresh product when
       // there's none, or if refreshing the old one fails (e.g. it was deleted).
@@ -433,7 +433,7 @@ serve(async (req) => {
         if (!updRes.ok) {
           const errText = await updRes.text();
           console.warn(
-            `Printify update product ${productId} failed [${updRes.status}]: ${errText.slice(0, 150)} — creating a new product instead.`,
+            `Printify update product ${productId} failed [${updRes.status}]: ${errText.slice(0, 150)} - creating a new product instead.`,
           );
           productId = null; // fall through to create a fresh product
         }
@@ -474,7 +474,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          // Printify dedupes on external_id and NEVER frees it once used — even
+          // Printify dedupes on external_id and NEVER frees it once used - even
           // after an order is canceled. So a canceled-then-resubmitted book would
           // be permanently rejected (409 "Order already exists for the given
           // external_id"). Append a per-attempt suffix so retries get a fresh id.
@@ -554,15 +554,15 @@ serve(async (req) => {
         throw new Error(`Expected ${lines.length} books, found ${books?.length ?? 0}`);
       }
 
-      // Same guards as the single path, applied to every book — an unpaid book
+      // Same guards as the single path, applied to every book - an unpaid book
       // must never print, and a book already on an order must never be printed
       // twice just because it was swept into a batch.
       for (const b of books as any[]) {
         if (!b.shopify_order_id && !b.paid_at) {
-          throw new Error(`Book ${b.id} is not paid — refusing to submit the batch.`);
+          throw new Error(`Book ${b.id} is not paid - refusing to submit the batch.`);
         }
         if (b.printify_order_id) {
-          throw new Error(`Book ${b.id} already has Printify order ${b.printify_order_id} — refusing to duplicate.`);
+          throw new Error(`Book ${b.id} already has Printify order ${b.printify_order_id} - refusing to duplicate.`);
         }
       }
 
@@ -576,7 +576,7 @@ serve(async (req) => {
       const first = books[0] as any;
       const mismatch = (books as any[]).find((b) => addrOf(b) !== addrOf(first));
       if (mismatch) {
-        throw new Error(`Books in this batch ship to different addresses (${first.id} vs ${mismatch.id}) — submit them separately.`);
+        throw new Error(`Books in this batch ship to different addresses (${first.id} vs ${mismatch.id}) - submit them separately.`);
       }
 
       const shipping = (first.shipping_data as any) || {};
@@ -623,7 +623,7 @@ serve(async (req) => {
       const printifyOrderId = String(order.id);
 
       // Every book in the batch carries the SAME order id, which is what
-      // printify-webhook matches on — so one shipping event updates all of them.
+      // printify-webhook matches on - so one shipping event updates all of them.
       const { error: stampErr } = await supabase.from("books").update({
         status: "printing",
         printify_order_id: printifyOrderId,
@@ -634,7 +634,7 @@ serve(async (req) => {
         // The order IS placed; failing to record it would let a retry duplicate
         // it, so make the id loud in the logs.
         console.error(`Printify batch order ${printifyOrderId} placed but books not stamped:`, stampErr);
-        throw new Error(`Order ${printifyOrderId} was placed but could not be recorded — do NOT retry; fix the book rows by hand.`);
+        throw new Error(`Order ${printifyOrderId} was placed but could not be recorded - do NOT retry; fix the book rows by hand.`);
       }
 
       console.log(`printify-submit: batch order ${printifyOrderId} for ${lines.length} books`);

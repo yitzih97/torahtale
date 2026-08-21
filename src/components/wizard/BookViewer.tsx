@@ -20,6 +20,7 @@ import { COVER_GOLD } from "@/lib/coverBranding";
 import { getSeriesName, getShortTitle } from "@/lib/bookSeries";
 import { localizedCoverName } from "@/lib/hebrewName";
 import { toLineArtDataURL } from "@/lib/lineArt";
+import { plainDashes } from "@/lib/wrapText";
 
 export interface BookPage {
   id: number;
@@ -31,7 +32,7 @@ export interface BookPage {
   portion?: string;
   /** For a "preview" page: the intentional outfit change-up for this teaser. */
   outfit?: string;
-  /** Names of recurring story characters appearing in this page's scene — used to
+  /** Names of recurring story characters appearing in this page's scene - used to
    *  inject their fixed visual descriptions so they render consistently. */
   characters?: string[];
   coverTitle?: string;
@@ -48,7 +49,7 @@ export interface BookPage {
 export type { TextLayout } from "./EditableTextBox";
 
 /**
- * Legacy default text style — kept for backward-compatible code that
+ * Legacy default text style - kept for backward-compatible code that
  * predates the per-page `textLayout` field.
  */
 export const BOOK_TEXT_STYLE = {
@@ -63,15 +64,15 @@ export const BOOK_TEXT_STYLE = {
   borderRadius: 18,
 };
 
-export const COVER_TAGLINE = ["A new personalized parsha story,", "beautifully illustrated with your child as", "the star — delivered every single week."];
+export const COVER_TAGLINE = ["A new personalized parsha story,", "beautifully illustrated with your child as", "the star - delivered every single week."];
 export const COVER_URL = "torahtale.com";
 
 /** Back-cover subscribe invitation, localized to the BOOK's language. Falls back
  *  to English. The site URL stays as-is (it's a domain). */
 export const COVER_TAGLINE_BY_LANG: Record<"en" | "he" | "yi", string[]> = {
   en: COVER_TAGLINE,
-  he: ["סיפור פרשה אישי חדש,", "מאויר להפליא עם ילדכם בתפקיד", "הכוכב — מדי שבוע בשבוע."],
-  yi: ["א נייע פערזענלעכע פרשה מעשה,", "שיין אילוסטרירט מיט אייער קינד", "ווי דער שטערן — יעדע וואך."],
+  he: ["סיפור פרשה אישי חדש,", "מאויר להפליא עם ילדכם בתפקיד", "הכוכב - מדי שבוע בשבוע."],
+  yi: ["א נייע פערזענלעכע פרשה מעשה,", "שיין אילוסטרירט מיט אייער קינד", "ווי דער שטערן - יעדע וואך."],
 };
 export const getCoverTagline = (lang: "en" | "he" | "yi"): string[] =>
   COVER_TAGLINE_BY_LANG[lang] || COVER_TAGLINE;
@@ -80,7 +81,7 @@ export const getCoverTagline = (lang: "en" | "he" | "yi"): string[] =>
  * The ONE line of copy on the back cover, set in the Torah Tale display font
  * under the logo. It replaced a headline plus a three-line invitation: the back
  * cover now says who we are (logo), what's next (the four series), and where to
- * get it (the domain) — nothing else.
+ * get it (the domain) - nothing else.
  */
 export const COVER_BACK_HEADLINE_BY_LANG: Record<"en" | "he" | "yi", string> = {
   en: "Your next Torah Tale awaits...",
@@ -99,7 +100,7 @@ export const COVER_CTA_BY_LANG: Record<"en" | "he" | "yi", string> = {
 export const getCoverCta = (lang: "en" | "he" | "yi"): string =>
   COVER_CTA_BY_LANG[lang] || COVER_CTA_BY_LANG.en;
 
-/** Cover text styling — the book name + kids render in Inter, white, with a soft
+/** Cover text styling - the book name + kids render in Inter, white, with a soft
  *  drop shadow (matching the story captions) over the illustration. */
 export const COVER_FONT = "'Inter', system-ui, sans-serif";
 export const COVER_TEXT_SHADOW = "0 2px 8px rgba(0,0,0,0.6)";
@@ -120,7 +121,7 @@ export const COVER_WITH_BY_LANG: Record<"en" | "he" | "yi", string> = {
 };
 /** The full "With [child]" cover line in the book's language (undefined if there
  *  is no child name). For Hebrew/Yiddish the child name is rendered in Hebrew
- *  letters — using the LLM's localized spelling when supplied, otherwise a
+ *  letters - using the LLM's localized spelling when supplied, otherwise a
  *  transliteration of the typed name (see localizedCoverName). */
 export const getCoverChildLine = (
   childName: string,
@@ -132,7 +133,7 @@ export const getCoverChildLine = (
 interface Props {
   childName: string;
   /** The child name in the book's own script for the COVER, spelled by the story
-   *  LLM (e.g. "ארי" for a Hebrew book). Optional — when absent, Hebrew/Yiddish
+   *  LLM (e.g. "ארי" for a Hebrew book). Optional - when absent, Hebrew/Yiddish
    *  covers transliterate `childName` instead. Ignored for English books. */
   coverChildName?: string;
   torahPortion: string;
@@ -169,7 +170,7 @@ interface Props {
 export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, jumpToPageId, language, pages, onPagesChange, editable = false, generationContext }: Props) => {
   const { dir: uiDir, lang: uiLang } = useLanguage();
   // Cover text and captions follow the BOOK's own language (Hebrew/Yiddish
-  // books read RTL and show Hebrew parsha names) — not the viewer's UI language.
+  // books read RTL and show Hebrew parsha names) - not the viewer's UI language.
   // Fall back to the UI language for legacy callers that don't pass one.
   const lang = language ? bookLanguageCode(language) : uiLang;
   const isRtl = language ? isBookRtl(language) : uiDir === "rtl";
@@ -177,7 +178,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
 
   // Cover text: the Parsha name is the hero (big), the kids are the co-stars
   // (small). Derived from the book's portion + child names, so this applies to
-  // every book — new and existing — without depending on stored cover titles.
+  // every book - new and existing - without depending on stored cover titles.
   const parshaName = getPortionDisplay(torahPortion, lang) || torahPortion || "Torah Tale";
   // Default text side: over the open sky on the reading-start side.
   const defaultTextSide: "left" | "right" = isRtl ? "right" : "left";
@@ -193,7 +194,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
   // cover (no wraparound back/spine like the bound 8×8 books).
   const isColoring = (generationContext?.bookFormat || "").startsWith("coloring");
 
-  // Hide any legacy "back-cover" pages — the cover spread renders both sides.
+  // Hide any legacy "back-cover" pages - the cover spread renders both sides.
   const displayPages = pages.filter((p) => p.type !== "back-cover");
   // The "coming next" teasers, shown as editable mini-covers ON the back cover
   // (and still navigable as their own pages for full editing).
@@ -228,7 +229,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
   // Coloring interior pages are stored as the raw 2K colour generation; convert
   // the current one to clean B&W line art in the browser so the preview matches
   // what actually prints (the same conversion runs in generateBookPdf). Only
-  // interior story pages — the coloring cover stays full colour.
+  // interior story pages - the coloring cover stays full colour.
   const isColoringStoryPage = isColoring && !!page && (page.type === "story" || !page.type);
   const [lineArtSrc, setLineArtSrc] = useState<string | null>(null);
   useEffect(() => {
@@ -245,10 +246,10 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     onPagesChange(pages.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   };
 
-  // Drop a single story page — e.g. to bring an older book's interior page
+  // Drop a single story page - e.g. to bring an older book's interior page
   // count back down to its Printify blueprint's print-slot capacity (a book
   // generated before a page-budget fix can carry one extra image and get
-  // rejected at submit time). Story pages only — never the cover or the
+  // rejected at submit time). Story pages only - never the cover or the
   // discussion-questions page.
   const deletePage = (id: number) => {
     const storyPages = pages.filter((p) => p.type === "story" || !p.type);
@@ -263,7 +264,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
   };
 
   // "Apply to all": copy the STYLE of one caption (font, size, colour, outline,
-  // border, shadow, alignment — never its position) onto every story/questions
+  // border, shadow, alignment - never its position) onto every story/questions
   // page, so the whole book matches with one click.
   const STYLE_KEYS: (keyof TextLayout)[] = [
     "fontFamily", "fontSize", "color", "align", "bold", "italic",
@@ -311,7 +312,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     updatePage(page.id, {
       coverTitle: coverTitleDraft,
       coverSubtitle: coverSubtitleDraft,
-      // Keep title/text in sync — the cover page's `text` mirrors the title elsewhere.
+      // Keep title/text in sync - the cover page's `text` mirrors the title elsewhere.
       text: coverTitleDraft,
       backCoverText: backTextDraft,
     });
@@ -345,14 +346,14 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     setShowPromptEditor(false);
     try {
       const finalPrompt = prompt || customPrompt;
-      // A "preview" teaser is a cover for a DIFFERENT (upcoming) parsha — render it
+      // A "preview" teaser is a cover for a DIFFERENT (upcoming) parsha - render it
       // as a cover for that portion, without this story's recurring characters.
       const isPreview = tgt.type === "preview";
       const targetType = isPreview ? "cover" : (tgt.type || "story");
       const effPortion = isPreview ? (tgt.portion || torahPortion) : torahPortion;
       const storyPages = pages.filter((p) => p.type === "story");
       const pageNumber = tgt.type === "story" ? storyPages.findIndex((p) => p.id === tgt.id) + 1 : undefined;
-      // Recurring Torah characters named on this page (all on the cover) — pass
+      // Recurring Torah characters named on this page (all on the cover) - pass
       // their fixed descriptions + sheets so a single-page regen keeps them
       // looking the same as the rest of the book.
       const pageTextLc = String(tgt.text || "").toLowerCase();
@@ -380,7 +381,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
       };
       // Same resilience as the batch generator: transient failures (provider
       // blips, edge CPU limits, burst 429s) get fresh attempts with a backoff,
-      // and the FINAL error shown is the edge function's real message — not
+      // and the FINAL error shown is the edge function's real message - not
       // supabase-js's generic "non-2xx status code".
       const MAX_ATTEMPTS = 3;
       let imageUrl: string | null = null;
@@ -400,7 +401,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
       const msg = err?.message || "Failed to regenerate image.";
       toast.error(
         /401|unauthoriz|jwt|token/i.test(msg)
-          ? `${msg} — your admin session may have expired; refresh the page and sign in again.`
+          ? `${msg} - your admin session may have expired; refresh the page and sign in again.`
           : msg,
         { duration: 10000 },
       );
@@ -455,7 +456,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
   );
 
   const renderMiniCover = (pv: BookPage) => {
-    // Short title where one exists — matches backCoverPreviews in generateBookPdf.
+    // Short title where one exists - matches backCoverPreviews in generateBookPdf.
     const pvLabel = getShortTitle(pv.portion || "", lang)
       || getPortionDisplay(pv.portion || "", lang)
       || pv.portion || "";
@@ -466,7 +467,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
         key={pv.id}
         type="button"
         onClick={() => { if (editable && pvIdx >= 0) setCurrentPage(pvIdx); }}
-        title={editable ? `Open & edit — ${pvLabel}` : pvLabel}
+        title={editable ? `Open & edit - ${pvLabel}` : pvLabel}
         className={`group relative block aspect-square w-full overflow-hidden rounded-md bg-muted shadow-soft-sm ring-1 ring-black/10 ${editable ? "cursor-pointer" : "cursor-default"}`}
       >
         {pv.image ? (
@@ -477,7 +478,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
           <div className="absolute inset-0 flex items-center justify-center"><BookOpen className="h-4 w-4 text-muted-foreground" /></div>
         )}
         {/* Mini front-cover, styled like the real branded cover: clean to the
-            edge (no frame), gold parsha title. No child line — see drawMiniCover
+            edge (no frame), gold parsha title. No child line - see drawMiniCover
             in generateBookPdf; the series name under the stack carries it. */}
         <div className="pointer-events-none absolute inset-0" dir={dir}>
           <div className="absolute inset-x-0 top-0 h-2/3 bg-gradient-to-b from-[rgba(8,14,30,0.78)] via-[rgba(8,14,30,0.24)] to-transparent" />
@@ -512,12 +513,12 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     );
   };
 
-  // Spine label — the localized Parsha name + kids' names, printed down the
+  // Spine label - the localized Parsha name + kids' names, printed down the
   // book's edge (mirrors the front cover, so it follows the book's language).
   const spineChild = localizedCoverName(childName, lang, coverChildName);
   const spineLabel = `${parshaName}${spineChild ? `  ${spineChild}` : ""}`;
 
-  // Majestic front-cover chrome — navy filigree frame, gold engraved parsha
+  // Majestic front-cover chrome - navy filigree frame, gold engraved parsha
   // title, magenta personalized title/child line, gold tagline. Shared with
   // the print/PDF renderer (generateBookPdf.ts) via coverBranding.ts so this
   // on-screen preview always matches what actually gets printed.
@@ -540,7 +541,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
         >
           {parshaName}
         </h1>
-        {/* Divider flourish removed — it crowded/overlapped the "With <name>" subtitle. */}
+        {/* Divider flourish removed - it crowded/overlapped the "With <name>" subtitle. */}
         {title && title.split(/\n{2,}/).map((l) => l.trim()).filter(Boolean).map((line, i) => {
           const heb = /[֐-׿]/.test(line);
           return (
@@ -574,7 +575,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
   );
 
   // Coloring-book cover: a single 8.5×11 portrait front cover (line-art image +
-  // title band), matching the print output — no wraparound back/spine.
+  // title band), matching the print output - no wraparound back/spine.
   const renderColoringCover = () => {
     return (
       <div className="absolute inset-0 bg-white">
@@ -592,15 +593,15 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
 
   const renderCoverSpread = () => {
     // Front cover text: the gold parsha title, then a gold "With [kids]" subtitle
-    // — localized to the book's language ("עם ארי" for Hebrew, "מיט" for Yiddish).
+    // - localized to the book's language ("עם ארי" for Hebrew, "מיט" for Yiddish).
     const frontTitle = getCoverChildLine(childName, lang, coverChildName);
     // A right-to-left (Hebrew/Yiddish) book opens from the other side, so the
     // wrap is mirrored: the FRONT cover sits on the LEFT half and the BACK on the
-    // RIGHT — matching the printed file (see renderCoverSpread in generateBookPdf).
+    // RIGHT - matching the printed file (see renderCoverSpread in generateBookPdf).
     const backCover = (
       /* Back cover: brand logo, ONE line of copy in the Torah Tale display face,
          the four series shown as stacks of books, and the domain. Mirrors
-         renderCoverSpread in generateBookPdf — keep the two in step. */
+         renderCoverSpread in generateBookPdf - keep the two in step. */
       <div className="relative flex flex-col items-center justify-between gap-2 p-3 sm:p-5 text-center bg-[hsl(42_50%_94%)]">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_30%,hsl(42_78%_70%/0.5),transparent_60%)]" />
 
@@ -656,7 +657,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     <div className="absolute inset-0 grid grid-cols-2">
       {isRtl ? <>{frontCover}{backCover}</> : <>{backCover}{frontCover}</>}
 
-      {/* Spine — story title + kids' names down the center fold */}
+      {/* Spine - story title + kids' names down the center fold */}
       <div
         className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center bg-[hsl(42_46%_89%)] shadow-[inset_3px_0_7px_rgba(0,0,0,0.14),inset_-3px_0_7px_rgba(0,0,0,0.14)]"
         style={{ width: "5%" }}
@@ -677,13 +678,13 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     // Text precedence: the admin's manual placement wins; otherwise the layout
     // auto-computed from the illustration's clear space; otherwise the default.
     let layout = migrateLayout(page?.textLayout) || (page ? autoLayouts[page.id] : undefined) || makeDefaultLayout(defaultTextSide, isRtl);
-    // Bilingual page: English caption on top, Hebrew on the bottom — as separate
-    // blocks — matching the printed book (see generateBookPdf renderStorySpread).
-    const capParts = (page?.text || "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+    // Bilingual page: English caption on top, Hebrew on the bottom - as separate
+    // blocks - matching the printed book (see generateBookPdf renderStorySpread).
+    const capParts = plainDashes(page?.text || "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
     const capEn = capParts.filter((p) => !/[֐-׿]/.test(p)).join("\n\n");
     const capHe = capParts.filter((p) => /[֐-׿]/.test(p)).join("\n\n");
     const bilingual = !!capEn && !!capHe;
-    // Coloring pages are line art on WHITE — the white caption default would be
+    // Coloring pages are line art on WHITE - the white caption default would be
     // invisible, so force dark text with a soft cream backing box.
     if (isColoring) layout = { ...layout, color: "#2b2418", shadow: false, background: true };
     // For coloring story pages show the B&W line-art conversion (falling back to
@@ -702,8 +703,8 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
                 const al = computeAutoTextLayout(e.currentTarget, isRtl, page.text);
                 if (al) {
                   setAutoLayouts((prev) => ({ ...prev, [page.id]: al }));
-                  // Persist the auto placement (admin view) so the saved book —
-                  // and therefore the printed PDF — uses the exact same layout
+                  // Persist the auto placement (admin view) so the saved book -
+                  // and therefore the printed PDF - uses the exact same layout
                   // without the admin touching anything.
                   if (editable) updatePage(page.id, { textLayout: al });
                 }
@@ -723,7 +724,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
         )}
 
         {/* Draggable text on top of the spread. Bilingual pages show two fixed
-            blocks (English top, Hebrew bottom) to match the print — text is still
+            blocks (English top, Hebrew bottom) to match the print - text is still
             edited via the caption panel below. Single-language stays draggable. */}
         {page && (bilingual ? (
           <div className="pointer-events-none absolute inset-0">
@@ -747,7 +748,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
         ) : (
           <EditableTextBox
             layout={layout}
-            text={page.text || ""}
+            text={plainDashes(page.text || "")}
             containerRef={spreadRef}
             rtl={isRtl}
             onLayoutChange={(l) => updatePage(page.id, { textLayout: l })}
@@ -773,7 +774,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     // Board books show as a wide 2:1 spread with a center fold. A single block
     // of questions would be split down the middle, so put half on each page of
     // the spread (5 + 5), clear of the fold. The first group sits on the page
-    // read first — the RIGHT half for a right-to-left (Hebrew/Yiddish) book.
+    // read first - the RIGHT half for a right-to-left (Hebrew/Yiddish) book.
     if (spreadBased && questions.length > 1) {
       const mid = Math.ceil(questions.length / 2);
       const firstText = buildQuestionsText(questions.slice(0, mid));
@@ -810,7 +811,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
     }
 
     // Single page (8×8 square / coloring): one clean centered, editable block.
-    const combinedText = questions.length ? buildQuestionsText(questions) : (page?.text || "");
+    const combinedText = plainDashes(questions.length ? buildQuestionsText(questions) : (page?.text || ""));
     const layout = fitQuestionsLayout(combinedText, base, qW, qH, isRtl);
     return (
       <div className="absolute inset-0" style={{ background: parchment }}>
@@ -859,7 +860,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
 
   return (
     <div className="space-y-4">
-      {/* Page/Spread frame — wide (2:1) for the cover wrap and board spreads;
+      {/* Page/Spread frame - wide (2:1) for the cover wrap and board spreads;
           tall (8.5:11) for coloring pages; square for page-based 8×8 pages. */}
       <div
         ref={spreadRef}
@@ -874,7 +875,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
         {pageType === "questions" && renderQuestionsSpread()}
         {pageType === "preview" && renderPreview()}
 
-        {/* Center gutter — only on the cover wrap and board two-page spreads */}
+        {/* Center gutter - only on the cover wrap and board two-page spreads */}
         {((pageType === "cover" && !isColoring) || spreadBased) && (
           <div className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 w-2 bg-gradient-to-r from-black/0 via-black/40 to-black/0" />
         )}
@@ -888,7 +889,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
           </div>
         )}
 
-        {/* Page nav — a Hebrew/Yiddish book reads right-to-left, so it flips the
+        {/* Page nav - a Hebrew/Yiddish book reads right-to-left, so it flips the
             other way: the LEFT arrow advances (next) and the RIGHT arrow goes
             back (previous), matching how the printed book turns. */}
         <div className="absolute top-1/2 -translate-y-1/2 left-2">
@@ -920,7 +921,7 @@ export const BookViewer = ({ childName, coverChildName, torahPortion, artStyle, 
         </div>
       </div>
 
-      {/* Page dots — RTL books read right-to-left, so the dots run that way too. */}
+      {/* Page dots - RTL books read right-to-left, so the dots run that way too. */}
       <div className="flex justify-center gap-1.5 flex-wrap" dir={dir}>
         {displayPages.map((p, i) => (
           <button

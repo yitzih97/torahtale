@@ -16,7 +16,7 @@ interface KidCardProps {
   bookCount: number;
   onEdit: () => void;
   onViewBooks: () => void;
-  /** Start the wizard for THIS child — not the books tab. */
+  /** Start the wizard for THIS child - not the books tab. */
   onCreateBook: () => void;
   onManageSubscription: () => void;
   onToggleSubscription: () => Promise<void> | void;
@@ -143,7 +143,7 @@ export function KidCard({
             {displayName}
           </h3>
           <p className="text-[11px] text-muted-foreground uppercase tracking-[0.18em] font-medium">
-            {kid.age ? `${kid.age} ${t.dash.yearsOld}` : "—"} · {kid.gender === "boy" ? t.dash.boy : kid.gender === "girl" ? t.dash.girl : "—"}
+            {kid.age ? `${kid.age} ${t.dash.yearsOld}` : "-"} · {kid.gender === "boy" ? t.dash.boy : kid.gender === "girl" ? t.dash.girl : "-"}
           </p>
           <p className="pt-1 text-base italic font-medium text-primary/60"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}>
@@ -151,7 +151,7 @@ export function KidCard({
           </p>
         </div>
 
-        {/* Next delivery panel — only when subscribed */}
+        {/* Next delivery panel - only when subscribed */}
         {hasSub && nextDeliveryCopy && (
           <div className="w-full p-4 mb-6 bg-white/40 rounded-2xl border border-white/60 text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.18em] font-medium leading-none mb-1.5">
