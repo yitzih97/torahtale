@@ -48,6 +48,12 @@ export default function Auth() {
   // mid-flow (e.g. from the wizard) from being dumped on the dashboard.
   const rawNext = searchParams.get("next") || (location.state as any)?.from || "/dashboard";
   const next = rawNext.startsWith("/") ? rawNext : "/dashboard";
+  // Where the link in the confirmation email lands. A brand-new customer has an
+  // empty dashboard and nothing to do on it, so unless they were headed
+  // somewhere specific (?next=, e.g. a collection request) confirming drops them
+  // straight into the book wizard.
+  const rawConfirmNext = searchParams.get("next") || "/create";
+  const confirmNext = rawConfirmNext.startsWith("/") ? rawConfirmNext : "/create";
 
   useEffect(() => {
     if (user) navigate(next, { replace: true });
@@ -81,7 +87,7 @@ export default function Auth() {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: unconfirmedEmail,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: `${window.location.origin}${confirmNext}` },
     });
     setLoading(false);
     if (error) toast.error(error.message); else toast.success(t.auth.confirmationResent);
@@ -95,8 +101,9 @@ export default function Auth() {
       password,
       options: {
         data: { full_name: fullName },
-        // Return to wherever they were headed (e.g. the wizard) after confirming.
-        emailRedirectTo: `${window.location.origin}${next}`,
+        // Return to wherever they were headed (e.g. a collection request), or to
+        // the wizard — see confirmNext.
+        emailRedirectTo: `${window.location.origin}${confirmNext}`,
       },
     });
     setLoading(false);
