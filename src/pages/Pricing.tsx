@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Crown, Sparkles, BookOpen } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { CollectionsSection } from "@/components/CollectionsSection";
+import { SectionHeading } from "@/components/SectionHeading";
 import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -55,61 +56,72 @@ const Pricing = () => {
 
       <main className="pt-[100px]">
 
-        {/* ── ONE UNIT: how you buy ────────────────────────────────────────
-         * Subscriptions and collections were two pages bolted together — a
-         * dark card wall, then a differently-coloured band. They are now one
-         * section with one rhythm: pick a plan, or build a bundle, same card
+        {/* ── PLANS ───────────────────────────────────────────────────────
+         * Subscriptions and collections used to be two pages bolted together.
+         * They are now one flow with one rhythm: the plans sit on a warm
+         * parchment band, collections on the plain page below, same card
          * language throughout.
          */}
-        <section className="container pb-2">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="font-display text-2xl font-bold uppercase tracking-[0.12em] text-accent md:text-3xl">{t.pricing.plansEyebrow}</p>
+        <section className="relative overflow-hidden border-b border-gold/15 bg-gradient-to-b from-[hsl(42_55%_97%)] via-[hsl(40_50%_95.5%)] to-background">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-20 start-[12%] h-64 w-64 rounded-full bg-gold/10 blur-3xl" />
+            <div className="absolute -bottom-28 end-[10%] h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
           </div>
 
-          <div className="mx-auto mt-4 grid max-w-5xl gap-4 md:grid-cols-3 items-stretch">
-            {([
-              { key: "single", popular: false,  title: t.pricing.singleTitle, sub: t.pricing.singleSubtitle, price: money(singlePrice("softcover", isIls)), per: "", cta: t.pricing.singleCta },
-              { key: "torah", popular: true, title: t.pricing.torahTitle,  sub: t.pricing.torahSubtitle,  price: money(subPrice("monthly", "softcover", isIls)), per: t.pricing.perMonth, cta: t.pricing.torahCta },
-              { key: "tanach", popular: false, title: t.pricing.tanachTitle, sub: t.pricing.tanachSubtitle, price: money(subPrice("yearly", "softcover", isIls)), per: t.pricing.perYear, cta: t.pricing.tanachCta },
-            ] as const).map((p) => {
-              const on = selected === p.key;
-              return (
-                <div
-                  key={p.key}
-                  onClick={() => setSelected(p.key)}
-                  className={`relative flex cursor-pointer flex-col rounded-3xl border-2 p-4 transition-all duration-300 ${
-                    on
-                      ? "border-accent bg-accent/5 shadow-soft-lg ring-1 ring-accent/25"
-                      : "border-border bg-card shadow-soft-sm hover:-translate-y-1 hover:shadow-soft-lg"
-                  }`}
-                >
-                  {p.popular && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 border-0 bg-accent px-4 py-1 text-[10px] font-bold tracking-wide text-accent-foreground shadow-soft-sm">
-                      <Crown className="me-1 h-3 w-3" /> {t.pricing.mostPopular}
-                    </Badge>
-                  )}
-                  <h3 className="font-display text-lg font-bold text-primary">{p.title}</h3>
-                  <div className="mt-2 flex items-baseline gap-1.5">
-                    <span className="font-display text-3xl font-bold text-primary">{p.price}</span>
-                    {p.per && <span className="text-sm text-muted-foreground">{p.per}</span>}
-                  </div>
-                  <p className="mt-1 flex-1 text-sm leading-snug text-muted-foreground">{p.sub}</p>
-                  <Button
-                    variant={on ? "gold" : "outline"}
-                    size="default"
-                    onClick={(e) => { e.stopPropagation(); goCreate(); }}
-                    className="mt-3 w-full rounded-full"
+          <div className="container relative z-10 py-5 lg:py-6">
+            <SectionHeading>{t.pricing.plansEyebrow}</SectionHeading>
+
+            <div className="mx-auto mt-6 grid max-w-5xl gap-5 md:grid-cols-3 items-stretch">
+              {([
+                { key: "single", icon: BookOpen, popular: false, title: t.pricing.singleTitle, sub: t.pricing.singleSubtitle, price: money(singlePrice("softcover", isIls)), per: "", cta: t.pricing.singleCta },
+                { key: "torah", icon: Sparkles, popular: true, title: t.pricing.torahTitle, sub: t.pricing.torahSubtitle, price: money(subPrice("monthly", "softcover", isIls)), per: t.pricing.perMonth, cta: t.pricing.torahCta },
+                { key: "tanach", icon: Crown, popular: false, title: t.pricing.tanachTitle, sub: t.pricing.tanachSubtitle, price: money(subPrice("yearly", "softcover", isIls)), per: t.pricing.perYear, cta: t.pricing.tanachCta },
+              ] as const).map((p) => {
+                const on = selected === p.key;
+                const Icon = p.icon;
+                return (
+                  <div
+                    key={p.key}
+                    onClick={() => setSelected(p.key)}
+                    className={`relative flex cursor-pointer flex-col rounded-3xl border p-5 transition-all duration-300 ${
+                      on
+                        ? "border-accent/60 bg-card shadow-soft-lg ring-2 ring-accent/25"
+                        : "border-border/70 bg-card/85 shadow-soft-sm backdrop-blur-sm hover:-translate-y-1 hover:border-accent/40 hover:shadow-soft-md"
+                    }`}
                   >
-                    {p.cta}
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
+                    {p.popular && (
+                      <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 border-0 bg-accent px-4 py-1 text-[10px] font-bold tracking-wide text-accent-foreground shadow-soft-sm">
+                        <Crown className="me-1 h-3 w-3" /> {t.pricing.mostPopular}
+                      </Badge>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl transition-colors ${on ? "bg-accent text-accent-foreground" : "bg-gold/12 text-gold"}`}>
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <h3 className="font-display text-xl font-bold leading-tight text-primary">{p.title}</h3>
+                    </div>
+                    <div className="mt-3.5 flex items-baseline gap-1.5">
+                      <span className="font-display text-4xl font-bold leading-none text-primary">{p.price}</span>
+                      {p.per && <span className="text-sm text-muted-foreground">{p.per}</span>}
+                    </div>
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{p.sub}</p>
+                    <Button
+                      variant={on ? "gold" : "outline"}
+                      size="default"
+                      onClick={(e) => { e.stopPropagation(); goCreate(); }}
+                      className="mt-4 w-full rounded-full"
+                    >
+                      {p.cta}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
 
-          <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] leading-snug text-muted-foreground">
-            {t.pricing.plansNote}
-          </p>
+            <p className="mx-auto mt-3.5 max-w-4xl text-center text-xs leading-relaxed text-muted-foreground/90">
+              {t.pricing.plansNote}
+            </p>
+          </div>
         </section>
 
         <CollectionsSection />

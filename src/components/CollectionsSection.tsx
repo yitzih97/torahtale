@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Loader2, Plus, ShoppingBag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/SectionHeading";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -97,19 +98,22 @@ export const CollectionsSection = () => {
   };
 
   return (
-    <section id="collections" className="relative pt-4 pb-14 md:pb-16 overflow-hidden">
+    <section id="collections" className="relative pt-6 pb-14 md:pb-16 overflow-hidden">
       <div className="container relative mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease }}
-          className="text-center max-w-2xl mx-auto mb-3"
+          className="mb-5"
         >
-          <p className="font-display text-2xl md:text-3xl font-bold uppercase tracking-[0.12em] text-accent">{t.pricing.collectionsEyebrow}</p>
+          <SectionHeading>{t.pricing.collectionsEyebrow}</SectionHeading>
         </motion.div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Image-forward tiles: the artwork is the sell, so it fills the card and
+            the name sits on top of it. The blurb rides in on hover at desktop
+            sizes, and stays printed under the tile on touch screens. */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {orderedCollections.map((c, i) => {
             const Icon = c.icon;
             const on = picked.includes(c.key);
@@ -123,46 +127,74 @@ export const CollectionsSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.5, ease, delay: i * 0.05 }}
-                className={`group relative flex flex-col overflow-hidden rounded-3xl border-2 text-start shadow-soft-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-soft-lg ${
+                className={`group relative flex flex-col overflow-hidden rounded-3xl border text-start shadow-soft-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-soft-lg ${
                   on
-                    ? "border-accent bg-accent/5 ring-1 ring-accent/25"
+                    ? "border-accent bg-card ring-2 ring-accent/30"
                     : c.featured
-                      ? "border-accent/40 bg-gradient-to-br from-accent/10 to-card"
-                      : "border-border bg-card"
+                      ? "border-accent/40 bg-card"
+                      : "border-border/70 bg-card"
                 }`}
               >
-                {c.featured && !on && (
-                  <span className="absolute top-3 end-3 z-10 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-foreground shadow-soft-sm">
-                    {t.pricing.collBestValue}
-                  </span>
-                )}
-                <span
-                  className={`absolute top-3 start-3 z-10 flex h-8 w-8 items-center justify-center rounded-full shadow-soft-sm transition-colors ${
-                    on ? "bg-accent text-accent-foreground" : "bg-card/95 text-muted-foreground backdrop-blur"
-                  }`}
-                  aria-hidden
-                >
-                  {on ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                </span>
-
                 <div className="relative overflow-hidden">
-                  <img src={c.image} alt={collectionName(c, lang)} loading="lazy" className="h-24 w-full object-cover" />
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
-                  <div className="absolute bottom-2.5 end-3 flex h-9 w-9 items-center justify-center rounded-xl bg-card/95 text-accent shadow-soft-sm backdrop-blur">
-                    <Icon className="h-5 w-5" />
+                  <img
+                    src={c.image}
+                    alt={collectionName(c, lang)}
+                    loading="lazy"
+                    className="h-36 w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-midnight/90 via-midnight/20 to-transparent" />
+
+                  {/* Blurb, desktop only — the tile stays quiet until you look at
+                      it, then the name gives way to what is actually inside. */}
+                  <div className="pointer-events-none absolute inset-0 z-10 hidden items-center bg-midnight/85 p-4 pt-12 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100 lg:flex">
+                    <p className="line-clamp-3 text-[13px] leading-relaxed text-parchment">{collectionBlurb(c, lang)}</p>
+                  </div>
+
+                  {c.featured && !on && (
+                    <span className="absolute top-3 end-3 z-20 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-accent-foreground shadow-soft-sm">
+                      {t.pricing.collBestValue}
+                    </span>
+                  )}
+                  <span
+                    className={`absolute top-3 start-3 z-20 flex h-8 w-8 items-center justify-center rounded-full shadow-soft-sm transition-colors ${
+                      on ? "bg-accent text-accent-foreground" : "bg-card/90 text-primary backdrop-blur"
+                    }`}
+                    aria-hidden
+                  >
+                    {on ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </span>
+
+                  <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-3 p-4 transition-opacity duration-300 lg:group-hover:opacity-0">
+                    <div className="min-w-0">
+                      <h3 className="font-display text-lg font-bold leading-tight text-white drop-shadow-sm">
+                        {collectionName(c, lang)}
+                      </h3>
+                      <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-light">
+                        {collectionBooksLabel(c, lang)}
+                      </p>
+                    </div>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-card/95 text-accent shadow-soft-sm backdrop-blur">
+                      <Icon className="h-5 w-5" />
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex flex-1 flex-col p-4">
-                  <h3 className="font-display text-base font-bold text-primary">{collectionName(c, lang)}</h3>
-                  <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-accent">{collectionBooksLabel(c, lang)}</p>
-                  <p className="mt-1.5 line-clamp-2 flex-1 text-[13px] leading-snug text-muted-foreground">{collectionBlurb(c, lang)}</p>
-                  <div className="mt-2.5 flex items-end justify-between gap-3">
-                    <p className="font-display text-xl font-bold leading-none text-primary">{fmt(price(c))}</p>
-                    <span className={`text-xs font-semibold ${on ? "text-accent" : "text-muted-foreground"}`}>
-                      {on ? t.pricing.collAdded : t.pricing.collAdd}
-                    </span>
-                  </div>
+                {/* Touch screens never get the hover blurb, so keep it in the card. */}
+                <p className="px-4 pt-3 text-[13px] leading-relaxed text-muted-foreground lg:hidden">
+                  {collectionBlurb(c, lang)}
+                </p>
+
+                <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+                  <p className="font-display text-2xl font-bold leading-none text-primary">{fmt(price(c))}</p>
+                  <span
+                    className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                      on
+                        ? "border-accent bg-accent text-accent-foreground"
+                        : "border-border text-muted-foreground group-hover:border-accent group-hover:text-accent"
+                    }`}
+                  >
+                    {on ? t.pricing.collAdded : t.pricing.collAdd}
+                  </span>
                 </div>
               </motion.button>
             );
