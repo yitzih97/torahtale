@@ -2489,7 +2489,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                 animate="center"
                 exit="exit"
                 transition={springTransition}
-                className="space-y-6 max-w-md mx-auto"
+                className="space-y-5 max-w-md mx-auto"
               >
                 <motion.div variants={staggerChild} className="text-center">
                   <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{collection ? t.collectionRequest.readyTitle : t.wizard.readyToCreate}</h2>
@@ -2531,7 +2531,6 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   const bundle = collections?.length ? collections : [collection];
                   const keys = bundle.map((c) => c.key);
                   const books = collectionsBookCount(keys);
-                  const base = collectionsTotal(keys, isIls);
                   const perBook = formatUpcharge(collectionFormat, isIls);
                   const upcharge = perBook * books;
                   const total = collectionsTotalForFormat(keys, isIls, collectionFormat);
@@ -2549,7 +2548,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   return (
                     <motion.div
                       variants={staggerChild}
-                      className="mx-auto max-w-md space-y-4 rounded-2xl border border-border/60 bg-card/60 p-4 sm:p-5"
+                      className="mx-auto max-w-md space-y-3.5 rounded-2xl border border-border/60 bg-card/60 p-4"
                     >
                       <div>
                         <p className="text-sm font-semibold text-foreground">{t.collectionRequest.chooseCover}</p>
@@ -2563,7 +2562,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                                 type="button"
                                 onClick={() => setCollectionFormat(f)}
                                 aria-pressed={on}
-                                className={`flex items-center gap-3.5 rounded-2xl border-2 p-3 text-start transition-all duration-300 active:scale-[0.99] ${
+                                className={`flex items-center gap-3.5 rounded-2xl border-2 p-2.5 text-start transition-all duration-300 active:scale-[0.99] ${
                                   on ? "border-accent bg-accent/5 ring-1 ring-accent/20" : "border-border/60 hover:border-accent/40"
                                 }`}
                               >
@@ -2590,9 +2589,12 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                       </div>
 
                       <div className="space-y-1.5 border-t border-border/60 pt-3 text-sm">
+                        {/* What is in the bundle — but NOT its price. The
+                            estimated total below is the only figure needed, and
+                            for a softcover order the two were the same number
+                            printed twice. */}
                         <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
                           <span>{t.collectionRequest.bundleLine(bundle.length, books)}</span>
-                          <span>{money(base)}</span>
                         </div>
                         {upcharge > 0 && (
                           <div className="flex items-baseline justify-between gap-3 text-muted-foreground">
@@ -2610,7 +2612,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                 })()}
 
                 {collection && (
-                  <motion.p variants={staggerChild} className="text-sm text-muted-foreground text-center leading-relaxed">
+                  <motion.p variants={staggerChild} className="text-xs text-muted-foreground text-center leading-snug">
                     {t.collectionRequest.noPaymentNow}
                   </motion.p>
                 )}
