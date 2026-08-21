@@ -75,6 +75,10 @@ sql "delete from public.site_settings where category = '_rls_probe'" > /dev/null
 GONE=$(sql "select count(*) as n from public.site_settings where category='_rls_probe'" | jq -r '.[0].n')
 check "probe rows cleaned up" 0 "$GONE"
 
+# The one that makes "no delete" mean something: an account that can hand itself
+# the admin role can hand itself deletion too.
+ROLESTATUS=$(jq -n --arg u "$STAFF_UID" '{user_id: $u, role: "admin"}' \
+  | rest -X POST "${BASE}/rest/v1/user_roles" -H "Content-Type: application/json" --data @-)
 check "staff cannot promote itself to admin" 403 "$ROLESTATUS"
 
 [ "$fails" -eq 0 ] || { echo "::error::${fails} permission check(s) failed"; exit 1; }
