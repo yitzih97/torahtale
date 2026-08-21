@@ -24,6 +24,7 @@ import { generateBookZip } from "@/lib/generateBookZip";
 import { toast } from "sonner";
 import { AdminCMS } from "@/components/admin/AdminCMS";
 import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
+import { AdminReviewTab } from "@/components/admin/AdminReviewTab";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -34,7 +35,7 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
   const {
-    isAdmin, isCheckingAdmin,
+    isAdmin, isStaff, hasAdminAccess, isCheckingAdmin,
     books, booksLoading,
     profiles, profilesLoading,
     children,
@@ -68,7 +69,7 @@ export default function Admin() {
     );
   }
 
-  if (!isAdmin) {
+  if (!hasAdminAccess) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar transparentHero={false} />
@@ -264,6 +265,56 @@ export default function Admin() {
   const totalOrders = books.filter((b: any) => b.status !== "draft").length;
   const totalDrafts = books.filter((b: any) => b.status === "draft").length;
   const activeSubs = subscriptions.filter((s: any) => s.status === "active").length;
+
+  /* A staff reviewer gets their own screen, not a version of this one with
+     pieces hidden. The tabs below reach customers, subscriptions, revenue and
+     the CMS; the safe way to keep an employee out of all of it is for their
+     session never to render - or fetch - any of it. Their permissions are
+     enforced in the database as well (see the staff_role migrations); this is
+     the part that decides what they are shown. */
+  if (isStaff) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar transparentHero={false} />
+        <main className="flex-1 pt-24 pb-16">
+          <div className="container max-w-5xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.6, ease }}
+            >
+              <div className="flex items-center gap-3 mb-1">
+                <BookOpen className="w-7 h-7 text-accent" />
+                <h1 className="font-display text-3xl font-bold text-primary">Book Review</h1>
+              </div>
+              <p className="text-muted-foreground mb-6">
+                Review each book, fix or regenerate anything that is off, then approve it and send it to print.
+              </p>
+              <AdminReviewTab
+                books={books}
+                booksLoading={booksLoading}
+                openingBookId={openingBookId}
+                downloadingZip={downloadingZip}
+                canGenerate={canGenerate}
+                onOpenBookEditor={openGenerationModal}
+                onGenerate={handleTriggerGeneration}
+                onDownloadZip={handleDownloadZip}
+                onApprove={approveAndSubmit}
+              />
+            </motion.div>
+          </div>
+        </main>
+        {generatingBook && (
+          <AdminBookGenerationModal
+            book={generatingBook}
+            open={!!generatingBook}
+            onClose={() => setGeneratingBook(null)}
+            onBookUpdated={() => queryClient.invalidateQueries({ queryKey: ["admin-books"] })}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

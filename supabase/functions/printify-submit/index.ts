@@ -17,7 +17,9 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Verify admin
+    // Verify staff or admin. Sending an approved book to print is the last step
+    // of reviewing it, so the review employee has to be able to do it; nothing
+    // here exposes money or customers beyond the address the printer needs.
     const authHeader = req.headers.get("authorization");
     if (!authHeader) throw new Error("Not authenticated");
     const token = authHeader.replace("Bearer ", "");
@@ -28,9 +30,10 @@ serve(async (req) => {
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .eq("role", "admin")
+      .in("role", ["admin", "staff"])
+      .limit(1)                       // a user may hold both; either one is enough
       .maybeSingle();
-    if (!roleData) throw new Error("Not authorized - admin only");
+    if (!roleData) throw new Error("Not authorized - staff or admin only");
 
     const body = await req.json();
     const { action } = body;

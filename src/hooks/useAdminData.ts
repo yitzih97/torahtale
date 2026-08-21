@@ -3,6 +3,9 @@ import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+/** Who is looking at /admin. `null` is a customer, i.e. nobody. */
+export type AdminRole = "admin" | "staff" | null;
+
 // The admin order list must NOT pull the heavy columns: pages_data, story_data,
 // and cover_image_url each hold base64 images (~15 MB per book combined). The
 // table view only renders text metadata plus a "has pages" flag, so we select
@@ -28,6 +31,18 @@ const BOOK_LIST_COLS =
   // and send the set as ONE Printify order - see approveBatchAndSubmit.
   "shipment_batch_id:story_data->>shipmentBatchId";
 
+// What a STAFF reviewer's session asks for. RLS is row-level, so the database
+// cannot hide a column from them - but the app can decline to fetch it, and a
+// reviewer has no business holding a customer's address or payment state in
+// their browser. What is left is the book: who it stars, which parsha, which
+// product, where it is in the queue. The product type is taken as a JSON path
+// so the format can be shown without pulling shipping_data (i.e. the address)
+// along with it.
+const BOOK_LIST_COLS_STAFF =
+  "id,child_name,torah_portion,language,status,order_number,created_at,updated_at," +
+  "printify_order_id,product_type:shipping_data->bookOptions->>productType," +
+  "shipment_batch_id:story_data->>shipmentBatchId";
+
 // Fetch the complete book row (including the heavy image columns) for one book -
 // used when opening the generation modal or exporting a ZIP.
 export async function fetchBookFull(id: string) {
@@ -40,32 +55,40 @@ export function useAdminData() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const isAdminQuery = useQuery({
+  /* Two kinds of people reach /admin: the owner, and a staff reviewer whose
+     whole job is the book queue. One query answers which, and everything below
+     hangs off it - a staff session must never even REQUEST customers,
+     subscriptions or revenue, let alone render them. */
+  const roleQuery = useQuery<AdminRole>({
     queryKey: ["admin-role", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles" as any)
         .select("role")
-        .eq("user_id", user!.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (error) return false;
-      return !!data;
+        .eq("user_id", user!.id);
+      if (error) return null;
+      const roles = ((data as unknown as Array<{ role: string }> | null) || []).map((r) => r.role);
+      if (roles.includes("admin")) return "admin";
+      if (roles.includes("staff")) return "staff";
+      return null;
     },
     enabled: !!user,
   });
+  const role = roleQuery.data ?? null;
+  const isAdmin = role === "admin";
+  const isStaff = role === "staff";
 
   const allBooksQuery = useQuery({
-    queryKey: ["admin-books"],
+    queryKey: ["admin-books", role],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("books")
-        .select(BOOK_LIST_COLS)
+        .select(isStaff ? BOOK_LIST_COLS_STAFF : BOOK_LIST_COLS)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: isAdminQuery.data === true,
+    enabled: isAdmin || isStaff,   // the review employee's whole job
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     refetchInterval: 30000,
@@ -76,7 +99,7 @@ export function useAdminData() {
   // filters server-side, so no image bytes cross the wire). Drives the
   // download / approve / "has pages" UI without pulling pages_data into the list.
   const bookPageIdsQuery = useQuery({
-    queryKey: ["admin-books-haspages"],
+    queryKey: ["admin-books-haspages", role],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("books")
@@ -85,7 +108,7 @@ export function useAdminData() {
       if (error) throw error;
       return (data || []).map((r: any) => r.id as string);
     },
-    enabled: isAdminQuery.data === true,
+    enabled: isAdmin || isStaff,   // the review employee's whole job
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     refetchInterval: 30000,
@@ -114,7 +137,7 @@ export function useAdminData() {
       if (error) throw error;
       return data;
     },
-    enabled: isAdminQuery.data === true,
+    enabled: isAdmin,
   });
 
   const allChildrenQuery = useQuery({
@@ -127,7 +150,7 @@ export function useAdminData() {
       if (error) throw error;
       return data;
     },
-    enabled: isAdminQuery.data === true,
+    enabled: isAdmin,
   });
 
   const allSubscriptionsQuery = useQuery({
@@ -140,7 +163,7 @@ export function useAdminData() {
       if (error) throw error;
       return data;
     },
-    enabled: isAdminQuery.data === true,
+    enabled: isAdmin,
   });
 
   const updateBookStatus = useMutation({
@@ -199,8 +222,12 @@ export function useAdminData() {
   });
 
   return {
-    isAdmin: isAdminQuery.data === true,
-    isCheckingAdmin: isAdminQuery.isLoading,
+    role,
+    isAdmin,
+    isStaff,
+    /** Anyone allowed through the door at all. */
+    hasAdminAccess: isAdmin || isStaff,
+    isCheckingAdmin: roleQuery.isLoading,
     books: booksWithFlag,
     booksLoading: allBooksQuery.isLoading,
     profiles: allProfilesQuery.data || [],

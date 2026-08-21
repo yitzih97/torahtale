@@ -1,0 +1,28 @@
+name: Create staff login
+
+# Run by hand when an employee login needs creating or its password resetting.
+# The password lives in the STAFF_INITIAL_PASSWORD repository secret, so it is
+# never in the workflow inputs, the run log, or this repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: "Login to provision (must be listed in public.staff_emails)"
+        required: true
+        default: agent@torahtale.com
+
+env:
+  PROJECT_REF: cjgqpusyxvltglcbnpvg
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create or reset the login
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          STAFF_EMAIL: ${{ inputs.email }}
+          STAFF_PASSWORD: ${{ secrets.STAFF_INITIAL_PASSWORD }}
+        run: bash scripts/create-staff-user.sh
