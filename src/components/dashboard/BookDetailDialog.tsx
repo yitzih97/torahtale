@@ -1,4 +1,4 @@
-import { BookOpen, Eye, Download, RotateCw, Truck, Package, CheckCircle2, Sparkles, Hash, Globe2, Palette, Calendar, User, MapPin, X } from "lucide-react";
+import { BookOpen, Eye, Download, RotateCw, Truck, Package, CheckCircle2, Sparkles, Hash, Globe2, Calendar, User, MapPin, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { BookRecord } from "@/hooks/useBooks";
@@ -34,11 +34,6 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
   const ship = book.shipping_data as any;
   const portionDisplay = book.torah_portion ? getPortionDisplay(book.torah_portion, lang) : "";
 
-  const artStyleLabel = (v: string) => {
-    if (v === "cartoon") return t.dash.artCartoon;
-    if (v === "graphic-novel") return t.dash.artGraphicNovel;
-    return t.dash.art3dPixar;
-  };
   const languageLabel = (v: string) => {
     const lv = v.toLowerCase();
     if (lv === "hebrew") return t.dash.langHebrew;
@@ -49,7 +44,6 @@ export function BookDetailDialog({ book, open, onClose, onView, onDownload, onRe
   const infoRows = [
     { Icon: User, label: t.dash.detail.child, value: book.child_name || t.dash.notSet },
     { Icon: BookOpen, label: t.dash.detail.portion, value: portionDisplay || t.dash.notSet },
-    { Icon: Palette, label: t.dash.detail.artStyle, value: artStyleLabel(book.art_style || "3d-pixar") },
     { Icon: Globe2, label: t.dash.detail.language, value: languageLabel(book.language || "English") },
     { Icon: Hash, label: t.dash.detail.orderNo, value: book.order_number || t.dash.notSet },
     { Icon: Calendar, label: t.dash.detail.created, value: dfFormat(new Date(book.created_at), "MMM d, yyyy", lang) },

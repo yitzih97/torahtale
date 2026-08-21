@@ -8,6 +8,9 @@ import {
   ShieldCheck, Lock, Mail, LogIn, BookOpenCheck, Paintbrush, CheckCircle2, RotateCcw,
   ChevronLeft, ChevronRight, Search, Smile, UserRound
 } from "lucide-react";
+import softcoverThumb from "@/assets/books/thumb-softcover.jpg";
+import hardcoverThumb from "@/assets/books/thumb-hardcover.jpg";
+import boardThumb from "@/assets/books/thumb-board.jpg";
 import photoGoodImg from "@/assets/wizard/photo-good.jpg";
 import photoBadFacingImg from "@/assets/wizard/photo-bad-facing.jpg";
 import photoBadGroupImg from "@/assets/wizard/photo-bad-group.jpg";
@@ -82,6 +85,20 @@ import storybookPreview from "@/assets/books/style-story-preview.jpg";
 import comicbookPreview from "@/assets/books/style-comic-preview.jpg";
 
 /* ───────────────── types ───────────────── */
+
+/** Photos + trim sizes for the three collection cover options, mirroring the
+ *  single-book step so the choice looks the same wherever it is made. */
+const COLLECTION_FORMAT_THUMBS: Record<CollectionFormat, string> = {
+  softcover: softcoverThumb,
+  hardcover: hardcoverThumb,
+  board: boardThumb,
+};
+
+const COLLECTION_FORMAT_DIMS: Record<CollectionFormat, string> = {
+  softcover: "8″ × 8″",
+  hardcover: "8″ × 8″",
+  board: "6″ × 6″",
+};
 
 export interface ChildProfile {
   id: string;
@@ -304,7 +321,7 @@ interface Props {
 export const CreationWizard = ({ open = true, onClose, collection, collections }: Props) => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { t, lang } = useLanguage();
+  const { t, lang, dir: textDir } = useLanguage();
   const { children: existingChildren, addChild: addChildMutation, updateChild: updateChildRecord } = useChildren();
 
   const GENERATION_PHASES = [
@@ -2486,7 +2503,10 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{collection ? t.collectionRequest.readyTitle : t.wizard.readyToCreate}</h2>
                 </motion.div>
 
-                {/* Bullet-style summary */}
+                {/* Bullet-style summary. A collection request has nothing to
+                    confirm here that the customer did not just pick — the cover
+                    is the only open question, so the recap is dropped for it. */}
+                {!collection && (
                 <motion.ul variants={staggerChild} className="space-y-3 max-w-md mx-auto text-start">
                   <li className="flex items-start gap-3 text-base">
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
@@ -2496,12 +2516,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                     <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.age}:</span> <span className="font-semibold">{data.children.map(c => c.age).filter(Boolean).join(" & ") || "—"}</span></span>
                   </li>
-                  {collection ? (
-                    <li className="flex items-start gap-3 text-base">
-                      <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground"><span className="text-muted-foreground">{t.collectionRequest.collectionLabel}:</span> <span className="font-semibold">{collectionName(collection, lang)} ({collectionBooksLabel(collection, lang)})</span></span>
-                    </li>
-                  ) : planType !== "subscription" && (
+                  {planType !== "subscription" && (
                     <li className="flex items-start gap-3 text-base">
                       <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                       <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.story}:</span> <span className="font-semibold">{getPortionLabel(data.torahPortion) || "—"}</span></span>
@@ -2509,13 +2524,10 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   )}
                   <li className="flex items-start gap-3 text-base">
                     <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.artStyle}:</span> <span className="font-semibold">{t.wizard.threeDPixar}</span></span>
-                  </li>
-                  <li className="flex items-start gap-3 text-base">
-                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{collection ? t.collectionRequest.planLabel : planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
+                    <span className="text-foreground"><span className="text-muted-foreground">{t.wizard.plan}:</span> <span className="font-semibold">{planType === "subscription" ? (seriesType === "tanach" ? t.wizard.planChoiceTanachTitle : t.wizard.planChoiceSubscriptionTitle) : t.wizard.planSingle}</span></span>
                   </li>
                 </motion.ul>
+                )}
 
                 {/* Cover + price. The collection prices quoted on /pricing are the
                     SOFTCOVER ones, so the request cannot be sent until a cover is
@@ -2550,7 +2562,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                       <div>
                         <p className="text-sm font-semibold text-foreground">{t.collectionRequest.chooseCover}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">{t.collectionRequest.chooseCoverNote}</p>
-                        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                        <div className="mt-3 grid gap-2.5">
                           {COLLECTION_FORMATS.map((f) => {
                             const on = collectionFormat === f;
                             const extra = formatUpcharge(f, isIls);
@@ -2560,14 +2572,30 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                                 type="button"
                                 onClick={() => setCollectionFormat(f)}
                                 aria-pressed={on}
-                                className={`rounded-xl border-2 p-3 text-start transition-colors ${
-                                  on ? "border-accent bg-accent/10" : "border-border/60 hover:border-accent/50"
+                                className={`flex items-center gap-3.5 rounded-2xl border-2 p-3 text-start transition-all duration-300 active:scale-[0.99] ${
+                                  on ? "border-accent bg-accent/5 ring-1 ring-accent/20" : "border-border/60 hover:border-accent/40"
                                 }`}
                               >
-                                <span className="block text-xs font-semibold text-foreground">{LABEL[f]}</span>
-                                <span className="mt-0.5 block text-[11px] leading-tight text-muted-foreground">{TAGLINE[f]}</span>
-                                <span className="mt-1.5 block text-[11px] font-semibold text-accent">
-                                  {extra ? t.collectionRequest.perBook(money(extra)) : t.collectionRequest.included}
+                                <span className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border/50 bg-muted/30">
+                                  <img
+                                    src={COLLECTION_FORMAT_THUMBS[f]}
+                                    alt={LABEL[f]}
+                                    width={320}
+                                    height={320}
+                                    decoding="async"
+                                    className="h-full w-full object-cover"
+                                    style={textDir === "rtl" ? { transform: "scaleX(-1)" } : undefined}
+                                  />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex items-baseline justify-between gap-3">
+                                    <span className="font-display text-base font-bold text-primary">{LABEL[f]}</span>
+                                    <span className="shrink-0 text-sm font-semibold text-accent">
+                                      {extra ? t.collectionRequest.perBook(money(extra)) : t.collectionRequest.included}
+                                    </span>
+                                  </span>
+                                  <span className="mt-0.5 block text-xs leading-tight text-muted-foreground">{TAGLINE[f]}</span>
+                                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{COLLECTION_FORMAT_DIMS[f]}</span>
                                 </span>
                               </button>
                             );
