@@ -109,3 +109,19 @@ export const subPrice = (plan: SubPlan, format: string, isIls: boolean): number 
  */
 export const yearlyEquivalentMonthlyCost = (format: string, isIls: boolean): number =>
   subPrice("monthly", format, isIls) * (BOOKS_PER_PERIOD.yearly / BOOKS_PER_PERIOD.monthly);
+
+/* ───────────────────────────── Display ─────────────────────────────
+ * Every customer-facing price goes through this. A plain toFixed(2) prints the
+ * year bundle as "$1348.98" — four figures with no thousands separator, which
+ * reads as a typo on the one screen where the number matters most. Grouping is
+ * en-US on purpose: the shekel amounts are presentment prices with a "₪" prefix
+ * in this UI, not locale-formatted ILS. */
+
+/** A price with thousands separators and fixed decimals: "$1,099.20". */
+export const formatMoney = (
+  amount: number, symbol: string, fractionDigits = 2,
+): string =>
+  `${symbol}${(Number(amount) || 0).toLocaleString("en-US", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  })}`;

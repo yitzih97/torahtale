@@ -6,7 +6,7 @@ import { Crown, Zap, CalendarDays, Check, TrendingDown, Loader2, Sparkles, Credi
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { subPrice, singlePrice, type BookFormat } from "@/lib/pricing";
+import { subPrice, singlePrice, formatMoney, type BookFormat } from "@/lib/pricing";
 import { toast } from "sonner";
 
 type PlanType = "weekly" | "monthly" | "yearly";
@@ -150,7 +150,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
   // When a bookPriceUsd is provided we treat it as already-in-display-currency
   // (caller decides USD vs ILS). Otherwise fall back to converted USD pricing.
   const fmt = (amount: number) =>
-    inDisplayCurrency ? `${symbol}${amount.toFixed(2)}` : `${symbol}${(amount * rate).toFixed(2)}`;
+    formatMoney(inDisplayCurrency ? amount : amount * rate, symbol);
   const periodLabel = (id: string) =>
     id === "yearly" ? (code === "ILS" ? "שנה" : "yr")
     : id === "monthly" ? (code === "ILS" ? "חודש" : "mo")
@@ -400,7 +400,7 @@ export const SubscriptionUpsellDialog = ({ open, onClose, onSubscribed, context 
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    {t.upsell.paySubscribe((inDisplayCurrency ? activePlan.priceUsd : activePlan.priceUsd * rate).toFixed(2))}
+                    {t.upsell.paySubscribe(formatMoney(inDisplayCurrency ? activePlan.priceUsd : activePlan.priceUsd * rate, ""))}
                   </>
                 )}
               </Button>

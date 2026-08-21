@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Package, Zap } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { shippingDays, shippingPrice } from "@/lib/pricing";
+import { shippingDays, shippingPrice, formatMoney } from "@/lib/pricing";
 
 export interface ShippingData {
   fullName: string;
@@ -50,7 +50,7 @@ export const ShippingForm = ({ data, onChange, isSubscription = false, section =
   // Standard shipping is charged now, so both options show a price.
   const isIls = t.currency.code === "ILS";
   const shipLabel = (m: "standard" | "express") =>
-    `${t.currency.symbol}${shippingPrice(m, isIls).toFixed(2)}`;
+    formatMoney(shippingPrice(m, isIls), t.currency.symbol);
   const sameAsBilling = data.sameAsBilling ?? true;
 
   const update = (partial: Partial<ShippingData>) => onChange({ ...data, ...partial });

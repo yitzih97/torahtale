@@ -15,7 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { singlePrice, subPrice } from "@/lib/pricing";
+import { singlePrice, subPrice, formatMoney } from "@/lib/pricing";
 
 const Pricing = () => {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ const Pricing = () => {
   // Product prices come from the canonical Shopify table (exact USD + ILS), not a
   // currency-rate estimate, so what's shown matches what Shopify charges.
   const isIls = t.currency.code === "ILS";
-  const money = (n: number) => `${symbol}${n.toFixed(2)}`;
+  const money = (n: number) => formatMoney(n, symbol);
 
   // Scroll to #collections (etc.) when arriving via an anchor link.
   useEffect(() => {

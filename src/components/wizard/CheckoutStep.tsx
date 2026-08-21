@@ -17,7 +17,7 @@ const FORMAT_THUMB: Record<BookOptions["productType"], string> = {
   board: boardThumb,
   coloring: coloringThumb,
 };
-import { shippingPrice, subPrice } from "@/lib/pricing";
+import { shippingPrice, subPrice, formatMoney } from "@/lib/pricing";
 
 export type PlanType = "weekly" | "monthly" | "yearly" | "once";
 
@@ -109,7 +109,7 @@ export const CheckoutStep = ({
   const { symbol, rate, code } = t.currency;
 
   const isIls = code === "ILS";
-  const fmt = (amount: number) => `${symbol}${amount.toFixed(2)}`;
+  const fmt = (amount: number) => formatMoney(amount, symbol);
 
   const unitBookPrice = calculateBookPriceForCurrency(bookOptions, code);
   const unitBaseBookPrice = calculateBookPriceForCurrency({ ...bookOptions, coloringBook: false }, code);
@@ -245,11 +245,23 @@ export const CheckoutStep = ({
    * changeable line carries an Edit that jumps back to the step that owns it,
    * which previously meant backing out of the flow entirely.
    */
-  const formatLabel =
-    bookOptions.productType === "hardcover" ? `${t.bookOptions.hardcover} 8″×8″`
-    : bookOptions.productType === "board" ? `${t.bookOptions.boardBook} 6″×6″`
-    : bookOptions.productType === "coloring" ? `${t.productsShowcase.coloring} 8.5″×11″`
-    : `${t.bookOptions.softcover} 8″×8″`;
+  const isColoringBook = bookOptions.productType === "coloring";
+  const formatDims =
+    bookOptions.productType === "board" ? "6″×6″"
+    : isColoringBook ? "8.5″×11″"
+    : "8″×8″";
+  const formatName =
+    bookOptions.productType === "hardcover" ? t.bookOptions.hardcover
+    : bookOptions.productType === "board" ? t.bookOptions.boardBook
+    : isColoringBook ? t.productsShowcase.coloring
+    : t.bookOptions.softcover;
+  const formatLabel = `${formatName} ${formatDims}`;
+  /* The standalone coloring book named itself twice — "Book for Adina and Ari ·
+     Coloring Book 8.5″×11″" — as if a storybook came with a coloring book. It is
+     the product, so it takes the name and the size follows it. */
+  const productLine = isColoringBook
+    ? `${t.checkout.coloringBookFor(childName)} · ${formatDims}`
+    : `${t.checkout.bookFor(childName)} · ${formatLabel}`;
   const storyLabel = getPortionDisplay(torahPortion, lang) || getPortionLabel(torahPortion);
   const artLabel = artStyle === "3d-pixar" ? "3D Pixar"
     : artStyle === "graphic-novel" ? t.checkout.artGraphicNovel : t.checkout.artCartoon;
@@ -313,7 +325,7 @@ export const CheckoutStep = ({
         <div className="min-w-[8rem] flex-1">
           <p className="font-display text-lg sm:text-xl font-bold text-primary leading-tight truncate">{storyLabel}</p>
           <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-            {t.checkout.bookFor(childName)} · {formatLabel}
+            {productLine}
             {quantity > 1 ? ` · ×${quantity}` : ""}
           </p>
           {coverPreview && (coverPreview.url || coverPreview.loading) && (

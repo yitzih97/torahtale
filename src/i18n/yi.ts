@@ -771,6 +771,7 @@ export const yi: typeof en = {
     skipSubscription: "דלגו על מנוי — רכשו את הספר בלבד",
     orderSummary: "סיכום הזמנה",
     bookFor: (name: string) => `ספר עבור ${name}`,
+    coloringBookFor: (name: string) => `קאָלירבוך פֿאַר ${name}`,
     included: "כלול",
     format: "פורמט",
     shippingLabel: "משלוח",

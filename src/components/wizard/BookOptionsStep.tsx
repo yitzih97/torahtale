@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BookOpen, Shield, Baby, Palette, ZoomIn } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { formatMoney } from "@/lib/pricing";
 
 import softcoverImg from "@/assets/books/mockup-softcover.jpg";
 import hardcoverImg from "@/assets/books/mockup-hardcover.jpg";
@@ -125,8 +126,8 @@ export const BookOptionsStep = ({ options, onChange, childAge = 0, hideHeader = 
   const [zoomed, setZoomed] = useState<{ src: string; label: string } | null>(null);
 
   const formatPrice = (usd: number, ils?: number) => {
-    if (code === "ILS" && typeof ils === "number") return `${symbol}${ils.toFixed(2)}`;
-    return `${symbol}${(usd * rate).toFixed(2)}`;
+    if (code === "ILS" && typeof ils === "number") return formatMoney(ils, symbol);
+    return formatMoney(usd * rate, symbol);
   };
 
   const selectType = (type: BookOptions["productType"]) => {

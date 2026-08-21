@@ -779,6 +779,9 @@ export const en = {
     skipSubscription: "Skip subscription — purchase this book only",
     orderSummary: "Order Summary",
     bookFor: (name: string) => `Book for ${name}`,
+    // The standalone coloring book is not "a book" with a coloring book on the
+    // side — it IS the product, so it is named in place of "Book".
+    coloringBookFor: (name: string) => `Coloring Book for ${name}`,
     included: "Included",
     format: "Format",
     shippingLabel: "Shipping",

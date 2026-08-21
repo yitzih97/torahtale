@@ -1,6 +1,7 @@
 import { Minus, Plus, Gift, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatMoney } from "@/lib/pricing";
 
 /** Returns 0 / 0.10 / 0.15 based on quantity */
 export function getVolumeDiscount(qty: number): number {
@@ -110,17 +111,17 @@ export const QuantityStep = ({ quantity, onChange, unitPrice, currencySymbol }: 
       <div className="max-w-md mx-auto rounded-2xl border border-border bg-card p-5 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">{subtotalLabel}</span>
-          <span className="font-medium text-primary">{currencySymbol}{subtotal.toFixed(2)}</span>
+          <span className="font-medium text-primary">{formatMoney(subtotal, currencySymbol)}</span>
         </div>
         {discount > 0 && (
           <div className="flex justify-between text-sm text-accent">
             <span>{savingsLabel(discount * 100)}</span>
-            <span className="font-medium">−{currencySymbol}{(subtotal - total).toFixed(2)}</span>
+            <span className="font-medium">−{formatMoney(subtotal - total, currencySymbol)}</span>
           </div>
         )}
         <div className="border-t border-border pt-2 flex justify-between font-bold">
           <span className="text-primary">{t.quantity.total}</span>
-          <span className="text-accent text-lg">{currencySymbol}{total.toFixed(2)}</span>
+          <span className="text-accent text-lg">{formatMoney(total, currencySymbol)}</span>
         </div>
       </div>
 

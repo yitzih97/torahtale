@@ -771,6 +771,7 @@ export const he: typeof en = {
     skipSubscription: "לדלג על המנוי — רכישת הסיפור הזה בלבד",
     orderSummary: "סיכום ההזמנה",
     bookFor: (name: string) => `סיפור עבור ${name}`,
+    coloringBookFor: (name: string) => `חוברת צביעה עבור ${name}`,
     included: "כלול",
     format: "פורמט",
     shippingLabel: "משלוח",

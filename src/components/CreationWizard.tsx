@@ -34,7 +34,7 @@ import { TORAH_PORTIONS, CATEGORY_BOOKS, BOOK_LABELS, CATEGORY_META, getPortionL
 import { ParshaCountdown } from "./wizard/ParshaCountdown";
 import { PortionIcon } from "./wizard/portionIcons";
 import { createOrderCheckout, type OrderPlan } from "@/lib/shopify";
-import { subPrice, singlePrice, yearlyEquivalentMonthlyCost } from "@/lib/pricing";
+import { subPrice, singlePrice, yearlyEquivalentMonthlyCost, formatMoney } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyContactTicket } from "@/lib/contactTickets";
 import { toast } from "sonner";
@@ -2534,7 +2534,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   const perBook = formatUpcharge(collectionFormat, isIls);
                   const upcharge = perBook * books;
                   const total = collectionsTotalForFormat(keys, isIls, collectionFormat);
-                  const money = (n: number) => `${sym}${Math.round(n).toLocaleString()}`;
+                  const money = (n: number) => formatMoney(Math.round(n), sym, 0);
                   const LABEL: Record<CollectionFormat, string> = {
                     softcover: t.bookOptions.softcover,
                     hardcover: t.bookOptions.hardcover,
@@ -2750,7 +2750,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   const isIls = t.currency.code === "ILS";
                   const unit = calculateBookPriceForCurrency(bookOptions, t.currency.code) * quantity;
                   const sym = t.currency.symbol;
-                  const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
+                  const fmt = (n: number) => formatMoney(n, sym);
                   // Subscription prices come straight from the canonical Shopify
                   // table (per plan × book format) so what's shown equals what's
                   // charged at checkout.
@@ -2833,7 +2833,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections }
                   const monthlyTotal = subPrice("monthly", fmtType, isIls);
                   const yearlyTotal = subPrice("yearly", fmtType, isIls);
                   const sym = t.currency.symbol;
-                  const fmt = (n: number) => `${sym}${n.toFixed(2)}`;
+                  const fmt = (n: number) => formatMoney(n, sym);
                   // Like for like: the bundle's 52 books cost thirteen monthly
                   // charges (4 books each), not twelve. The saving is computed,
                   // never asserted, so it disappears by itself if the prices ever
