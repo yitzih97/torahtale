@@ -1,0 +1,23 @@
+name: Verify staff permissions
+
+# Read-only proof that the staff login reaches the book queue and nothing else.
+# Run it after touching the staff role, its policies, or the admin screens.
+
+on:
+  workflow_dispatch: {}
+
+env:
+  PROJECT_REF: cjgqpusyxvltglcbnpvg
+  PUBLISHABLE_KEY: sb_publishable_Ic9uQiC0ATzTyMRzOXyWQA_7hnU8a2X
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check what the staff login can reach
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          STAFF_EMAIL: agent@torahtale.com
+          STAFF_PASSWORD: ${{ secrets.STAFF_INITIAL_PASSWORD }}
+        run: bash scripts/verify-staff-permissions.sh
