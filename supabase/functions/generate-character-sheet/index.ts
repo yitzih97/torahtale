@@ -79,7 +79,7 @@ serve(async (req) => {
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
     if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is not configured");
 
-    const { childName, age, gender, artStyle, description, referenceImage, bookId, torahPortion } = await req.json();
+    const { childName, age, gender, artStyle, description, referenceImage, bookId, torahPortion, styleReference } = await req.json();
 
     const parsedAge = parseInt(age);
     const ageNum = Number.isNaN(parsedAge) ? 5 : parsedAge; // NOT `|| 5` - age 0 (infant) is valid
@@ -145,7 +145,7 @@ CRITICAL CONSISTENCY RULES:
 
 BACKGROUND: Clean solid white background. No environments, no props, no text labels.
 
-${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial features, face shape, hair color, hair texture, eye color, and skin tone from the attached reference photo as closely as possible, while rendering in the specified art style. SKIN TONE IS IDENTITY: reproduce the child's actual complexion EXACTLY as the photo shows - never lighter, never darker, never a generic tone. The illustrated character should be immediately recognizable as the same child in the photo. The photo is for FACE and HAIR likeness ONLY - do NOT copy the clothing from the photo; dress the character in the canonical outfit above. Use the photo for likeness first and include a kippah, peyos, or tzitzis ONLY if they are clearly visible in the photo or explicitly requested in the description - never add them otherwise.` : ""}`;
+${styleReference ? `CHOSEN COVER ILLUSTRATION PROVIDED (attached${referenceImage ? " after the photo" : ""}): the customer looked at several covers and CHOSE this one, so the character drawn on it is the character this book stars. Reproduce THAT character on this sheet - the same face, the same hair colour, length, texture and styling, the same skin tone, the same age read. Where the illustration and the photo differ, FOLLOW THE ILLUSTRATION: it is the look the customer picked. Take likeness and colouring from it only - the outfit is still the canonical one described above, and the layout is still the model sheet described above, never a scene.\n\n` : ""}${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial features, face shape, hair color, hair texture, eye color, and skin tone from the attached reference photo as closely as possible, while rendering in the specified art style. SKIN TONE IS IDENTITY: reproduce the child's actual complexion EXACTLY as the photo shows - never lighter, never darker, never a generic tone. The illustrated character should be immediately recognizable as the same child in the photo. The photo is for FACE and HAIR likeness ONLY - do NOT copy the clothing from the photo; dress the character in the canonical outfit above. Use the photo for likeness first and include a kippah, peyos, or tzitzis ONLY if they are clearly visible in the photo or explicitly requested in the description - never add them otherwise.` : ""}`;
 
     const parts: any[] = [];
 
@@ -167,6 +167,31 @@ ${referenceImage ? `REFERENCE PHOTO PROVIDED: You MUST match the child's facial 
           }
         } catch (e) {
           console.error("Failed to fetch reference image:", e);
+        }
+      }
+    }
+
+    // The chosen cover goes in AFTER the photo, so "the illustration" in the
+    // prompt is unambiguous when both are attached.
+    if (styleReference && typeof styleReference === "string") {
+      if (styleReference.startsWith("data:")) {
+        const match = styleReference.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+      } else {
+        try {
+          const coverResp = await fetch(styleReference);
+          if (coverResp.ok) {
+            const buf = await coverResp.arrayBuffer();
+            parts.push({
+              inlineData: {
+                mimeType: coverResp.headers.get("content-type") || "image/jpeg",
+                data: bufferToBase64(buf),
+              },
+            });
+          }
+        } catch (e) {
+          // Fail open: a sheet from the photo alone still beats no sheet.
+          console.error("Failed to fetch the chosen cover:", e);
         }
       }
     }

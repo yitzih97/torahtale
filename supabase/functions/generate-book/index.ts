@@ -377,6 +377,11 @@ async function generate(bookId: string) {
             description: child.description || "",
             referenceImage: photoUrl,
             torahPortion: book.torah_portion,
+            // The cover the customer chose at checkout, when they chose one. The
+            // sheet is built to match THAT character, and every page is drawn
+            // from the sheet - which is how the book ends up starring the child
+            // they picked rather than a fresh interpretation of the photo.
+            styleReference: sdState.selectedCover?.url || null,
           });
           if (sheet?.imageUrl) sheets[child.name] = sheet.imageUrl;
         } catch (e) {

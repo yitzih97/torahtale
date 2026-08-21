@@ -78,6 +78,10 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
 
   const sd = useMemo(() => book?.story_data || {}, [book?.story_data]);
   const childDescriptions: any[] = useMemo(() => sd.childDescriptions || [], [sd.childDescriptions]);
+  /* The cover the customer chose at checkout, if they chose one. The child on
+     it is the character they bought, so every character sheet is built to
+     match it and every page is drawn from the sheet. */
+  const selectedCoverUrl: string | null = sd.selectedCover?.url || null;
 
   const bookFormat = useMemo(() => {
     // The product type can live in shipping_data (written at checkout) OR
@@ -195,6 +199,11 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
             description: child.description || "",
             referenceImage: child.photoUrl || null,
             torahPortion: book.torah_portion,
+            // The cover the customer chose at checkout, when they chose one. The
+            // sheet is built to match THAT character, and every page is drawn
+            // from the sheet - which is how the book ends up starring the child
+            // they picked rather than a fresh interpretation of the photo.
+            styleReference: selectedCoverUrl,
           },
         });
         if (!sheetErr && sheetData?.imageUrl) {
@@ -204,7 +213,7 @@ export function AdminBookGenerationModal({ open, onClose, book, onBookUpdated }:
         console.error(`Failed to generate character sheet for ${child.name}:`, err);
       }
     }
-  }, [childDescriptions]);
+  }, [childDescriptions, selectedCoverUrl, book?.torah_portion]);
 
   /* ── Phase 1b: sheets for recurring Torah-story characters (consistency) ── */
   const generateStoryCharacterSheets = useCallback(async () => {

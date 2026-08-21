@@ -4,6 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 /** How many times a customer may re-roll their cover in one checkout. */
 export const COVER_PREVIEW_REGEN_LIMIT = 2;
 
+/**
+ * Running out of re-rolls usually means the photo is the problem, not the
+ * model - a dark shot, a side profile, the wrong child in frame. So a customer
+ * may replace the photo and earn one more set of re-rolls. ONE more: past that
+ * the answer is a better photo, not more rolls, and each roll costs a real
+ * image generation.
+ */
+export const COVER_PREVIEW_RETAKE_LIMIT = 1;
+
 const STORAGE_KEY = "torahtale_cover_preview";
 
 export interface CoverPreviewState {
@@ -15,9 +24,18 @@ export interface CoverPreviewState {
   error: string | null;
   /** Identifies which inputs the current image belongs to. */
   key: string | null;
+  /** The cover the customer explicitly chose to keep, if they chose one. */
+  savedUrl: string | null;
+  /** The inputs that saved cover belongs to - a new photo/story retires it. */
+  savedKey: string | null;
+  /** How many times they have replaced the photo to earn more re-rolls. */
+  retakes: number;
 }
 
-const empty: CoverPreviewState = { url: null, loading: false, regens: 0, error: null, key: null };
+const empty: CoverPreviewState = {
+  url: null, loading: false, regens: 0, error: null, key: null,
+  savedUrl: null, savedKey: null, retakes: 0,
+};
 
 /** A stable id for a photo, ignoring any signature/expiry on a signed URL. */
 const photoIdentity = (src: string): string => {
@@ -34,11 +52,15 @@ const load = (): CoverPreviewState => {
   } catch { return empty; }
 };
 
-const save = (s: CoverPreviewState) => {
+const persist = (s: CoverPreviewState) => {
   try {
     // The image can be a multi-MB data URL; keep it out of the quota-limited
-    // slot and store only what is needed to survive a reload.
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ regens: s.regens, key: s.key }));
+    // slot and store only what is needed to survive a reload. The SAVED cover is
+    // a short storage URL, and losing it would silently un-choose the customer's
+    // choice, so that one is kept.
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      regens: s.regens, key: s.key, savedUrl: s.savedUrl, savedKey: s.savedKey, retakes: s.retakes,
+    }));
   } catch { /* quota - the preview simply regenerates */ }
 };
 
@@ -81,8 +103,15 @@ export function useCoverPreview(inputs: Inputs) {
   // signature) produced a different key each time - silently regenerating the
   // cover at real cost and resetting the customer's allowance to two again.
   // The path identifies the photo; the query string only signs it.
+  //
+  // Every child's photo counts, not just the primary's: a sibling's replacement
+  // photo changes the cover as much as the star's does, and if it did not move
+  // the key the customer would replace a photo and watch nothing happen.
+  const refsIdentity = (childRefs || [])
+    .map((c) => `${c.name}:${c.photoUrl ? photoIdentity(c.photoUrl) : ""}`)
+    .join(",");
   const key = referenceImage && torahPortion
-    ? `${torahPortion}|${childName || ""}|${photoIdentity(referenceImage)}`
+    ? `${torahPortion}|${childName || ""}|${photoIdentity(referenceImage)}|${refsIdentity}`
     : null;
 
   const run = useCallback(async (nextKey: string, isRegen: boolean) => {
@@ -113,7 +142,7 @@ export function useCoverPreview(inputs: Inputs) {
       setState((s) => {
         const next = { ...s, url, loading: false, error: null, key: nextKey,
                        regens: isRegen ? s.regens + 1 : s.regens };
-        save(next);
+        persist(next);
         return next;
       });
     } catch (e: any) {
@@ -128,9 +157,16 @@ export function useCoverPreview(inputs: Inputs) {
     if (!enabled || !key) return;
     if (state.key === key && state.url) return;      // already have this one
     if (state.loading) return;
-    // A different story/photo starts a fresh cover and a fresh allowance.
+    // A different story/photo starts a fresh cover and a fresh allowance. A
+    // cover saved against the OLD inputs is retired with them - it is a picture
+    // of a different child or a different story, so it can no longer stand as
+    // "the character this book stars".
     if (state.key && state.key !== key) {
-      setState((s) => { const n = { ...s, regens: 0, url: null, key: null }; save(n); return n; });
+      setState((s) => {
+        const n = { ...s, regens: 0, url: null, key: null, savedUrl: null, savedKey: null };
+        persist(n);
+        return n;
+      });
     }
     void run(key, false);
   }, [enabled, key, state.key, state.url, state.loading, run]);
@@ -141,10 +177,45 @@ export function useCoverPreview(inputs: Inputs) {
     void run(key, true);
   }, [key, state.loading, state.regens, run]);
 
+  /**
+   * Keep the cover that is on screen. Returns the URL so the caller can write it
+   * onto the book - a saved cover is not decoration, it is the customer saying
+   * "THIS is what my child looks like in this book", and the pages are drawn
+   * from it.
+   */
+  const save = useCallback((): string | null => {
+    const url = state.url, savedFor = state.key;
+    if (!url || !savedFor) return null;
+    setState((s) => {
+      const n = { ...s, savedUrl: url, savedKey: savedFor };
+      persist(n);
+      return n;
+    });
+    return url;
+  }, [state.url, state.key]);
+
+  /** Spend the one photo retake: a new photo re-keys the cover, which hands back
+      a fresh set of re-rolls, so the retake itself has to be counted here. */
+  const noteRetake = useCallback(() => {
+    setState((s) => {
+      const n = { ...s, retakes: s.retakes + 1 };
+      persist(n);
+      return n;
+    });
+  }, []);
+
+  const outOfRegens = state.regens >= COVER_PREVIEW_REGEN_LIMIT;
+
   return {
     ...state,
     regenerate,
+    save,
+    noteRetake,
     regensLeft: Math.max(0, COVER_PREVIEW_REGEN_LIMIT - state.regens),
     canRegenerate: !!state.url && !state.loading && state.regens < COVER_PREVIEW_REGEN_LIMIT,
+    /** True when the cover on screen is the one the customer chose to keep. */
+    saved: !!state.url && state.savedUrl === state.url && state.savedKey === state.key,
+    /** Offer a new photo only once the re-rolls are gone, and only once. */
+    canRetakePhoto: outOfRegens && !state.loading && state.retakes < COVER_PREVIEW_RETAKE_LIMIT,
   };
 }

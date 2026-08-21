@@ -526,6 +526,49 @@ export const CreationWizard = ({ open = true, onClose, collection, collections, 
     }));
   }, []);
 
+  /* Keeping a cover is a commitment, not a bookmark: the child on the cover the
+     customer chose becomes the character every page of the book is drawn from
+     (the generator builds that child's character sheet from it). So the choice
+     is written onto the book row, not just held in the browser. */
+  const chosenCoverRef = useRef<string | null>(null);
+  const [coverSaving, setCoverSaving] = useState(false);
+
+  const saveChosenCover = useCallback(async () => {
+    const url = coverPreview.url;
+    if (!url || coverSaving) return;
+    setCoverSaving(true);
+    try {
+      if (savedBookId) {
+        const { data: existing } = await supabase
+          .from("books").select("story_data").eq("id", savedBookId).maybeSingle();
+        const prevSd = (existing?.story_data as Record<string, unknown>) || {};
+        const { error } = await supabase
+          .from("books")
+          .update({ story_data: { ...prevSd, selectedCover: { url } } })
+          .eq("id", savedBookId);
+        if (error) throw error;
+      }
+      // Only now is it really chosen. Marking it saved before the write lands
+      // would show a green tick for a choice the book never received.
+      chosenCoverRef.current = url;
+      coverPreview.save();
+    } catch (e) {
+      console.error("Could not save the chosen cover:", e);
+      toast.error(t.checkout.coverSaveFailed);
+    } finally {
+      setCoverSaving(false);
+    }
+  }, [coverPreview, coverSaving, savedBookId, t]);
+
+  /** A replacement photo from the enlarged cover: it re-keys the preview, which
+      generates a fresh cover and hands back a fresh set of re-rolls. */
+  const retakeChildPhoto = useCallback((childId: string, file: File, dataUrl: string) => {
+    updateChild(childId, { photo: file, photoPreview: dataUrl, photoOriginalSrc: null, photoNeedsCrop: false });
+    coverPreview.noteRetake();
+  }, [updateChild, coverPreview]);
+
+
+
   // The child's name in the BOOK's own language - so a Hebrew book stars "ארי",
   // a Yiddish book its Yiddish spelling, etc. (falls back to the base name).
   const nameForBook = (c: ChildProfile): string => {
@@ -1061,6 +1104,9 @@ export const CreationWizard = ({ open = true, onClose, collection, collections, 
             narrativeStyle: data.narrativeStyle,
             childDescriptions,
             parents: parentDescriptions,
+            // Set only when they actually chose one, so a re-sync can never wipe
+            // a cover chosen earlier in this checkout.
+            ...(chosenCoverRef.current ? { selectedCover: { url: chosenCoverRef.current } } : {}),
           },
         };
 
@@ -2922,7 +2968,11 @@ export const CreationWizard = ({ open = true, onClose, collection, collections, 
                   onSelectPlan={setSelectedPlan}
                   onPlaceOrder={(plan) => { void handlePlaceOrder(plan); }}
                   quantity={quantity}
-                  coverPreview={coverPreview}
+                  coverPreview={{ ...coverPreview, save: () => { void saveChosenCover(); }, saving: coverSaving }}
+                  coverRetake={{
+                    children: data.children.filter((c) => c.name).map((c) => ({ id: c.id, name: c.name })),
+                    onPhoto: retakeChildPhoto,
+                  }}
                   hideCta
                 />
                 </div>

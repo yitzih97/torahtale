@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from "react";
-import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ChevronDown, Pencil, RefreshCw, ZoomIn } from "lucide-react";
+import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ChevronDown, Pencil, RefreshCw, ZoomIn, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel, getPortionDisplay } from "./TorahPortions";
@@ -77,6 +78,21 @@ interface Props {
     regensLeft: number;
     canRegenerate: boolean;
     regenerate: () => void;
+    /** Keep this cover: it becomes the character the book's pages are drawn from. */
+    save?: () => void;
+    saving?: boolean;
+    saved?: boolean;
+    /** Out of re-rolls, and the one photo retake is still available. */
+    canRetakePhoto?: boolean;
+  };
+  /**
+   * Replacing a child's photo from inside the enlarged cover. Out of re-rolls
+   * usually means the photo is the problem, so this is the way forward rather
+   * than sending the customer back through the wizard to find the photo step.
+   */
+  coverRetake?: {
+    children: Array<{ id: string; name: string }>;
+    onPhoto: (childId: string, file: File, dataUrl: string) => void;
   };
 }
 
@@ -97,12 +113,15 @@ export const CheckoutStep = ({
   hideCta = false,
   onEdit,
   coverPreview,
+  coverRetake,
 }: Props) => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   // The cover opens full size in a dialog. Everything about the cover - what
   // it is, and the chance to roll another one - lives in there, so the summary
   // row stays a row about the order.
   const [coverOpen, setCoverOpen] = useState(false);
+  // A replacement photo waiting to be cropped, from the enlarged cover.
+  const [retakeFor, setRetakeFor] = useState<{ childId: string; src: string; fileName: string } | null>(null);
   const [selectedPlanLocal, setSelectedPlanLocal] = useState<PlanType>("monthly");
   const selectedPlan = selectedPlanProp ?? selectedPlanLocal;
   const setSelectedPlan = (p: PlanType) => {
@@ -390,28 +409,106 @@ export const CheckoutStep = ({
               <DialogTitle className="font-display text-lg font-bold text-primary leading-tight">{storyLabel}</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">{productLine}</DialogDescription>
             </div>
-            {coverPreview && (
-              coverPreview.canRegenerate ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={coverPreview.regenerate}
-                  disabled={coverPreview.loading}
-                  className="w-full rounded-full gap-2"
-                >
-                  <RefreshCw className={`w-4 h-4 ${coverPreview.loading ? "animate-spin" : ""}`} />
-                  {t.checkout.coverTryAnother(coverPreview.regensLeft)}
-                </Button>
-              ) : (
-                // Say why the button is gone. Silence reads as a bug.
-                !coverPreview.loading && !!coverPreview.url && (
-                  <p className="text-xs text-muted-foreground">{t.checkout.coverNoRegensLeft}</p>
-                )
-              )
+            {coverPreview && !!coverPreview.url && !coverPreview.loading && (
+              <div className="w-full space-y-2">
+                {/* Keeping a cover is a real decision, not a bookmark: the child
+                    on it becomes the character every page is drawn from. */}
+                {coverPreview.save && (
+                  coverPreview.saved ? (
+                    <p className="flex items-center justify-center gap-1.5 text-xs font-medium text-accent">
+                      <Check className="w-3.5 h-3.5" />
+                      {t.checkout.coverSaved}
+                    </p>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="gold"
+                      onClick={coverPreview.save}
+                      disabled={coverPreview.saving}
+                      className="w-full rounded-full gap-2"
+                    >
+                      {coverPreview.saving
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <Check className="w-4 h-4" />}
+                      {t.checkout.coverUseThis}
+                    </Button>
+                  )
+                )}
+                {coverPreview.saved && (
+                  <p className="text-center text-[11px] leading-snug text-muted-foreground">
+                    {t.checkout.coverSavedNote}
+                  </p>
+                )}
+
+                {coverPreview.canRegenerate ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={coverPreview.regenerate}
+                    className="w-full rounded-full gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    {t.checkout.coverTryAnother(coverPreview.regensLeft)}
+                  </Button>
+                ) : coverPreview.canRetakePhoto && coverRetake?.children.length ? (
+                  /* Out of re-rolls almost always means the photo is the problem
+                     - a dark shot, a side profile, the wrong child in frame. So
+                     the way forward is a better photo, offered right here rather
+                     than back through the wizard. A new photo earns a fresh set
+                     of re-rolls. */
+                  <div className="space-y-2 rounded-xl border border-border/60 bg-muted/30 p-3">
+                    <p className="text-center text-[11px] leading-snug text-muted-foreground">
+                      {t.checkout.coverRetakeHint}
+                    </p>
+                    <div className="flex flex-col gap-1.5">
+                      {coverRetake.children.map((c) => (
+                        <label
+                          key={c.id}
+                          className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-border/60 bg-background px-3 py-2 text-xs font-medium text-primary transition-colors hover:border-accent hover:text-accent"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          {t.checkout.coverNewPhotoFor(c.name)}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              e.target.value = "";           // same file twice still fires
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = () => setRetakeFor({
+                                childId: c.id, src: String(reader.result || ""), fileName: file.name,
+                              });
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  // Say why the button is gone. Silence reads as a bug.
+                  <p className="text-center text-xs text-muted-foreground">{t.checkout.coverNoRegensLeft}</p>
+                )}
+              </div>
             )}
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* The replacement photo is cropped exactly the way the wizard crops one,
+          so the reference the model gets is the same shape either way. */}
+      <ImageCropDialog
+        open={!!retakeFor}
+        imageSrc={retakeFor?.src || null}
+        fileName={retakeFor?.fileName}
+        onCancel={() => setRetakeFor(null)}
+        onCropped={(file, dataUrl) => {
+          if (retakeFor) coverRetake?.onPhoto(retakeFor.childId, file, dataUrl);
+          setRetakeFor(null);
+        }}
+      />
 
       {/* The expandable details are gone: every row in them repeated something
           already on screen. What did NOT appear elsewhere - an add-on, a volume

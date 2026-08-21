@@ -25,8 +25,15 @@ Object.defineProperty(globalThis, "localStorage", {
 
 const shipping = { shippingMethod: "standard" } as never;
 
-const setup = ({ regensLeft = 2, canRegenerate = true } = {}) => {
+const setup = ({
+  regensLeft = 2, canRegenerate = true, saved = false, canRetakePhoto = false, children = [],
+}: {
+  regensLeft?: number; canRegenerate?: boolean; saved?: boolean; canRetakePhoto?: boolean;
+  children?: Array<{ id: string; name: string }>;
+} = {}) => {
   const regenerate = vi.fn();
+  const save = vi.fn();
+  const onPhoto = vi.fn();
   render(
     <LanguageProvider>
       <CheckoutStep
@@ -38,12 +45,13 @@ const setup = ({ regensLeft = 2, canRegenerate = true } = {}) => {
         onPlaceOrder={() => {}}
         coverPreview={{
           url: "blob:cover.png", loading: false, error: null,
-          regensLeft, canRegenerate, regenerate,
+          regensLeft, canRegenerate, regenerate, save, saved, canRetakePhoto,
         }}
+        coverRetake={{ children, onPhoto }}
       />
     </LanguageProvider>,
   );
-  return { regenerate };
+  return { regenerate, save, onPhoto };
 };
 
 describe("order summary cover", () => {
@@ -58,10 +66,37 @@ describe("order summary cover", () => {
     expect(regenerate).toHaveBeenCalledTimes(1);
   });
 
-  it("says why the reroll is gone when the tries are used up", () => {
-    setup({ regensLeft: 0, canRegenerate: false });
+  it("keeps the cover the customer chose", () => {
+    const { save } = setup();
+    fireEvent.click(screen.getByLabelText("Tap to enlarge"));
+    fireEvent.click(screen.getByText("Use this cover"));
+    expect(save).toHaveBeenCalledTimes(1);
+  });
+
+  it("says what a saved cover means, and stops offering to save it again", () => {
+    setup({ saved: true });
+    fireEvent.click(screen.getByLabelText("Tap to enlarge"));
+    expect(screen.queryByText("Use this cover")).toBeNull();
+    expect(screen.getByText(/Saved as your book's character/)).toBeTruthy();
+    expect(screen.getByText(/drawn as this character on every page/)).toBeTruthy();
+  });
+
+  it("offers a new photo per child once the tries run out", () => {
+    setup({
+      regensLeft: 0, canRegenerate: false, canRetakePhoto: true,
+      children: [{ id: "a", name: "Adina" }, { id: "b", name: "Ari" }],
+    });
+    fireEvent.click(screen.getByLabelText("Tap to enlarge"));
+    expect(screen.getByText("New photo for Adina")).toBeTruthy();
+    expect(screen.getByText("New photo for Ari")).toBeTruthy();
+    expect(screen.queryByText(/no more tries left/)).toBeNull();
+  });
+
+  it("says why the reroll is gone when the tries and the retake are both used up", () => {
+    setup({ regensLeft: 0, canRegenerate: false, canRetakePhoto: false });
     fireEvent.click(screen.getByLabelText("Tap to enlarge"));
     expect(screen.queryByText(/Try another/)).toBeNull();
+    expect(screen.queryByText(/New photo for/)).toBeNull();
     expect(screen.getByText(/no more tries left/)).toBeTruthy();
   });
 });
