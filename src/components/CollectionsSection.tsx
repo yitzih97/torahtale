@@ -97,19 +97,19 @@ export const CollectionsSection = () => {
   };
 
   return (
-    <section id="collections" className="relative py-16 md:py-20 overflow-hidden">
+    <section id="collections" className="relative pt-4 pb-14 md:pb-16 overflow-hidden">
       <div className="container relative mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease }}
-          className="text-center max-w-2xl mx-auto mb-10"
+          className="text-center max-w-2xl mx-auto mb-3"
         >
-          <p className="font-display text-3xl md:text-4xl font-bold uppercase tracking-[0.12em] text-accent">{t.pricing.collectionsEyebrow}</p>
+          <p className="font-display text-2xl md:text-3xl font-bold uppercase tracking-[0.12em] text-accent">{t.pricing.collectionsEyebrow}</p>
         </motion.div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {orderedCollections.map((c, i) => {
             const Icon = c.icon;
             const on = picked.includes(c.key);
@@ -146,19 +146,19 @@ export const CollectionsSection = () => {
                 </span>
 
                 <div className="relative overflow-hidden">
-                  <img src={c.image} alt={collectionName(c, lang)} loading="lazy" className="h-40 w-full object-cover" />
+                  <img src={c.image} alt={collectionName(c, lang)} loading="lazy" className="h-24 w-full object-cover" />
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
                   <div className="absolute bottom-2.5 end-3 flex h-9 w-9 items-center justify-center rounded-xl bg-card/95 text-accent shadow-soft-sm backdrop-blur">
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>
 
-                <div className="flex flex-1 flex-col p-5">
-                  <h3 className="font-display text-lg font-bold text-primary">{collectionName(c, lang)}</h3>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-accent">{collectionBooksLabel(c, lang)}</p>
-                  <p className="mt-2.5 flex-1 text-sm leading-relaxed text-muted-foreground">{collectionBlurb(c, lang)}</p>
-                  <div className="mt-4 flex items-end justify-between gap-3">
-                    <p className="font-display text-2xl font-bold leading-none text-primary">{fmt(price(c))}</p>
+                <div className="flex flex-1 flex-col p-4">
+                  <h3 className="font-display text-base font-bold text-primary">{collectionName(c, lang)}</h3>
+                  <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-accent">{collectionBooksLabel(c, lang)}</p>
+                  <p className="mt-1.5 line-clamp-2 flex-1 text-[13px] leading-snug text-muted-foreground">{collectionBlurb(c, lang)}</p>
+                  <div className="mt-2.5 flex items-end justify-between gap-3">
+                    <p className="font-display text-xl font-bold leading-none text-primary">{fmt(price(c))}</p>
                     <span className={`text-xs font-semibold ${on ? "text-accent" : "text-muted-foreground"}`}>
                       {on ? t.pricing.collAdded : t.pricing.collAdd}
                     </span>

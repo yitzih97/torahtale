@@ -953,8 +953,6 @@ export const en = {
       "Prices shown are for the 8″×8″ softcover — you'll choose hardcover or board book, and see the updated total, before you send your request. Every book in a collection stars your child, and we'll confirm the details and delivery with you before anything is printed.",
     collRemove: (name: string) => `Remove ${name}`,
     plansNote: "Prices shown for the 8″×8″ softcover. Hardcover and board book are priced separately at checkout. Cancel a plan any time from your dashboard.",
-    heroTitle: "Create Personalized Torah Books",
-    heroAccent: "Your Kids Will Love",
     startingAt: "starting at",
     perMonth: "/month",
     perYear: "/year",

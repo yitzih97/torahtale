@@ -53,14 +53,7 @@ const Pricing = () => {
       />
       <Navbar onStart={() => goCreate()} transparentHero={false} />
 
-      <main className="pt-24 lg:pt-28">
-        {/* HERO */}
-        <section className="container max-w-5xl text-center py-16 lg:py-24">
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-            {t.pricing.heroTitle}{" "}
-            <span className="text-accent">{t.pricing.heroAccent}</span>
-          </h1>
-        </section>
+      <main className="pt-[100px]">
 
         {/* ── ONE UNIT: how you buy ────────────────────────────────────────
          * Subscriptions and collections were two pages bolted together — a
@@ -68,12 +61,12 @@ const Pricing = () => {
          * section with one rhythm: pick a plan, or build a bundle, same card
          * language throughout.
          */}
-        <section className="container pb-4">
+        <section className="container pb-2">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="font-display text-3xl font-bold uppercase tracking-[0.12em] text-accent md:text-4xl">{t.pricing.plansEyebrow}</p>
+            <p className="font-display text-2xl font-bold uppercase tracking-[0.12em] text-accent md:text-3xl">{t.pricing.plansEyebrow}</p>
           </div>
 
-          <div className="mx-auto mt-10 grid max-w-5xl gap-5 md:grid-cols-3 items-stretch">
+          <div className="mx-auto mt-4 grid max-w-5xl gap-4 md:grid-cols-3 items-stretch">
             {([
               { key: "single", popular: false,  title: t.pricing.singleTitle, sub: t.pricing.singleSubtitle, price: money(singlePrice("softcover", isIls)), per: "", cta: t.pricing.singleCta },
               { key: "torah", popular: true, title: t.pricing.torahTitle,  sub: t.pricing.torahSubtitle,  price: money(subPrice("monthly", "softcover", isIls)), per: t.pricing.perMonth, cta: t.pricing.torahCta },
@@ -84,7 +77,7 @@ const Pricing = () => {
                 <div
                   key={p.key}
                   onClick={() => setSelected(p.key)}
-                  className={`relative flex cursor-pointer flex-col rounded-3xl border-2 p-6 transition-all duration-300 ${
+                  className={`relative flex cursor-pointer flex-col rounded-3xl border-2 p-4 transition-all duration-300 ${
                     on
                       ? "border-accent bg-accent/5 shadow-soft-lg ring-1 ring-accent/25"
                       : "border-border bg-card shadow-soft-sm hover:-translate-y-1 hover:shadow-soft-lg"
@@ -95,17 +88,17 @@ const Pricing = () => {
                       <Crown className="me-1 h-3 w-3" /> {t.pricing.mostPopular}
                     </Badge>
                   )}
-                  <h3 className="font-display text-xl font-bold text-primary">{p.title}</h3>
-                  <div className="mt-4 flex items-baseline gap-1.5">
-                    <span className="font-display text-4xl font-bold text-primary">{p.price}</span>
+                  <h3 className="font-display text-lg font-bold text-primary">{p.title}</h3>
+                  <div className="mt-2 flex items-baseline gap-1.5">
+                    <span className="font-display text-3xl font-bold text-primary">{p.price}</span>
                     {p.per && <span className="text-sm text-muted-foreground">{p.per}</span>}
                   </div>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{p.sub}</p>
+                  <p className="mt-1 flex-1 text-sm leading-snug text-muted-foreground">{p.sub}</p>
                   <Button
                     variant={on ? "gold" : "outline"}
-                    size="lg"
+                    size="default"
                     onClick={(e) => { e.stopPropagation(); goCreate(); }}
-                    className="mt-6 w-full rounded-full"
+                    className="mt-3 w-full rounded-full"
                   >
                     {p.cta}
                   </Button>
@@ -114,7 +107,7 @@ const Pricing = () => {
             })}
           </div>
 
-          <p className="mx-auto mt-5 max-w-2xl text-center text-xs text-muted-foreground">
+          <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] leading-snug text-muted-foreground">
             {t.pricing.plansNote}
           </p>
         </section>
