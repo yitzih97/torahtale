@@ -98,14 +98,14 @@ export const CollectionsSection = () => {
   };
 
   return (
-    <section id="collections" className="relative pt-6 pb-14 md:pb-16 overflow-hidden">
+    <section id="collections" className="relative pt-6 pb-14 md:pb-16 overflow-hidden [@media(max-height:820px)]:pt-4">
       <div className="container relative mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease }}
-          className="mb-5"
+          className="mb-5 [@media(max-height:820px)]:mb-3"
         >
           <SectionHeading>{t.pricing.collectionsEyebrow}</SectionHeading>
         </motion.div>
@@ -140,7 +140,7 @@ export const CollectionsSection = () => {
                     src={c.image}
                     alt={collectionName(c, lang)}
                     loading="lazy"
-                    className="h-36 w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="h-36 w-full object-cover transition-transform duration-700 group-hover:scale-105 [@media(max-height:820px)]:h-[7.5rem]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-midnight/90 via-midnight/20 to-transparent" />
 
@@ -184,7 +184,7 @@ export const CollectionsSection = () => {
                   {collectionBlurb(c, lang)}
                 </p>
 
-                <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+                <div className="flex items-center justify-between gap-3 px-4 py-3.5 [@media(max-height:820px)]:py-2.5">
                   <p className="font-display text-2xl font-bold leading-none text-primary">{fmt(price(c))}</p>
                   <span
                     className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${

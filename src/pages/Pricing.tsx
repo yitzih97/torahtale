@@ -68,10 +68,10 @@ const Pricing = () => {
             <div className="absolute -bottom-28 end-[10%] h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
           </div>
 
-          <div className="container relative z-10 py-5 lg:py-6">
+          <div className="container relative z-10 py-5 lg:py-6 [@media(max-height:820px)]:py-3.5">
             <SectionHeading>{t.pricing.plansEyebrow}</SectionHeading>
 
-            <div className="mx-auto mt-6 grid max-w-5xl gap-5 md:grid-cols-3 items-stretch">
+            <div className="mx-auto mt-6 grid max-w-5xl gap-5 md:grid-cols-3 items-stretch [@media(max-height:820px)]:mt-4">
               {([
                 { key: "single", icon: BookOpen, popular: false, title: t.pricing.singleTitle, sub: t.pricing.singleSubtitle, price: money(singlePrice("softcover", isIls)), per: "", cta: t.pricing.singleCta },
                 { key: "torah", icon: Sparkles, popular: true, title: t.pricing.torahTitle, sub: t.pricing.torahSubtitle, price: money(subPrice("monthly", "softcover", isIls)), per: t.pricing.perMonth, cta: t.pricing.torahCta },
@@ -83,7 +83,7 @@ const Pricing = () => {
                   <div
                     key={p.key}
                     onClick={() => setSelected(p.key)}
-                    className={`relative flex cursor-pointer flex-col rounded-3xl border p-5 transition-all duration-300 ${
+                    className={`relative flex cursor-pointer flex-col rounded-3xl border p-5 transition-all duration-300 [@media(max-height:820px)]:p-4 ${
                       on
                         ? "border-accent/60 bg-card shadow-soft-lg ring-2 ring-accent/25"
                         : "border-border/70 bg-card/85 shadow-soft-sm backdrop-blur-sm hover:-translate-y-1 hover:border-accent/40 hover:shadow-soft-md"
@@ -118,7 +118,7 @@ const Pricing = () => {
               })}
             </div>
 
-            <p className="mx-auto mt-3.5 max-w-4xl text-center text-xs leading-relaxed text-muted-foreground/90">
+            <p className="mx-auto mt-3.5 max-w-4xl text-center text-xs leading-relaxed text-muted-foreground/90 [@media(max-height:820px)]:mt-3">
               {t.pricing.plansNote}
             </p>
           </div>
