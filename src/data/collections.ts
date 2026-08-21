@@ -124,15 +124,20 @@ export const collectionsBookCount = (keys: string[]): number =>
  * Every combination clears production cost - the thinnest is the Complete
  * Collection in board book at ~42% gross margin (see lib/bookCosts.ts). Keep it
  * that way: these deltas are per book, so a wrong one is wrong 131 times over. */
-export type CollectionFormat = "softcover" | "hardcover" | "board";
+export type CollectionFormat = "softcover" | "hardcover" | "board" | "coloring";
 
 /** The cover choices offered on a collection, in display order. */
-export const COLLECTION_FORMATS: CollectionFormat[] = ["softcover", "hardcover", "board"];
+export const COLLECTION_FORMATS: CollectionFormat[] = ["softcover", "hardcover", "board", "coloring"];
 
 export const COLLECTION_FORMAT_UPCHARGE: Record<CollectionFormat, { usd: number; ils: number }> = {
   softcover: { usd: 0, ils: 0 },
   hardcover: { usd: 8, ils: 25 },
   board: { usd: 12, ils: 37 },
+  // Derived the same way as the two above: the YEARLY-plan per-book delta over
+  // softcover. yearly/52 gives 17.94 softcover vs 19.54 coloring = +1.60 (and
+  // +4.96 -> 5 in shekels), which reproduces hardcover's +8 and board's +12
+  // exactly, so the ladder stays internally consistent.
+  coloring: { usd: 1.6, ils: 5 },
 };
 
 export const formatUpcharge = (format: CollectionFormat, isIls: boolean): number => {

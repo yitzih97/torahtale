@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight, Search, Smile, UserRound
 } from "lucide-react";
 import softcoverThumb from "@/assets/books/thumb-softcover.jpg";
+import coloringThumb from "@/assets/books/thumb-coloring.jpg";
 import hardcoverThumb from "@/assets/books/thumb-hardcover.jpg";
 import boardThumb from "@/assets/books/thumb-board.jpg";
 import photoGoodImg from "@/assets/wizard/photo-good.jpg";
@@ -92,12 +93,14 @@ const COLLECTION_FORMAT_THUMBS: Record<CollectionFormat, string> = {
   softcover: softcoverThumb,
   hardcover: hardcoverThumb,
   board: boardThumb,
+  coloring: coloringThumb,
 };
 
 const COLLECTION_FORMAT_DIMS: Record<CollectionFormat, string> = {
   softcover: "8″ × 8″",
   hardcover: "8″ × 8″",
   board: "6″ × 6″",
+  coloring: "8.5″ × 11″",
 };
 
 export interface ChildProfile {
@@ -1159,6 +1162,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections, 
         softcover: t.bookOptions.softcover,
         hardcover: t.bookOptions.hardcover,
         board: t.bookOptions.boardBook,
+        coloring: t.productsShowcase.coloring,
       };
       const bothNames = (localized: string, english: string) =>
         localized === english ? english : `${localized} / ${english}`;
@@ -2573,11 +2577,13 @@ export const CreationWizard = ({ open = true, onClose, collection, collections, 
                     softcover: t.bookOptions.softcover,
                     hardcover: t.bookOptions.hardcover,
                     board: t.bookOptions.boardBook,
+                    coloring: t.productsShowcase.coloring,
                   };
                   const TAGLINE: Record<CollectionFormat, string> = {
                     softcover: t.bookOptions.softcoverTagline,
                     hardcover: t.bookOptions.hardcoverTagline,
                     board: t.bookOptions.boardTagline,
+                    coloring: t.productsShowcase.coloringTagline,
                   };
                   return (
                     <motion.div
@@ -2587,7 +2593,7 @@ export const CreationWizard = ({ open = true, onClose, collection, collections, 
                       <div>
                         <p className="text-sm font-semibold text-foreground">{t.collectionRequest.chooseCover}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">{t.collectionRequest.chooseCoverNote}</p>
-                        <div className="mt-3 grid gap-2.5">
+                        <div className="mt-3 grid grid-cols-2 gap-2.5">
                           {COLLECTION_FORMATS.map((f) => {
                             const on = collectionFormat === f;
                             return (

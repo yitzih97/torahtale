@@ -17,8 +17,8 @@ import {
 /* Production cost per book, mirroring lib/bookCosts.ts (PRODUCTION_COST_USD +
  * $0.04 per generated page including the cover). Duplicated here rather than
  * imported because bookCosts pulls in the wizard's component tree. */
-const PROD_USD: Record<CollectionFormat, number> = { softcover: 5.87, hardcover: 8.29, board: 12.18 };
-const PAGES: Record<CollectionFormat, number> = { softcover: 20, hardcover: 24, board: 10 };
+const PROD_USD: Record<CollectionFormat, number> = { softcover: 5.87, hardcover: 8.29, board: 12.18, coloring: 5.90 };
+const PAGES: Record<CollectionFormat, number> = { softcover: 20, hardcover: 24, board: 10, coloring: 24 };
 const cogs = (f: CollectionFormat) => PROD_USD[f] + 0.04 * (PAGES[f] + 1);
 
 const books = (key: string) => collectionsBookCount([key]);
