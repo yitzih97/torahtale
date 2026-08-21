@@ -69,7 +69,14 @@ const Pricing = () => {
           </div>
 
           <div className="container relative z-10 py-5 lg:py-6 [@media(max-height:820px)]:py-3.5">
-            <SectionHeading>{t.pricing.plansEyebrow}</SectionHeading>
+            <h1 className="mx-auto max-w-4xl text-center font-display text-3xl font-bold leading-tight text-foreground md:text-4xl lg:text-5xl">
+              {t.pricing.heroTitle}{" "}
+              <span className="text-accent">{t.pricing.heroAccent}</span>
+            </h1>
+
+            <div className="mt-6 [@media(max-height:820px)]:mt-4">
+              <SectionHeading>{t.pricing.plansEyebrow}</SectionHeading>
+            </div>
 
             <div className="mx-auto mt-6 grid max-w-5xl gap-5 md:grid-cols-3 items-stretch [@media(max-height:820px)]:mt-4">
               {([
