@@ -617,7 +617,8 @@ serve(async (req) => {
         const uid = data?.claims?.sub;
         if (uid) {
           const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-          const { data: role } = await admin.from("user_roles").select("role").eq("user_id", uid).eq("role", "admin").maybeSingle();
+          const { data: role } = await admin.from("user_roles").select("role").eq("user_id", uid)
+            .in("role", ["admin", "staff"]).limit(1).maybeSingle();
           if (role) authorized = true;
         }
       } catch (_e) { /* fall through to 401 */ }

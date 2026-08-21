@@ -5,6 +5,7 @@
 #
 #   STAFF_EMAIL     the login to create
 #   STAFF_PASSWORD  its password, from a repository secret. Never echoed.
+#   RETIRE_EMAIL    optional: an old login to remove once the new one is up.
 #
 # The staff ROLE is not granted here: staff_emails + the grant_staff_role trigger
 # attach it the moment the account exists (see the 20260821 migrations), so this
@@ -72,3 +73,18 @@ ROLES=$(jq -n --arg q "select r.role::text from public.user_roles r
       -H "Content-Type: application/json" --data @- | jq -r '[.[]?.role] | join(", ")')
 
 echo "Provisioned ${STAFF_EMAIL} (${USER_ID}) with role(s): ${ROLES:-none}"
+
+# An employee login that has been replaced should stop existing, not sit there
+# with its role quietly removed. Only ever runs on an address passed in by hand.
+if [ -n "${RETIRE_EMAIL:-}" ]; then
+  OLD_ID=$(curl -s -G "${AUTH}/admin/users" --data-urlencode "filter=${RETIRE_EMAIL}" \
+    -H "apikey: ${SERVICE_KEY}" -H "Authorization: Bearer ${SERVICE_KEY}" \
+    | jq -r --arg e "$RETIRE_EMAIL" '.users[]? | select((.email | ascii_downcase) == ($e | ascii_downcase)) | .id' | head -1)
+  if [ -n "$OLD_ID" ]; then
+    curl -s -X DELETE "${AUTH}/admin/users/${OLD_ID}" \
+      -H "apikey: ${SERVICE_KEY}" -H "Authorization: Bearer ${SERVICE_KEY}" > /dev/null
+    echo "Retired ${RETIRE_EMAIL} (${OLD_ID})."
+  else
+    echo "Nothing to retire: ${RETIRE_EMAIL} does not exist."
+  fi
+fi

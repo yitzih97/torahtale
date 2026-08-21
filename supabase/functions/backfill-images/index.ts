@@ -89,7 +89,8 @@ async function authorize(req: Request): Promise<boolean> {
     const { data } = await anon.auth.getClaims(authHeader.replace("Bearer ", ""));
     const uid = data?.claims?.sub;
     if (!uid) return false;
-    const { data: role } = await admin.from("user_roles").select("role").eq("user_id", uid).eq("role", "admin").maybeSingle();
+    const { data: role } = await admin.from("user_roles").select("role").eq("user_id", uid)
+      .in("role", ["admin", "staff"]).limit(1).maybeSingle();
     return !!role;
   } catch { return false; }
 }

@@ -46,7 +46,8 @@ serve(async (req) => {
     );
 
     const { data: roleRow } = await admin
-      .from("user_roles").select("role").eq("user_id", callerId).eq("role", "admin").maybeSingle();
+      .from("user_roles").select("role").eq("user_id", callerId)
+      .in("role", ["admin", "staff"]).limit(1).maybeSingle();
     if (!roleRow) return json({ error: "Forbidden" }, 403);
 
     const { ticketId, body, resolve } = await req.json();

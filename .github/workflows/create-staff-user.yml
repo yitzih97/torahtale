@@ -10,7 +10,11 @@ on:
       email:
         description: "Login to provision (must be listed in public.staff_emails)"
         required: true
-        default: agent@torahtale.com
+        default: help@torahtale.com
+      retire:
+        description: "Optional: an old login to delete once the new one is up"
+        required: false
+        default: ""
 
 env:
   PROJECT_REF: cjgqpusyxvltglcbnpvg
@@ -25,4 +29,5 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           STAFF_EMAIL: ${{ inputs.email }}
           STAFF_PASSWORD: ${{ secrets.STAFF_INITIAL_PASSWORD }}
+          RETIRE_EMAIL: ${{ inputs.retire }}
         run: bash scripts/create-staff-user.sh

@@ -31,18 +31,6 @@ const BOOK_LIST_COLS =
   // and send the set as ONE Printify order - see approveBatchAndSubmit.
   "shipment_batch_id:story_data->>shipmentBatchId";
 
-// What a STAFF reviewer's session asks for. RLS is row-level, so the database
-// cannot hide a column from them - but the app can decline to fetch it, and a
-// reviewer has no business holding a customer's address or payment state in
-// their browser. What is left is the book: who it stars, which parsha, which
-// product, where it is in the queue. The product type is taken as a JSON path
-// so the format can be shown without pulling shipping_data (i.e. the address)
-// along with it.
-const BOOK_LIST_COLS_STAFF =
-  "id,child_name,torah_portion,language,status,order_number,created_at,updated_at," +
-  "printify_order_id,product_type:shipping_data->bookOptions->>productType," +
-  "shipment_batch_id:story_data->>shipmentBatchId";
-
 // Fetch the complete book row (including the heavy image columns) for one book -
 // used when opening the generation modal or exporting a ZIP.
 export async function fetchBookFull(id: string) {
@@ -77,18 +65,23 @@ export function useAdminData() {
   const role = roleQuery.data ?? null;
   const isAdmin = role === "admin";
   const isStaff = role === "staff";
+  /* Staff hold every admin permission except deleting, and the dashboard has no
+     delete in it - so the two roles see and fetch exactly the same thing. What
+     separates them lives in the database (see the staff_role migrations), where
+     a missing DELETE policy cannot be forgotten by a screen. */
+  const hasAdminAccess = isAdmin || isStaff;
 
   const allBooksQuery = useQuery({
-    queryKey: ["admin-books", role],
+    queryKey: ["admin-books"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("books")
-        .select(isStaff ? BOOK_LIST_COLS_STAFF : BOOK_LIST_COLS)
+        .select(BOOK_LIST_COLS)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: isAdmin || isStaff,   // the review employee's whole job
+    enabled: hasAdminAccess,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     refetchInterval: 30000,
@@ -99,7 +92,7 @@ export function useAdminData() {
   // filters server-side, so no image bytes cross the wire). Drives the
   // download / approve / "has pages" UI without pulling pages_data into the list.
   const bookPageIdsQuery = useQuery({
-    queryKey: ["admin-books-haspages", role],
+    queryKey: ["admin-books-haspages"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("books")
@@ -108,7 +101,7 @@ export function useAdminData() {
       if (error) throw error;
       return (data || []).map((r: any) => r.id as string);
     },
-    enabled: isAdmin || isStaff,   // the review employee's whole job
+    enabled: hasAdminAccess,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     refetchInterval: 30000,
@@ -137,7 +130,7 @@ export function useAdminData() {
       if (error) throw error;
       return data;
     },
-    enabled: isAdmin,
+    enabled: hasAdminAccess,
   });
 
   const allChildrenQuery = useQuery({
@@ -150,7 +143,7 @@ export function useAdminData() {
       if (error) throw error;
       return data;
     },
-    enabled: isAdmin,
+    enabled: hasAdminAccess,
   });
 
   const allSubscriptionsQuery = useQuery({
@@ -163,7 +156,7 @@ export function useAdminData() {
       if (error) throw error;
       return data;
     },
-    enabled: isAdmin,
+    enabled: hasAdminAccess,
   });
 
   const updateBookStatus = useMutation({
@@ -226,7 +219,7 @@ export function useAdminData() {
     isAdmin,
     isStaff,
     /** Anyone allowed through the door at all. */
-    hasAdminAccess: isAdmin || isStaff,
+    hasAdminAccess,
     isCheckingAdmin: roleQuery.isLoading,
     books: booksWithFlag,
     booksLoading: allBooksQuery.isLoading,

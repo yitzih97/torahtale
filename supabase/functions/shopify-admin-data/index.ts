@@ -153,8 +153,11 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!,
     );
 
+    // Staff run the same dashboard as the owner (everything but delete), so the
+    // admin-only actions here answer to either role.
     const { data: roleRow } = await admin
-      .from("user_roles").select("role").eq("user_id", callerId).eq("role", "admin").maybeSingle();
+      .from("user_roles").select("role").eq("user_id", callerId)
+      .in("role", ["admin", "staff"]).limit(1).maybeSingle();
     const isAdmin = !!roleRow;
 
     const { action, bookId, userId, subscriptionId, address, sellingPlanId } = await req.json();

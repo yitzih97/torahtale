@@ -18,6 +18,6 @@ jobs:
       - name: Check what the staff login can reach
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          STAFF_EMAIL: agent@torahtale.com
+          STAFF_EMAIL: help@torahtale.com
           STAFF_PASSWORD: ${{ secrets.STAFF_INITIAL_PASSWORD }}
         run: bash scripts/verify-staff-permissions.sh
