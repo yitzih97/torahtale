@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
-import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ChevronDown, Pencil, RefreshCw } from "lucide-react";
+import { Crown, ShieldCheck, Check, Sparkles, TrendingDown, Zap, CalendarDays, Loader2, ChevronDown, Pencil, RefreshCw, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ShippingData } from "./ShippingForm";
 import { getPortionLabel, getPortionDisplay } from "./TorahPortions";
@@ -98,6 +99,10 @@ export const CheckoutStep = ({
   coverPreview,
 }: Props) => {
   const [detailsOpen, setDetailsOpen] = useState(false);
+  // The cover opens full size in a dialog. Everything about the cover - what
+  // it is, and the chance to roll another one - lives in there, so the summary
+  // row stays a row about the order.
+  const [coverOpen, setCoverOpen] = useState(false);
   const [selectedPlanLocal, setSelectedPlanLocal] = useState<PlanType>("monthly");
   const selectedPlan = selectedPlanProp ?? selectedPlanLocal;
   const setSelectedPlan = (p: PlanType) => {
@@ -105,7 +110,7 @@ export const CheckoutStep = ({
     else setSelectedPlanLocal(p);
   };
   const [placingOrder, setPlacingOrder] = useState(false);
-  const { t, lang } = useLanguage();
+  const { t, lang, dir } = useLanguage();
   const { symbol, rate, code } = t.currency;
 
   const isIls = code === "ILS";
@@ -299,7 +304,13 @@ export const CheckoutStep = ({
             It is shown flat, not printed onto a mock-up: the format they chose
             doesn't change the artwork. Falls back to the product photo while
             it generates or if it could not be made. */}
-        <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-muted/30 border border-border/50 shrink-0">
+        <button
+          type="button"
+          onClick={() => setCoverOpen(true)}
+          aria-label={t.checkout.coverEnlarge}
+          title={t.checkout.coverEnlarge}
+          className="group/cover relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-muted/30 border border-border/50 shrink-0 cursor-zoom-in"
+        >
           {coverPreview?.url ? (
             <img src={coverPreview.url} alt={storyLabel} decoding="async" className="w-full h-full object-cover" />
           ) : (
@@ -313,12 +324,18 @@ export const CheckoutStep = ({
               style={lang === "en" ? undefined : { transform: "scaleX(-1)" }}
             />
           )}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover/cover:bg-black/25">
+            <ZoomIn className="w-5 h-5 text-white opacity-0 drop-shadow transition-opacity group-hover/cover:opacity-100" />
+          </div>
+          <div className="absolute bottom-0.5 end-0.5 rounded-full bg-black/45 p-0.5">
+            <ZoomIn className="w-3 h-3 text-white" />
+          </div>
           {coverPreview?.loading && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
               <Loader2 className="w-5 h-5 animate-spin text-accent" />
             </div>
           )}
-        </div>
+        </button>
         {/* The book, named once. No price here - it is on the plan card above
             and on the total below, and repeating it three more times was the
             main thing making this panel feel busy. */}
@@ -328,25 +345,73 @@ export const CheckoutStep = ({
             {productLine}
             {quantity > 1 ? ` · ×${quantity}` : ""}
           </p>
+          {/* Trying another cover lives inside the enlarged view now: it is a
+              decision about the artwork, and it should be made looking at the
+              artwork rather than at a 96px thumbnail. */}
           {coverPreview && (coverPreview.url || coverPreview.loading) && (
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="text-[11px] text-accent font-medium">
                 {coverPreview.loading ? t.checkout.coverPreparing : t.checkout.coverYours}
               </span>
-              {coverPreview.canRegenerate && (
-                <button
-                  type="button"
-                  onClick={coverPreview.regenerate}
-                  className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-accent underline underline-offset-2"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  {t.checkout.coverTryAnother(coverPreview.regensLeft)}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setCoverOpen(true)}
+                className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-accent"
+              >
+                {t.checkout.coverEnlarge}
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* The cover, full size. This is where the artwork is actually judged, so
+          this is where "try another" belongs - with the count of rolls left, so
+          a customer can see what a retry costs them before spending one. */}
+      <Dialog open={coverOpen} onOpenChange={setCoverOpen}>
+        <DialogContent dir={dir} className="max-w-lg p-3 sm:p-4 bg-background">
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative w-full overflow-hidden rounded-xl bg-muted/30">
+              <img
+                src={coverPreview?.url || FORMAT_THUMB[bookOptions.productType]}
+                alt={storyLabel}
+                decoding="async"
+                className="w-full h-auto object-contain"
+                style={!coverPreview?.url && lang !== "en" ? { transform: "scaleX(-1)" } : undefined}
+              />
+              {coverPreview?.loading && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/75 backdrop-blur-sm">
+                  <Loader2 className="w-7 h-7 animate-spin text-accent" />
+                  <span className="text-xs font-medium text-accent">{t.checkout.coverPreparing}</span>
+                </div>
+              )}
+            </div>
+            <div className="text-center">
+              <DialogTitle className="font-display text-lg font-bold text-primary leading-tight">{storyLabel}</DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5">{productLine}</DialogDescription>
+            </div>
+            {coverPreview && (
+              coverPreview.canRegenerate ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={coverPreview.regenerate}
+                  disabled={coverPreview.loading}
+                  className="w-full rounded-full gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${coverPreview.loading ? "animate-spin" : ""}`} />
+                  {t.checkout.coverTryAnother(coverPreview.regensLeft)}
+                </Button>
+              ) : (
+                // Say why the button is gone. Silence reads as a bug.
+                !coverPreview.loading && !!coverPreview.url && (
+                  <p className="text-xs text-muted-foreground">{t.checkout.coverNoRegensLeft}</p>
+                )
+              )
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* The expandable details are gone: every row in them repeated something
           already on screen. What did NOT appear elsewhere - an add-on, a volume

@@ -783,6 +783,8 @@ export const yi: typeof en = {
     coverPreparing: "מיר שאפן אייער דעקל…",
     coverYours: "דער דעקל פון אייער בוך",
     coverTryAnother: (n: number) => `פרוברט אן אנדערע (${n} געבליבן)`,
+    coverEnlarge: "קלאפט צו פארגרעסערן",
+    coverNoRegensLeft: "דאס איז אייער דעקל - קיין װײַטערע פרוּװן זענען נישט געבליבן פאר דעם בוך.",
     pagesCount: (n: number) => `${n} זייטן`,
     freeShipping: "חינם",
     freeShipNote: "🚚 4 ביכער אַ חודש, געשיקט צוזאַמען אין איין צושטעלונג · ביטול בכל עת",

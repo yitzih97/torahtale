@@ -783,6 +783,8 @@ export const he: typeof en = {
     coverPreparing: "יוצרים את הכריכה שלכם…",
     coverYours: "הכריכה של הספר שלכם",
     coverTryAnother: (n: number) => `נסו אחרת (נותרו ${n})`,
+    coverEnlarge: "הקישו להגדלה",
+    coverNoRegensLeft: "זו הכריכה שלכם - לא נותרו ניסיונות נוספים לספר הזה.",
     pagesCount: (n: number) => `${n} עמודים`,
     freeShipping: "חינם",
     freeShipNote: "🚚 4 ספרים בחודש, נשלחים יחד במשלוח אחד · אפשר לבטל בכל רגע",

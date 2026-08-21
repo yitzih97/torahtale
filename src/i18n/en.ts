@@ -793,6 +793,8 @@ export const en = {
     coverPreparing: "Creating your cover…",
     coverYours: "Your book's cover",
     coverTryAnother: (n: number) => `Try another (${n} left)`,
+    coverEnlarge: "Tap to enlarge",
+    coverNoRegensLeft: "This is your cover - no more tries left on this book.",
     pagesCount: (n: number) => `${n} pages`,
     freeShipping: "Free",
     freeShipNote: "🚚 4 books a month, shipped together in one delivery · Cancel anytime",
