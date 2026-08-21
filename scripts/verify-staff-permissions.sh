@@ -25,10 +25,17 @@ rows() { # table -> row count the staff session can see
     -H "apikey: ${PUBLISHABLE_KEY}" -H "Authorization: Bearer ${JWT}" | jq 'if type=="array" then length else 0 end'
 }
 
+UID=$(curl -s "${BASE}/auth/v1/user" -H "apikey: ${PUBLISHABLE_KEY}" -H "Authorization: Bearer ${JWT}" | jq -r '.id')
+
 echo "What the staff session can read:"
 BOOKS=$(rows books)
 [ "$BOOKS" -gt 0 ] && echo "  PASS  books are readable ($BOOKS sampled)" || { echo "  FAIL  books are NOT readable"; fails=$((fails+1)); }
-check "profiles are hidden"      0 "$(rows profiles)"
+# Every account can read its OWN profile row - that is the standard policy and
+# not a leak. What matters is that no OTHER profile comes back.
+OTHERS=$(curl -s -G "${BASE}/rest/v1/profiles" --data-urlencode "select=id" --data-urlencode "limit=50" \
+  -H "apikey: ${PUBLISHABLE_KEY}" -H "Authorization: Bearer ${JWT}" \
+  | jq --arg me "$UID" 'if type=="array" then [.[] | select(.id != $me)] | length else 0 end')
+check "no other customer's profile is visible" 0 "$OTHERS"
 check "children are hidden"      0 "$(rows children)"
 check "subscriptions are hidden" 0 "$(rows subscriptions)"
 check "site_settings are hidden" 0 "$(rows site_settings)"
