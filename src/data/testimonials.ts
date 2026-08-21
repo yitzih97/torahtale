@@ -19,7 +19,7 @@ export const TESTIMONIALS: Testimonial[] = [
   { name: "Miriam Stein", location: "Toronto, ON", text: "I cried when it arrived. The kibbud av va'em story showed my Sarala helping her mommy, dressed so tzniusdik — exactly what I hoped for.", rating: 5 },
   { name: "Yitzchok Berman", location: "Chicago, IL", text: "Shipping was fast and the customer care answered every question. The book itself is a work of art.", rating: 5 },
   { name: "Bracha Lowenthal", location: "Far Rockaway, NY", text: "My daughter takes it everywhere. The binding has survived months of daily reading by little hands.", rating: 5 },
-  { name: "Menachem Pollak", location: "Los Angeles, CA", text: "As a rebbi I was skeptical about AI, but the content is authentic and respectful. I now recommend it to all my talmidim's parents.", rating: 5 },
+  { name: "Menachem Pollak", location: "Los Angeles, CA", text: "As a rebbi I was skeptical at first, but the content is authentic and respectful. I now recommend it to all my talmidim's parents.", rating: 5 },
   { name: "Devorah Katz", location: "Silver Spring, MD", text: "The personalization goes beyond the name — my son's curly peyos and glasses are right there on every page.", rating: 5 },
   { name: "Shlomo Hirsch", location: "Cedarhurst, NY", text: "Bought it as a birthday gift for my nephew. My sister called me crying happy tears. Best gift I've ever given.", rating: 5 },
   { name: "Rochel Taub", location: "Monsey, NY", text: "The Chanukah book is my kids' favorite — they point to themselves lighting the menorah every single night of Chanukah.", rating: 5 },

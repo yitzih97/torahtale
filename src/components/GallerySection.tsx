@@ -58,7 +58,7 @@ export const GallerySection = () => {
           by Frum Families
         </h2>
         <p className="text-muted-foreground mt-4 max-w-md mx-auto leading-relaxed font-body">
-          Each book is AI-generated with stunning Pixar-quality illustrations unique to your child.
+          Each book is made to order with stunning Pixar-quality illustrations unique to your child.
         </p>
       </motion.div>
 

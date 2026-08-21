@@ -45,7 +45,7 @@ export const en = {
     titleAccent: "personalized Torah story",
     steps: [
       { title: "Tell Us About Your Child", description: "" },
-      { title: "AI Creates the Book", description: "" },
+      { title: "We Create the Book", description: "" },
       { title: "Delivered to Your Door", description: "" },
     ],
   },
@@ -113,8 +113,8 @@ export const en = {
     privacyPolicy: "Privacy Policy",
     termsOfService: "Terms of Service",
     affiliates: "Affiliate Program",
-    copyright: "Torah Tale. Made with ahavas Yisrael.",
-    poweredBy: "Powered by AI · Inspired by Torah",
+    copyright: "Torah Tale LLC.",
+    poweredBy: "Directed by Hashem · Inspired by Torah",
   },
 
   // Auth
@@ -457,10 +457,10 @@ export const en = {
   about: {
     label: "About Us",
     title: "Bringing Torah to Life, One Story at a Time",
-    subtitle: "Torah Tale creates AI-powered, personalized storybooks that place your child at the heart of our most treasured Torah narratives.",
+    subtitle: "Torah Tale creates beautifully personalized storybooks that place your child at the heart of our most treasured Torah narratives.",
     missionTitle: "Our Mission",
     missionP1: "We started Torah Tale with a simple idea: what if every frum child could see themselves walking alongside Avraham Avinu, standing at Har Sinai, or building the Mishkan? Personalized children's books have existed for years, but none were rooted in Torah values with the care and authenticity our community deserves.",
-    missionP2: "By combining advanced AI illustration and storytelling with careful rabbinical guidance, we create one-of-a-kind books that make parsha learning an unforgettable experience for kinderlach of all ages.",
+    missionP2: "By combining modern illustration and storytelling craft with careful rabbinical guidance, we create one-of-a-kind books that make parsha learning an unforgettable experience for kinderlach of all ages.",
     howStartedTitle: "How We Started",
     howStartedP1: "Torah Tale began with a father's wish: he wanted his children to truly experience every week's parsha — not just hear it read at the table, but feel like they were part of it. To walk the road with Avraham, cross the sea with Moshe, stand at Har Sinai — so that each Shabbos, that week's parsha became personal, a story they were inside of, not just listening to.",
     howStartedP2: "So he started making books where his own children were the main characters of the weekly parsha — and their faces lit up like never before. That little idea grew into Torah Tale: premium printed storybooks that place your child at the heart of each week's parsha, turning Torah learning into an adventure they look forward to, week after week.",
@@ -468,7 +468,7 @@ export const en = {
     values: [
       { title: "Torah-Rooted Content", desc: "Every story is grounded in authentic Torah wisdom, reviewed for accuracy and tznius standards." },
       { title: "Child Safety First", desc: "We follow COPPA guidelines and never share children's data. Privacy is built into every layer." },
-      { title: "AI-Powered Personalization", desc: "Cutting-edge AI creates unique illustrations and narratives tailored to each child's world." },
+      { title: "Made for Your Child", desc: "Every illustration and every line of the story is created fresh for the child on the cover." },
       { title: "Made with Ahavas Yisrael", desc: "We believe every Jewish child deserves to see themselves in the stories of our mesorah." },
     ],
     teamTitle: "The Team",
@@ -818,7 +818,7 @@ export const en = {
     mazelTov: "Mazel Tov! 🎉",
     orderPlaced: (name: string) => `Your order has been placed! We're creating ${name || "your child"}'s personalized Torah book and you'll receive an email preview within 24 hours for you to review and confirm.`,
     whatsNext: "What happens next?",
-    step1: "We generate your book with AI illustrations",
+    step1: "We create your book with custom illustrations",
     step2: "You'll get an email preview within 24 hours",
     step3: "Confirm and we'll print & ship your book!",
     goToDashboard: "Go to My Dashboard",
@@ -864,7 +864,7 @@ export const en = {
       { key: "returns", label: "Returns" },
     ],
     items: [
-      { category: "general", question: "What is Torah Tale?", answer: "Torah Tale creates personalized, AI-illustrated Torah story books where your child becomes the star of the parsha. Each book is uniquely generated with your child's name, appearance, and story details." },
+      { category: "general", question: "What is Torah Tale?", answer: "Torah Tale creates personalized, beautifully illustrated Torah story books where your child becomes the star of the parsha. Each book is made one at a time with your child's name, appearance, and story details." },
       { category: "general", question: "What ages are the books for?", answer: "Our books are designed for children ages 0–15 — even the newest baby can star in their own story. Sturdy board books suit babies and toddlers (ages 0–4), softcovers are perfect for ages 4–8, and hardcovers for ages 5–15." },
       { category: "general", question: "Are the stories accurate to the Torah?", answer: "Yes! Every story is carefully crafted with rabbinical guidance to stay true to the parsha, with tznius-mindful illustrations and a clear middos lesson — engaging and age-appropriate for children." },
       { category: "orders", question: "How long does shipping take?", answer: "In the United States, standard shipping is $3.00 and takes 5–8 business days; express is $6.00 and takes 3 business days. To Israel, standard is $5.95 and takes 9–14 business days; express is $10.00 and takes 5–8 business days." },

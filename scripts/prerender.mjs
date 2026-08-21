@@ -34,7 +34,7 @@ const template = readFileSync(join(DIST, "index.html"), "utf8");
 const HOME_HTML = `
   <main>
     <h1>Personalized Torah Storybooks Starring Your Child</h1>
-    <p>Torah Tale creates one-of-a-kind, AI-personalized Torah storybooks where your own child is the hero of the weekly parsha — made with careful rabbinical guidance and strict tznius, illustrated in high-resolution 3D Pixar style, and printed and delivered to your door.</p>
+    <p>Torah Tale creates one-of-a-kind personalized Torah storybooks where your own child is the hero of the weekly parsha — made with careful rabbinical guidance and strict tznius, illustrated in high-resolution 3D Pixar style, and printed and delivered to your door.</p>
     <h2>How it works</h2>
     <ol>
       <li>Add your child's name, age, and a photo.</li>
@@ -112,8 +112,8 @@ const articleJsonLd = (a, isHe = false) => {
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = [
-  { path: "/", title: "Torah Tale — Personalized Torah Storybooks for Jewish Kids", description: "AI-personalized Torah storybooks starring your child, aligned with the weekly parsha and made with rabbinical guidance. Delivered to your door.", content: HOME_HTML },
-  { path: "/about", title: "About Torah Tale — Our Story & Mission", description: "Meet the team behind Torah Tale. Learn how we craft AI-personalized Torah storybooks for Orthodox Jewish families with kedushah and care." },
+  { path: "/", title: "Torah Tale — Personalized Torah Storybooks for Jewish Kids", description: "Personalized Torah storybooks starring your child, aligned with the weekly parsha and made with rabbinical guidance. Delivered to your door.", content: HOME_HTML },
+  { path: "/about", title: "About Torah Tale — Our Story & Mission", description: "Meet the team behind Torah Tale. Learn how we craft personalized Torah storybooks for Orthodox Jewish families with kedushah and care." },
   { path: "/pricing", title: "Pricing — Torah Tale Personalized Storybooks", description: "Simple pricing for personalized Torah storybooks — softcover, hardcover keepsakes, and board books, plus weekly, monthly, and yearly parsha subscriptions." },
   { path: "/faq", title: "FAQ — Torah Tale", description: "Answers to common questions about Torah Tale's personalized Torah storybooks: how they're made, tznius and rabbinical guidance, shipping, and subscriptions." },
   { path: "/testimonials", title: "Reviews — What Families Say About Torah Tale", description: "Read what frum families say about their personalized Torah Tale storybooks for their children." },
@@ -319,7 +319,7 @@ writeFileSync(
   join(DIST, "llms.txt"),
   `# Torah Tale
 
-> AI-personalized Torah storybooks for frum Yiddishe kinderlach. Each book stars your own child — by name and likeness — as the hero of a real Torah story, illustrated in high-resolution 3D Pixar style, written under rabbinical guidance with strict tznius, then printed and shipped worldwide.
+> Personalized Torah storybooks for frum Yiddishe kinderlach. Each book stars your own child — by name and likeness — as the hero of a real Torah story, illustrated in high-resolution 3D Pixar style, written under rabbinical guidance with strict tznius, then printed and shipped worldwide.
 
 Torah Tale (https://torahtale.com) creates custom hardcover, softcover and board books in English, Hebrew and Yiddish. Stories cover the weekly parsha, all of Tanach (Chumash, Nevi'im, Kesuvim, Megillos), the Yamim Tovim, and middos stories for everyday life. Books can be ordered one at a time or by weekly, monthly and yearly subscription. Standard shipping is free (5–7 business days); express is 2–3 business days.
 
